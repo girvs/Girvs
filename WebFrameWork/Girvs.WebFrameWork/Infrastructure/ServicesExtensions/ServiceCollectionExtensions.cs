@@ -89,39 +89,25 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         /// <param name="typeFinder"></param>
         public static void AddRegisterBusinessServices(this IServiceCollection services, ITypeFinder typeFinder)
         {
-            var types = typeFinder.FindClassesOfType<IService>(false, true);
-            var interFaceTypes = types.Where(x => x.IsInterface && x.Name != nameof(IService));
-            var serviceTypes = types.Where(x => !x.IsInterface);
-            foreach (var service in serviceTypes)
+            var types = typeFinder.FindClassesOfType<IRepository>(false, true);
+            var interFaceRepositoryTypes = types.Where(x => x.IsInterface && x.Name != nameof(IRepository));
+            foreach (var repositoryType in interFaceRepositoryTypes)
             {
-                if (service == typeof(BaseActionManager<>))
-                    continue;
-                Type i = interFaceTypes.SingleOrDefault(x => x.Name == $"I{service.Name}");
-                if (i != null)
+                var targetType = types.FirstOrDefault(x => x.IsSubclassOf(repositoryType));
+                if (targetType != null)
                 {
-                    services.AddScoped(i, service);
+                    services.AddScoped(repositoryType, targetType);
                 }
             }
 
-
-            types = typeFinder.FindClassesOfType<IRepository>(false, true);
-            var interFaceDataProviderTypes = types.Where(x => x.IsInterface && x.Name != nameof(IRepository));
-            var dataProviderTypes = types.Where(x => !x.IsInterface);
-            foreach (var dataProvider in dataProviderTypes)
+            types = typeFinder.FindClassesOfType<IService>(false, true);
+            var interFaceServiceTypes = types.Where(x => x.IsInterface && x.Name != nameof(IService));
+            foreach (var serviceType in interFaceServiceTypes)
             {
-                if (dataProvider == typeof(BaseDataProvider<>))
-                    continue;
-                //可修改为从配置文件中读取相当字符串来进行替换。暂时不修改代码
-                string interfaceName = "I" + dataProvider.Name
-                    .Replace("MySql", "")
-                    .Replace("MsSql", "")
-                    .Replace("SqlLite", "");
-
-                Type i = interFaceDataProviderTypes.SingleOrDefault(x => x.Name == interfaceName);
-
-                if (i != null)
+                var targetType = types.FirstOrDefault(x => x.IsSubclassOf(serviceType));
+                if (targetType !=null)
                 {
-                    services.AddScoped(i, dataProvider);
+                    services.AddScoped(serviceType, targetType);
                 }
             }
         }
