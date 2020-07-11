@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc.HealthCheck" Version="2.30.0" />
+    <PackageReference Include="NConsul.AspNetCore" Version="0.7.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Girvs.Domain\Girvs.Domain.csproj" />
+    <ProjectReference Include="..\..\WebFrameWork\Girvs.WebFrameWork\Girvs.WebFrameWork.csproj" />
+    <ProjectReference Include="..\..\WebFrameWork\Girvs.WebGrpcFrameWork\Girvs.WebGrpcFrameWork.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="consul.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

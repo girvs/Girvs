@@ -1,0 +1,17 @@
+﻿{
+  "ConsulConfig": {
+    "CurrentServerModel":"WebApi",
+    //要注册的服务名称 如果为空则取 AppDomain.CurrentDomain.FriendlyName 为名
+    "ServerName": "",
+    //consul服务地址
+    "ConsulAddress": "http://localhost:8500",
+    //健康检查地址
+    "HealthAddress": "http://localhost:5000/Health",
+    //健康检查时间间隔
+    "Interval": 5,
+    //服务启动多久后注册
+    "DeregisterCriticalServiceAfter": 10,
+    //超时时间
+    "Timeout": 10
+  }
+}

@@ -1,0 +1,53 @@
+﻿{
+  "Hosting": {
+    //如果您的主机使用负载均衡器，请将以下设置设为“ true”。用于确定当前请求是否为HTTPS
+    "UseHttpClusterHttps": false,
+    "UseHttpXForwardedProto": false,
+
+    //如果托管服务器不使用“ X-FORWARDED-FOR”标头来确定IP地址，请使用以下设置。
+    //在某些情况下，服务器使用其他HTTP标头。您可以在此处指定自定义HTTP标头。例如，CF-Connecting-IP，X-FORWARDED-PROTO等
+    "ForwardedHttpHeader": ""
+  },
+
+  "Sp": {
+    //如果要在生产环境中看到完整错误，请启用。在开发环境中将被忽略（始终启用）
+    "DisplayFullErrorStack": false,
+    //Redis支持（由Web场，Azure等使用）。在https://azure.microsoft.com/zh-cn/documentation/articles/cache-dotnet-how-to-use-azure-redis-cache/中找到有关它的更多信息
+    "RedisEnabled": true,
+    //Redis数据库ID；如果需要使用特定的Redis数据库，只需在此处设置其编号。如果应该对每种数据类型使用不同的数据库（默认情况下使用），则设置为空；如果要使用默认数据库，请设置-1
+    "RedisDatabaseId": "",
+    "RedisConnectionString": "127.0.0.1:6379,ssl=False",
+    "UseRedisToStoreDataProtectionKeys": false,
+    "UseRedisForCaching": false,
+    "UseRedisToStorePluginsInfo": false,
+
+    //通过传递一些安全性检查以启用是否要将程序集加载到加载源上下文中
+    "UseUnsafeLoadAssembly": true,
+
+    //启用与SQL Server 2008和SQL Server 2008R2的向后兼容性
+    "UseRowNumberForPaging": false,
+    //启用以会话状态存储TempData
+    "UseSessionStateTempDataProvider": false,
+
+
+    //数据库操作相关设置
+    "DataConnectionString": "",
+    "UseDataType": "MsSql",
+    //将null设置为使用默认值（30秒）
+    "SQLCommandTimeout": null,
+    "UseLazyLoading":false,
+    "UseDataTracking":false
+  },
+  "Tasks": [
+    {
+      "Name": "TestJob",
+      "Enabled": true,
+      "Type": "SmartProducts.Person.WebApi.Jobs.TestJob,SmartProducts.Person.WebApi",
+      "EnableShutDown": true,
+      "FailureInterval": 30,
+      "NumberOfTries": 10,
+      "SingleThread": true,
+      "CronExpression": "0/5 * * * * ?"
+    }
+  ]
+}
