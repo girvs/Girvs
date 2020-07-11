@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.0-preview.1.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Controller\" />

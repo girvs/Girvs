@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Girvs.WebFrameWork.Infrastructure.SpSignalRExtensions
 {
-    public static class SpSignalRApplicationExtensions
+    public static class GirvsSignalRApplicationExtensions
     {
         public static void UseAutoSignalRServices(this IApplicationBuilder app)
         {

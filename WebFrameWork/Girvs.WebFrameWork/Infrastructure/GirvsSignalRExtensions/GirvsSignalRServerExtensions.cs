@@ -2,7 +2,7 @@
 
 namespace Girvs.WebFrameWork.Infrastructure.SpSignalRExtensions
 {
-    public static class SpSignalRServerExtensions
+    public static class GirvsSignalRServerExtensions
     {
         public static void AddSpSignalRServer(this IServiceCollection servers)
         {

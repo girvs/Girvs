@@ -89,41 +89,41 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         /// <param name="typeFinder"></param>
         public static void AddRegisterBusinessServices(this IServiceCollection services, ITypeFinder typeFinder)
         {
-            //var types = typeFinder.FindClassesOfType<IService>(false, true);
-            //var interFaceTypes = types.Where(x => x.IsInterface && x.Name != nameof(IService));
-            //var serviceTypes = types.Where(x => !x.IsInterface);
-            //foreach (var service in serviceTypes)
-            //{
-            //    if (service == typeof(BaseActionManager<>))
-            //        continue;
-            //    Type i = interFaceTypes.SingleOrDefault(x => x.Name == $"I{service.Name}");
-            //    if (i != null)
-            //    {
-            //        services.AddScoped(i, service);
-            //    }
-            //}
+            var types = typeFinder.FindClassesOfType<IService>(false, true);
+            var interFaceTypes = types.Where(x => x.IsInterface && x.Name != nameof(IService));
+            var serviceTypes = types.Where(x => !x.IsInterface);
+            foreach (var service in serviceTypes)
+            {
+                if (service == typeof(BaseActionManager<>))
+                    continue;
+                Type i = interFaceTypes.SingleOrDefault(x => x.Name == $"I{service.Name}");
+                if (i != null)
+                {
+                    services.AddScoped(i, service);
+                }
+            }
 
 
-            //types = typeFinder.FindClassesOfType<IRepository>(false, true);
-            //var interFaceDataProviderTypes = types.Where(x => x.IsInterface && x.Name != nameof(IRepository));
-            //var dataProviderTypes = types.Where(x => !x.IsInterface);
-            //foreach (var dataProvider in dataProviderTypes)
-            //{
-            //    if (dataProvider == typeof(BaseDataProvider<>))
-            //        continue;
-            //    //可修改为从配置文件中读取相当字符串来进行替换。暂时不修改代码
-            //    string interfaceName = "I" + dataProvider.Name
-            //        .Replace("MySql", "")
-            //        .Replace("MsSql", "")
-            //        .Replace("SqlLite", "");
+            types = typeFinder.FindClassesOfType<IRepository>(false, true);
+            var interFaceDataProviderTypes = types.Where(x => x.IsInterface && x.Name != nameof(IRepository));
+            var dataProviderTypes = types.Where(x => !x.IsInterface);
+            foreach (var dataProvider in dataProviderTypes)
+            {
+                if (dataProvider == typeof(BaseDataProvider<>))
+                    continue;
+                //可修改为从配置文件中读取相当字符串来进行替换。暂时不修改代码
+                string interfaceName = "I" + dataProvider.Name
+                    .Replace("MySql", "")
+                    .Replace("MsSql", "")
+                    .Replace("SqlLite", "");
 
-            //    Type i = interFaceDataProviderTypes.SingleOrDefault(x => x.Name == interfaceName);
+                Type i = interFaceDataProviderTypes.SingleOrDefault(x => x.Name == interfaceName);
 
-            //    if (i != null)
-            //    {
-            //        services.AddScoped(i, dataProvider);
-            //    }
-            //}
+                if (i != null)
+                {
+                    services.AddScoped(i, dataProvider);
+                }
+            }
         }
 
     }
