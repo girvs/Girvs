@@ -11,7 +11,7 @@ namespace Girvs.Domain.Caching
         /// <summary>
         /// 以分钟为单位获取默认缓存时间
         /// </summary>
-        public static int CacheTime => 60;
+        public const int CacheTime = 60;
 
         /// <summary>
         /// 获取用于将保护锁列表存储到Redis的密钥（与启用的PersistDataProtectionKeysToRedis选项一起使用）

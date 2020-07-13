@@ -110,6 +110,18 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
                     services.AddScoped(serviceType, targetType);
                 }
             }
+            
+            
+            types = typeFinder.FindClassesOfType<IManager>(false, true);
+            var interFaceManagerTypes = types.Where(x => x.IsInterface && x.Name != nameof(IManager));
+            foreach (var managerType in interFaceManagerTypes)
+            {
+                var targetType = types.FirstOrDefault(x => x.IsSubclassOf(managerType));
+                if (targetType !=null)
+                {
+                    services.AddScoped(managerType, targetType);
+                }
+            }
         }
 
     }

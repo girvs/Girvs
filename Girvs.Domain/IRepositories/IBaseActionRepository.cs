@@ -11,8 +11,6 @@ namespace Girvs.Domain.IRepositories
     /// <typeparam name="T">实体类型，实体必须继承BaseEntity</typeparam>
     public interface IBaseActionRepository<T> : IRepository where T : BaseEntity
     {
-        Task RemoveListCache();
-
         /// <summary>
         /// 新增或更新实体，当Id为空时则为新增，不为空代表更新
         /// </summary>
@@ -20,7 +18,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="useCache"></param>
         /// <param name="cacheTime"></param>
         /// <returns>是否成功</returns>
-        Task<bool> AddAsync(T t, bool useCache = true, int? cacheTime = null);
+        Task<bool> AddAsync(T t);
 
         /// <summary>
         /// 添加实体集合
@@ -29,7 +27,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="useCache"></param>
         /// <param name="cacheTime"></param>
         /// <returns>影响的行数</returns>
-        Task<int> AddRangeAsync(List<T> ts, bool useCache = true, int? cacheTime = null);
+        Task<int> AddRangeAsync(List<T> ts);
 
         /// <summary>
         /// 更新实体
@@ -39,7 +37,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="cacheTime">缓存时间</param>
         /// <param name="fields">需要更新的字段列表</param>
         /// <returns>是否成功</returns>
-        Task<bool> UpdateAsync(T t, bool useCache = true, int? cacheTime = null, params string[] fields);
+        Task<bool> UpdateAsync(T t, params string[] fields);
 
         /// <summary>
         /// 更新实体集合
@@ -49,7 +47,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="cacheTime">缓存时间</param>
         /// <param name="fields">需要更新的字段列表</param>
         /// <returns>多少条记录被响应</returns>
-        Task<int> UpdateRangeAsync(List<T> ts, bool useCache = true, int? cacheTime = null, params string[] fields);
+        Task<int> UpdateRangeAsync(List<T> ts, params string[] fields);
 
         /// <summary>
         /// 删除指定的主键值的实体
@@ -58,7 +56,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="useCache"></param>
         /// <param name="cacheTime"></param>
         /// <returns>是否成功</returns>
-        Task<bool> DeleteAsync(T t, bool useCache = true, int? cacheTime = null);
+        Task<bool> DeleteAsync(T t);
 
         /// <summary>
         /// 根据主值集合删除对实体集
@@ -67,7 +65,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="useCache"></param>
         /// <param name="cacheTime"></param>
         /// <returns>主键集合</returns>
-        Task<int> DeleteRangeAsync(List<T> ts, bool useCache = true, int? cacheTime = null);
+        Task<int> DeleteRangeAsync(List<T> ts);
 
         /// <summary>
         /// 根据主键值获取相关的实体
@@ -76,7 +74,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="useCache">是否启用缓存</param>
         /// <param name="cacheTime">缓存时间</param>
         /// <returns>对应的实体</returns>
-        Task<T> GetByIdAsync(Guid id, bool useCache = true, int? cacheTime = null);
+        Task<T> GetByIdAsync(Guid id);
 
         /// <summary>
         /// 获取所有实体列表集合
@@ -85,7 +83,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="cacheTime">缓存时间，默认60分钟</param>
         /// <param name="fields">需要查询的字段列表</param>
         /// <returns>实体列表集合</returns>
-        Task<List<T>> GetAllAsync(bool useCache = true, int? cacheTime = null, params string[] fields);
+        Task<List<T>> GetAllAsync(params string[] fields);
 
         /// <summary>
         /// 根据查询条件获取集合
@@ -94,17 +92,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="useCache">是否使用缓存</param>
         /// <param name="cacheTime">缓存时间，默认60分钟</param>
         /// <returns>实体集合</returns>
-        Task<List<T>> GetByQueryAsync(QueryBase<T> query, bool useCache = true, int? cacheTime = null);
-
-        /// <summary>
-        /// 根据查询条件获取集合
-        /// </summary>
-        /// <typeparam name="TAt">查询类型</typeparam>
-        /// <param name="action">条件设置</param>
-        /// <param name="useCache">是否启用缓存</param>
-        /// <param name="cacheTime">缓存时间，默认60分钟</param>
-        /// <returns>查询的集合</returns>
-        Task<List<T>> GetByQueryActionAsync<TAt>(Action<TAt> action, bool useCache = true, int? cacheTime = null) where TAt : QueryBase<T>, new();
+        Task<List<T>> GetByQueryAsync(QueryBase<T> query);
 
         /// <summary>
         /// 是否存在指定键的实体
