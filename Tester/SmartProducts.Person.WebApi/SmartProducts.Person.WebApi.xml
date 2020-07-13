@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SmartProducts.Person.WebApi</name>
+    </assembly>
+    <members>
+        <member name="P:SmartProducts.Person.WebApi.Model.RequestAddPersonModel.Sex">
+            <summary>性别</summary>
+        </member>
+        <member name="P:SmartProducts.Person.WebApi.Model.RequestAddPersonModel.PoliticOutlook">
+            <summary>政治面貌</summary>
+        </member>
+        <member name="P:SmartProducts.Person.WebApi.Model.RequestAddPersonModel.Education">
+            <summary>教育程度</summary>
+        </member>
+        <member name="P:SmartProducts.Person.WebApi.Model.RequestAddPersonModel.Mobilephone">
+            <summary>手机号码</summary>
+        </member>
+        <member name="P:SmartProducts.Person.WebApi.Model.RequestAddPersonModel.IDNo">
+            <summary>身份证号码</summary>
+        </member>
+        <member name="P:SmartProducts.Person.WebApi.Model.RequestAddPersonModel.WorkType">
+            <summary>工作类型</summary>
+        </member>
+        <member name="P:SmartProducts.Person.WebApi.Model.RequestAddPersonModel.MedicalHistory">
+            <summary>是否有重大病史</summary>
+        </member>
+    </members>
+</doc>

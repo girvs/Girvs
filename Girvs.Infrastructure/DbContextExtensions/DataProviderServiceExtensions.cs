@@ -17,10 +17,10 @@ namespace Girvs.Infrastructure.DbContextExtensions
         /// </summary>
         public static void AddSpObjectContext(this IServiceCollection services)
         {
-            var spConfig = EngineContext.Current.Resolve<GirvsConfig>();
+            var config = EngineContext.Current.Resolve<GirvsConfig>();
             Action<DbContextOptionsBuilder> optionsAction = builder =>
             {
-                switch (spConfig.UseDataType)
+                switch (config.UseDataType)
                 {
                     case UseDataType.MsSql:
                         builder.UseSqlServerWithLazyLoading(services);
@@ -36,7 +36,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
                 }
 
                 //所有查询不使用数据追踪的方式，以免引起难以想象的麻烦
-                if (!spConfig.UseDataTracking)
+                if (!config.UseDataTracking)
                 {
                     builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
                 }

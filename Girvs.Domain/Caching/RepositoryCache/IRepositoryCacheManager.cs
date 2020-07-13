@@ -33,7 +33,7 @@ namespace Girvs.Domain.Caching.RepositoryCache
             int cacheTime = GirvsCachingDefaults.CacheTime);
 
 
-        Task<List<T>> GetAllLinkageAsync(Func<string[], List<T>> acquire, string[] fields,
+        Task<List<T>> GetAllLinkageAsync(Func<string[], Task<List<T>>> acquire, string[] fields,
             int cacheTime = GirvsCachingDefaults.CacheTime);
 
 

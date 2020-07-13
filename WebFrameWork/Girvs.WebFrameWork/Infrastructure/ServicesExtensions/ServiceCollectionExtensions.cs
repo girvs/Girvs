@@ -2,6 +2,7 @@
 using System.Linq;
 using Girvs.Application;
 using Girvs.Domain;
+using Girvs.Domain.Caching.RepositoryCache;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.FileProvider;
 using Girvs.Domain.Infrastructure;
@@ -89,37 +90,21 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         /// <param name="typeFinder"></param>
         public static void AddRegisterBusinessServices(this IServiceCollection services, ITypeFinder typeFinder)
         {
-            var types = typeFinder.FindClassesOfType<IRepository>(false, true);
-            var interFaceRepositoryTypes = types.Where(x => x.IsInterface && x.Name != nameof(IRepository));
-            foreach (var repositoryType in interFaceRepositoryTypes)
+            RegisterType<IRepository>(services, typeFinder);
+            RegisterType<IManager>(services, typeFinder);
+            RegisterType<IService>(services, typeFinder);
+        }
+
+        private static void RegisterType<T>(IServiceCollection services, ITypeFinder typeFinder)
+        {
+            var types = typeFinder.FindClassesOfType<T>(false, true);
+            var interFaceTypes = types.Where(x => x.IsInterface && x.Name != typeof(T).Name).ToList();
+            foreach (var repositoryType in interFaceTypes)
             {
-                var targetType = types.FirstOrDefault(x => x.IsSubclassOf(repositoryType));
+                var targetType = types.FirstOrDefault(x => repositoryType.IsAssignableFrom(x) && x.IsClass);
                 if (targetType != null)
                 {
                     services.AddScoped(repositoryType, targetType);
-                }
-            }
-
-            types = typeFinder.FindClassesOfType<IService>(false, true);
-            var interFaceServiceTypes = types.Where(x => x.IsInterface && x.Name != nameof(IService));
-            foreach (var serviceType in interFaceServiceTypes)
-            {
-                var targetType = types.FirstOrDefault(x => x.IsSubclassOf(serviceType));
-                if (targetType !=null)
-                {
-                    services.AddScoped(serviceType, targetType);
-                }
-            }
-            
-            
-            types = typeFinder.FindClassesOfType<IManager>(false, true);
-            var interFaceManagerTypes = types.Where(x => x.IsInterface && x.Name != nameof(IManager));
-            foreach (var managerType in interFaceManagerTypes)
-            {
-                var targetType = types.FirstOrDefault(x => x.IsSubclassOf(managerType));
-                if (targetType !=null)
-                {
-                    services.AddScoped(managerType, targetType);
                 }
             }
         }

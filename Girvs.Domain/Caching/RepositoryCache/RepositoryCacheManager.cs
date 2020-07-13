@@ -131,11 +131,11 @@ namespace Girvs.Domain.Caching.RepositoryCache
             return await Task.Run(() => _staticCacheManager.Get(BuilderKey(primaryKey), acquire, cacheTime));
         }
 
-        public async Task<List<T>> GetAllLinkageAsync(Func<string[], List<T>> acquire, string[] fields,
+        public async Task<List<T>> GetAllLinkageAsync(Func<string[], Task<List<T>>> acquire, string[] fields,
             int cacheTime = GirvsCachingDefaults.CacheTime)
         {
             string key = fields.Any() ? $"{CacheKeyListAllPrefix}:{string.Join(',', fields)}" : CacheKeyListAllPrefix;
-            return await Task.Run(() => _staticCacheManager.Get(key, () => acquire(fields), cacheTime));
+            return await Task.Run(() => _staticCacheManager.Get(key, async () => await acquire(fields), cacheTime));
         }
 
         public async Task<List<T>> GetByQueryLinkageAsync(Func<QueryBase<T>, Task<List<T>>> acquire, QueryBase<T> query,
