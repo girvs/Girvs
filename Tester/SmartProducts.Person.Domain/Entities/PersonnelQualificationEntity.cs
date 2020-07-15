@@ -1,5 +1,6 @@
 ﻿using System;
 using Girvs.Domain;
+using Girvs.Domain.Models;
 
 namespace SmartProducts.Person.Domain.Entities
 {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Extensions;
 using Girvs.Domain.Infrastructure;
@@ -14,14 +13,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure.Repositories
 {
-    public abstract class BaseActionRepository<T> : IBaseActionRepository<T> where T : BaseEntity, new()
+    public class Repository<T> : IRepository<T> where T : BaseEntity
     {
         private readonly DbContext _dbContext;
         private readonly GirvsConfig _spConfig;
         protected DbSet<T> DbSet { get; set; }
 
 
-        public BaseActionRepository(DbContext dbContext)
+        public Repository(DbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _spConfig = EngineContext.Current.Resolve<GirvsConfig>();

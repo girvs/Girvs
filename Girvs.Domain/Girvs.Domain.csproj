@@ -18,4 +18,8 @@
     <PackageReference Include="EasyCaching.InMemory" Version="0.8.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="IRepositories\IBaseActionRepository.cs" />
+  </ItemGroup>
+
 </Project>

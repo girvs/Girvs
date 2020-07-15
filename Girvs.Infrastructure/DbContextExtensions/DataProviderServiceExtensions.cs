@@ -68,7 +68,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
         public static IServiceCollection AddSpDbContext<TContext>(this IServiceCollection services,
             Action<DbContextOptionsBuilder> optionsAction) where TContext : DbContext
         {
-            return services.AddDbContext<TContext>(optionsAction, ServiceLifetime.Transient, ServiceLifetime.Singleton);
+            return services.AddDbContext<TContext>(optionsAction, ServiceLifetime.Scoped, ServiceLifetime.Singleton);
         }
 
         public static IServiceCollection AddSpDbContextPool<TContext>(this IServiceCollection services,

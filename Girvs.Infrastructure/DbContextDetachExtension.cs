@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Girvs.Domain;
+using Girvs.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure

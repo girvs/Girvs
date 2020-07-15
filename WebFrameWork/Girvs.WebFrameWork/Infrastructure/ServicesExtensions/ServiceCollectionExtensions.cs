@@ -43,7 +43,8 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         /// <param name="services">依懒服务注册提供者</param>
         /// <param name="configuration">系统应用配置</param>
         /// <returns>配置实例</returns>
-        public static TConfig ConfigureStartupConfig<TConfig>(this IServiceCollection services, IConfiguration configuration) where TConfig : class, new()
+        public static TConfig ConfigureStartupConfig<TConfig>(this IServiceCollection services,
+            IConfiguration configuration) where TConfig : class, new()
         {
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
@@ -90,15 +91,20 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         /// <param name="typeFinder"></param>
         public static void AddRegisterBusinessServices(this IServiceCollection services, ITypeFinder typeFinder)
         {
-            RegisterType<IRepository>(services, typeFinder);
+            RegisterType(typeof(IRepository<>), services, typeFinder);
             RegisterType<IManager>(services, typeFinder);
             RegisterType<IService>(services, typeFinder);
         }
 
         private static void RegisterType<T>(IServiceCollection services, ITypeFinder typeFinder)
         {
-            var types = typeFinder.FindClassesOfType<T>(false, true);
-            var interFaceTypes = types.Where(x => x.IsInterface && x.Name != typeof(T).Name).ToList();
+            RegisterType(typeof(T), services, typeFinder);
+        }
+
+        private static void RegisterType(Type type, IServiceCollection services, ITypeFinder typeFinder)
+        {
+            var types = typeFinder.FindClassesOfType(type, false, true);
+            var interFaceTypes = types.Where(x => x.IsInterface && x.Name != type.Name).ToList();
             foreach (var repositoryType in interFaceTypes)
             {
                 var targetType = types.FirstOrDefault(x => repositoryType.IsAssignableFrom(x) && x.IsClass);
@@ -108,6 +114,5 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
                 }
             }
         }
-
     }
 }

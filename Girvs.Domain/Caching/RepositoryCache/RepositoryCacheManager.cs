@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Girvs.Domain.Managers;
+using Girvs.Domain.Models;
 
 namespace Girvs.Domain.Caching.RepositoryCache
 {

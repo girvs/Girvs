@@ -7,19 +7,19 @@ using SmartProducts.Person.Domain.Repositories;
 
 namespace SmartProducts.Person.Infrastructure
 {
-    public class PersonInfoRepository : BaseActionRepository<PersonInfoEntity>, IPersonInfoRepository
+    public class PersonInfoRepository : Repository<PersonInfoEntity>, IPersonInfoRepository
     {
         private readonly PersonDbContext dbContext;
 
         public PersonInfoRepository(PersonDbContext dbContext) : base(dbContext)
         {
             this.dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            CurrentDataTable = dbContext.PersonInfos;
+            DbSet = dbContext.PersonInfos;
         }
 
         public async Task<PersonInfoEntity> GetPersonInfoByCardAsync(string card)
         {
-            return await CurrentDataTable.SingleOrDefaultAsync(x => x.WorkCard == card);
+            return await DbSet.SingleOrDefaultAsync(x => x.WorkCard == card);
         }
     }
 }

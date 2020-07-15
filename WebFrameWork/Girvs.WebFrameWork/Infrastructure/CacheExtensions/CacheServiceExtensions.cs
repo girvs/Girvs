@@ -49,14 +49,14 @@ namespace Girvs.WebFrameWork.Infrastructure.CacheExtensions
         public static void AddSpDataProtection(this IServiceCollection services)
         {
             //检查是否在Redis中保持数据保护
-            var spConfig = services.BuildServiceProvider().GetRequiredService<GirvsConfig>();
-            if (spConfig.RedisEnabled && spConfig.UseRedisToStoreDataProtectionKeys)
+            var config = services.BuildServiceProvider().GetRequiredService<GirvsConfig>();
+            if (config.RedisEnabled && config.UseRedisToStoreDataProtectionKeys)
             {
                 //将密钥存储在Redis中
                 services.AddDataProtection().PersistKeysToStackExchangeRedis(() =>
                 {
                     var redisConnectionWrapper = EngineContext.Current.Resolve<IRedisConnectionWrapper>();
-                    return redisConnectionWrapper.GetDatabase(spConfig.RedisDatabaseId ?? (int)RedisDatabaseNumber.DataProtectionKeys);
+                    return redisConnectionWrapper.GetDatabase(config.RedisDatabaseId ?? (int)RedisDatabaseNumber.DataProtectionKeys);
                 }, GirvsCachingDefaults.RedisDataProtectionKey);
             }
             else

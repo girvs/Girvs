@@ -23,4 +23,8 @@
     <ProjectReference Include="..\Girvs.Domain\Girvs.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Repositories\BaseActionRepository.cs" />
+  </ItemGroup>
+
 </Project>

@@ -7,14 +7,14 @@ using SmartProducts.Person.Domain.Repositories;
 
 namespace SmartProducts.Person.Infrastructure
 {
-    public class PersonnelQualificationRepository : BaseActionRepository<PersonnelQualificationEntity>, IPersonnelQualificationRepository
+    public class PersonnelQualificationRepository : Repository<PersonnelQualificationEntity>, IPersonnelQualificationRepository
     {
         private readonly PersonDbContext dbContext;
 
         public PersonnelQualificationRepository(PersonDbContext dbContext) : base(dbContext)
         {
             this.dbContext = dbContext;
-            CurrentDataTable = dbContext.PersonnelQualifications;
+            DbSet = dbContext.PersonnelQualifications;
         }
 
         public async Task<List<PersonnelQualificationEntity>> GetListByPersonInfo(Guid PersonInfoId)

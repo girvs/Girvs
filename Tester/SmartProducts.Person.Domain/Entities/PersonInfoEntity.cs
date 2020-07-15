@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Girvs.Domain;
+using Girvs.Domain.Models;
 using SmartProducts.Person.Domain.Enumerations;
 
 namespace SmartProducts.Person.Domain.Entities

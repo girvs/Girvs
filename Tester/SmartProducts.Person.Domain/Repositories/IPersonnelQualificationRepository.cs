@@ -6,7 +6,7 @@ using SmartProducts.Person.Domain.Entities;
 
 namespace SmartProducts.Person.Domain.Repositories
 {
-    public interface IPersonnelQualificationRepository : IBaseActionRepository<PersonnelQualificationEntity>
+    public interface IPersonnelQualificationRepository : IRepository<PersonnelQualificationEntity>
     {
         Task<List<PersonnelQualificationEntity>> GetListByPersonInfo(Guid PersonInfoId);
     }

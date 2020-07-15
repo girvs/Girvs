@@ -3,6 +3,7 @@ using Girvs.Domain;
 using Girvs.Domain.Extensions;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Managers;
+using Girvs.Domain.Models;
 using Google.Protobuf;
 
 namespace Girvs.WebGrpcFrameWork.Infrastructure
