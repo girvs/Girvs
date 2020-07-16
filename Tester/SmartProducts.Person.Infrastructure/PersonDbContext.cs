@@ -7,8 +7,7 @@ namespace SmartProducts.Person.Infrastructure
 {
     public class PersonDbContext : ScsDbContext
     {
-        private const string TablePrefix = "Person";
-        public PersonDbContext(DbContextOptions<PersonDbContext> options) : base(options, TablePrefix)
+        public PersonDbContext(DbContextOptions<PersonDbContext> options) : base(options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
         }

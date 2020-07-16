@@ -27,50 +27,53 @@ namespace Girvs.Infrastructure.Repositories
             if (_spConfig == null) throw new ArgumentException(nameof(_spConfig));
         }
 
-        public virtual async Task<bool> AddAsync(T t)
+        public virtual async Task AddAsync(T t)
         {
             await DbSet.AddAsync(t);
-            return await _dbContext.SaveChangesAsync() > 0;
         }
 
-        public virtual async Task<int> AddRangeAsync(List<T> ts)
+        public virtual async Task AddRangeAsync(List<T> ts)
         {
             await DbSet.AddRangeAsync(ts);
-            return await _dbContext.SaveChangesAsync();
         }
 
-        public virtual async Task<bool> UpdateAsync(T t, params string[] fields)
+        public virtual async Task UpdateAsync(T t, params string[] fields)
         {
-            UpdateEntity(t, fields);
-            return await _dbContext.SaveChangesAsync() > 0;
+            _dbContext.DetachById<T>(t.Id);
+            await UpdateEntity(t, fields);
         }
 
-        public virtual async Task<int> UpdateRangeAsync(List<T> ts, params string[] fields)
+        public virtual async Task UpdateRangeAsync(List<T> ts, params string[] fields)
         {
             foreach (var t in ts)
             {
-                UpdateEntity(t, fields);
+                _dbContext.DetachById<T>(t.Id);
+                await UpdateEntity(t, fields);
             }
-
-            return await _dbContext.SaveChangesAsync();
         }
 
-        public virtual async Task<bool> DeleteAsync(T t)
+        public virtual async Task DeleteAsync(T t)
         {
-            _dbContext.Attach(t);
-            _dbContext.Entry<T>(t).State = EntityState.Deleted;
-            return await _dbContext.SaveChangesAsync() > 0;
-        }
-
-        public virtual async Task<int> DeleteRangeAsync(List<T> ts)
-        {
-            _dbContext.AttachRange(ts);
-            foreach (var t in ts)
+            await Task.Run(() =>
             {
+                _dbContext.DetachById<T>(t.Id);
+                _dbContext.Attach(t);
                 _dbContext.Entry<T>(t).State = EntityState.Deleted;
-            }
+            });
+        }
 
-            return await _dbContext.SaveChangesAsync();
+        public virtual async Task DeleteRangeAsync(List<T> ts)
+        {
+            await Task.Run(() =>
+            {
+                _dbContext.DetachById<T>(ts.Select(x => x.Id).ToArray());
+                _dbContext.AttachRange(ts);
+                foreach (var t in ts)
+                {
+
+                    _dbContext.Entry<T>(t).State = EntityState.Deleted;
+                }
+            });
         }
 
         public virtual async Task<T> GetByIdAsync(Guid id)
@@ -151,37 +154,40 @@ namespace Girvs.Infrastructure.Repositories
         /// </summary>
         /// <param name="t">泛型T实例</param>
         /// <param name="fields">指定更新的字段</param>
-        private void UpdateEntity(T t, string[] fields)
+        private async Task UpdateEntity(T t, string[] fields)
         {
-            var dbEntityEntry = _dbContext.Attach(t);
-            if (fields.Any())
+            await Task.Run(() =>
             {
-                if (!fields.Contains(nameof(BaseEntity.UpdateTime)))
+                var dbEntityEntry = _dbContext.Attach(t);
+                if (fields.Any())
                 {
-                    dbEntityEntry.Property(nameof(BaseEntity.UpdateTime)).IsModified = true;
-                }
+                    if (!fields.Contains(nameof(BaseEntity.UpdateTime)))
+                    {
+                        dbEntityEntry.Property(nameof(BaseEntity.UpdateTime)).IsModified = true;
+                    }
 
-                foreach (var property in fields)
-                {
-                    if (property == nameof(BaseEntity.Id) || property == nameof(BaseEntity.CreateTime) ||
-                        property == nameof(BaseEntity.Creator) || property == nameof(BaseEntity.TenantId))
+                    foreach (var property in fields)
                     {
-                        dbEntityEntry.Property(property).IsModified = false;
-                    }
-                    else
-                    {
-                        dbEntityEntry.Property(property).IsModified = true;
+                        if (property == nameof(BaseEntity.Id) || property == nameof(BaseEntity.CreateTime) ||
+                            property == nameof(BaseEntity.Creator) || property == nameof(BaseEntity.TenantId))
+                        {
+                            dbEntityEntry.Property(property).IsModified = false;
+                        }
+                        else
+                        {
+                            dbEntityEntry.Property(property).IsModified = true;
+                        }
                     }
                 }
-            }
-            else
-            {
-                dbEntityEntry.State = EntityState.Modified;
-                dbEntityEntry.Property(nameof(BaseEntity.CreateTime)).IsModified = false;
-                dbEntityEntry.Property(nameof(BaseEntity.Id)).IsModified = false;
-                dbEntityEntry.Property(nameof(BaseEntity.Creator)).IsModified = false;
-                dbEntityEntry.Property(nameof(BaseEntity.TenantId)).IsModified = false;
-            }
+                else
+                {
+                    dbEntityEntry.State = EntityState.Modified;
+                    dbEntityEntry.Property(nameof(BaseEntity.CreateTime)).IsModified = false;
+                    dbEntityEntry.Property(nameof(BaseEntity.Id)).IsModified = false;
+                    dbEntityEntry.Property(nameof(BaseEntity.Creator)).IsModified = false;
+                    dbEntityEntry.Property(nameof(BaseEntity.TenantId)).IsModified = false;
+                }
+            });
         }
 
         public async Task<bool> ExistEntityAsync(Guid id)

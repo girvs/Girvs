@@ -9,11 +9,11 @@ namespace SmartProducts.Person.Infrastructure
 {
     public class PersonnelQualificationRepository : Repository<PersonnelQualificationEntity>, IPersonnelQualificationRepository
     {
-        private readonly PersonDbContext dbContext;
+        private readonly PersonDbContext _dbContext;
 
         public PersonnelQualificationRepository(PersonDbContext dbContext) : base(dbContext)
         {
-            this.dbContext = dbContext;
+            this._dbContext = dbContext;
             DbSet = dbContext.PersonnelQualifications;
         }
 

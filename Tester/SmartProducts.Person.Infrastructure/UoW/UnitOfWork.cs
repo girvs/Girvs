@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Managers;
-using Microsoft.EntityFrameworkCore;
 
 namespace SmartProducts.Person.Infrastructure.UoW
 {

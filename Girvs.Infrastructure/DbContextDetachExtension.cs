@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Girvs.Domain;
 using Girvs.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,13 +33,13 @@ namespace Girvs.Infrastructure
             }
         }
 
-        public static bool IsWasTrack<T>(this DbContext dbContext, T t) where T : BaseEntity, new()
+        public static bool IsWasTrack<T>(this DbContext dbContext, T t) where T : BaseEntity
         {
             return dbContext.ChangeTracker.Entries<T>().Any(x => x.Entity.Id == t.Id);
         }
 
         public static void DetachById<T>(this DbContext dbContext, params Guid[] idStrings)
-            where T : BaseEntity, new()
+            where T : BaseEntity
         {
             if (!idStrings.Any()) return;
 
