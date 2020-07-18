@@ -1,8 +1,11 @@
 ﻿using Girvs.Domain;
 using Girvs.Domain.Caching;
-using Girvs.Domain.Caching.Redis;
+using Girvs.Domain.Caching.Interface;
+using Girvs.Domain.Caching.Interface.Redis;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
+using Girvs.Infrastructure.CacheRepository;
+using Girvs.Infrastructure.CacheRepository.Redis;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +26,7 @@ namespace Girvs.WebFrameWork.Infrastructure.CacheExtensions
         public static void AddCacheService(this IServiceCollection services, GirvsConfig config)
         {
             services.AddSingleton<ICacheManager, PerRequestCacheManager>();
-            services.AddSingleton<ICacheUsingManager, CacheUsingManager>();
+            //services.AddSingleton<ICacheUsingManager, CacheUsingManager>();
             //redis connection wrapper
             if (config.RedisEnabled)
             {

@@ -4,11 +4,13 @@ using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Girvs.Domain.Caching.Redis;
+using Girvs.Domain.Caching.Interface;
+using Girvs.Domain.Caching.Interface.Redis;
 using Girvs.Domain.Configuration;
+using Girvs.Infrastructure.CacheRepository.Redis;
 using StackExchange.Redis;
 
-namespace Girvs.Domain.Caching
+namespace Girvs.Infrastructure.CacheRepository
 {
     /// <summary>
     ///代表Redis商店中的缓存管理器（http://redis.io/）。

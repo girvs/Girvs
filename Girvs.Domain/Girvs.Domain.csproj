@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Caching\RepositoryCache\**" />
+    <EmbeddedResource Remove="Caching\RepositoryCache\**" />
+    <None Remove="Caching\RepositoryCache\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
@@ -20,6 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Caching\CacheUsingManager.cs" />
+    <Compile Remove="Caching\ICacheUsingManager.cs" />
     <Compile Remove="IRepositories\IBaseActionRepository.cs" />
   </ItemGroup>
 

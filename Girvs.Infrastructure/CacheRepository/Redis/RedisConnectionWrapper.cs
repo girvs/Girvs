@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using Girvs.Domain.Caching.Interface;
+using Girvs.Domain.Caching.Interface.Redis;
 using Girvs.Domain.Configuration;
 using RedLockNet.SERedis;
 using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
 
-namespace Girvs.Domain.Caching.Redis
+namespace Girvs.Infrastructure.CacheRepository.Redis
 {
     /// <summary>
     /// 表示Redis连接包装器实现

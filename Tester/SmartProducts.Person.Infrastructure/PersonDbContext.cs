@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Girvs.Domain.Managers;
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using SmartProducts.Person.Domain.Entities;
 
 namespace SmartProducts.Person.Infrastructure
 {
-    public class PersonDbContext : ScsDbContext
+    public class PersonDbContext : ScsDbContext, IUnitOfWork
     {
         public PersonDbContext(DbContextOptions<PersonDbContext> options) : base(options)
         {
@@ -42,6 +44,11 @@ namespace SmartProducts.Person.Infrastructure
                 entity.Property(x => x.CertificatePic).HasColumnType("varchar(200)");
                 entity.Property(x => x.PersonId).HasColumnType("varchar(36)");
             });
+        }
+
+        public async Task<bool> Commit()
+        {
+            return await SaveChangesAsync() > 0;
         }
     }
 }

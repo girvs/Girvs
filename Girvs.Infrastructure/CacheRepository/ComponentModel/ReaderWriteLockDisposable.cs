@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace Girvs.Domain.Caching.ComponentModel
+namespace Girvs.Infrastructure.CacheRepository.ComponentModel
 {
     /// <summary>
     /// 提供一种方便的方法来实现对资源的锁定访问。

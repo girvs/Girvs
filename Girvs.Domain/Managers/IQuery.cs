@@ -1,6 +1,8 @@
-﻿namespace Girvs.Domain.Managers
+﻿using Girvs.Domain.Models;
+
+namespace Girvs.Domain.Managers
 {
-    public interface IQuery
+    public interface IQuery<TEntity> where TEntity : BaseEntity, new()
     {
         int PageIndex { get; set; }
         int PageSize { get; set; }

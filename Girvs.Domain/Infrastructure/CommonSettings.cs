@@ -39,11 +39,6 @@ namespace Girvs.Domain.Infrastructure
         public bool UseFullTextSearch { get; set; }
 
         /// <summary>
-        /// 获取或设置全文本搜索模式
-        /// </summary>
-        public FulltextSearchMode FullTextMode { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether 404 errors (page or file not found) should be logged
         /// </summary>
         public bool Log404Errors { get; set; }

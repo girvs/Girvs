@@ -1,4 +1,4 @@
-﻿namespace Girvs.Domain.Caching.Redis
+﻿namespace Girvs.Infrastructure.CacheRepository.Redis
 {
     /// <summary>
     /// 表示redis数据库编号枚举

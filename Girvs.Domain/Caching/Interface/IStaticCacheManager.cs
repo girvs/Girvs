@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Girvs.Domain.Caching
+namespace Girvs.Domain.Caching.Interface
 {
     /// <summary>
     /// 表示HTTP请求之间缓存的管理器（长期缓存）

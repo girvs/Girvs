@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using EasyCaching.Core;
+using Girvs.Domain.Caching.Interface;
 
-namespace Girvs.Domain.Caching
+namespace Girvs.Infrastructure.CacheRepository
 {
     /// <summary>
     /// 表示内存缓存管理器
@@ -19,18 +20,19 @@ namespace Girvs.Domain.Caching
             this._provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
-        public T Get<T>(string key, Func<T> acquire, int? cacheTime = null)
+        public async Task<T> Get<T>(string key, Func<T> acquire, int? cacheTime = null)
         {
             if (cacheTime <= 0)
-                return acquire();
+                return await Task.Run(acquire);
+
 
             return _provider.Get(key, acquire, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime))
                 .Value;
         }
 
-        public string GetToString(string key)
+        public async Task<string> GetToString(string key)
         {
-            return _provider.Get<string>(key)?.Value;
+            return (await _provider.GetAsync<string>(key))?.Value;
         }
 
         public async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int? cacheTime = null)
@@ -42,52 +44,50 @@ namespace Girvs.Domain.Caching
             return t.Value;
         }
 
-        public void Set(string key, object data, int? cacheTime = null)
+        public async Task Set(string key, object data, int? cacheTime = null)
         {
-            if (cacheTime <= 0)
-                return;
-
-            _provider.Set(key, data, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime));
+            if (!(cacheTime <= 0))
+                await _provider.SetAsync(key, data, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime));
         }
 
-        public bool IsSet(string key)
+        public Task<bool> IsSet(string key)
         {
-            return _provider.Exists(key);
+            return _provider.ExistsAsync(key);
         }
 
-        public bool PerformActionWithLock(string key, TimeSpan expirationTime, Action action)
+        public async Task<bool> PerformActionWithLock(string key, TimeSpan expirationTime, Action action)
         {
-            if (_provider.Exists(key))
+            if (await _provider.ExistsAsync(key))
                 return false;
 
             try
             {
-                _provider.Set(key, key, expirationTime);
-                action();
+                await _provider.SetAsync(key, key, expirationTime);
+                action(;
                 return true;
             }
             finally
             {
-                Remove(key);
+                await Remove(key);
             }
         }
 
-        public void Remove(string key)
+        public async Task Remove(string key)
         {
-            _provider.Remove(key);
+            await _provider.RemoveAsync(key);
         }
 
-        public void RemoveByPrefix(string prefix)
+        public async Task RemoveByPrefix(string prefix)
         {
-            _provider.RemoveByPrefix(prefix);
+            await _provider.RemoveByPrefixAsync(prefix);
         }
 
-        public void Clear()
+        public async Task Clear()
         {
-            _provider.Flush();
+            await _provider.FlushAsync();
         }
 
-        public List<string> GetCacheKeys()
+        public async Task<List<string>> GetCacheKeys()
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
             //var entries = provider.GetType().GetField("_entries", flags)?.GetValue(provider);
@@ -107,8 +107,7 @@ namespace Girvs.Domain.Caching
 
             //var cacheItems = entries as IDictionary;
             //if (cacheItems == null) return keys;
-            
-            return keys;
+            return await Task.FromResult(keys);
         }
 
         public virtual void Dispose()

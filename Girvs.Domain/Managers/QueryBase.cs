@@ -6,7 +6,7 @@ using Girvs.Domain.Models;
 
 namespace Girvs.Domain.Managers
 {
-    public abstract class QueryBase<T> : IQuery where T : BaseEntity
+    public abstract class QueryBase<T> : IQuery<T> where T : BaseEntity, new()
     {
         protected QueryBase()
         {
@@ -51,24 +51,5 @@ namespace Girvs.Domain.Managers
         }
 
         public abstract Expression<Func<T, bool>> GetQueryWhere();
-
-        // public TQuery MapTo<TQuery>() where TQuery : class
-        // {
-        //     var mapper = EngineContext.Current.Resolve<IMapper>();
-        //     return mapper.Map<TQuery>(this);
-        // }
-
-        //
-        // public virtual TModel MapToModel<TModel>() where TModel : IQueryModel
-        // {
-        //     var mapper = EngineContext.Current.Resolve<IMapper>();
-        //     return mapper.Map<TModel>(this);
-        // }
-        //
-        // public virtual TDto MapToDto<TDto>() where TDto : IQueryDto
-        // {
-        //     var mapper = EngineContext.Current.Resolve<IMapper>();
-        //     return mapper.Map<TDto>(this);
-        // }
     }
 }

@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : BaseEntity
+    public abstract class Repository<T> : IRepository<T> where T : BaseEntity, new()
     {
         private readonly DbContext _dbContext;
         private readonly GirvsConfig _spConfig;
@@ -26,6 +26,8 @@ namespace Girvs.Infrastructure.Repositories
             _spConfig = EngineContext.Current.Resolve<GirvsConfig>();
             if (_spConfig == null) throw new ArgumentException(nameof(_spConfig));
         }
+
+        public virtual IUnitOfWork UnitOfWork => _dbContext as IUnitOfWork;
 
         public virtual async Task AddAsync(T t)
         {

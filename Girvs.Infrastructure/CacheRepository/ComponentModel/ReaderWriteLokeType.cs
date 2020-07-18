@@ -1,4 +1,4 @@
-﻿namespace Girvs.Domain.Caching.ComponentModel
+﻿namespace Girvs.Infrastructure.CacheRepository.ComponentModel
 {
     /// <summary>
     /// 读/写储物柜类型

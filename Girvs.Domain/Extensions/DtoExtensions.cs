@@ -18,11 +18,10 @@ namespace Girvs.Domain.Extensions
             return mapper.Map<TEntity>(dto);
         }
 
-        public static TEntity MapTo<TEntity>(this IQueryDto queryDto)
-            where TEntity : IQuery, new()
+        public static TQuery MapTo<TQuery>(this IQueryDto queryDto)
         {
             var mapper = EngineContext.Current.Resolve<IMapper>();
-            return mapper.Map<TEntity>(queryDto);
+            return mapper.Map<TQuery>(queryDto);
         }
 
         public static string[] GetActionFields(this IDto dto)

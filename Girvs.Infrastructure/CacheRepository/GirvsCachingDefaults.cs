@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Girvs.Domain.Caching
+namespace Girvs.Infrastructure.CacheRepository
 {
     /// <summary>
     /// 表示与缓存相关的默认值

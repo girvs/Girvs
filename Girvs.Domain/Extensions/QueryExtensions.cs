@@ -1,18 +1,13 @@
 ﻿using AutoMapper;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Managers;
+using Girvs.Domain.Models;
 
 namespace Girvs.Domain.Extensions
 {
     public static class QueryExtensions
     {
-        public static TModel MapToModel<TModel>(this IQuery query)
-        {
-            var mapper = EngineContext.Current.Resolve<IMapper>();
-            return mapper.Map<TModel>(query);
-        }
-
-        public static TDto MapToDto<TDto>(this IQuery query)
+        public static TDto MapToDto<TDto, TEntity>(this IQuery<TEntity> query) where TEntity : BaseEntity, new()
         {
             var mapper = EngineContext.Current.Resolve<IMapper>();
             return mapper.Map<TDto>(query);

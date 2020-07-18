@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Girvs.Domain.Caching.ComponentModel;
+using Girvs.Domain.Caching.Interface;
+using Girvs.Infrastructure.CacheRepository.ComponentModel;
 using Microsoft.AspNetCore.Http;
 
-namespace Girvs.Domain.Caching
+namespace Girvs.Infrastructure.CacheRepository
 {
     /// <summary>
     /// 表示HTTP请求期间缓存的管理器（短期缓存）

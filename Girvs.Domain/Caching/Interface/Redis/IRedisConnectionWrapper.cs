@@ -2,7 +2,7 @@
 using System.Net;
 using StackExchange.Redis;
 
-namespace Girvs.Domain.Caching.Redis
+namespace Girvs.Domain.Caching.Interface.Redis
 {
     /// <summary>
     /// 表示Redis连接器
@@ -29,10 +29,10 @@ namespace Girvs.Domain.Caching.Redis
         /// <returns>端点数组</returns>
         EndPoint[] GetEndPoints();
 
-        /// <summary>
-        /// 刷新数据库的所有键
-        /// </summary>
-        /// <param name="db">数据库编号</param>
-        void FlushDatabase(RedisDatabaseNumber db);
+        ///// <summary>
+        ///// 刷新数据库的所有键
+        ///// </summary>
+        ///// <param name="db">数据库编号</param>
+        //void FlushDatabase(RedisDatabaseNumber db);
     }
 }
