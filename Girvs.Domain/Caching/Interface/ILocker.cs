@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 namespace Girvs.Domain.Caching.Interface
 {
@@ -12,6 +11,6 @@ namespace Girvs.Domain.Caching.Interface
         /// <param name="expirationTime">锁定将自动过期的时间</param>
         /// <param name="action">要执行锁定的操作</param>
         /// <returns>如果获得锁定并执行操作，则为True;否则是假的</returns>
-        Task<bool> PerformActionWithLock(string resource, TimeSpan expirationTime, Action action);
+        bool PerformActionWithLock(string resource, TimeSpan expirationTime, Action action);
     }
 }

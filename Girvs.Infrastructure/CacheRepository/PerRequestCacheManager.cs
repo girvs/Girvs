@@ -14,25 +14,25 @@ namespace Girvs.Infrastructure.CacheRepository
     /// </summary>
     public partial class PerRequestCacheManager : ICacheManager
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ReaderWriterLockSlim _locker;
+        private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly ReaderWriterLockSlim locker;
 
         public PerRequestCacheManager(IHttpContextAccessor httpContextAccessor)
         {
-            this._httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
-            _locker = new ReaderWriterLockSlim();
+            this.httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+            locker = new ReaderWriterLockSlim();
         }
 
         protected virtual IDictionary<object, object> GetItems()
         {
-            return _httpContextAccessor.HttpContext?.Items;
+            return httpContextAccessor.HttpContext?.Items;
         }
 
         public virtual T Get<T>(string key, Func<T> acquire, int? cacheTime = null)
         {
             IDictionary<object, object> items;
 
-            using (new ReaderWriteLockDisposable(_locker, ReaderWriteLockType.Read))
+            using (new ReaderWriteLockDisposable(locker, ReaderWriteLockType.Read))
             {
                 items = GetItems();
                 if (items == null)
@@ -47,7 +47,7 @@ namespace Girvs.Infrastructure.CacheRepository
             if (result == null || (cacheTime ?? GirvsCachingDefaults.CacheTime) <= 0)
                 return result;
 
-            using (new ReaderWriteLockDisposable(_locker))
+            using (new ReaderWriteLockDisposable(locker))
             {
                 items[key] = result;
             }
@@ -57,7 +57,7 @@ namespace Girvs.Infrastructure.CacheRepository
 
         public virtual string GetToString(string key)
         {
-            using (new ReaderWriteLockDisposable(_locker, ReaderWriteLockType.Read))
+            using (new ReaderWriteLockDisposable(locker, ReaderWriteLockType.Read))
             {
                 IDictionary<object, object> items = GetItems();
                 if (items[key] != null)
@@ -71,7 +71,7 @@ namespace Girvs.Infrastructure.CacheRepository
             if (data == null)
                 return;
 
-            using (new ReaderWriteLockDisposable(_locker))
+            using (new ReaderWriteLockDisposable(locker))
             {
                 var items = GetItems();
                 if (items == null)
@@ -83,7 +83,7 @@ namespace Girvs.Infrastructure.CacheRepository
 
         public virtual bool IsSet(string key)
         {
-            using (new ReaderWriteLockDisposable(_locker, ReaderWriteLockType.Read))
+            using (new ReaderWriteLockDisposable(locker, ReaderWriteLockType.Read))
             {
                 var items = GetItems();
                 return items?[key] != null;
@@ -92,7 +92,7 @@ namespace Girvs.Infrastructure.CacheRepository
 
         public virtual void Remove(string key)
         {
-            using (new ReaderWriteLockDisposable(_locker))
+            using (new ReaderWriteLockDisposable(locker))
             {
                 var items = GetItems();
                 items?.Remove(key);
@@ -101,7 +101,7 @@ namespace Girvs.Infrastructure.CacheRepository
 
         public virtual void RemoveByPrefix(string prefix)
         {
-            using (new ReaderWriteLockDisposable(_locker, ReaderWriteLockType.UpgradeableRead))
+            using (new ReaderWriteLockDisposable(locker, ReaderWriteLockType.UpgradeableRead))
             {
                 var items = GetItems();
                 if (items == null)
@@ -113,7 +113,7 @@ namespace Girvs.Infrastructure.CacheRepository
                 if (!matchesKeys.Any())
                     return;
 
-                using (new ReaderWriteLockDisposable(_locker))
+                using (new ReaderWriteLockDisposable(locker))
                 {
                     //remove matching values
                     foreach (var key in matchesKeys)
@@ -126,7 +126,7 @@ namespace Girvs.Infrastructure.CacheRepository
 
         public virtual void Clear()
         {
-            using (new ReaderWriteLockDisposable(_locker))
+            using (new ReaderWriteLockDisposable(locker))
             {
                 var items = GetItems();
                 items?.Clear();

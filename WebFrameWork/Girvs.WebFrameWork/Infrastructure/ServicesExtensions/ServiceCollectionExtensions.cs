@@ -2,7 +2,6 @@
 using System.Linq;
 using Girvs.Application;
 using Girvs.Domain;
-using Girvs.Domain.Caching.RepositoryCache;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.FileProvider;
 using Girvs.Domain.Infrastructure;
@@ -91,17 +90,17 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         /// <param name="typeFinder"></param>
         public static void AddRegisterBusinessServices(this IServiceCollection services, ITypeFinder typeFinder)
         {
-            RegisterType(typeof(IRepository<>), services, typeFinder);
-            RegisterType<IManager>(services, typeFinder);
-            RegisterType<IService>(services, typeFinder);
+            services.RegisterType(typeof(IRepository<>),  typeFinder);
+            services.RegisterType<IManager>(typeFinder);
+            services.RegisterType<IService>(typeFinder);
         }
 
-        private static void RegisterType<T>(IServiceCollection services, ITypeFinder typeFinder)
+        public static void RegisterType<T>(this IServiceCollection services, ITypeFinder typeFinder)
         {
-            RegisterType(typeof(T), services, typeFinder);
+            services.RegisterType(typeof(T), typeFinder);
         }
 
-        private static void RegisterType(Type type, IServiceCollection services, ITypeFinder typeFinder)
+        public static void RegisterType(this IServiceCollection services, Type type, ITypeFinder typeFinder)
         {
             var types = typeFinder.FindClassesOfType(type, false, true);
             var interFaceTypes = types.Where(x => x.IsInterface && x.Name != type.Name).ToList();

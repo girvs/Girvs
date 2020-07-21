@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;

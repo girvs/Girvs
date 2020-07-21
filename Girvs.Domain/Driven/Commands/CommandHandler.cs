@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Girvs.Domain.Driven.Bus;
-using Girvs.Domain.Driven.Notifications;
 using Girvs.Domain.Managers;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Girvs.Domain.Driven.Commands
 {

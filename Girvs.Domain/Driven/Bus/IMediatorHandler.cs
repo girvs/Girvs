@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Girvs.Domain.Driven.Commands;
 using Girvs.Domain.Driven.Events;
+using Girvs.Domain.Managers;
 
 namespace Girvs.Domain.Driven.Bus
 {
@@ -9,7 +9,7 @@ namespace Girvs.Domain.Driven.Bus
     /// 可以定义多个处理程序
     /// 是异步的
     /// </summary>
-    public interface IMediatorHandler
+    public interface IMediatorHandler : IManager
     {
         /// <summary>
         /// 发送命令，将我们的命令模型发布到中介者模块
@@ -17,7 +17,7 @@ namespace Girvs.Domain.Driven.Bus
         /// <typeparam name="T"> 泛型 </typeparam>
         /// <param name="command"> 命令模型，比如RegisterStudentCommand </param>
         /// <returns></returns>
-        Task SendCommand<T>(T command) where T : Command;
+        Task SendCommand<T>(T command) where T : Message;
 
 
         /// <summary>

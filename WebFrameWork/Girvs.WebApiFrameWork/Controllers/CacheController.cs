@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Girvs.Domain.Caching;
+using Girvs.Application.Cache;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Girvs.WebApiFrameWork.Controllers
@@ -10,13 +10,12 @@ namespace Girvs.WebApiFrameWork.Controllers
     [Route("Cache")]
     public class CacheController : ControllerBase
     {
-        private readonly ICacheUsingManager _cacheUsingManager;
+        private readonly ICacheService _cacheService;
 
-        public CacheController(ICacheUsingManager cacheUsingManager)
+        public CacheController(ICacheService cacheService)
         {
-            this._cacheUsingManager = cacheUsingManager ?? throw new ArgumentNullException(nameof(cacheUsingManager));
+            _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         }
-
         /// <summary>
         /// 获取缓存中的所有Key
         /// </summary>
@@ -33,7 +32,7 @@ namespace Girvs.WebApiFrameWork.Controllers
             //             action.UseCache = true;
             //         }, i);
             // }
-            return Ok(await _cacheUsingManager.GetAllKeysAsync());
+            return Ok(await _cacheService.GetKeys());
         }
 
         /// <summary>
@@ -44,7 +43,7 @@ namespace Girvs.WebApiFrameWork.Controllers
         [HttpGet("{key}")]
         public async Task<ActionResult<string>> GetValueByKey(string key)
         {
-            return await _cacheUsingManager.GetToString(key);
+            return await _cacheService.GetValueByKey(key);
         }
 
         /// <summary>
@@ -55,7 +54,7 @@ namespace Girvs.WebApiFrameWork.Controllers
         [HttpDelete("MovePrefixKey/{prefixKey}")]
         public async Task<ActionResult> RemoveByPrefix(string prefixKey)
         {
-            await _cacheUsingManager.ReMoveByPrefixAsync(prefixKey);
+            await _cacheService.RemoveByPrefix(prefixKey);
             return NoContent();
         }
 
@@ -67,7 +66,7 @@ namespace Girvs.WebApiFrameWork.Controllers
         [HttpDelete("MoveKey/{key}")]
         public async Task<ActionResult> RemoveByKey(string key)
         {
-            await _cacheUsingManager.ReMoveAsync(key);
+            await _cacheService.RemoveByKey(key);
             return NoContent();
         }
     }

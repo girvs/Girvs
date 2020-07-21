@@ -13,26 +13,25 @@ namespace Girvs.Infrastructure.CacheRepository
     /// </summary>
     public partial class MemoryCacheManager : ILocker, IStaticCacheManager
     {
-        private readonly IEasyCachingProvider _provider;
+        private readonly IEasyCachingProvider provider;
 
         public MemoryCacheManager(IEasyCachingProvider provider)
         {
-            this._provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            this.provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
-        public async Task<T> Get<T>(string key, Func<T> acquire, int? cacheTime = null)
+        public T Get<T>(string key, Func<T> acquire, int? cacheTime = null)
         {
             if (cacheTime <= 0)
-                return await Task.Run(acquire);
+                return acquire();
 
-
-            return _provider.Get(key, acquire, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime))
+            return provider.Get(key, acquire, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime))
                 .Value;
         }
 
-        public async Task<string> GetToString(string key)
+        public string GetToString(string key)
         {
-            return (await _provider.GetAsync<string>(key))?.Value;
+            return provider.Get<string>(key)?.Value;
         }
 
         public async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int? cacheTime = null)
@@ -40,59 +39,61 @@ namespace Girvs.Infrastructure.CacheRepository
             if (cacheTime <= 0)
                 return await acquire();
 
-            var t = await _provider.GetAsync(key, acquire, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime));
+            var t = await provider.GetAsync(key, acquire, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime));
             return t.Value;
         }
 
-        public async Task Set(string key, object data, int? cacheTime = null)
+        public void Set(string key, object data, int? cacheTime = null)
         {
-            if (!(cacheTime <= 0))
-                await _provider.SetAsync(key, data, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime));
+            if (cacheTime <= 0)
+                return;
+
+            provider.Set(key, data, TimeSpan.FromMinutes(cacheTime ?? GirvsCachingDefaults.CacheTime));
         }
 
-        public Task<bool> IsSet(string key)
+        public bool IsSet(string key)
         {
-            return _provider.ExistsAsync(key);
+            return provider.Exists(key);
         }
 
-        public async Task<bool> PerformActionWithLock(string key, TimeSpan expirationTime, Action action)
+        public bool PerformActionWithLock(string key, TimeSpan expirationTime, Action action)
         {
-            if (await _provider.ExistsAsync(key))
+            if (provider.Exists(key))
                 return false;
 
             try
             {
-                await _provider.SetAsync(key, key, expirationTime);
-                action(;
+                provider.Set(key, key, expirationTime);
+                action();
                 return true;
             }
             finally
             {
-                await Remove(key);
+                Remove(key);
             }
         }
 
-        public async Task Remove(string key)
+        public void Remove(string key)
         {
-            await _provider.RemoveAsync(key);
+            provider.Remove(key);
         }
 
-        public async Task RemoveByPrefix(string prefix)
+        public void RemoveByPrefix(string prefix)
         {
-            await _provider.RemoveByPrefixAsync(prefix);
+            provider.RemoveByPrefix(prefix);
         }
 
-        public async Task Clear()
+        public void Clear()
         {
-            await _provider.FlushAsync();
+            provider.Flush();
         }
 
-        public async Task<List<string>> GetCacheKeys()
+        public List<string> GetCacheKeys()
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
             //var entries = provider.GetType().GetField("_entries", flags)?.GetValue(provider);
             var keys = new List<string>();
-            var cache = _provider.GetType().GetField("_cache", flags)?.GetValue(_provider);
+            var cache = provider.GetType().GetField("_cache", flags)?.GetValue(provider);
             if (cache != null)
             {
                 if (cache.GetType().GetField("_memory", flags)?.GetValue(cache) is IDictionary memory)
@@ -107,7 +108,8 @@ namespace Girvs.Infrastructure.CacheRepository
 
             //var cacheItems = entries as IDictionary;
             //if (cacheItems == null) return keys;
-            return await Task.FromResult(keys);
+            
+            return keys;
         }
 
         public virtual void Dispose()

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Girvs.Application;
-using Girvs.Domain.Caching;
+using Girvs.Application.Cache;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Hdyt.SmartProducts.WebGrpcFrameWork.Service;
@@ -10,17 +10,17 @@ namespace Girvs.WebGrpcFrameWork.Services
 {
     public class CacheService : Cache.CacheBase, IService
     {
-        private readonly ICacheUsingManager _cacheUsingManager;
+        private readonly ICacheService _cacheService;
 
-        public CacheService(ICacheUsingManager cacheUsingManager)
+        public CacheService(ICacheService cacheService)
         {
-            _cacheUsingManager = cacheUsingManager ?? throw new ArgumentNullException(nameof(cacheUsingManager));
+            _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
         }
 
         public override async Task<ResponseCacheKeysModel> GetKeys(Empty request, ServerCallContext context)
         {
-            ResponseCacheKeysModel d=new ResponseCacheKeysModel();
-            var keys = await _cacheUsingManager.GetAllKeysAsync();
+            ResponseCacheKeysModel d = new ResponseCacheKeysModel();
+            var keys = await _cacheService.GetKeys();
             foreach (var key in keys)
             {
                 d.Key.Add(key);
@@ -32,19 +32,19 @@ namespace Girvs.WebGrpcFrameWork.Services
         {
             return new ResponseCacheKeyValueModel
             {
-                Value = await _cacheUsingManager.GetToString(request.Key)
+                Value = await _cacheService.GetValueByKey(request.Key)
             };
         }
 
         public override async Task<Empty> RemoveByPrefix(RequestCachePrefixModel request, ServerCallContext context)
         {
-            await _cacheUsingManager.ReMoveByPrefixAsync(request.Prefix);
+            await _cacheService.RemoveByPrefix(request.Prefix);
             return new Empty();
         }
 
         public override async Task<Empty> RemoveByKey(RequestCacheKeyModel request, ServerCallContext context)
         {
-            await _cacheUsingManager.ReMoveAsync(request.Key);
+            await _cacheService.RemoveByKey(request.Key);
             return new Empty();
         }
     }
