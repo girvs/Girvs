@@ -9,6 +9,7 @@ using Girvs.Domain.Infrastructure;
 using Girvs.Domain.IRepositories;
 using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure.Repositories

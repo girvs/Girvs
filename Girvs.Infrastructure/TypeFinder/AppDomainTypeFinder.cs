@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Girvs.Domain;
 using Girvs.Domain.FileProvider;
+using Girvs.Domain.TypeFinder;
 
-namespace Girvs.Domain.TypeFinder
+namespace Girvs.Infrastructure.TypeFinder
 {
     /// <summary>
     /// 当前正在执行AppDomain。仅名称匹配的程序集

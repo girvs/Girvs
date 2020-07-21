@@ -1,9 +1,11 @@
-﻿using Girvs.Domain.Infrastructure;
+﻿using Girvs.Domain.FileProvider;
+using Girvs.Domain.Infrastructure;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
 using Microsoft.Extensions.Primitives;
 
-namespace Girvs.Domain.FileProvider
+namespace Girvs.Infrastructure.FileProvider
 {
     /// <summary>
     /// 代表roxyFileman images文件夹的文件提供程序

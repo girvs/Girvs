@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Girvs.Domain
+namespace Girvs.Domain.Infrastructure
 {
     /// <summary>
     /// 代表网络助手

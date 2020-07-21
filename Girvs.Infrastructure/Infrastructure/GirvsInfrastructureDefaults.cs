@@ -1,4 +1,4 @@
-﻿namespace Girvs.Domain.Infrastructure
+﻿namespace Girvs.Infrastructure.Infrastructure
 {
     /// <summary>
     /// 代表与核心基础架构有关的默认值

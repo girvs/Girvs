@@ -1,4 +1,5 @@
 ﻿using Girvs.Domain.Infrastructure;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using WebMarkupMin.AspNetCore2;
 using WebMarkupMin.NUglify;

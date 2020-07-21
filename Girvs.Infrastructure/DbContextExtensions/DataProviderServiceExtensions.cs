@@ -5,6 +5,7 @@ using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

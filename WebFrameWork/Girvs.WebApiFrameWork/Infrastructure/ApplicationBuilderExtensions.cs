@@ -3,6 +3,7 @@ using System.Text.Json;
 using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;

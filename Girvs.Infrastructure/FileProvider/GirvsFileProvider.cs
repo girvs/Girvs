@@ -5,10 +5,11 @@ using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
+using Girvs.Domain.FileProvider;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
 
-namespace Girvs.Domain.FileProvider
+namespace Girvs.Infrastructure.FileProvider
 {
     public class GirvsFileProvider : PhysicalFileProvider, IGirvsFileProvider
     {

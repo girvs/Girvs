@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Girvs.Domain.FileProvider;
 
-namespace Girvs.Domain.TypeFinder
+namespace Girvs.Infrastructure.TypeFinder
 {
     /// <summary>
     ///当前正在执行WebAppDomain。仅名称匹配的程序集

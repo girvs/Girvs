@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Girvs.Domain.Configuration;
+using Girvs.Domain.Infrastructure;
 
-namespace Girvs.Domain.Infrastructure
+namespace Girvs.Infrastructure.Infrastructure
 {
     /// <summary>
     /// 安全设置

@@ -1,6 +1,7 @@
 ﻿using System;
 using Girvs.Consul.Configuration;
 using Girvs.Domain.Infrastructure;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using NConsul;

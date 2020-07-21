@@ -8,6 +8,8 @@ using Girvs.Domain.Infrastructure;
 using Girvs.Domain.IRepositories;
 using Girvs.Domain.Managers;
 using Girvs.Domain.TypeFinder;
+using Girvs.Infrastructure.FileProvider;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -22,15 +24,15 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         public static void ConfigureApplicationServices(this IServiceCollection services,
             IConfiguration configuration, IWebHostEnvironment hostingEnvironment)
         {
-            var spConfig = services.ConfigureStartupConfig<GirvsConfig>(configuration.GetSection("Girvs"));
+            var config = services.ConfigureStartupConfig<GirvsConfig>(configuration.GetSection("Girvs"));
             services.ConfigureStartupConfig<HostingConfig>(configuration.GetSection("Hosting"));
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             CommonHelper.DefaultFileProvider = new GirvsFileProvider(hostingEnvironment);
             services.AddSingleton<IGirvsFileProvider>(CommonHelper.DefaultFileProvider);
             services.AddSingleton<IFileProvider>(CommonHelper.DefaultFileProvider);
-            var engine = EngineContext.Create();
-            engine.ConfigureServices(services, configuration, spConfig);
+            var engine = EngineContext.Replace(new GirvsEngine());
+            engine.ConfigureServices(services, configuration, config);
             engine.ResetServiceProvider(services);
             engine.Resolve<ILogger<object>>().LogInformation("应用程序开始启动");
         }

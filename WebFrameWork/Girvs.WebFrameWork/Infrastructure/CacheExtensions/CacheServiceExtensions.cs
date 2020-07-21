@@ -6,6 +6,7 @@ using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Infrastructure.CacheRepository;
 using Girvs.Infrastructure.CacheRepository.Redis;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 

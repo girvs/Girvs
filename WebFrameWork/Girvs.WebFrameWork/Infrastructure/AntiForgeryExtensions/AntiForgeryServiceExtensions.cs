@@ -1,5 +1,6 @@
 ﻿using Girvs.Domain.Http;
 using Girvs.Domain.Infrastructure;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 

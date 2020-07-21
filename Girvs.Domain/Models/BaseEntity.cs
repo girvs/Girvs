@@ -1,10 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Infrastructure;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 
 namespace Girvs.Domain.Models
 {
@@ -18,24 +15,16 @@ namespace Girvs.Domain.Models
             CreateTime = DateTime.Now;
             UpdateTime = DateTime.Now;
 
-            IWebHostEnvironment evn = EngineContext.Current.Resolve<IWebHostEnvironment>();
-            if (evn.IsDevelopment())
-            {
-                try
-                {
-                    Creator = EngineContext.Current.CurrentClaimSid;
-                    TenantId = EngineContext.Current.CurrentClaimTenantId;
-                }
-                catch
-                {
-                    Creator = Guid.Empty;
-                    TenantId = Guid.Empty;
-                }
-            }
-            else
+            var httpContext = EngineContext.Current.HttpContext;
+            if (httpContext != null && httpContext.User.Identity.IsAuthenticated)
             {
                 Creator = EngineContext.Current.CurrentClaimSid;
                 TenantId = EngineContext.Current.CurrentClaimTenantId;
+            }
+            else
+            {
+                Creator = Guid.Empty;
+                TenantId = Guid.Empty;
             }
         }
 

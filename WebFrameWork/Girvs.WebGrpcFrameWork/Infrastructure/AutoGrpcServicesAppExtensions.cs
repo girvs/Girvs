@@ -1,6 +1,7 @@
 ﻿using Girvs.Application;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
+using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 

@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Girvs.Domain.Managers;
 
-namespace Girvs.Domain.Managers
+namespace Girvs.Infrastructure.Manager
 {
     public class ClaimManager : IClaimManager
     {

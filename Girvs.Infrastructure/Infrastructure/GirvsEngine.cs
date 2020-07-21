@@ -4,16 +4,19 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using AutoMapper;
+using Girvs.Domain;
 using Girvs.Domain.Configuration;
+using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Infrastructure.DependencyManagement;
 using Girvs.Domain.Infrastructure.Mapper;
 using Girvs.Domain.TypeFinder;
+using Girvs.Infrastructure.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Girvs.Domain.Infrastructure
+namespace Girvs.Infrastructure.Infrastructure
 {
     public class GirvsEngine : IEngine
     {
