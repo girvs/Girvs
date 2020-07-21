@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Girvs.Domain.Infrastructure.Mapper
+namespace Girvs.Application.Mapper
 {
     public class AutoMapToAttribute : Attribute
     {

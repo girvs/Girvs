@@ -90,25 +90,25 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         /// </summary>
         /// <param name="services"></param>
         /// <param name="typeFinder"></param>
-        public static void AddRegisterBusinessServices(this IServiceCollection services, ITypeFinder typeFinder)
+        public static void AddRegisterBusinessServices(this IServiceCollection services, ITypeFinder typeFinder, bool onlyInterface = true)
         {
-            services.RegisterType(typeof(IRepository<>),  typeFinder);
-            services.RegisterType<IManager>(typeFinder);
-            services.RegisterType<IService>(typeFinder);
+            services.RegisterType(typeof(IRepository<>), typeFinder, onlyInterface);
+            services.RegisterType<IManager>(typeFinder, onlyInterface);
+            services.RegisterType<IService>(typeFinder, onlyInterface);
         }
 
-        public static void RegisterType<T>(this IServiceCollection services, ITypeFinder typeFinder)
+        public static void RegisterType<T>(this IServiceCollection services, ITypeFinder typeFinder, bool onlyInterface = true)
         {
-            services.RegisterType(typeof(T), typeFinder);
+            services.RegisterType(typeof(T), typeFinder, onlyInterface);
         }
 
-        public static void RegisterType(this IServiceCollection services, Type type, ITypeFinder typeFinder)
+        public static void RegisterType(this IServiceCollection services, Type type, ITypeFinder typeFinder, bool onlyInterface = true)
         {
             var types = typeFinder.FindClassesOfType(type, false, true);
-            var interFaceTypes = types.Where(x => x.IsInterface && x.Name != type.Name).ToList();
+            var interFaceTypes = types.Where(x => (!onlyInterface || x.IsInterface) && x.Name != type.Name).ToList();
             foreach (var repositoryType in interFaceTypes)
             {
-                var targetType = types.FirstOrDefault(x => repositoryType.IsAssignableFrom(x) && x.IsClass);
+                var targetType = typeFinder.FindClassesOfType(repositoryType).ToList().FirstOrDefault(x => x.IsClass);
                 if (targetType != null)
                 {
                     services.AddScoped(repositoryType, targetType);

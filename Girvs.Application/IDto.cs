@@ -1,4 +1,4 @@
-﻿namespace Girvs.Domain
+﻿namespace Girvs.Application
 {
     public interface IDto
     {

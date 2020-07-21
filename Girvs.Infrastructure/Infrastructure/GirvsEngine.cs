@@ -8,7 +8,6 @@ using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Infrastructure.DependencyManagement;
-using Girvs.Domain.Infrastructure.Mapper;
 using Girvs.Domain.TypeFinder;
 using Girvs.Infrastructure.TypeFinder;
 using Microsoft.AspNetCore.Builder;
@@ -82,7 +81,7 @@ namespace Girvs.Infrastructure.Infrastructure
 
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.AddProfile<DefaultProfile>();
+                //cfg.AddProfile<DefaultProfile>();
                 foreach (var instance in instances)
                 {
                     cfg.AddProfile(instance.GetType());

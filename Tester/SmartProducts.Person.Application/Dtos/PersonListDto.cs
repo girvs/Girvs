@@ -1,4 +1,5 @@
-﻿using Girvs.Domain;
+﻿using Girvs.Application;
+using Girvs.Domain;
 using SmartProducts.Person.Domain.Enumerations;
 
 namespace SmartProducts.Person.Application.Dtos

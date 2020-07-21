@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Girvs.Domain.Extensions;
+using Girvs.Application.Extensions;
 
-namespace Girvs.Domain
+namespace Girvs.Application
 {
     public interface IQueryDto
     {

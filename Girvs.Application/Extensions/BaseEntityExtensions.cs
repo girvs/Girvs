@@ -3,7 +3,7 @@ using AutoMapper;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Models;
 
-namespace Girvs.Domain.Extensions
+namespace Girvs.Application.Extensions
 {
     public static class BaseEntityExtensions
     {

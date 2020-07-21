@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 
-namespace Girvs.Domain.Infrastructure.Mapper
+namespace Girvs.Application.Mapper
 {
     /// <summary>
     /// AutoMapper configuration

@@ -5,10 +5,9 @@ using System.Reflection;
 using AutoMapper;
 using AutoMapper.Configuration.Annotations;
 using Girvs.Domain.Infrastructure;
-using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
 
-namespace Girvs.Domain.Extensions
+namespace Girvs.Application.Extensions
 {
     public static class DtoExtensions
     {

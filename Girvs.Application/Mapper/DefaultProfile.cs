@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoMapper;
+using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
 
-namespace Girvs.Domain.Infrastructure.Mapper
+namespace Girvs.Application.Mapper
 {
-    public class DefaultProfile : Profile
+    public class DefaultProfile : Profile, IOrderedMapperProfile
     {
         public DefaultProfile()
         {
@@ -37,5 +38,7 @@ namespace Girvs.Domain.Infrastructure.Mapper
                 }
             }
         }
+
+        public int Order { get; } = 0;
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Girvs.Domain.Infrastructure.Mapper
+﻿namespace Girvs.Domain.Infrastructure
 {
     /// <summary>
     /// Mapper profile registrar interface
