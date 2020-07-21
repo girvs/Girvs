@@ -17,6 +17,11 @@ namespace Girvs.Domain.Configuration
         public bool DisplayFullErrorStack { get; set; }
 
         public string DataConnectionString { get; set; }
+        
+        /// <summary>
+        /// 默认缓存时间
+        /// </summary>
+        public int CacheTime { get; set; }
 
         /// <summary>
         /// 获取或设置一个值，指示是否应使用Redis服务器

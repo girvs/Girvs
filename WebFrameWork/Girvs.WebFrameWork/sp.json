@@ -12,6 +12,7 @@
   "Sp": {
     //如果要在生产环境中看到完整错误，请启用。在开发环境中将被忽略（始终启用）
     "DisplayFullErrorStack": false,
+    "CacheTime":60,
     //Redis支持（由Web场，Azure等使用）。在https://azure.microsoft.com/zh-cn/documentation/articles/cache-dotnet-how-to-use-azure-redis-cache/中找到有关它的更多信息
     "RedisEnabled": true,
     //Redis数据库ID；如果需要使用特定的Redis数据库，只需在此处设置其编号。如果应该对每种数据类型使用不同的数据库（默认情况下使用），则设置为空；如果要使用默认数据库，请设置-1
