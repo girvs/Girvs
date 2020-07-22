@@ -14,14 +14,14 @@ namespace Girvs.Domain.IRepositories
         /// </summary>
         /// <param name="t">实体</param>
         /// <returns>是否成功</returns>
-        Task AddAsync(TEntity t);
+        Task<TEntity> AddAsync(TEntity t);
 
         /// <summary>
         /// 添加实体集合
         /// </summary>
         /// <param name="ts">实体集合</param>
         /// <returns>影响的行数</returns>
-        Task AddRangeAsync(List<TEntity> ts);
+        Task<List<TEntity>> AddRangeAsync(List<TEntity> ts);
 
         /// <summary>
         /// 更新实体

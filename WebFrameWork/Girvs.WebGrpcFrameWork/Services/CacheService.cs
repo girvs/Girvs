@@ -8,7 +8,7 @@ using Hdyt.SmartProducts.WebGrpcFrameWork.Service;
 
 namespace Girvs.WebGrpcFrameWork.Services
 {
-    public class CacheService : Cache.CacheBase, IService
+    public class CacheService : Cache.CacheBase, IGrpcService
     {
         private readonly ICacheService _cacheService;
 

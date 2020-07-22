@@ -9,83 +9,67 @@ using Girvs.Domain.Infrastructure;
 using Girvs.Domain.IRepositories;
 using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
-using Girvs.Infrastructure.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure.Repositories
 {
-    public abstract class Repository<T> : IRepository<T> where T : BaseEntity, new()
+    public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity, new()
     {
         private readonly DbContext _dbContext;
-        private readonly GirvsConfig _spConfig;
-        protected DbSet<T> DbSet { get; set; }
+        private readonly GirvsConfig _girvsConfig;
+        protected DbSet<TEntity> DbSet { get; set; }
 
 
         public Repository(DbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _spConfig = EngineContext.Current.Resolve<GirvsConfig>();
-            if (_spConfig == null) throw new ArgumentException(nameof(_spConfig));
+            _girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
+            if (_girvsConfig == null) throw new ArgumentException(nameof(_girvsConfig));
         }
 
         public virtual IUnitOfWork UnitOfWork => _dbContext as IUnitOfWork;
 
-        public virtual async Task AddAsync(T t)
+        public virtual async Task<TEntity> AddAsync(TEntity t)
         {
-            await DbSet.AddAsync(t);
+            return (await DbSet.AddAsync(t)).Entity;
         }
 
-        public virtual async Task AddRangeAsync(List<T> ts)
+        public virtual async Task<List<TEntity>> AddRangeAsync(List<TEntity> ts)
         {
             await DbSet.AddRangeAsync(ts);
+            return ts;
         }
 
-        public virtual async Task UpdateAsync(T t, params string[] fields)
+        public virtual async Task UpdateAsync(TEntity t, params string[] fields)
         {
-            _dbContext.DetachById<T>(t.Id);
             await UpdateEntity(t, fields);
         }
 
-        public virtual async Task UpdateRangeAsync(List<T> ts, params string[] fields)
+        public virtual async Task UpdateRangeAsync(List<TEntity> ts, params string[] fields)
         {
-            foreach (var t in ts)
+            foreach (var entity in ts)
             {
-                _dbContext.DetachById<T>(t.Id);
-                await UpdateEntity(t, fields);
+                await UpdateEntity(entity, fields);
             }
         }
 
-        public virtual async Task DeleteAsync(T t)
+        public virtual async Task DeleteAsync(TEntity t)
         {
-            await Task.Run(() =>
-            {
-                _dbContext.DetachById<T>(t.Id);
-                _dbContext.Attach(t);
-                _dbContext.Entry<T>(t).State = EntityState.Deleted;
-            });
+            await Task.Run(() => { _dbContext.Entry<TEntity>(t).State = EntityState.Deleted; });
         }
 
-        public virtual async Task DeleteRangeAsync(List<T> ts)
+        public virtual async Task DeleteRangeAsync(List<TEntity> ts)
         {
-            await Task.Run(() =>
-            {
-                _dbContext.DetachById<T>(ts.Select(x => x.Id).ToArray());
-                _dbContext.AttachRange(ts);
-                foreach (var t in ts)
-                {
-
-                    _dbContext.Entry<T>(t).State = EntityState.Deleted;
-                }
-            });
+            await Task.Run(() => { ts.ForEach(x => _dbContext.Entry(x).State = EntityState.Deleted); });
         }
 
-        public virtual async Task<T> GetByIdAsync(Guid id)
+        public virtual async Task<TEntity> GetByIdAsync(Guid id)
         {
             var condition = TenantCondition.And(x => x.Id == id);
             return await DbSet.FirstOrDefaultAsync(condition);
         }
 
-        public virtual async Task<List<T>> GetAllAsync(params string[] fields)
+        public virtual async Task<List<TEntity>> GetAllAsync(params string[] fields)
         {
             if (fields.Any())
             {
@@ -99,13 +83,13 @@ namespace Girvs.Infrastructure.Repositories
             }
         }
 
-        public virtual async Task<List<T>> GetByQueryAsync(QueryBase<T> query)
+        public virtual async Task<List<TEntity>> GetByQueryAsync(QueryBase<TEntity> query)
         {
             var condition = TenantCondition.And(query.GetQueryWhere());
             query.RecordCount = await DbSet.Where(condition).CountAsync();
             if (query.RecordCount < 1)
             {
-                query.Result = new List<T>();
+                query.Result = new List<TEntity>();
             }
             else
             {
@@ -136,11 +120,11 @@ namespace Girvs.Infrastructure.Repositories
             return query.Result;
         }
 
-        public virtual Expression<Func<T, bool>> TenantCondition
+        public virtual Expression<Func<TEntity, bool>> TenantCondition
         {
             get
             {
-                if (_spConfig.TenantEnabled && _spConfig.WhetherTheTenantIsInvolvedInManagement)
+                if (_girvsConfig.TenantEnabled && _girvsConfig.WhetherTheTenantIsInvolvedInManagement)
                 {
                     return x => x.TenantId == EngineContext.Current.CurrentClaimTenantId;
                 }
@@ -157,11 +141,11 @@ namespace Girvs.Infrastructure.Repositories
         /// </summary>
         /// <param name="t">泛型T实例</param>
         /// <param name="fields">指定更新的字段</param>
-        private async Task UpdateEntity(T t, string[] fields)
+        private async Task UpdateEntity(TEntity t, string[] fields)
         {
             await Task.Run(() =>
             {
-                var dbEntityEntry = _dbContext.Attach(t);
+                var dbEntityEntry = _dbContext.Entry(t);
                 if (fields.Any())
                 {
                     if (!fields.Contains(nameof(BaseEntity.UpdateTime)))

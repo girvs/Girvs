@@ -9,5 +9,6 @@ namespace Girvs.Domain.Caching.Interface
         string CacheKeyListPrefix { get; }
         string CacheKeyListAllPrefix { get; }
         string CacheKeyListQueryPrefix { get; }
+        int CacheTime { get; }
     }
 }

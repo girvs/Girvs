@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Girvs.Domain.Driven.Bus;
+using Girvs.Domain.Driven.Notifications;
 using Girvs.Domain.Managers;
 
 namespace Girvs.Domain.Driven.Commands
@@ -18,11 +19,10 @@ namespace Girvs.Domain.Driven.Commands
 
         protected void NotifyValidationErrors(Command message)
         {
-            //foreach (var error in message.ValidationResult.Errors)
-            //{
-            //    //将错误信息提交到事件总线，派发出去
-            //    _bus.RaiseEvent(new DomainNotification("", error.ErrorMessage));
-            //}
+            foreach (var error in message.ValidationResult.Errors)
+            {
+                _bus.RaiseEvent(new DomainNotification("", error.ErrorMessage));
+            }
         }
 
         public async Task<bool> Commit()

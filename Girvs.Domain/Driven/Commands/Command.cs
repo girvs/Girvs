@@ -1,5 +1,5 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
+using FluentValidation.Results;
 using Girvs.Domain.Driven.Events;
 
 namespace Girvs.Domain.Driven.Commands
@@ -7,6 +7,7 @@ namespace Girvs.Domain.Driven.Commands
     public abstract class Command : Message
     {
         public DateTime Timestamp { get; private set; }
+        
         public ValidationResult ValidationResult { get; set; }
 
         protected Command()

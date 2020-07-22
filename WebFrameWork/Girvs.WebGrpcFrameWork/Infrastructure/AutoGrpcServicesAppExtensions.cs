@@ -1,9 +1,9 @@
 ﻿using Girvs.Application;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
-using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 
 namespace Girvs.WebGrpcFrameWork.Infrastructure
 {
@@ -22,12 +22,17 @@ namespace Girvs.WebGrpcFrameWork.Infrastructure
         public static void AddGrpcServices(this IEndpointRouteBuilder builder)
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var grpcServices = typeFinder.FindClassesOfType<IService>();
+            var grpcServices = typeFinder.FindClassesOfType<IGrpcService>();
+
+            var logger = EngineContext.Current.Resolve<ILogger<object>>();
             foreach (var grpcService in grpcServices)
             {
-                var method = typeof(GrpcEndpointRouteBuilderExtensions).GetMethod("MapGrpcService")?.MakeGenericMethod(grpcService);
-                if (method != null) method.Invoke(null, new object[] { builder });
-            };
+                logger.LogInformation($"注册GRPC服务：{grpcService.FullName}");
+                var method = typeof(GrpcEndpointRouteBuilderExtensions)
+                    .GetMethod(nameof(GrpcEndpointRouteBuilderExtensions.MapGrpcService))
+                    ?.MakeGenericMethod(grpcService);
+                if (method != null) method.Invoke(null, new object[] {builder});
+            }
         }
     }
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Configuration;
-using Girvs.Domain.Models;
 
 namespace Girvs.Infrastructure.CacheRepository
 {
-    public class CacheKeyManager<TEntity> : ICacheKeyManager<TEntity> where TEntity : BaseEntity
+    public class CacheKeyManager<TObject> : ICacheKeyManager<TObject> where TObject : new()
     {
         private readonly GirvsConfig _config;
 
@@ -13,7 +12,7 @@ namespace Girvs.Infrastructure.CacheRepository
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             CacheTime = config.CacheTime;
-            CacheKeyPrefix = $"{typeof(TEntity).FullName}";
+            CacheKeyPrefix = $"{typeof(TObject).FullName}";
             CacheKeyListPrefix = $"{CacheKeyPrefix}:List";
             CacheKeyListAllPrefix = $"{CacheKeyListPrefix}:All";
             CacheKeyListQueryPrefix = $"{CacheKeyListPrefix}:Query";
