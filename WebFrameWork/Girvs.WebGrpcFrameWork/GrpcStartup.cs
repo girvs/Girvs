@@ -15,8 +15,6 @@ namespace Girvs.WebGrpcFrameWork
 
         public void Configure(IApplicationBuilder application)
         {
-            //静态文件
-            application.UseStaticFiles();
             application.UseAutoGrpcServices();
         }
 

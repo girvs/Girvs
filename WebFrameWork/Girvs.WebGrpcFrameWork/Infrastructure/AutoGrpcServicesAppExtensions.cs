@@ -2,6 +2,7 @@
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 
@@ -33,6 +34,12 @@ namespace Girvs.WebGrpcFrameWork.Infrastructure
                     ?.MakeGenericMethod(grpcService);
                 if (method != null) method.Invoke(null, new object[] {builder});
             }
+            
+            
+            builder.MapGet("/", async context =>
+            {
+                await context.Response.WriteAsync("服务已启动！");
+            });
         }
     }
 }
