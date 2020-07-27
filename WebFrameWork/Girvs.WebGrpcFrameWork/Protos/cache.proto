@@ -1,6 +1,6 @@
 ﻿syntax = "proto3";
 
-option csharp_namespace = "Hdyt.SmartProducts.WebGrpcFrameWork.Service";
+option csharp_namespace = "Girvs.WebGrpcFrameWork.Service";
 import "google/protobuf/empty.proto";
 
 package cache;

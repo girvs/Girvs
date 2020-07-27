@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Girvs.Application;
 using Girvs.Application.Cache;
+using Girvs.WebGrpcFrameWork.Service;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Hdyt.SmartProducts.WebGrpcFrameWork.Service;
 
 namespace Girvs.WebGrpcFrameWork.Services
 {
