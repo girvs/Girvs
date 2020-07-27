@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+import "public/enumerations.proto";
+import "google/protobuf/empty.proto";
+import "public/messagemainkey.proto";
+
+option csharp_namespace = "Test.GrpcService.BaseServices.UserGrpcService";
+
+package userGrpcService;
+
+message UserMessage{
+	string id = 1;
+    string userAccount = 2;
+    string userPassword = 3;
+    string userName = 4;
+    string contactNumber = 5;
+    public.DataState state = 6;
+    public.UserType userType = 7;
+}
+
+message GetByIdResponse{
+    UserMessage userMessage = 1;
+}
+
+message GetAllResponse{
+    UserMessage userMessage = 1;
+}
+
+message EditRequest{
+    UserMessage userMessage = 1;
+}
+
+message EditResponse{
+    UserMessage userMessage = 1;
+}
+
+message DisableRequest{
+    string id = 1;
+    public.DataState state = 2;
+}
+
+message EnableRequest{
+    string id = 1;
+    public.DataState state = 2;
+}
+
+service UserGrpcService{
+    rpc GetById (public.MainKeyMessage) returns (GetByIdResponse);
+    rpc GetAll (google.protobuf.Empty) returns (stream GetAllResponse);
+    rpc Add (EditRequest) returns (EditResponse);
+    rpc Update (EditRequest) returns (EditResponse);
+    rpc Delete (public.MainKeyMessage) returns (google.protobuf.Empty);
+    rpc Disable (DisableRequest) returns (google.protobuf.Empty);
+    rpc Enable (EnableRequest) returns (google.protobuf.Empty);
+}

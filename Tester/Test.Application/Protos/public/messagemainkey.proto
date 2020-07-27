@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+//import "public/guid.proto";
+
+package public;
+
+option csharp_namespace = "Test.GrpcService.BaseServices.Public";
+
+message MainKeyMessage{
+	string id = 1;
+}

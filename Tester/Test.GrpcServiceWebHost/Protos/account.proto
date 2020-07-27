@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option csharp_namespace = "Cmmp.GrpcService.BaseServices.AccountGrpcService";
+
+package accountGrpcService;
+
+message RequestUserLogin{
+	string userAccount = 1;
+	string userPassword = 2;
+}
+
+message ResponseToken{
+	string name = 1;
+	string token = 2;
+	string userName = 3;
+	string refreshToken = 4;
+	string tokenExpire = 5;
+	string refreshTokenExpire= 6;
+}
+
+service AccountGrpcService{
+	rpc Login (RequestUserLogin) returns (ResponseToken);
+}

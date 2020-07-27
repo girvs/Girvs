@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package public;
+
+option csharp_namespace = "Test.GrpcService.BaseServices.Public";
+
+enum FileExteionType{
+	jpg = 0;
+	jpge = 1;
+	gif = 2;
+	png = 3;
+}
+
+enum FileType{
+	userImage = 0;
+}
+
+enum DataState{
+    unknown = 0;
+    enable = 1;
+    disable = 2;
+}
+
+enum UserType{
+    superAdmin = 0;
+    unitAdmin = 1;
+    unitPersion = 2;
+}
+
+enum Permission{
+	undefined = 0;
+	view = 1;
+	read = 2;
+	read_Extend1 = 4;
+	post = 8;
+	post_Extend1 = 16;
+	post_Extend2 = 32;
+	reply = 64;
+	edit = 128;
+	edit_extend1 = 256;
+	edit_extend2 = 512;
+	delete = 1024;
+	delete_Extend1 = 2048;
+	delete_Extend2 = 4096;
+	audit = 8192;
+	reject = 16384;
+	merge = 32768;
+	cancel = 65536;
+	publish = 131072;
+	move = 262144;
+	copy = 524288;
+	vote = 1048576;
+	localAttachment = 2097152;
+	catalog_Read = 4194304;
+	relation = 8388608;
+	administer = 16777216;
+	systemAdmin = 33554432;
+}

@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Protos\structure.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.29.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Girvs.Application\Girvs.Application.csproj" />
+    <ProjectReference Include="..\Test.Domain\Test.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\account.proto" GrpcServices="Server" ProtoRoot="Protos" />
+    <Protobuf Include="Protos\public\enumerations.proto" GrpcServices="Server" ProtoRoot="Protos" />
+    <Protobuf Include="Protos\public\messagemainkey.proto" GrpcServices="Server" ProtoRoot="Protos" />
+    <Protobuf Include="Protos\structure.proto" GrpcServices="Server" ProtoRoot="Protos" />
+    <Protobuf Include="Protos\user.proto" GrpcServices="Server" ProtoRoot="Protos" />
+  </ItemGroup>
+
+</Project>

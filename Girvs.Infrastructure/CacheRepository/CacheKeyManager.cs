@@ -18,16 +18,19 @@ namespace Girvs.Infrastructure.CacheRepository
             CacheKeyListQueryPrefix = $"{CacheKeyListPrefix}:Query";
         }
 
-
-        public string GetBuildEntityKey(Guid id)
-        {
-            return $"{CacheKeyPrefix}:{id}";
-        }
-
         public int CacheTime { get; private set; }
         public string CacheKeyPrefix { get; private set; }
         public string CacheKeyListPrefix { get; private set; }
         public string CacheKeyListAllPrefix { get; private set; }
         public string CacheKeyListQueryPrefix { get; private set; }
+        public string BuildCacheEntityKey(Guid id)
+        {
+            return $"{CacheKeyPrefix}:{id}";
+        }
+
+        public string BuildCacheEntityOtherKey(string key)
+        {
+            return $"{CacheKeyPrefix}:{key}";
+        }
     }
 }
