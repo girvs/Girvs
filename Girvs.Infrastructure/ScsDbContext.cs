@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Girvs.Infrastructure
 {
-    public abstract class ScsDbContext : DbContext
+    public abstract class ScsDbContext : DbContext,IUnitOfWork
     {
         protected ScsDbContext(DbContextOptions options)
             : base(options)
@@ -20,6 +22,11 @@ namespace Girvs.Infrastructure
             entity.ToTable(tableName).HasKey(x => x.Id);
             entity.Property(x => x.CreateTime).HasColumnType("datetime");
             entity.Property(x => x.UpdateTime).HasColumnType("datetime");
+        }
+
+        public async Task<bool> Commit()
+        {
+            return await SaveChangesAsync() > 0;
         }
     }
 }

@@ -20,11 +20,12 @@ namespace Girvs.Infrastructure.Repositories
         protected DbSet<TEntity> DbSet { get; set; }
 
 
-        public Repository(DbContext dbContext)
+        public Repository(IUnitOfWork dbContext)
         {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _dbContext = dbContext as DbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
             if (_girvsConfig == null) throw new ArgumentException(nameof(_girvsConfig));
+            DbSet = _dbContext.Set<TEntity>();
         }
 
         public virtual IUnitOfWork UnitOfWork => _dbContext as IUnitOfWork;

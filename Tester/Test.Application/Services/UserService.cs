@@ -13,7 +13,6 @@ using Test.Domain.Models;
 using Test.Domain.Repositories;
 using Test.GrpcService.BaseServices.Public;
 using Test.GrpcService.BaseServices.UserGrpcService;
-using UserType = Test.Domain.Enumerations.UserType;
 
 namespace Test.Application.Services
 {
