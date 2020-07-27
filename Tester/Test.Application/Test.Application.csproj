@@ -24,6 +24,7 @@
     <Protobuf Include="Protos\public\messagemainkey.proto" GrpcServices="Server" ProtoRoot="Protos" />
     <Protobuf Include="Protos\structure.proto" GrpcServices="Server" ProtoRoot="Protos" />
     <Protobuf Include="Protos\user.proto" GrpcServices="Server" ProtoRoot="Protos" />
+    <Protobuf Include="Protos\role.proto" GrpcServices="Server" ProtoRoot="Protos" />
   </ItemGroup>
 
 </Project>

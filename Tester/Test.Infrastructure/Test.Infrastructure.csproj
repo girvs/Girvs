@@ -9,4 +9,8 @@
     <ProjectReference Include="..\Test.Domain\Test.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="DataProvider\RoleRepository.cs" />
+  </ItemGroup>
+
 </Project>

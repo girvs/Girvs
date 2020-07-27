@@ -15,4 +15,8 @@
     <ProjectReference Include="..\..\Girvs.Domain\Girvs.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Repositories\IRoleRepository.cs" />
+  </ItemGroup>
+
 </Project>

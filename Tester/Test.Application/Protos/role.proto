@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "public/messagemainkey.proto";
+
+option csharp_namespace = "Test.GrpcService.BaseServices.RoleGrpcService";
+package roleGrpcService;
+
+message RoleMessage {
+    string id = 1;
+    string name = 2;
+    string desc = 3;
+}
+
+message GetByIdResponse{
+    RoleMessage roleMessage = 1;
+}
+
+message GetAllResponse{
+    repeated RoleMessage roleMessages = 1;
+}
+
+message EditRequest{
+    RoleMessage roleMessage = 1;
+}
+
+message EditResponse{
+    RoleMessage roleMessage = 1;
+}
+
+
+service RoleGrpcService{
+    rpc GetById (public.MainKeyMessage) returns (GetByIdResponse);
+    rpc GetAll (google.protobuf.Empty) returns (GetAllResponse);
+    rpc Add (EditRequest) returns (EditResponse);
+    rpc Update (EditRequest) returns (EditResponse);
+    rpc Delete (public.MainKeyMessage) returns (google.protobuf.Empty);
+}
