@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure.Repositories
 {
-    public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity, new()
+    public class Repository<TEntity> : IRepository<TEntity> where TEntity : AggregateRoot, new()
     {
         private readonly DbContext _dbContext;
         private readonly GirvsConfig _girvsConfig;

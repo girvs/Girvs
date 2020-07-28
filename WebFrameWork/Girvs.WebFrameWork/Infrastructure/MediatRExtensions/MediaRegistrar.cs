@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Linq;
-using Girvs.Domain.Caching.CommandHandlers;
-using Girvs.Domain.Caching.Commands;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Driven.Commands;
 using Girvs.Domain.Infrastructure.DependencyManagement;
 using Girvs.Domain.TypeFinder;
-using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 

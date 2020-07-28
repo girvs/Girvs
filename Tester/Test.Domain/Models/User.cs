@@ -3,8 +3,8 @@ using Girvs.Domain.Models;
 using Test.Domain.Enumerations;
 
 namespace Test.Domain.Models
-{ 
-    public class User : BaseEntity
+{
+    public class User : AggregateRoot
     {
         public User()
         {
@@ -16,7 +16,7 @@ namespace Test.Domain.Models
 
         ///<summary></summary>
         public string UserPassword { get; set; }
-        
+
         ///<summary></summary>
         public string UserName { get; set; }
 
@@ -30,7 +30,5 @@ namespace Test.Domain.Models
         public UserType UserType { get; set; }
 
         public virtual List<UserRole> UserRoles { get; set; }
-
-
     }
 }

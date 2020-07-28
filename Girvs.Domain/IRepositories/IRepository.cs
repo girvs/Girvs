@@ -6,7 +6,7 @@ using Girvs.Domain.Models;
 
 namespace Girvs.Domain.IRepositories
 {
-    public interface IRepository<TEntity> where TEntity : BaseEntity, new()
+    public interface IRepository<TEntity> where TEntity : AggregateRoot, new()
     {
         IUnitOfWork UnitOfWork { get; }
         /// <summary>

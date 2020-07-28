@@ -1,5 +1,4 @@
 using Girvs.WebFrameWork;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
 namespace Test.GrpcServiceWebHost

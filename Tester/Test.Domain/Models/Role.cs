@@ -3,7 +3,7 @@ using Girvs.Domain.Models;
 
 namespace Test.Domain.Models
 { 
-    public class Role : BaseEntity
+    public class Role : AggregateRoot
     {
         public Role()
         {

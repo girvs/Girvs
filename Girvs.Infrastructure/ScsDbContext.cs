@@ -16,7 +16,7 @@ namespace Girvs.Infrastructure
         }
 
         public static void OnModelCreatingBaseEntityAndTableKey<T>(EntityTypeBuilder<T> entity)
-            where T : BaseEntity, new()
+            where T : AggregateRoot, new()
         {
             string tableName = typeof(T).Name.Replace("Entity", "").Replace("Model","");
             entity.ToTable(tableName).HasKey(x => x.Id);
