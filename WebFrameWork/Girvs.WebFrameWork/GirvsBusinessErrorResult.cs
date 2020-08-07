@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Girvs.WebFrameWork
 {
-    public class SpBusinessErrorResult : StatusCodeResult
+    public class GirvsBusinessErrorResult : StatusCodeResult
     {
         private readonly string _message;
         private const int DefaultStatusCode = 568;
-        public SpBusinessErrorResult(string message) : base(DefaultStatusCode)
+        public GirvsBusinessErrorResult(string message) : base(DefaultStatusCode)
         {
             this._message = message;
         }

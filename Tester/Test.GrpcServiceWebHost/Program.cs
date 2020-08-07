@@ -7,7 +7,7 @@ namespace Test.GrpcServiceWebHost
     {
         public static void Main(string[] args)
         {
-            SpHostBuilderManager.CreateSpHostBuilder<Startup>(args).Build().Run();
+            GirvsHostBuilderManager.CreateSpHostBuilder<Startup>(args).Build().Run();
         }
     }
 }

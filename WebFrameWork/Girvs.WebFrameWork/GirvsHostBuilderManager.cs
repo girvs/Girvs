@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Girvs.WebFrameWork
 {
-    public class SpHostBuilderManager
+    public class GirvsHostBuilderManager
     {
         public static IHostBuilder CreateSpHostBuilder<TStartup>(string[] args) where TStartup : class
         {
