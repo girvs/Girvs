@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -71,9 +72,9 @@ namespace Test.Application.Services
                 Name = name,
                 UserName = user.UserName,
                 Token = tokenHandler.WriteToken(token),
-                TokenExpire = tokenExpire.ToString(),
+                TokenExpire = tokenExpire.ToString(CultureInfo.InvariantCulture),
                 RefreshToken = Guid.NewGuid().ToString(),
-                RefreshTokenExpire = refreshTokenExpire.ToString()
+                RefreshTokenExpire = refreshTokenExpire.ToString(CultureInfo.InvariantCulture)
             };
         }
     }

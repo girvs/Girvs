@@ -8,6 +8,8 @@ using Girvs.Domain.Infrastructure.DependencyManagement;
 using Girvs.Domain.TypeFinder;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Test.Domain.Commands.User;
+using Test.Domain.Validations;
 
 namespace Girvs.WebFrameWork.Infrastructure.MediatRExtensions
 {
@@ -20,7 +22,8 @@ namespace Girvs.WebFrameWork.Infrastructure.MediatRExtensions
             //services.AddScoped<IRequestHandler<RemoveByKeyCommand, bool>, RemoveByKeyCommandHandler>();
             RegisterType(services, typeof(INotificationHandler<>), typeFinder);
             RegisterType(services, typeof(CommandHandler), typeFinder);
-            RegisterType(services, typeof(AbstractValidator<>), typeFinder, typeof(IValidator<>));
+            //RegisterType(services, typeof(IValidator<>), typeFinder);
+            services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidation>();
 
             //添加验证管道
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
@@ -33,8 +36,8 @@ namespace Girvs.WebFrameWork.Infrastructure.MediatRExtensions
             var interFaceTypes = types.Where(x => x.Name != type.Name).ToList();
             foreach (var repositoryType in interFaceTypes)
             {
-                var implementedInterfaces = ((System.Reflection.TypeInfo) repositoryType).ImplementedInterfaces;
-                if (implementedInterfaces != null && implementedInterfaces.Count() > 0)
+                var implementedInterfaces = ((System.Reflection.TypeInfo) repositoryType).ImplementedInterfaces.ToList();
+                if (implementedInterfaces.Any())
                 {
                     foreach (var bcType in implementedInterfaces)
                     {

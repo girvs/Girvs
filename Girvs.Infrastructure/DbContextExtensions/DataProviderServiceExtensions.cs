@@ -19,7 +19,8 @@ namespace Girvs.Infrastructure.DbContextExtensions
         public static void AddSpObjectContext(this IServiceCollection services)
         {
             var config = EngineContext.Current.Resolve<GirvsConfig>();
-            Action<DbContextOptionsBuilder> optionsAction = builder =>
+
+            void Action(DbContextOptionsBuilder builder)
             {
                 switch (config.UseDataType)
                 {
@@ -36,16 +37,14 @@ namespace Girvs.Infrastructure.DbContextExtensions
                         break;
                 }
 
-                //所有查询不使用数据追踪的方式，以免引起难以想象的麻烦
                 if (!config.UseDataTracking)
                 {
                     builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
                 }
 
                 builder.EnableSensitiveDataLogging();
-            };
-            
-            
+            }
+
 
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
             var dbContexts = typeFinder.FindClassesOfType<ScsDbContext>().Where(x => x.Name != nameof(ScsDbContext))
@@ -60,7 +59,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
                     foreach (var dbContext in dbContexts)
                     {
                         MethodInfo dmi = mi.MakeGenericMethod(dbContext);
-                        dmi.Invoke(serviceType, new object[] {services, optionsAction});
+                        dmi.Invoke(serviceType, new object[] {services, (Action<DbContextOptionsBuilder>) Action});
                     }
                 }
             }

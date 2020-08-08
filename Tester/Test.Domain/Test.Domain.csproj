@@ -8,7 +8,6 @@
     <Folder Include="EventHandlers\" />
     <Folder Include="Events\" />
     <Folder Include="Queries\" />
-    <Folder Include="Validations\" />
   </ItemGroup>
 
   <ItemGroup>

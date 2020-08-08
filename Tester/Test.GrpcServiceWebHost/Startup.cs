@@ -51,9 +51,13 @@ namespace Test.GrpcServiceWebHost
             services.AddCors(options =>
             {
                 options.AddPolicy("cors",
-                    set =>
+                    builder =>
                     {
-                        set.SetIsOriginAllowed(origin => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                        builder.SetIsOriginAllowed(origin => true)
+                        
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                     });
             });
         }
@@ -64,10 +68,11 @@ namespace Test.GrpcServiceWebHost
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            app.UseGrpcWeb(new GrpcWebOptions(){DefaultEnabled = true});
-            app.UseRouting();
             app.UseCors("cors");
+            app.UseGrpcWeb(new GrpcWebOptions() { DefaultEnabled = true });
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.ConfigureRequestPipeline();
         }
     }

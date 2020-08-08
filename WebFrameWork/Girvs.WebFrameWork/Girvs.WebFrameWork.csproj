@@ -21,5 +21,6 @@
     <ProjectReference Include="..\..\Girvs.Application\Girvs.Application.csproj" />
     <ProjectReference Include="..\..\Girvs.Domain\Girvs.Domain.csproj" />
     <ProjectReference Include="..\..\Girvs.Infrastructure\Girvs.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Tester\Test.Domain\Test.Domain.csproj" />
   </ItemGroup>
 </Project>
