@@ -15,11 +15,13 @@ namespace Girvs.Domain.Models
             CreateTime = DateTime.Now;
             UpdateTime = DateTime.Now;
 
-            var httpContext = EngineContext.Current.HttpContext;
-            if (httpContext != null && httpContext.User.Identity.IsAuthenticated)
+            var engineContext = EngineContext.Current;
+            
+            if (engineContext?.HttpContext != null 
+                && engineContext.HttpContext.User.Identity.IsAuthenticated)
             {
-                Creator = EngineContext.Current.CurrentClaimSid;
-                TenantId = EngineContext.Current.CurrentClaimTenantId;
+                Creator = engineContext.CurrentClaimSid;
+                TenantId = engineContext.CurrentClaimTenantId;
             }
             else
             {

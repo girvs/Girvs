@@ -13,7 +13,6 @@ namespace Girvs.Domain.Caching.Events
 
         public string Key { get; private set; }
         public dynamic Object { get; private set; }
-
         public int CacheTime { get; private set; }
     }
 }

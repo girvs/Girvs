@@ -54,9 +54,9 @@ namespace Test.Domain.CommandHandlers
             await _userRepository.AddAsync(user);
             if (await Commit())
             {
-                _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
+                await _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
                     _cacheKeyManager.CacheTime));
-                _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
+                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
                 request.Id = user.Id;
             }
 
@@ -99,9 +99,9 @@ namespace Test.Domain.CommandHandlers
 
             if (await Commit())
             {
-                _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
+                await _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
                     _cacheKeyManager.CacheTime));
-                _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
+                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
@@ -120,8 +120,8 @@ namespace Test.Domain.CommandHandlers
 
             if (await Commit())
             {
-                _bus.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(user.Id)));
-                _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
+                await _bus.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(user.Id)));
+                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
@@ -142,9 +142,9 @@ namespace Test.Domain.CommandHandlers
 
             if (await Commit())
             {
-                _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
+                await _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
                     _cacheKeyManager.CacheTime));
-                _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
+                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;

@@ -1,8 +1,9 @@
 ﻿using System;
+using Girvs.Domain.Managers;
 
 namespace Girvs.Domain.Caching.Interface
 {
-    public interface ICacheKeyManager<TObject> where TObject : new()
+    public interface ICacheKeyManager<TObject> : IManager where TObject : new()
     {
         int CacheTime { get; }
         string CacheKeyPrefix { get; }

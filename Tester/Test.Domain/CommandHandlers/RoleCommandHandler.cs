@@ -20,16 +20,16 @@ namespace Test.Domain.CommandHandlers
     {
         private readonly IRepository<Role> _roleRepository;
         private readonly ICacheKeyManager<Role> _cacheKeyManager;
-        private readonly IMediatorHandler _mediator;
+        private readonly IMediatorHandler _bus;
 
         public RoleCommandHandler(IRepository<Role> roleRepository,
             ICacheKeyManager<Role> cacheKeyManager,
-            IMediatorHandler mediator) : base(roleRepository.UnitOfWork,
-            mediator)
+            IMediatorHandler bus) : base(roleRepository.UnitOfWork,
+            bus)
         {
             _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
             _cacheKeyManager = cacheKeyManager ?? throw new ArgumentNullException(nameof(cacheKeyManager));
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }
         
         public async Task<bool> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ namespace Test.Domain.CommandHandlers
             if (await Commit())
             {
                 request.Id = role.Id;
-                _mediator.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
+                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
@@ -68,7 +68,7 @@ namespace Test.Domain.CommandHandlers
             var role = await _roleRepository.GetByIdAsync(request.Id);
             if (role == null)
             {
-                await _mediator.RaiseEvent(new DomainNotification("", "not find user entity"));
+                await _bus.RaiseEvent(new DomainNotification("", "not find user entity"));
                 return false;
             }
             
@@ -85,8 +85,8 @@ namespace Test.Domain.CommandHandlers
             
             if (await Commit())
             {
-                _mediator.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(role.Id)));
-                _mediator.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
+                await _bus.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(role.Id)));
+                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
@@ -97,7 +97,7 @@ namespace Test.Domain.CommandHandlers
             var role = await _roleRepository.GetByIdAsync(request.Id);
             if (role == null)
             {
-                await _mediator.RaiseEvent(new DomainNotification("", "not find user entity"));
+                await _bus.RaiseEvent(new DomainNotification("", "not find user entity"));
                 return false; 
             }
 
@@ -105,8 +105,8 @@ namespace Test.Domain.CommandHandlers
 
             if (await Commit())
             {
-                _mediator.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(role.Id)));
-                _mediator.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
+                await _bus.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(role.Id)));
+                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
