@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Girvs.Domain.Caching.Events;
 using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Driven.Bus;
 using Girvs.Domain.Driven.Commands;
@@ -18,18 +19,15 @@ namespace Test.Domain.CommandHandlers
         IRequestHandler<DeleteRoleCommand,bool>
     {
         private readonly IRepository<Role> _roleRepository;
-        private readonly IStaticCacheManager _staticCacheManager;
         private readonly ICacheKeyManager<Role> _cacheKeyManager;
         private readonly IMediatorHandler _mediator;
 
         public RoleCommandHandler(IRepository<Role> roleRepository,
-            IStaticCacheManager staticCacheManager,
             ICacheKeyManager<Role> cacheKeyManager,
             IMediatorHandler mediator) : base(roleRepository.UnitOfWork,
             mediator)
         {
             _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
-            _staticCacheManager = staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
             _cacheKeyManager = cacheKeyManager ?? throw new ArgumentNullException(nameof(cacheKeyManager));
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
@@ -53,7 +51,7 @@ namespace Test.Domain.CommandHandlers
             if (await Commit())
             {
                 request.Id = role.Id;
-                _staticCacheManager.RemoveByPrefix(_cacheKeyManager.CacheKeyListPrefix);
+                _mediator.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
@@ -87,8 +85,8 @@ namespace Test.Domain.CommandHandlers
             
             if (await Commit())
             {
-                _staticCacheManager.Remove(_cacheKeyManager.BuildCacheEntityKey(role.Id));
-                _staticCacheManager.RemoveByPrefix(_cacheKeyManager.CacheKeyListPrefix);
+                _mediator.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(role.Id)));
+                _mediator.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
@@ -107,8 +105,8 @@ namespace Test.Domain.CommandHandlers
 
             if (await Commit())
             {
-                _staticCacheManager.Remove(_cacheKeyManager.BuildCacheEntityKey(request.Id));
-                _staticCacheManager.RemoveByPrefix(_cacheKeyManager.CacheKeyListPrefix);
+                _mediator.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(role.Id)));
+                _mediator.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;

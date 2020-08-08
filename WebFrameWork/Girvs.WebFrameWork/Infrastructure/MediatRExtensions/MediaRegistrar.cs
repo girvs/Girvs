@@ -20,7 +20,7 @@ namespace Girvs.WebFrameWork.Infrastructure.MediatRExtensions
             //services.AddScoped<IRequestHandler<RemoveByKeyCommand, bool>, RemoveByKeyCommandHandler>();
             RegisterType(services, typeof(INotificationHandler<>), typeFinder);
             RegisterType(services, typeof(CommandHandler), typeFinder);
-            RegisterType(services, typeof(IValidator<>), typeFinder);
+            RegisterType(services, typeof(AbstractValidator<>), typeFinder, typeof(IValidator<>));
 
             //添加验证管道
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));

@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Girvs.Domain.Models;
 
 namespace Test.Domain.Models
 {
-    public class Structure : BaseEntity
+    public class Structure
     {
         public Structure()
         {

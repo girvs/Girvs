@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Girvs.Domain.Caching.Events;
 using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Driven.Bus;
 using Girvs.Domain.Driven.Commands;
@@ -14,23 +15,21 @@ using Test.Domain.Repositories;
 namespace Test.Domain.CommandHandlers
 {
     public class UserCommandHandler : CommandHandler, IRequestHandler<CreateUserCommand, bool>,
-        IRequestHandler<UpdateUserCommand, bool>, IRequestHandler<DeleteUserCommand, bool>,IRequestHandler<ChangeUserStateCommand,bool>
+        IRequestHandler<UpdateUserCommand, bool>, IRequestHandler<DeleteUserCommand, bool>,
+        IRequestHandler<ChangeUserStateCommand, bool>
     {
         private readonly IMediatorHandler _bus;
         private readonly IUserRepository _userRepository;
-        private readonly IStaticCacheManager _staticCacheManager;
         private readonly ICacheKeyManager<User> _cacheKeyManager;
 
         public UserCommandHandler(IUnitOfWork uow,
             IMediatorHandler bus,
             IUserRepository userRepository,
-            IStaticCacheManager staticCacheManager,
             ICacheKeyManager<User> cacheKeyManager) : base(uow,
             bus)
         {
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _staticCacheManager = staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
             _cacheKeyManager = cacheKeyManager ?? throw new ArgumentNullException(nameof(cacheKeyManager));
         }
 
@@ -55,8 +54,9 @@ namespace Test.Domain.CommandHandlers
             await _userRepository.AddAsync(user);
             if (await Commit())
             {
-                _staticCacheManager.Set(_cacheKeyManager.BuildCacheEntityKey(user.Id), user, 60);
-                _staticCacheManager.RemoveByPrefix(_cacheKeyManager.CacheKeyListPrefix);
+                _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
+                    _cacheKeyManager.CacheTime));
+                _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
                 request.Id = user.Id;
             }
 
@@ -77,7 +77,7 @@ namespace Test.Domain.CommandHandlers
                 await _bus.RaiseEvent(new DomainNotification("", "not find user entity"));
                 return false;
             }
-            
+
             user.ContactNumber = request.ContactNumber;
             user.State = request.State;
             user.UserAccount = request.UserAccount;
@@ -85,7 +85,7 @@ namespace Test.Domain.CommandHandlers
             user.UserPassword = request.UserPassword;
             user.UserType = request.UserType;
 
-            var fields = new []
+            var fields = new[]
             {
                 nameof(User.ContactNumber),
                 nameof(User.State),
@@ -94,13 +94,14 @@ namespace Test.Domain.CommandHandlers
                 nameof(User.UserPassword),
                 nameof(User.UserType)
             };
-            
+
             await _userRepository.UpdateAsync(user, fields);
-            
+
             if (await Commit())
             {
-                _staticCacheManager.Remove(_cacheKeyManager.BuildCacheEntityKey(user.Id));
-                _staticCacheManager.RemoveByPrefix(_cacheKeyManager.CacheKeyListPrefix);
+                _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
+                    _cacheKeyManager.CacheTime));
+                _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
@@ -117,10 +118,10 @@ namespace Test.Domain.CommandHandlers
 
             await _userRepository.DeleteAsync(user);
 
-            if (await  Commit())
+            if (await Commit())
             {
-                _staticCacheManager.Remove(_cacheKeyManager.BuildCacheEntityKey(request.Id));
-                _staticCacheManager.RemoveByPrefix(_cacheKeyManager.CacheKeyListPrefix);
+                _bus.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(user.Id)));
+                _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
@@ -141,8 +142,9 @@ namespace Test.Domain.CommandHandlers
 
             if (await Commit())
             {
-                _staticCacheManager.Remove(_cacheKeyManager.BuildCacheEntityKey(request.Id));
-                _staticCacheManager.RemoveByPrefix(_cacheKeyManager.CacheKeyListPrefix);
+                _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
+                    _cacheKeyManager.CacheTime));
+                _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
             }
 
             return true;
