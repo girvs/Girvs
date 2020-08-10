@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AutoMapper.Internal;
 using FluentValidation;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Driven.Behaviors;
@@ -22,13 +23,28 @@ namespace Girvs.WebFrameWork.Infrastructure.MediatRExtensions
             //services.AddScoped<IRequestHandler<RemoveByKeyCommand, bool>, RemoveByKeyCommandHandler>();
             RegisterType(services, typeof(INotificationHandler<>), typeFinder);
             RegisterType(services, typeof(CommandHandler), typeFinder);
-            //RegisterType(services, typeof(IValidator<>), typeFinder);
-            services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidation>();
+            RegisterIValidatorType(services, typeof(IValidator), typeFinder);
+            //services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidation>();
 
             //添加验证管道
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
         }
 
+
+        public void RegisterIValidatorType(IServiceCollection services, Type type, ITypeFinder typeFinder)
+        {
+            var types = typeFinder.FindClassesOfType(type, true, false);
+            foreach (var validatorType in types)
+            {
+                var parentType =
+                    ((System.Reflection.TypeInfo) validatorType).ImplementedInterfaces.FirstOrDefault(x =>
+                        x.Name == "IValidator`1");
+                if (parentType != null)
+                {
+                    services.AddScoped(parentType, validatorType);
+                }
+            }
+        }
 
         public void RegisterType(IServiceCollection services, Type type, ITypeFinder typeFinder ,Type asType = null)
         {

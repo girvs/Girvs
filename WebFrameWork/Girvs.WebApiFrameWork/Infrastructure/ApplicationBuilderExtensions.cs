@@ -3,7 +3,6 @@ using System.Text.Json;
 using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
-using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -28,11 +27,13 @@ namespace Girvs.WebApiFrameWork.Infrastructure
                     if (exception == null)
                         return;
 
-                    context.Response.StatusCode = exception is GirvsBusinessException ? 568 : StatusCodes.Status500InternalServerError;
+                    context.Response.StatusCode = exception is GirvsException girvsException ? girvsException.StatusCode : 568;
 
                     try
                     {
-                        EngineContext.Current.Resolve<ILogger<object>>().LogError(exception.Message, exception);
+                        var logger = EngineContext.Current.Resolve<ILogger<object>>();
+                        logger.LogDebug($"Starting call. Request: {context.Request.Path}");
+                        logger.LogError(exception.Message, exception);
                     }
                     finally
                     {

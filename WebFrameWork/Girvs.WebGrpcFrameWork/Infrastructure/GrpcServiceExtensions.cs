@@ -6,7 +6,10 @@ namespace Girvs.WebGrpcFrameWork.Infrastructure
     {
         public static void AddSpGrpcService(this IServiceCollection services)
         {
-            services.AddGrpc();
+            services.AddGrpc(options =>
+            {
+                options.Interceptors.Add<GirvsExceptionInterceptor>();
+            });
         }
     }
 }

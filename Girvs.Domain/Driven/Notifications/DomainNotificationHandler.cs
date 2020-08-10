@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -27,11 +29,28 @@ namespace Girvs.Domain.Driven.Notifications
             _notifications.Add(message);
             return Task.CompletedTask;
         }
-        
+
         // 获取当前生命周期内的全部通知信息
         public virtual List<DomainNotification> GetNotifications()
         {
             return _notifications;
+        }
+
+        public virtual string GetNotificationMessage()
+        {
+            if (_notifications.Any())
+            {
+                var options = new JsonSerializerOptions
+                {
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
+                };
+                return JsonSerializer.Serialize(_notifications.Select(x => new
+                {
+                    PropertyName = x.Key,
+                    ErrorMessage = x.Value
+                }),options);
+            }
+            return string.Empty;
         }
 
         // 判断在当前总线对象周期中，是否存在通知信息

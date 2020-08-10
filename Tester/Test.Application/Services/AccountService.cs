@@ -5,10 +5,12 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Girvs.Application;
+using Girvs.Domain;
 using Girvs.Domain.Extensions;
 using Girvs.Domain.Managers;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using Test.Domain.Configuration;
 using Test.Domain.Models;
@@ -40,7 +42,7 @@ namespace Test.Application.Services
             }
             else
             {
-                throw new RpcException( new Status(StatusCode.NotFound,"用户名或密码错误！"));
+                throw new GirvsException("用户名或密码错误", StatusCodes.Status422UnprocessableEntity);
             }
         }
 

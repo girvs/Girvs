@@ -30,11 +30,8 @@
   <ItemGroup>
     <Compile Remove="Caching\CacheUsingManager.cs" />
     <Compile Remove="Caching\ICacheUsingManager.cs" />
+    <Compile Remove="GirvsBusinessException.cs" />
     <Compile Remove="IRepositories\IBaseActionRepository.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Driven\Validations" />
   </ItemGroup>
 
 </Project>

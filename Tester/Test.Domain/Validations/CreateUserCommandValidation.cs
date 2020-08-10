@@ -1,15 +1,17 @@
 ﻿using FluentValidation;
+using Girvs.Domain.Driven.Validations;
 using Test.Domain.Commands.User;
 
 namespace Test.Domain.Validations
 {
-    public class CreateUserCommandValidation : AbstractValidator<CreateUserCommand>
+    public class CreateUserCommandValidation : GirvsCommandValidator<CreateUserCommand>
     {
         public CreateUserCommandValidation()
         {
             ValidateBirthDate();
         }
 
+        public override bool IsErrorMessageDelay { get; set; } = false;
 
         protected void ValidateBirthDate()
         {

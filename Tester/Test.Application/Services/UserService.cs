@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Girvs.Application;
+using Girvs.Domain;
 using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Driven.Bus;
+using Girvs.Domain.Driven.Notifications;
 using Girvs.Domain.Extensions;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Test.Domain.Commands.User;
 using Test.Domain.Extensions;
 using Test.Domain.Models;
@@ -23,12 +28,17 @@ namespace Test.Application.Services
         private readonly IUserRepository _userRepository;
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly ICacheKeyManager<User> _cacheKeyManager;
+        private readonly DomainNotificationHandler _notifications;
 
-        public UserService(IMediatorHandler bus, IUserRepository userRepository, IStaticCacheManager staticCacheManager,
+        public UserService(IMediatorHandler bus,
+            IUserRepository userRepository,
+            INotificationHandler<DomainNotification> notifications,
+            IStaticCacheManager staticCacheManager,
             ICacheKeyManager<User> cacheKeyManager)
         {
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _notifications = (DomainNotificationHandler)notifications;
             _staticCacheManager = staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
             _cacheKeyManager = cacheKeyManager ?? throw new ArgumentNullException(nameof(cacheKeyManager));
         }
@@ -40,7 +50,7 @@ namespace Test.Application.Services
                 async () => await _userRepository.GetByIdAsync(request.Id.ToGuid()), 60);
 
             if (user == null)
-                throw new RpcException(new Status(StatusCode.NotFound, "未找到对应的用户"));
+                throw new GirvsException("未找到对应的用户", StatusCodes.Status422UnprocessableEntity);
 
             return new GetByIdResponse
             {
@@ -85,6 +95,11 @@ namespace Test.Application.Services
                 request.UserMessage.ContactNumber, (Test.Domain.Enumerations.DataState)((int)request.UserMessage.State));
 
             await _bus.SendCommand(command);
+
+            if (_notifications.HasNotifications())
+            {
+                throw new GirvsException(_notifications.GetNotificationMessage(), StatusCodes.Status422UnprocessableEntity);
+            }
 
             request.UserMessage.Id = command.Id.ToString();
 
