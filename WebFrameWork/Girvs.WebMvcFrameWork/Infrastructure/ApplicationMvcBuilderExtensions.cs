@@ -40,7 +40,7 @@ namespace Girvs.WebMvcFrameWork.Infrastructure
                             var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
                             if (exception != null)
                             {
-                                context.Response.StatusCode = exception is GirvsBusinessException
+                                context.Response.StatusCode = exception is GirvsException
                                     ? 568
                                     : StatusCodes.Status500InternalServerError;
 

@@ -95,12 +95,6 @@ namespace Test.Application.Services
                 request.UserMessage.ContactNumber, (Test.Domain.Enumerations.DataState)((int)request.UserMessage.State));
 
             await _bus.SendCommand(command);
-
-            if (_notifications.HasNotifications())
-            {
-                throw new GirvsException(_notifications.GetNotificationMessage(), StatusCodes.Status422UnprocessableEntity);
-            }
-
             request.UserMessage.Id = command.Id.ToString();
 
             return new EditResponse

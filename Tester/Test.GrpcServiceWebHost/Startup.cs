@@ -21,6 +21,7 @@ namespace Test.GrpcServiceWebHost
             Configuration = configuration;
             WebHostEnvironment = webHostEnvironment;
         }
+
         public void ConfigureServices(IServiceCollection services)
         {
             var token = services.ConfigureStartupConfig<TokenManagement>(Configuration.GetSection("tokenConfig"));
@@ -29,7 +30,6 @@ namespace Test.GrpcServiceWebHost
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-
             }).AddJwtBearer(x =>
             {
                 x.RequireHttpsMetadata = false;
@@ -53,11 +53,22 @@ namespace Test.GrpcServiceWebHost
                 options.AddPolicy("cors",
                     builder =>
                     {
+                        string[] headers =
+                        {
+                            "Grpc-Status",
+                            "Grpc-Message",
+                            "Grpc-Encoding",
+                            "Grpc-Accept-Encoding",
+                            "status",
+                            //"www-authenticate"
+                        };
+
                         builder.SetIsOriginAllowed(origin => true)
-                        
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials()
+                            .WithExposedHeaders(headers);
+                        //非常重要，直接导致你能否接收到异常信息
                     });
             });
         }
@@ -68,8 +79,9 @@ namespace Test.GrpcServiceWebHost
             {
                 app.UseDeveloperExceptionPage();
             }
+
             app.UseCors("cors");
-            app.UseGrpcWeb(new GrpcWebOptions() { DefaultEnabled = true });
+            app.UseGrpcWeb(new GrpcWebOptions() {DefaultEnabled = true});
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();

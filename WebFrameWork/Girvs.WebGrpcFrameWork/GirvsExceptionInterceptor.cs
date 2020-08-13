@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Girvs.Domain;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Girvs.WebGrpcFrameWork
@@ -16,7 +17,8 @@ namespace Girvs.WebGrpcFrameWork
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context,
+        public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request,
+            ServerCallContext context,
             UnaryServerMethod<TRequest, TResponse> continuation)
         {
             LogCall(context);
@@ -24,16 +26,21 @@ namespace Girvs.WebGrpcFrameWork
             {
                 return await continuation(request, context);
             }
-            catch (GirvsException e)
-            {
-                _logger.LogError(e, e.Message);
-                StatusCode status = ConverGrpcStatusCode(e.StatusCode);
-                throw new RpcException(new Status(status, e.Message, e));
-            }
             catch (Exception e)
             {
+                Status status;
+
+                if (e is GirvsException girvsException)
+                {
+                    status = new Status(ConverGrpcStatusCode(girvsException.StatusCode), e.Message, e);
+                }
+                else
+                {
+                    status = new Status(StatusCode.Unknown, e.Message, e);
+                }
+
                 _logger.LogError(e, e.Message);
-                throw new RpcException(Status.DefaultCancelled, e.Message);
+                throw new RpcException(status);
             }
         }
 
@@ -50,8 +57,15 @@ namespace Girvs.WebGrpcFrameWork
         /// <returns></returns>
         private StatusCode ConverGrpcStatusCode(int status)
         {
+            switch (status)
+            {
+                case StatusCodes.Status422UnprocessableEntity:
+                    return StatusCode.Unavailable;
+                case StatusCodes.Status404NotFound:
+                    return StatusCode.NotFound;
+            }
+
             return StatusCode.Cancelled;
         }
-
     }
 }

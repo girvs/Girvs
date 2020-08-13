@@ -11,7 +11,7 @@ namespace Girvs.Infrastructure.CacheRepository
         public CacheKeyManager(GirvsConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            CacheTime = config.CacheTime;
+            CacheTime = config.CacheTime == 0 ? 30 : config.CacheTime;
             CacheKeyPrefix = $"{typeof(TObject).FullName}";
             CacheKeyListPrefix = $"{CacheKeyPrefix}:List";
             CacheKeyListAllPrefix = $"{CacheKeyListPrefix}:All";
@@ -23,6 +23,7 @@ namespace Girvs.Infrastructure.CacheRepository
         public string CacheKeyListPrefix { get; private set; }
         public string CacheKeyListAllPrefix { get; private set; }
         public string CacheKeyListQueryPrefix { get; private set; }
+
         public string BuildCacheEntityKey(Guid id)
         {
             return $"{CacheKeyPrefix}:{id}";

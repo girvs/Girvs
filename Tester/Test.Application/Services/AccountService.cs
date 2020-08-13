@@ -42,7 +42,7 @@ namespace Test.Application.Services
             }
             else
             {
-                throw new GirvsException("用户名或密码错误", StatusCodes.Status422UnprocessableEntity);
+                throw new GirvsException("用户名或密码错误", StatusCodes.Status404NotFound);
             }
         }
 

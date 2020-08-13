@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Girvs.Domain;
 using Girvs.Domain.Caching.Events;
 using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Driven.Bus;
@@ -8,6 +9,7 @@ using Girvs.Domain.Driven.Commands;
 using Girvs.Domain.Driven.Notifications;
 using Girvs.Domain.Managers;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Test.Domain.Commands.User;
 using Test.Domain.Models;
 using Test.Domain.Repositories;
@@ -22,10 +24,10 @@ namespace Test.Domain.CommandHandlers
         private readonly IUserRepository _userRepository;
         private readonly ICacheKeyManager<User> _cacheKeyManager;
 
-        public UserCommandHandler(IUnitOfWork uow,
+        public UserCommandHandler(
             IMediatorHandler bus,
             IUserRepository userRepository,
-            ICacheKeyManager<User> cacheKeyManager) : base(uow,
+            ICacheKeyManager<User> cacheKeyManager) : base(userRepository.UnitOfWork,
             bus)
         {
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
@@ -35,10 +37,11 @@ namespace Test.Domain.CommandHandlers
 
         public async Task<bool> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            if (!request.IsValid())
+            var existUser = await _userRepository.GetUserByLoginNameAsync(request.UserAccount);
+
+            if (existUser != null)
             {
-                NotifyValidationErrors(request);
-                return false;
+                throw new GirvsException($"{request.UserAccount}登陆名称已存在", StatusCodes.Status422UnprocessableEntity);
             }
 
             var user = new User()

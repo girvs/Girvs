@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using AutoMapper.Internal;
 using FluentValidation;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Driven.Behaviors;
@@ -9,8 +8,6 @@ using Girvs.Domain.Infrastructure.DependencyManagement;
 using Girvs.Domain.TypeFinder;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using Test.Domain.Commands.User;
-using Test.Domain.Validations;
 
 namespace Girvs.WebFrameWork.Infrastructure.MediatRExtensions
 {
