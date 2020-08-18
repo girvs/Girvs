@@ -2,7 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0-preview.2.0.0</Version>
+    <Version>1.0.0-preview.2.2.0</Version>
+    <PackageVersion>1.0.0-preview.2.2.1</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="GirvsErrorResult.cs" />
@@ -25,6 +26,5 @@
     <ProjectReference Include="..\..\Girvs.Application\Girvs.Application.csproj" />
     <ProjectReference Include="..\..\Girvs.Domain\Girvs.Domain.csproj" />
     <ProjectReference Include="..\..\Girvs.Infrastructure\Girvs.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Tester\Test.Domain\Test.Domain.csproj" />
   </ItemGroup>
 </Project>

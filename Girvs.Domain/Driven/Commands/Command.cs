@@ -7,7 +7,7 @@ namespace Girvs.Domain.Driven.Commands
     public abstract class Command : Message
     {
         public DateTime Timestamp { get; private set; }
-        
+
         public ValidationResult ValidationResult { get; set; }
 
         protected Command()
@@ -15,6 +15,9 @@ namespace Girvs.Domain.Driven.Commands
             Timestamp = DateTime.Now;
         }
 
-        public abstract bool IsValid();
+        public virtual bool IsValid()
+        {
+            return true;
+        }
     }
 }
