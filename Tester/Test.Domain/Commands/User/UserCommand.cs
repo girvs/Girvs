@@ -18,5 +18,10 @@ namespace Test.Domain.Commands.User
         public DataState State { get; protected set; }
 
         public UserType UserType { get; protected set; }
+
+        public string NewPassword { get; protected set; }
+        public string OldPassword { get; protected set; }
+        
+        public Guid[] RoleIds { get; protected set; }
     }
 }

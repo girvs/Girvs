@@ -90,9 +90,14 @@ namespace Test.Application.Services
 
         public override async Task<EditResponse> Add(EditRequest request, ServerCallContext context)
         {
-            var command = new CreateUserCommand(request.UserMessage.UserAccount,
-                request.UserMessage.UserPassword.ToMd5(), request.UserMessage.UserName,
-                request.UserMessage.ContactNumber, (Test.Domain.Enumerations.DataState)((int)request.UserMessage.State));
+            var command = new CreateUserCommand(
+                request.UserMessage.UserAccount,
+                request.UserMessage.UserPassword.ToMd5(),
+                request.UserMessage.UserName,
+                request.UserMessage.ContactNumber,
+                (Test.Domain.Enumerations.DataState)((int)request.UserMessage.State),
+                (Test.Domain.Enumerations.UserType)(int)request.UserMessage.UserType
+            );
 
             await _bus.SendCommand(command);
             request.UserMessage.Id = command.Id.ToString();
@@ -107,7 +112,9 @@ namespace Test.Application.Services
         {
             var command = new UpdateUserCommand(request.UserMessage.UserAccount,
                 request.UserMessage.UserPassword.ToMd5(), request.UserMessage.UserName,
-                request.UserMessage.ContactNumber, (Test.Domain.Enumerations.DataState)((int)request.UserMessage.State));
+                request.UserMessage.ContactNumber, (Test.Domain.Enumerations.DataState)((int)request.UserMessage.State),
+                (Test.Domain.Enumerations.UserType)(int)request.UserMessage.UserType
+                );
 
             await _bus.SendCommand(command);
 

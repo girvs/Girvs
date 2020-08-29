@@ -5,7 +5,7 @@ namespace Test.Domain.Commands.User
     public class CreateUserCommand : UserCommand
     {
         public CreateUserCommand(string userAccount, string userPassword, string userName, string contactNumber,
-            DataState state)
+            DataState state, UserType userType)
 
         {
             UserAccount = userAccount;
@@ -13,6 +13,7 @@ namespace Test.Domain.Commands.User
             UserName = userName;
             ContactNumber = contactNumber;
             State = state;
+            UserType = userType;
         }
 
         public override bool IsValid()
