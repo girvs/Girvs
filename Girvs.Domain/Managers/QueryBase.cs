@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Models;
 
 namespace Girvs.Domain.Managers
@@ -28,6 +29,11 @@ namespace Girvs.Domain.Managers
 
         public string[] QueryFields { get; set; }
 
+        public virtual string GetCacheKey(ICacheKeyManager<T> cacheKeyManager)
+        {
+            return GetCacheKey(cacheKeyManager.CacheKeyListQueryPrefix);
+        }
+        
         public virtual string GetCacheKey(string cacheKeyListPrefix)
         {
             //此处字符串为约定，请不要随意修改
