@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.Json.Serialization;
 using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Models;
 
@@ -23,6 +24,7 @@ namespace Girvs.Domain.Managers
         public int RecordCount { get; set; }
         public List<T> Result { get; set; }
 
+        [JsonIgnore]
         [QueryCacheKey] public Expression<Func<T, string>> OrderBy { get; set; }
 
         public int PageCount => (int) Math.Ceiling(RecordCount / (decimal) PageSize);
