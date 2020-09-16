@@ -14,10 +14,14 @@ namespace Girvs.Domain.Managers
         {
             OrderBy = x => x.Id.ToString();
             PageSize = 20;
-            PageIndex = 1;
+            PageIndex = 0;
         }
 
-        public int PageStart => (PageIndex - 1) * PageSize;
+        public int PageStart => PageIndex * PageSize;
+        
+        /// <summary>
+        /// 当前页，从0开始
+        /// </summary>
         [QueryCacheKey] public int PageIndex { get; set; }
 
         [QueryCacheKey] public int PageSize { get; set; }

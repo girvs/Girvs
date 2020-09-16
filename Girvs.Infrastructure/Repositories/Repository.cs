@@ -72,7 +72,7 @@ namespace Girvs.Infrastructure.Repositories
 
         public virtual async Task<List<TEntity>> GetAllAsync(params string[] fields)
         {
-            if (fields.Any())
+            if (fields != null && fields.Any())
             {
                 //临时方法，待改进,不科学的方法
                 return await Task.Run(() =>
@@ -94,7 +94,7 @@ namespace Girvs.Infrastructure.Repositories
             }
             else
             {
-                if (query.QueryFields.Any())
+                if (query.QueryFields != null && query.QueryFields.Any())
                 {
                     //临时方法，待改进,不科学的方法
                     query.Result =
@@ -147,7 +147,7 @@ namespace Girvs.Infrastructure.Repositories
             await Task.Run(() =>
             {
                 var dbEntityEntry = _dbContext.Entry(t);
-                if (fields.Any())
+                if (fields != null && fields.Any())
                 {
                     if (!fields.Contains(nameof(BaseEntity.UpdateTime)))
                     {
