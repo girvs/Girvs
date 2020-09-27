@@ -54,14 +54,24 @@ namespace Girvs.Infrastructure.Repositories
             }
         }
 
-        public virtual async Task DeleteAsync(TEntity t)
+        private Task ConditionalDelete(TEntity t)
         {
-            await Task.Run(() => { _dbContext.Entry<TEntity>(t).State = EntityState.Deleted; });
+            var includeInit = t as IncludeInitField;
+            if (includeInit != null && includeInit.IsInitData)
+                return Task.CompletedTask;
+            _dbContext.Entry<TEntity>(t).State = EntityState.Deleted;
+            return Task.CompletedTask;
         }
 
-        public virtual async Task DeleteRangeAsync(List<TEntity> ts)
+        public virtual Task DeleteAsync(TEntity t)
         {
-            await Task.Run(() => { ts.ForEach(x => _dbContext.Entry(x).State = EntityState.Deleted); });
+            return ConditionalDelete(t);
+        }
+
+        public virtual Task DeleteRangeAsync(List<TEntity> ts)
+        {
+            ts.ForEach(async x => await ConditionalDelete(x));
+            return Task.CompletedTask;
         }
 
         public virtual async Task<TEntity> GetByIdAsync(Guid id)
