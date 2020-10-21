@@ -17,7 +17,7 @@ namespace Test.GrpcServiceWebHost.App_Data
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<CmmpDbContext>();
-            optionsBuilder.UseSqlServer(configuration["Girvs:DataConnectionString"]);
+            optionsBuilder.UseMySql(configuration["Girvs:DataConnectionString"]);
 
             return new CmmpDbContext(optionsBuilder.Options);
         }

@@ -1,4 +1,5 @@
-﻿using Girvs.Domain.Infrastructure;
+﻿using Girvs.Domain.Configuration;
+using Girvs.Domain.Infrastructure;
 using Girvs.WebApiFrameWork.Infrastructure;
 using Girvs.WebFrameWork.Infrastructure.SwaggerExtensions;
 using Microsoft.AspNetCore.Builder;
@@ -11,24 +12,30 @@ namespace Girvs.WebApiFrameWork
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddControllers(options =>
-            {
-               // options.Filters.Add<CustomExceptionAttribute>();
-            });
             services.ConfigureSwaggerServices();
+
+            var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
+            if (girvsConfig.CurrentServerModel == ServerModel.WebApi)
+            {
+                services.AddControllers(options =>
+                {
+                    // options.Filters.Add<CustomExceptionAttribute>();
+                });
+            }
         }
 
         public void Configure(IApplicationBuilder application)
         {
-            application.UseSpExceptionHandler();
-            //静态文件
-            application.UseStaticFiles();
-            application.UseCustomSwagger();
-            application.UseRouting();
-            application.UseEndpoints(endpoints =>
+            var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
+            if (girvsConfig.CurrentServerModel == ServerModel.WebApi)
             {
-                endpoints.MapControllers();
-            });
+                application.UseSpExceptionHandler();
+                //静态文件
+                application.UseStaticFiles();
+                application.UseCustomSwagger();
+                application.UseRouting();
+                application.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            }
         }
 
         public int Order { get; } = 100;

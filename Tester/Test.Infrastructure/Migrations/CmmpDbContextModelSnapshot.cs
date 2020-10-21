@@ -100,11 +100,11 @@ namespace Test.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"),
-                            CreateTime = new DateTime(2020, 8, 8, 14, 17, 26, 618, DateTimeKind.Local).AddTicks(906),
+                            CreateTime = new DateTime(2020, 10, 14, 15, 31, 33, 365, DateTimeKind.Local).AddTicks(2746),
                             Creator = new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"),
                             State = 0,
                             TenantId = new Guid("f339be29-7ce2-4876-bcca-d3abe3d16f75"),
-                            UpdateTime = new DateTime(2020, 8, 8, 14, 17, 26, 618, DateTimeKind.Local).AddTicks(934),
+                            UpdateTime = new DateTime(2020, 10, 14, 15, 31, 33, 365, DateTimeKind.Local).AddTicks(2771),
                             UserAccount = "admin",
                             UserName = "系统管理员",
                             UserPassword = "21232F297A57A5A743894A0E4A801FC3",

@@ -72,7 +72,7 @@ namespace Test.Infrastructure.Migrations
             migrationBuilder.InsertData(
                 table: "User",
                 columns: new[] { "Id", "ContactNumber", "CreateTime", "Creator", "State", "TenantId", "UpdateTime", "UserAccount", "UserName", "UserPassword", "UserType" },
-                values: new object[] { new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"), null, new DateTime(2020, 8, 8, 14, 17, 26, 618, DateTimeKind.Local).AddTicks(906), new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"), 0, new Guid("f339be29-7ce2-4876-bcca-d3abe3d16f75"), new DateTime(2020, 8, 8, 14, 17, 26, 618, DateTimeKind.Local).AddTicks(934), "admin", "系统管理员", "21232F297A57A5A743894A0E4A801FC3", 0 });
+                values: new object[] { new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"), null, new DateTime(2020, 10, 14, 15, 31, 33, 365, DateTimeKind.Local).AddTicks(2746), new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"), 0, new Guid("f339be29-7ce2-4876-bcca-d3abe3d16f75"), new DateTime(2020, 10, 14, 15, 31, 33, 365, DateTimeKind.Local).AddTicks(2771), "admin", "系统管理员", "21232F297A57A5A743894A0E4A801FC3", 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRole_RoleId",

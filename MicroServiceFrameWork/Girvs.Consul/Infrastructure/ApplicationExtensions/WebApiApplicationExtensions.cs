@@ -1,7 +1,7 @@
 ﻿using System;
 using Girvs.Consul.Configuration;
+using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
-using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using NConsul;
@@ -14,7 +14,9 @@ namespace Girvs.Consul.Infrastructure.ApplicationExtensions
         {
             var config = EngineContext.Current.Resolve<ConsulConfig>();
 
-            if (config.CurrentServerModel == ServerModel.WebApi)
+            var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
+            
+            if (girvsConfig.CurrentServerModel == ServerModel.WebApi)
             {
                 var lifetime = EngineContext.Current.Resolve<IHostApplicationLifetime>();
                 var consulClient =

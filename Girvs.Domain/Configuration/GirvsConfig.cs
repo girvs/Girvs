@@ -89,5 +89,16 @@ namespace Girvs.Domain.Configuration
         public bool WhetherTheTenantIsInvolvedInManagement { get; set; }
 
         public List<TaskConfig> Tasks { get; set; }
+
+
+        public ServerModel CurrentServerModel { get; set; } = ServerModel.WebApi;
+    }
+    
+    
+    public enum ServerModel
+    {
+        WebApi,
+        GrpcService,
+        Mvc
     }
 }

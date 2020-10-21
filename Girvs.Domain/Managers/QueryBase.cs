@@ -12,24 +12,24 @@ namespace Girvs.Domain.Managers
     {
         protected QueryBase()
         {
-            OrderBy = x => x.Id.ToString();
+            OrderBy = x => nameof(BaseEntity.CreateTime);
             PageSize = 20;
             PageIndex = 0;
         }
 
         public int PageStart => PageIndex * PageSize;
-        
+
         /// <summary>
         /// 当前页，从0开始
         /// </summary>
-        [QueryCacheKey] public int PageIndex { get; set; }
+        [QueryCacheKey]
+        public int PageIndex { get; set; }
 
         [QueryCacheKey] public int PageSize { get; set; }
         public int RecordCount { get; set; }
         public List<T> Result { get; set; }
 
-        [JsonIgnore]
-        [QueryCacheKey] public Expression<Func<T, string>> OrderBy { get; set; }
+        [JsonIgnore] [QueryCacheKey] public Expression<Func<T, string>> OrderBy { get; set; }
 
         public int PageCount => (int) Math.Ceiling(RecordCount / (decimal) PageSize);
 
@@ -39,7 +39,7 @@ namespace Girvs.Domain.Managers
         {
             return GetCacheKey(cacheKeyManager.CacheKeyListQueryPrefix);
         }
-        
+
         public virtual string GetCacheKey(string cacheKeyListPrefix)
         {
             //此处字符串为约定，请不要随意修改

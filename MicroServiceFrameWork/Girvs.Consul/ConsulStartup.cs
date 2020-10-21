@@ -1,6 +1,7 @@
 ﻿using System;
 using Girvs.Consul.Configuration;
 using Girvs.Consul.Infrastructure.ApplicationExtensions;
+using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
 using Microsoft.AspNetCore.Builder;
@@ -14,9 +15,10 @@ namespace Girvs.Consul
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
+            var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
             var consulConfig = services.ConfigureStartupConfig<ConsulConfig>(configuration.GetSection("ConsulConfig"));
             //需要添加判断是否存在GRPC服务
-            if (consulConfig.CurrentServerModel == ServerModel.GrpcService)
+            if (girvsConfig.CurrentServerModel == ServerModel.GrpcService)
             {
                 consulConfig.ServerName = string.IsNullOrEmpty(consulConfig.ServerName)
                     ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "_")

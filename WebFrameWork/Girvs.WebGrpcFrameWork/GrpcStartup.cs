@@ -1,4 +1,5 @@
-﻿using Girvs.Domain.Infrastructure;
+﻿using Girvs.Domain.Configuration;
+using Girvs.Domain.Infrastructure;
 using Girvs.WebGrpcFrameWork.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -10,12 +11,20 @@ namespace Girvs.WebGrpcFrameWork
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSpGrpcService();
+            var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
+            if (girvsConfig.CurrentServerModel == ServerModel.GrpcService)
+            {
+                services.AddSpGrpcService();
+            }
         }
 
         public void Configure(IApplicationBuilder application)
         {
-            application.UseAutoGrpcServices();
+            var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
+            if (girvsConfig.CurrentServerModel == ServerModel.GrpcService)
+            {
+                application.UseAutoGrpcServices();
+            }
         }
 
         public int Order { get; } = 10;
