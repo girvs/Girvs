@@ -94,7 +94,6 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
         {
             services.RegisterType(typeof(IRepository<>), typeFinder, onlyInterface);
             services.RegisterType<IManager>(typeFinder, onlyInterface);
-            services.RegisterType<IService>(typeFinder, onlyInterface);
         }
 
         public static void RegisterType<T>(this IServiceCollection services, ITypeFinder typeFinder, bool onlyInterface = true)

@@ -5,7 +5,7 @@ using Grpc.Health.V1;
 
 namespace Girvs.Consul.Services
 {
-    public class HealthCheckService : Health.HealthBase, IGrpcService
+    public class HealthCheckService : Health.HealthBase, IAppGrpcService
     {
         public override Task<HealthCheckResponse> Check(HealthCheckRequest request, ServerCallContext context)
         {

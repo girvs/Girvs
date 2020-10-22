@@ -7,7 +7,7 @@ using Test.GrpcService.BaseServices.StructureGrpcService;
 
 namespace Test.Application.Services
 {
-    public class StructureService : StructureGrpcService.StructureGrpcServiceBase, IGrpcService
+    public class StructureService : StructureGrpcService.StructureGrpcServiceBase, IAppGrpcService
     {
         private readonly IStaticCacheManager _staticCacheManager;
         private readonly ICacheKeyManager<Structure> _cacheKeyManager;

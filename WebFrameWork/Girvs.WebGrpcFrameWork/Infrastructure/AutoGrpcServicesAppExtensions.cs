@@ -23,7 +23,7 @@ namespace Girvs.WebGrpcFrameWork.Infrastructure
         public static void AddGrpcServices(this IEndpointRouteBuilder builder)
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var grpcServices = typeFinder.FindClassesOfType<IGrpcService>();
+            var grpcServices = typeFinder.FindClassesOfType<IAppGrpcService>();
 
             var logger = EngineContext.Current.Resolve<ILogger<object>>();
             foreach (var grpcService in grpcServices)

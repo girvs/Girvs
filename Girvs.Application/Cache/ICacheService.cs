@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Girvs.Application.Cache
 {
-    public interface ICacheService : IService
+    public interface ICacheService : IAppWebApiService
     {
         Task<List<string>> GetKeys();
         Task<string> GetValueByKey(string key);

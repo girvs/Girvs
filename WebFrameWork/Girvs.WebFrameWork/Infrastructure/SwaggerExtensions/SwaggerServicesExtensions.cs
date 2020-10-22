@@ -12,6 +12,8 @@ namespace Girvs.WebFrameWork.Infrastructure.SwaggerExtensions
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = AppDomain.CurrentDomain.FriendlyName, Version = "v1"});
+                // TODO:一定要返回true！
+                c.DocInclusionPredicate((docName, description) => true);
 
                 c.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
                 {

@@ -8,7 +8,7 @@ using Grpc.Core;
 
 namespace Girvs.WebGrpcFrameWork.Services
 {
-    public class CacheService : Cache.CacheBase, IGrpcService
+    public class CacheService : Cache.CacheBase, IAppGrpcService
     {
         private readonly ICacheService _cacheService;
 

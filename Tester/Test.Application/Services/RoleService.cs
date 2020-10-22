@@ -16,7 +16,7 @@ using Test.GrpcService.BaseServices.RoleGrpcService;
 namespace Test.Application.Services
 {
     [Authorize]
-    public class RoleService : RoleGrpcService.RoleGrpcServiceBase, IService
+    public class RoleService : RoleGrpcService.RoleGrpcServiceBase, IAppGrpcService
     {
         private readonly IRepository<Role> _roleRepository;
         private readonly IStaticCacheManager _staticCacheManager;

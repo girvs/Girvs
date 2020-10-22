@@ -20,7 +20,7 @@ using Test.GrpcService.BaseServices.AccountGrpcService;
 namespace Test.Application.Services
 {
     [AllowAnonymous]
-    public class AccountService : AccountGrpcService.AccountGrpcServiceBase, IGrpcService
+    public class AccountService : AccountGrpcService.AccountGrpcServiceBase, IAppGrpcService
     {
         private readonly IUserRepository _userRepository;
         private readonly TokenManagement _tokenManagement;

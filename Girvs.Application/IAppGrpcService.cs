@@ -1,6 +1,6 @@
 ﻿namespace Girvs.Application
 {
-    public interface IGrpcService
+    public interface IAppGrpcService
     {
         
     }

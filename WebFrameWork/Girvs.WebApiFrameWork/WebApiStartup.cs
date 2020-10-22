@@ -1,10 +1,13 @@
-﻿using Girvs.Domain.Configuration;
+﻿using Girvs.Application;
+using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.WebApiFrameWork.Infrastructure;
+using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
 using Girvs.WebFrameWork.Infrastructure.SwaggerExtensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Panda.DynamicWebApi;
 
 namespace Girvs.WebApiFrameWork
 {
@@ -13,7 +16,6 @@ namespace Girvs.WebApiFrameWork
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             services.ConfigureSwaggerServices();
-
             var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
             if (girvsConfig.CurrentServerModel == ServerModel.WebApi)
             {
@@ -21,6 +23,11 @@ namespace Girvs.WebApiFrameWork
                 {
                     // options.Filters.Add<CustomExceptionAttribute>();
                 });
+            }
+
+            if (girvsConfig.DynamicWebApiEnable)
+            {
+                services.AddDynamicWebApi();
             }
         }
 

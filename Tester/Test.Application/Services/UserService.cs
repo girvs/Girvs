@@ -22,7 +22,7 @@ using Test.GrpcService.BaseServices.UserGrpcService;
 namespace Test.Application.Services
 {
     [Authorize]
-    public class UserService : UserGrpcService.UserGrpcServiceBase, IGrpcService
+    public class UserService : UserGrpcService.UserGrpcServiceBase, IAppGrpcService
     {
         private readonly IMediatorHandler _bus;
         private readonly IUserRepository _userRepository;
