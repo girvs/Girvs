@@ -1,8 +1,6 @@
-﻿using Girvs.Application;
-using Girvs.Domain.Configuration;
+﻿using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.WebApiFrameWork.Infrastructure;
-using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
 using Girvs.WebFrameWork.Infrastructure.SwaggerExtensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;

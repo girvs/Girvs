@@ -24,35 +24,32 @@ namespace Girvs.WebApiFrameWork.Infrastructure
                 handler.Run(async context =>
                 {
                     var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+                    
                     if (exception == null)
                         return;
 
-                    context.Response.StatusCode = exception is GirvsException girvsException ? girvsException.StatusCode : 568;
-
-                    try
+                    if (exception is GirvsException girvsException)
                     {
-                        var logger = EngineContext.Current.Resolve<ILogger<object>>();
-                        logger.LogDebug($"Starting call. Request: {context.Request.Path}");
-                        logger.LogError(exception.Message, exception);
+                        context.Response.StatusCode = girvsException.StatusCode;
                     }
-                    finally
-                    {
-                        var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
-                        var hostingEnvironment = EngineContext.Current.Resolve<IWebHostEnvironment>();
-                        var useDetailedExceptionPage = girvsConfig.DisplayFullErrorStack || hostingEnvironment.IsDevelopment();
-                        dynamic result = new
-                        {
-                            Type = "http://tools.ietf.org/html/rfc2774#section-7",
-                            Title = exception.Message,
-                            Status = context.Response.StatusCode,
-                            TraceId = context.TraceIdentifier,
-                            StackTrace = useDetailedExceptionPage ? exception.StackTrace : string.Empty
-                        };
 
-                        string resultContext = JsonSerializer.Serialize(result);
-                        context.Response.ContentType = "application/json";
-                        await context.Response.WriteAsync(resultContext, Encoding.UTF8);
-                    }
+                    EngineContext.Current.Resolve<ILogger<object>>().LogError(exception.Message, exception);
+                    var spConfig = EngineContext.Current.Resolve<GirvsConfig>();
+                    var hostingEnvironment = EngineContext.Current.Resolve<IWebHostEnvironment>();
+                    var useDetailedExceptionPage =
+                        spConfig.DisplayFullErrorStack || hostingEnvironment.IsDevelopment();
+                    dynamic result = new
+                    {
+                        type = "http://tools.ietf.org/html/rfc2774#section-7",
+                        title = exception.Message,
+                        status = context.Response.StatusCode,
+                        traceId = context.TraceIdentifier,
+                        stackTrace = useDetailedExceptionPage ? exception.StackTrace : string.Empty
+                    };
+
+                    string resultContext = JsonSerializer.Serialize(result);
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync(resultContext, Encoding.UTF8);
                 });
             });
         }
