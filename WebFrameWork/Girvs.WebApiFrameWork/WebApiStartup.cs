@@ -3,6 +3,7 @@ using Girvs.Domain.Infrastructure;
 using Girvs.WebApiFrameWork.Infrastructure;
 using Girvs.WebFrameWork.Infrastructure.SwaggerExtensions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Panda.DynamicWebApi;
@@ -41,6 +42,10 @@ namespace Girvs.WebApiFrameWork
                 application.UseRouting();
                 application.UseEndpoints(endpoints => { endpoints.MapControllers(); });
             }
+        }
+
+        public void EndpointRouteBuilder(IEndpointRouteBuilder builder)
+        {
         }
 
         public int Order { get; } = 100;

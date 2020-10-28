@@ -12,6 +12,7 @@ using Girvs.Domain.TypeFinder;
 using Girvs.Infrastructure.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -138,6 +139,19 @@ namespace Girvs.Infrastructure.Infrastructure
 
             foreach (var instance in instances)
                 instance.Configure(application);
+        }
+
+        public void ConfigureEndpointRouteBuilder(IEndpointRouteBuilder endpointRouteBuilder)
+        {
+            var typeFinder = Resolve<ITypeFinder>();
+            var startupConfigurations = typeFinder.FindClassesOfType<IGirvsStartup>();
+
+            var instances = startupConfigurations
+                .Select(startup => (IGirvsStartup) Activator.CreateInstance(startup))
+                .OrderBy(startup => startup.Order);
+
+            foreach (var instance in instances)
+                instance.EndpointRouteBuilder(endpointRouteBuilder);
         }
 
         public T Resolve<T>() where T : class

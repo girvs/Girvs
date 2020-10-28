@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +22,9 @@ namespace Girvs.Domain.Infrastructure
         /// </summary>
         /// <param name="application">请求管道生成器</param>
         void Configure(IApplicationBuilder application);
+
+
+        void EndpointRouteBuilder(IEndpointRouteBuilder builder);
 
         /// <summary>
         /// 获取此启动配置实现的顺序

@@ -2,6 +2,7 @@
 using Girvs.Domain.Infrastructure;
 using Girvs.WebGrpcFrameWork.Infrastructure;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +26,11 @@ namespace Girvs.WebGrpcFrameWork
             {
                 application.UseAutoGrpcServices();
             }
+        }
+
+        public void EndpointRouteBuilder(IEndpointRouteBuilder builder)
+        {
+            
         }
 
         public int Order { get; } = 10;

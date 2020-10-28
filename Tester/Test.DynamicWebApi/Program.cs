@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Girvs.Service.FrameWork;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Test.DynamicWebApi
 {
@@ -13,7 +8,7 @@ namespace Test.DynamicWebApi
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            GirvsHostBuilderManager.CreateSpHostBuilder<Startup>(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

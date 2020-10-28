@@ -3,6 +3,7 @@ using Girvs.IdentityServer4.Configuration;
 using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,6 +28,11 @@ namespace Girvs.IdentityServer4
         {
             application.UseAuthentication();
             application.UseAuthorization();
+        }
+
+        public void EndpointRouteBuilder(IEndpointRouteBuilder builder)
+        {
+            
         }
 
         public int Order { get; } = 9;

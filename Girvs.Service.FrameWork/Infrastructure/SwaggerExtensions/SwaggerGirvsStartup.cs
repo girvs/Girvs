@@ -1,29 +1,28 @@
 ﻿using Girvs.Domain.Infrastructure;
-using Girvs.WebFrameWork.Infrastructure.SpSignalRExtensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Girvs.WebFrameWork.Infrastructure
+namespace Girvs.Service.FrameWork.Infrastructure.SwaggerExtensions
 {
-    public class GirvsStartup : IGirvsStartup
+    public class SwaggerGirvsStartup : IGirvsStartup
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSpSignalRServer();
+            services.AddSwaggerServices();
         }
 
         public void Configure(IApplicationBuilder application)
         {
-            application.UseAutoSignalRServices();
+            application.UseSwaggerService();
         }
 
         public void EndpointRouteBuilder(IEndpointRouteBuilder builder)
         {
-            
+
         }
 
-        public int Order { get; } = int.MaxValue;
+        public int Order { get; } = 202;
     }
 }

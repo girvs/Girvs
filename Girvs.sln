@@ -37,6 +37,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Infrastructure", "Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.DynamicWebApi", "Tester\Test.DynamicWebApi\Test.DynamicWebApi.csproj", "{33D1E4D2-7304-4009-B7C5-DD67B4BE1329}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Service.FrameWork", "Girvs.Service.FrameWork\Girvs.Service.FrameWork.csproj", "{C0EB4DFC-4C26-4FDD-828F-10E5D97B9E7F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{33D1E4D2-7304-4009-B7C5-DD67B4BE1329}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33D1E4D2-7304-4009-B7C5-DD67B4BE1329}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33D1E4D2-7304-4009-B7C5-DD67B4BE1329}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0EB4DFC-4C26-4FDD-828F-10E5D97B9E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0EB4DFC-4C26-4FDD-828F-10E5D97B9E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0EB4DFC-4C26-4FDD-828F-10E5D97B9E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0EB4DFC-4C26-4FDD-828F-10E5D97B9E7F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

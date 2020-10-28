@@ -1,29 +1,31 @@
 ﻿using Girvs.Domain.Infrastructure;
-using Girvs.WebFrameWork.Infrastructure.SpSignalRExtensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Girvs.WebFrameWork.Infrastructure
+namespace Girvs.Service.FrameWork.Infrastructure.GrpcExtensions
 {
-    public class GirvsStartup : IGirvsStartup
+    public class GrpcGirvsStartup : IGirvsStartup
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSpSignalRServer();
+            services.AddGrpc(options =>
+            {
+                options.Interceptors.Add<GirvsExceptionInterceptor>();
+            });
         }
 
         public void Configure(IApplicationBuilder application)
         {
-            application.UseAutoSignalRServices();
+            application.UseGrpcWeb(new GrpcWebOptions() { DefaultEnabled = true });
         }
 
         public void EndpointRouteBuilder(IEndpointRouteBuilder builder)
         {
-            
+            builder.AddEndpointRouteBuilderGrpcServices();
         }
 
-        public int Order { get; } = int.MaxValue;
+        public int Order { get; } = 208;
     }
 }

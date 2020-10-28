@@ -5,6 +5,7 @@ using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NConsul.AspNetCore;
@@ -38,6 +39,11 @@ namespace Girvs.Consul
         {
             //需要添加判断是否存在WebApi服务
             application.UseConsulByWebApi();
+        }
+
+        public void EndpointRouteBuilder(IEndpointRouteBuilder builder)
+        {
+            
         }
 
         public int Order { get; } = int.MaxValue;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Girvs.Domain.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +30,8 @@ namespace Girvs.Domain.Infrastructure
         /// </summary>
         /// <param name="application">用于配置应用程序的请求管道的生成器</param>
         void ConfigureRequestPipeline(IApplicationBuilder application);
+
+        void ConfigureEndpointRouteBuilder(IEndpointRouteBuilder endpointRouteBuilder);
 
         /// <summary>
         /// 获取注册类型的实例

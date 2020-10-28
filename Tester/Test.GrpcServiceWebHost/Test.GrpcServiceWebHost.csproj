@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\WebFrameWork\Girvs.WebGrpcFrameWork\Girvs.WebGrpcFrameWork.csproj" />
+    <ProjectReference Include="..\..\Girvs.Service.FrameWork\Girvs.Service.FrameWork.csproj" />
     <ProjectReference Include="..\Test.Application\Test.Application.csproj" />
     <ProjectReference Include="..\Test.Infrastructure\Test.Infrastructure.csproj" />
   </ItemGroup>

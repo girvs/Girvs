@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
+using Girvs.Service.FrameWork.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -71,6 +71,7 @@ namespace Test.GrpcServiceWebHost
                         //非常重要，直接导致你能否接收到异常信息
                     });
             });
+            services.AddControllers();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -80,12 +81,13 @@ namespace Test.GrpcServiceWebHost
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCors("cors");
-            app.UseGrpcWeb(new GrpcWebOptions() {DefaultEnabled = true});
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
+            app.UseStaticFiles();
             app.ConfigureRequestPipeline();
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.ConfigureEndpointRouteBuilder();
+            });
         }
     }
 }

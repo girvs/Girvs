@@ -5,6 +5,7 @@ using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
 using Girvs.WebFrameWork.Infrastructure.SwaggerExtensions;
 using Girvs.WebMvcFrameWork.Infrastructure;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,6 +37,11 @@ namespace Girvs.WebMvcFrameWork
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+        }
+
+        public void EndpointRouteBuilder(IEndpointRouteBuilder builder)
+        {
+            
         }
 
         public int Order { get; } = 100;

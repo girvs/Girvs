@@ -4,8 +4,6 @@ using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.FileProvider;
 using Girvs.Domain.Infrastructure;
-using Girvs.Domain.IRepositories;
-using Girvs.Domain.Managers;
 using Girvs.Domain.TypeFinder;
 using Girvs.Infrastructure.FileProvider;
 using Girvs.Infrastructure.Infrastructure;
@@ -16,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 
-namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
+namespace Girvs.Service.FrameWork.Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
@@ -64,37 +62,6 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
             return config;
         }
 
-
-        /// <summary>
-        /// 添加和配置默认的HTTP客户端
-        /// </summary>
-        public static void AddSpHttpClients(this IServiceCollection services)
-        {
-            //default client
-            //services.AddHttpClient(SpHttpDefaults.DefaultHttpClient).WithProxy();
-
-            ////client to request current store
-            //services.AddHttpClient<StoreHttpClient>();
-
-            ////client to request spCommerce official site
-            //services.AddHttpClient<SpHttpClient>().WithProxy();
-
-            ////client to request reCAPTCHA service
-            //services.AddHttpClient<CaptchaHttpClient>().WithProxy();
-        }
-
-
-        /// <summary>
-        /// 注册业务相关的服务至Services
-        /// </summary>
-        /// <param name="services"></param>
-        /// <param name="typeFinder"></param>
-        public static void AddRegisterBusinessServices(this IServiceCollection services, ITypeFinder typeFinder, bool onlyInterface = true)
-        {
-            services.RegisterType(typeof(IRepository<>), typeFinder, onlyInterface);
-            services.RegisterType<IManager>(typeFinder, onlyInterface);
-        }
-
         public static void RegisterType<T>(this IServiceCollection services, ITypeFinder typeFinder, bool onlyInterface = true)
         {
             services.RegisterType(typeof(T), typeFinder, onlyInterface);
@@ -113,5 +80,46 @@ namespace Girvs.WebFrameWork.Infrastructure.ServicesExtensions
                 }
             }
         }
+        
+        public static void RegisterType(this IServiceCollection services, Type type, ITypeFinder typeFinder ,Type asType = null)
+        {
+            var types = typeFinder.FindClassesOfType(type, false, true);
+            var interFaceTypes = types.Where(x => x.Name != type.Name).ToList();
+            foreach (var repositoryType in interFaceTypes)
+            {
+                var implementedInterfaces = ((System.Reflection.TypeInfo) repositoryType).ImplementedInterfaces.ToList();
+                if (implementedInterfaces.Any())
+                {
+                    foreach (var bcType in implementedInterfaces)
+                    {
+                        if (asType != null)
+                        {
+                            services.AddScoped(asType, bcType);
+                        }
+                        else
+                        {
+                            services.AddScoped(bcType, repositoryType);
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+        public static void RegisterIValidatorType(this IServiceCollection services, Type type, ITypeFinder typeFinder)
+        {
+            var types = typeFinder.FindClassesOfType(type, true, false);
+            foreach (var validatorType in types)
+            {
+                var parentType =
+                    ((System.Reflection.TypeInfo) validatorType).ImplementedInterfaces.FirstOrDefault(x =>
+                        x.Name == "IValidator`1");
+                if (parentType != null)
+                {
+                    services.AddScoped(parentType, validatorType);
+                }
+            }
+        }
+
     }
 }

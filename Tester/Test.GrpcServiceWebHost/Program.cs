@@ -1,4 +1,4 @@
-using Girvs.WebFrameWork;
+using Girvs.Service.FrameWork;
 using Microsoft.Extensions.Hosting;
 
 namespace Test.GrpcServiceWebHost
