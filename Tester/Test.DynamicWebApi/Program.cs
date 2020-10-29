@@ -1,4 +1,4 @@
-using Girvs.Service.FrameWork;
+using Girvs.WebFrameWork;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 

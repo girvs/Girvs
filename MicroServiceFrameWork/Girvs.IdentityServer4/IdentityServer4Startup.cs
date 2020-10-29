@@ -2,7 +2,7 @@
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
 using Girvs.IdentityServer4.Configuration;
-using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
+using Girvs.WebFrameWork.Plugins;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;

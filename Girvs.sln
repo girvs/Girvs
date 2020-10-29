@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Infrastructure", "Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.DynamicWebApi", "Tester\Test.DynamicWebApi\Test.DynamicWebApi.csproj", "{33D1E4D2-7304-4009-B7C5-DD67B4BE1329}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Service.FrameWork", "Girvs.Service.FrameWork\Girvs.Service.FrameWork.csproj", "{C0EB4DFC-4C26-4FDD-828F-10E5D97B9E7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.WebFrameWork", "Girvs.WebFrameWork\Girvs.WebFrameWork.csproj", "{C0EB4DFC-4C26-4FDD-828F-10E5D97B9E7F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -4,7 +4,7 @@ using Girvs.Consul.Infrastructure.ApplicationExtensions;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
-using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
+using Girvs.WebFrameWork.Plugins;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;

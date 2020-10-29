@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Girvs.Application\Girvs.Application.csproj" />
-    <ProjectReference Include="..\..\Girvs.Service.FrameWork\Girvs.Service.FrameWork.csproj" />
+    <ProjectReference Include="..\..\Girvs.WebFrameWork\Girvs.WebFrameWork.csproj" />
     <ProjectReference Include="..\Test.Infrastructure\Test.Infrastructure.csproj" />
   </ItemGroup>
 
