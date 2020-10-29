@@ -7,7 +7,6 @@ using AutoMapper;
 using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
-using Girvs.Domain.Infrastructure.DependencyManagement;
 using Girvs.Domain.TypeFinder;
 using Girvs.Infrastructure.TypeFinder;
 using Microsoft.AspNetCore.Builder;
@@ -15,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Girvs.Infrastructure.Infrastructure
 {
@@ -36,40 +36,13 @@ namespace Girvs.Infrastructure.Infrastructure
             return context?.RequestServices ?? ServiceProvider;
         }
 
-        protected virtual void RunStartupTasks(ITypeFinder typeFinder)
-        {
-            ////find startup tasks provided by other assemblies
-            //var startupTasks = typeFinder.FindClassesOfType<IStartupTask>();
-
-            ////create and sort instances of startup tasks
-            ////we startup this interface even for not installed plugins.
-            ////otherwise, DbContext initializers won't run and a plugin installation won't work
-            //var instances = startupTasks
-            //    .Select(startupTask => (IStartupTask)Activator.CreateInstance(startupTask))
-            //    .OrderBy(startupTask => startupTask.Order);
-
-            ////execute tasks
-            //foreach (var task in instances)
-            //    task.Execute();
-        }
-
-        protected virtual void RegisterSettings(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig spConfig)
+        protected virtual void RegisterSettings(IServiceCollection services, ITypeFinder typeFinder,
+            GirvsConfig spConfig)
         {
             var settings = typeFinder.FindClassesOfType<ISettings>();
             settings = settings.Where(x => !x.IsInterface);
             foreach (var setting in settings)
                 services.AddSingleton(setting);
-        }
-
-        protected virtual void RegisterDependencies(IServiceCollection services, ITypeFinder typeFinder,
-            GirvsConfig spConfig)
-        {
-            var dependencyRegistrars = typeFinder.FindClassesOfType<IDependencyRegistrar>();
-            var instances = dependencyRegistrars
-                .Select(dependencyRegistrar => (IDependencyRegistrar) Activator.CreateInstance(dependencyRegistrar))
-                .OrderBy(dependencyRegistrar => dependencyRegistrar.Order);
-            foreach (var dependencyRegistrar in instances)
-                dependencyRegistrar.Register(services, typeFinder, spConfig);
         }
 
         protected virtual void AddAutoMapper(IServiceCollection services, ITypeFinder typeFinder)
@@ -111,47 +84,65 @@ namespace Girvs.Infrastructure.Infrastructure
             services.AddSingleton(typeof(ITypeFinder), typeFinder);
             ResetServiceProvider(services);
             RegisterSettings(services, typeFinder, spConfig);
-            RegisterDependencies(services, typeFinder, spConfig);
 
-            var startupConfigurations = typeFinder.FindClassesOfType<IGirvsStartup>();
+            var startupConfigurations = typeFinder.FindClassesOfType<IPluginStartup>();
             var instances = startupConfigurations
-                .Select(startup => (IGirvsStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IPluginStartup) Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
             ResetServiceProvider(services);
 
+            var logger = Resolve<ILogger<object>>();
             foreach (var instance in instances)
-                instance.ConfigureServices(services, configuration);
+            {
+                if (instance.Enabled)
+                {
+                    logger.LogInformation($"开始注入-{instance.Name}-启动服务");
+                    instance.ConfigureServicesRegister(services, typeFinder, spConfig);
+                }
+            }
 
             ResetServiceProvider(services);
             AddAutoMapper(services, typeFinder);
-            RunStartupTasks(typeFinder);
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         }
 
         public void ConfigureRequestPipeline(IApplicationBuilder application)
         {
             var typeFinder = Resolve<ITypeFinder>();
-            var startupConfigurations = typeFinder.FindClassesOfType<IGirvsStartup>();
+            var startupConfigurations = typeFinder.FindClassesOfType<IPluginStartup>();
 
             var instances = startupConfigurations
-                .Select(startup => (IGirvsStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IPluginStartup) Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
-
+            var logger = Resolve<ILogger<object>>();
             foreach (var instance in instances)
-                instance.Configure(application);
+            {
+                if (instance.Enabled)
+                {
+                    logger.LogInformation($"开始配置-{instance.Name}-相关的管道RequestPipeline");
+                    instance.ConfigureRequestPipeline(application);
+                }
+            }
         }
 
         public void ConfigureEndpointRouteBuilder(IEndpointRouteBuilder endpointRouteBuilder)
         {
             var typeFinder = Resolve<ITypeFinder>();
-            var startupConfigurations = typeFinder.FindClassesOfType<IGirvsStartup>();
+            var startupConfigurations = typeFinder.FindClassesOfType<IPluginStartup>();
 
             var instances = startupConfigurations
-                .Select(startup => (IGirvsStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IPluginStartup) Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
+            var logger = Resolve<ILogger<object>>();
             foreach (var instance in instances)
-                instance.EndpointRouteBuilder(endpointRouteBuilder);
+            {
+                if (instance.Enabled)
+                {
+                    logger.LogInformation($"开始配置-{instance.Name}-相关的映射节点EndpointRouteBuilder");
+                    instance.ConfigureMapEndpointRoute(endpointRouteBuilder);
+                }
+            }
         }
 
         public T Resolve<T>() where T : class

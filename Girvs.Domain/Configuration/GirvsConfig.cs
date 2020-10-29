@@ -94,6 +94,7 @@ namespace Girvs.Domain.Configuration
 
         public bool WhetherTheTenantIsInvolvedInManagement { get; set; }
 
+        public List<FunctionalModuleConfig> FunctionalModules { get; set; }
         public List<TaskConfig> Tasks { get; set; }
 
 

@@ -3,6 +3,7 @@ using Girvs.Consul.Configuration;
 using Girvs.Consul.Infrastructure.ApplicationExtensions;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
+using Girvs.Domain.TypeFinder;
 using Girvs.WebFrameWork.Infrastructure.ServicesExtensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -12,10 +13,13 @@ using NConsul.AspNetCore;
 
 namespace Girvs.Consul
 {
-    public class ConsulStartup : IGirvsStartup
+    public class ConsulStartup : IPluginStartup
     {
-        public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+        public string Name { get; } = "Consul";
+        public bool Enabled { get; } = true;
+        public void ConfigureServicesRegister(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig config)
         {
+            var configuration = EngineContext.Current.Resolve<IConfiguration>();
             var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
             var consulConfig = services.ConfigureStartupConfig<ConsulConfig>(configuration.GetSection("ConsulConfig"));
             //需要添加判断是否存在GRPC服务
@@ -35,16 +39,16 @@ namespace Girvs.Consul
             }
         }
 
-        public void Configure(IApplicationBuilder application)
+        public void ConfigureRequestPipeline(IApplicationBuilder application)
         {
             //需要添加判断是否存在WebApi服务
             application.UseConsulByWebApi();
         }
 
-        public void EndpointRouteBuilder(IEndpointRouteBuilder builder)
+        public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
         {
-            
         }
+
 
         public int Order { get; } = int.MaxValue;
     }

@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Girvs.Service.FrameWork.Infrastructure;
+using Girvs.Service.FrameWork.Plugins;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
