@@ -2,8 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <PackageVersion>1.0.0-preview.8.0</PackageVersion>
+        <PackageVersion>1.0.0-preview.8.1</PackageVersion>
         <RootNamespace>Girvs.WebFrameWork</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
