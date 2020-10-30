@@ -5,6 +5,7 @@ using Girvs.Domain.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using WebMarkupMin.AspNetCore2;
 
 namespace Girvs.WebFrameWork.Plugins.WebMarkupMin
 {
@@ -29,6 +30,7 @@ namespace Girvs.WebFrameWork.Plugins.WebMarkupMin
 
         public void ConfigureRequestPipeline(IApplicationBuilder application)
         {
+            application.UseWebMarkupMin();
         }
 
         public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)

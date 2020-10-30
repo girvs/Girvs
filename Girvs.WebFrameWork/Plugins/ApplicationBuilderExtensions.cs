@@ -1,19 +1,23 @@
 ﻿using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Girvs.Domain;
+using Girvs.Domain.Configuration;
 using Girvs.Domain.FileProvider;
 using Girvs.Domain.Infrastructure;
 using Girvs.Infrastructure.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using WebMarkupMin.AspNetCore2;
 
 namespace Girvs.WebFrameWork.Plugins
 {
@@ -104,7 +108,7 @@ namespace Girvs.WebFrameWork.Plugins
         /// <summary>
         /// 配置中间件以动态压缩HTTP响应
         /// </summary>
-        public static void UseSpResponseCompression(this IApplicationBuilder application)
+        public static void UseGirvsResponseCompression(this IApplicationBuilder application)
         {
             //whether to use compression (gzip by default)
             application.UseResponseCompression();
@@ -113,7 +117,7 @@ namespace Girvs.WebFrameWork.Plugins
         /// <summary>
         /// 配置静态文件服务
         /// </summary>
-        public static void UseSpStaticFiles(this IApplicationBuilder application)
+        public static void UseGirvsStaticFiles(this IApplicationBuilder application)
         {
             void staticFileResponse(StaticFileResponseContext context)
             {
@@ -188,19 +192,50 @@ namespace Girvs.WebFrameWork.Plugins
         /// <summary>
         /// 添加了身份验证中间件，该中间件启用了身份验证功能。
         /// </summary>
-        public static void UseSpAuthentication(this IApplicationBuilder application)
+        public static void UseGirvsAuthentication(this IApplicationBuilder application)
         {
             application.UseMiddleware<AuthenticationMiddleware>();
         }
 
-
+      
         /// <summary>
-        /// 配置WebMarkupMin
+        /// 添加异常处理
         /// </summary>
-        /// <param name="application">Builder for configuring an application's request pipeline</param>
-        public static void UseSpWebMarkupMin(this IApplicationBuilder application)
+        public static void UseGirvsExceptionHandler(this IApplicationBuilder application)
         {
-            application.UseWebMarkupMin();
+            application.UseExceptionHandler(handler =>
+            {
+                handler.Run(async context =>
+                {
+                    var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+                    
+                    if (exception == null)
+                        return;
+
+                    if (exception is GirvsException girvsException)
+                    {
+                        context.Response.StatusCode = girvsException.StatusCode;
+                    }
+
+                    EngineContext.Current.Resolve<ILogger<object>>().LogError(exception.Message, exception);
+                    var spConfig = EngineContext.Current.Resolve<GirvsConfig>();
+                    var hostingEnvironment = EngineContext.Current.Resolve<IWebHostEnvironment>();
+                    var useDetailedExceptionPage =
+                        spConfig.DisplayFullErrorStack || hostingEnvironment.IsDevelopment();
+                    dynamic result = new
+                    {
+                        type = "http://tools.ietf.org/html/rfc2774#section-7",
+                        title = exception.Message,
+                        status = context.Response.StatusCode,
+                        traceId = context.TraceIdentifier,
+                        stackTrace = useDetailedExceptionPage ? exception.StackTrace : string.Empty
+                    };
+
+                    string resultContext = JsonSerializer.Serialize(result);
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync(resultContext, Encoding.UTF8);
+                });
+            });
         }
     }
 }
