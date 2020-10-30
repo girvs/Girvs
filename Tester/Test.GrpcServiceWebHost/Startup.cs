@@ -24,6 +24,7 @@ namespace Test.GrpcServiceWebHost
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers();
             var token = services.ConfigureStartupConfig<TokenManagement>(Configuration.GetSection("tokenConfig"));
             services.ConfigureApplicationServices(Configuration, WebHostEnvironment);
             services.AddAuthentication(x =>
@@ -80,7 +81,8 @@ namespace Test.GrpcServiceWebHost
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            
+            //静态文件
             app.UseStaticFiles();
             app.ConfigureRequestPipeline();
             app.UseRouting();
