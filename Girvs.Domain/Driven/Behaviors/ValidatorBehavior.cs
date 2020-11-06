@@ -31,7 +31,8 @@ namespace Girvs.Domain.Driven.Behaviors
                 var failures = (await validator.ValidateAsync(request, cancellationToken)).Errors;
                 if (failures.Any())
                 {
-                    if (validator.IsErrorMessageDelay) //较验错误信息通过通知的方式传递至前台,如果不启用延迟处理，而直接抛出异常
+                    //较验错误信息通过通知的方式传递至前台,如果不启用延迟处理，而直接抛出异常
+                    if (validator.IsErrorMessageDelay) 
                     {
                         foreach (var error in failures)
                         {

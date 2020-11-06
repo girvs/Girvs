@@ -217,7 +217,8 @@ namespace Girvs.WebFrameWork.Plugins
                         context.Response.StatusCode = girvsException.StatusCode;
                     }
 
-                    EngineContext.Current.Resolve<ILogger<object>>().LogError(exception.Message, exception);
+                    var logger = application.ApplicationServices.GetService(typeof(ILogger<object>)) as ILogger<object>;
+                    logger.LogError(exception, exception.Message);
                     var spConfig = EngineContext.Current.Resolve<GirvsConfig>();
                     var hostingEnvironment = EngineContext.Current.Resolve<IWebHostEnvironment>();
                     var useDetailedExceptionPage =
