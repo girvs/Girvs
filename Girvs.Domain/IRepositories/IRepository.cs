@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
@@ -80,5 +81,7 @@ namespace Girvs.Domain.IRepositories
         /// <param name="id">主键值</param>
         /// <returns>是否存在</returns>
         Task<bool> ExistEntityAsync(Guid id);
+
+        Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }

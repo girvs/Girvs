@@ -192,5 +192,12 @@ namespace Girvs.Infrastructure.Repositories
         {
             return await DbSet.AnyAsync(x => x.Id == id);
         }
+        
+        
+        public async Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            predicate = predicate.And(TenantCondition);
+            return await DbSet.AnyAsync(predicate);
+        }
     }
 }
