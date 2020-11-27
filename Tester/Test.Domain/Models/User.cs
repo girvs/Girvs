@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Models;
 using Test.Domain.Enumerations;
 
 namespace Test.Domain.Models
 {
-    public class User : AggregateRoot
+    public class User : AggregateRoot, IMultiTenant
     {
         public User()
         {
@@ -30,5 +32,6 @@ namespace Test.Domain.Models
         public UserType UserType { get; set; }
 
         public virtual List<UserRole> UserRoles { get; set; }
+        public Guid TenantId { get; set; } = EngineContext.Current.CurrentClaimTenantId;
     }
 }

@@ -137,12 +137,18 @@ namespace Girvs.Infrastructure.Repositories
             {
                 if (_girvsConfig.TenantEnabled && _girvsConfig.WhetherTheTenantIsInvolvedInManagement)
                 {
-                    return x => x.TenantId == EngineContext.Current.CurrentClaimTenantId;
+                    if (typeof(TEntity) == typeof(IMultiTenant))
+                    {
+                        Expression<Func<TEntity, bool>> c = x =>
+                            x.GetType().GetProperty(nameof(IMultiTenant.TenantId)).GetValue(x).ToString() ==
+                            EngineContext.Current.CurrentClaimTenantId.ToString();
+                        return c;
+                    }
+
+                    //return x => x.TenantId == EngineContext.Current.CurrentClaimTenantId;
                 }
-                else
-                {
-                    return x => true;
-                }
+
+                return x => true;
             }
         }
 
@@ -167,7 +173,7 @@ namespace Girvs.Infrastructure.Repositories
                     foreach (var property in fields)
                     {
                         if (property == nameof(BaseEntity.Id) || property == nameof(BaseEntity.CreateTime) ||
-                            property == nameof(BaseEntity.Creator) || property == nameof(BaseEntity.TenantId))
+                            property == nameof(BaseEntity.Creator) || property == nameof(IMultiTenant.TenantId))
                         {
                             dbEntityEntry.Property(property).IsModified = false;
                         }
@@ -183,7 +189,7 @@ namespace Girvs.Infrastructure.Repositories
                     dbEntityEntry.Property(nameof(BaseEntity.CreateTime)).IsModified = false;
                     dbEntityEntry.Property(nameof(BaseEntity.Id)).IsModified = false;
                     dbEntityEntry.Property(nameof(BaseEntity.Creator)).IsModified = false;
-                    dbEntityEntry.Property(nameof(BaseEntity.TenantId)).IsModified = false;
+                    dbEntityEntry.Property(nameof(IMultiTenant.TenantId)).IsModified = false;
                 }
             });
         }
@@ -192,8 +198,8 @@ namespace Girvs.Infrastructure.Repositories
         {
             return await DbSet.AnyAsync(x => x.Id == id);
         }
-        
-        
+
+
         public async Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate)
         {
             predicate = predicate.And(TenantCondition);

@@ -10,26 +10,6 @@ namespace Girvs.Domain.Models
     /// </summary>
     public abstract class BaseEntity
     {
-        public BaseEntity()
-        {
-            CreateTime = DateTime.Now;
-            UpdateTime = DateTime.Now;
-
-            var engineContext = EngineContext.Current;
-            
-            if (engineContext?.HttpContext != null 
-                && engineContext.HttpContext.User.Identity.IsAuthenticated)
-            {
-                Creator = engineContext.CurrentClaimSid;
-                TenantId = engineContext.CurrentClaimTenantId;
-            }
-            else
-            {
-                Creator = Guid.Empty;
-                TenantId = Guid.Empty;
-            }
-        }
-
         /// <summary>
         /// 主键值
         /// </summary>
@@ -38,22 +18,22 @@ namespace Girvs.Domain.Models
         [MaxLength(36)]
         public Guid Id { get; set; }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public Guid TenantId { get; set; }
+        // [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        // public Guid TenantId { get; set; }
 
         ///<summary>添加时间</summary>
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public System.DateTime CreateTime { get; set; }
+        public System.DateTime CreateTime { get; set; } = DateTime.Now;
 
         /// <summary>
         /// 操作人员,记录后台录入人员
         /// </summary>
         [MaxLength(36)]
-        public Guid Creator { get; set; }
+        public Guid Creator { get; set; } = EngineContext.Current.CurrentClaimSid;
 
         ///<summary>更新时间</summary>
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public System.DateTime UpdateTime { get; set; }
+        public System.DateTime UpdateTime { get; set; } = DateTime.Now;
 
 
         /// <summary>

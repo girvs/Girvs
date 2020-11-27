@@ -199,8 +199,18 @@ namespace Girvs.Infrastructure.Infrastructure
         {
             get
             {
-                var disclaims = HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Sid);
-                return Guid.Parse(disclaims?.Value);
+                if (HttpContext != null
+                    && HttpContext.User.Identity.IsAuthenticated)
+                {
+                    var disclaims = HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Sid);
+                    return Guid.Parse(disclaims?.Value);
+                    // TenantId = engineContext.CurrentClaimTenantId;
+                }
+                else
+                {
+                    return Guid.Empty;
+                    // TenantId = Guid.Empty;
+                }
             }
         }
 
@@ -208,8 +218,18 @@ namespace Girvs.Infrastructure.Infrastructure
         {
             get
             {
-                var disclaims = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "TenantId");
-                return Guid.Parse(disclaims?.Value);
+                if (HttpContext != null
+                    && HttpContext.User.Identity.IsAuthenticated)
+                {
+                    var disclaims = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "TenantId");
+                    return Guid.Parse(disclaims?.Value);
+                    // TenantId = engineContext.CurrentClaimTenantId;
+                }
+                else
+                {
+                    return Guid.Empty;
+                    // TenantId = Guid.Empty;
+                }
             }
         }
     }
