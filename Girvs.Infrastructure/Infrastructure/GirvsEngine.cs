@@ -232,5 +232,13 @@ namespace Girvs.Infrastructure.Infrastructure
                 }
             }
         }
+
+        public string UserName
+        {
+            get
+            {
+                return "test";
+            }
+        }
     }
 }

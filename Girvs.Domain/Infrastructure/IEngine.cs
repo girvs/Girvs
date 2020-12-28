@@ -68,5 +68,7 @@ namespace Girvs.Domain.Infrastructure
 
         Guid CurrentClaimSid { get; }
         Guid CurrentClaimTenantId { get; }
+        
+        string UserName { get; }
     }
 }

@@ -15,13 +15,76 @@ namespace Girvs.Infrastructure
             if (options == null) throw new ArgumentNullException(nameof(options));
         }
 
-        public static void OnModelCreatingBaseEntityAndTableKey<T>(EntityTypeBuilder<T> entity)
-            where T : AggregateRoot, new()
+        public static void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> entity)
+            where TEntity : BaseEntity<TKey>, new()
         {
-            string tableName = typeof(T).Name.Replace("Entity", "").Replace("Model", "");
+            string tableName = typeof(TEntity).Name.Replace("Entity", "").Replace("Model", "");
             entity.ToTable(tableName).HasKey(x => x.Id);
-            entity.Property(x => x.CreateTime).HasColumnType("datetime");
-            entity.Property(x => x.UpdateTime).HasColumnType("datetime");
+
+
+            foreach (var propertyInfo in typeof(TEntity).GetProperties())
+            {
+                if (propertyInfo.Name == nameof(IIncludeCreateTime.CreateTime))
+                {
+                    entity.Property("CreateTime").HasColumnType("datetime");
+                }
+
+                if (propertyInfo.Name == nameof(IIncludeUpdateTime.UpdateTime))
+                {
+                    entity.Property("UpdateTime").HasColumnType("datetime");
+                }
+
+                if (propertyInfo.Name == nameof(IIncludeInitField.IsInitData))
+                {
+                    entity.Property("IsInitData").HasColumnType("bit");
+                }
+
+                if (propertyInfo.Name == "TenantId")
+                {
+                    if (propertyInfo.PropertyType == typeof(Guid))
+                    {
+                        entity.Property("TenantId").HasColumnType("varchar(36)");
+                    }
+
+                    if (propertyInfo.PropertyType == typeof(Int32))
+                    {
+                        entity.Property("TenantId").HasColumnType("number");
+                    }
+
+                    if (propertyInfo.PropertyType == typeof(string))
+                    {
+                        entity.Property("TenantId").HasColumnType("varchar(36)");
+                    }
+                }
+
+                if (propertyInfo.Name == nameof(IIncludeDeleteField.IsDelete))
+                {
+                    entity.Property("IsDelete").HasColumnType("bit");
+                }
+
+                if (propertyInfo.Name == "CreatorId")
+                {
+                    if (propertyInfo.PropertyType == typeof(Guid))
+                    {
+                        entity.Property("TenantId").HasColumnType("varchar(36)");
+                    }
+
+                    if (propertyInfo.PropertyType == typeof(Int32))
+                    {
+                        entity.Property("TenantId").HasColumnType("number");
+                    }
+
+                    if (propertyInfo.PropertyType == typeof(string))
+                    {
+                        entity.Property("TenantId").HasColumnType("varchar(36)");
+                    }
+                }
+
+                if (propertyInfo.Name == nameof(IIncludeCreatorName.CreatorName))
+                {
+                    entity.Property("CreatorName").HasColumnType("nvarchar(40)");
+                }
+            }
         }
 
         public async Task<bool> Commit()

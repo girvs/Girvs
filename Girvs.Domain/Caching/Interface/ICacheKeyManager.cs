@@ -3,7 +3,7 @@ using Girvs.Domain.Managers;
 
 namespace Girvs.Domain.Caching.Interface
 {
-    public interface ICacheKeyManager<TObject> : IManager where TObject : new()
+    public interface ICacheKeyManager<TObject> : IManager
     {
         int CacheTime { get; }
         string CacheKeyPrefix { get; }

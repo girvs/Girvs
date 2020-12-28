@@ -4,15 +4,14 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json.Serialization;
 using Girvs.Domain.Caching.Interface;
-using Girvs.Domain.Models;
 
 namespace Girvs.Domain.Managers
 {
-    public abstract class QueryBase<T> : IQuery<T> where T : BaseEntity, new()
+    public abstract class QueryBase<TEntity> : IQuery<TEntity>
     {
         protected QueryBase()
         {
-            OrderBy = x => nameof(BaseEntity.CreateTime);
+            OrderBy = x => "Id";
             PageSize = 20;
             PageIndex = 0;
         }
@@ -27,15 +26,15 @@ namespace Girvs.Domain.Managers
 
         [QueryCacheKey] public int PageSize { get; set; }
         public int RecordCount { get; set; }
-        public List<T> Result { get; set; }
+        public List<TEntity> Result { get; set; }
 
-        [JsonIgnore] [QueryCacheKey] public Expression<Func<T, string>> OrderBy { get; set; }
+        [JsonIgnore] [QueryCacheKey] public Expression<Func<TEntity, string>> OrderBy { get; set; }
 
         public int PageCount => (int) Math.Ceiling(RecordCount / (decimal) PageSize);
 
         public string[] QueryFields { get; set; }
 
-        public virtual string GetCacheKey(ICacheKeyManager<T> cacheKeyManager)
+        public virtual string GetCacheKey(ICacheKeyManager<TEntity> cacheKeyManager)
         {
             return GetCacheKey(cacheKeyManager.CacheKeyListQueryPrefix);
         }
@@ -62,6 +61,6 @@ namespace Girvs.Domain.Managers
             return sb.ToString();
         }
 
-        public abstract Expression<Func<T, bool>> GetQueryWhere();
+        public abstract Expression<Func<TEntity, bool>> GetQueryWhere();
     }
 }

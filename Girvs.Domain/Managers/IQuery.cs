@@ -2,7 +2,7 @@
 
 namespace Girvs.Domain.Managers
 {
-    public interface IQuery<TEntity> where TEntity : BaseEntity, new()
+    public interface IQuery<TEntity>
     {
         int PageIndex { get; set; }
         int PageSize { get; set; }

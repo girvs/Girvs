@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Girvs.Domain.Managers;
-using Girvs.Domain.Models;
 
 namespace Girvs.Domain.IRepositories
 {
-    public interface IRepository<TEntity> where TEntity : AggregateRoot, new()
+    public interface IRepository<TEntity> : IRepository<TEntity, Guid>
+    {
+    }
+
+    public interface IRepository<TEntity, TKey>
     {
         IUnitOfWork UnitOfWork { get; }
+
         /// <summary>
         /// 新增或更新实体，当Id为空时则为新增，不为空代表更新
         /// </summary>
@@ -59,7 +63,7 @@ namespace Girvs.Domain.IRepositories
         /// </summary>
         /// <param name="id">主健值</param>
         /// <returns>对应的实体</returns>
-        Task<TEntity> GetByIdAsync(Guid id);
+        Task<TEntity> GetByIdAsync(TKey id);
 
         /// <summary>
         /// 获取所有实体列表集合
@@ -80,8 +84,13 @@ namespace Girvs.Domain.IRepositories
         /// </summary>
         /// <param name="id">主键值</param>
         /// <returns>是否存在</returns>
-        Task<bool> ExistEntityAsync(Guid id);
+        Task<bool> ExistEntityAsync(TKey id);
 
+        /// <summary>
+        /// 根据字段条件判断是否存在实体
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }

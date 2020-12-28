@@ -1,6 +1,6 @@
 ﻿namespace Girvs.Domain.Models
 {
-    public abstract class IncludeInitField : AggregateRoot
+    public interface IIncludeInitField
     {
         public bool IsInitData { get; set; }
     }

@@ -2,13 +2,12 @@
 using AutoMapper;
 using Girvs.Domain.Driven.Commands;
 using Girvs.Domain.Infrastructure;
-using Girvs.Domain.Models;
 
 namespace Girvs.Domain.Driven.Extensions
 {
     public static class CommandExtensions
     {
-        public static T MapToEntity<T>(this Command command) where T : BaseEntity
+        public static T MapToEntity<T>(this Command command)
         {
             IMapper mapper = EngineContext.Current.Resolve<IMapper>();
             if (mapper != null)
@@ -16,7 +15,7 @@ namespace Girvs.Domain.Driven.Extensions
                 return mapper.Map<T>(command);
             }
 
-            return null;
+            return default(T);
         }
         
         

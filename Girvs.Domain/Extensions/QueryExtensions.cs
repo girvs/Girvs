@@ -7,7 +7,7 @@ namespace Girvs.Domain.Extensions
 {
     public static class QueryExtensions
     {
-        public static TDto MapToDto<TDto, TEntity>(this IQuery<TEntity> query) where TEntity : BaseEntity, new()
+        public static TDto MapToDto<TDto, TEntity>(this IQuery<TEntity> query) where TEntity : Entity, new()
         {
             var mapper = EngineContext.Current.Resolve<IMapper>();
             return mapper.Map<TDto>(query);

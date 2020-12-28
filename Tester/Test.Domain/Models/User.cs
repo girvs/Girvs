@@ -6,7 +6,7 @@ using Test.Domain.Enumerations;
 
 namespace Test.Domain.Models
 {
-    public class User : AggregateRoot, IMultiTenant
+    public class User : AggregateRoot<Guid>, IIncludeMultiTenant<Guid>, IIncludeCreateTime
     {
         public User()
         {
@@ -33,5 +33,6 @@ namespace Test.Domain.Models
 
         public virtual List<UserRole> UserRoles { get; set; }
         public Guid TenantId { get; set; } = EngineContext.Current.CurrentClaimTenantId;
+        public DateTime CreateTime { get; set; }
     }
 }

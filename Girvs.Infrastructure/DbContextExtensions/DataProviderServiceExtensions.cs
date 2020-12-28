@@ -35,6 +35,10 @@ namespace Girvs.Infrastructure.DbContextExtensions
                     case UseDataType.SqlLite:
                         builder.UseSqlLiteWithLazyLoading(services);
                         break;
+
+                    case UseDataType.Oracle:
+                        builder.UseOracleWithLazyLoading(services);
+                        break;
                 }
 
                 if (!config.UseDataTracking)

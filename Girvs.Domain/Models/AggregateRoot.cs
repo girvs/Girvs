@@ -1,8 +1,8 @@
 ﻿namespace Girvs.Domain.Models
 {
-    public abstract class AggregateRoot : BaseEntity
+    public abstract class AggregateRoot<TKey> : BaseEntity<TKey>
     {
-        public virtual void Merge(AggregateRoot obj)
+        public virtual void Merge(AggregateRoot<TKey> obj)
         {
             var ps = this.GetType().GetProperties();
             foreach (var propertyInfo in ps)

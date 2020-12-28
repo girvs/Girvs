@@ -1,40 +1,66 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Girvs.Domain.Infrastructure;
 
 namespace Girvs.Domain.Models
 {
+    public abstract class BaseEntity : BaseEntity<Guid>
+    {
+    }
+
     /// <summary>
     /// 所有实体基类
     /// </summary>
-    public abstract class BaseEntity
+    public abstract class BaseEntity<TKey> : Entity
     {
+        public BaseEntity()
+        {
+            FormatPrpertyValue();
+        }
+
+        private void FormatPrpertyValue()
+        {
+            if (this is IIncludeCreatorName creatorNameObj)
+            {
+                creatorNameObj.CreatorName = EngineContext.Current.UserName;
+            }
+
+            if (this is IIncludeCreateTime createTimeObj)
+            {
+                createTimeObj.CreateTime = DateTime.Now;
+            }
+
+            if (this is IIncludeUpdateTime updateTimeObj)
+            {
+                updateTimeObj.UpdateTime = DateTime.Now;
+            }
+
+            if (this is IIncludeDeleteField deleteFieldObj)
+            {
+                deleteFieldObj.IsDelete = false;
+            }
+
+            if (this is IIncludeInitField initFieldObj)
+            {
+                initFieldObj.IsInitData = false;
+            }
+
+            var multiTenantPrperty = GetType().GetProperty("IIncludeMultiTenant");
+            if (multiTenantPrperty != null)
+            {
+                multiTenantPrperty.SetValue(this, EngineContext.Current.CurrentClaimTenantId);
+            }
+            
+            var creatorPrperty = GetType().GetProperty("CreatorId");
+            if (creatorPrperty != null)
+            {
+                creatorPrperty.SetValue(this, EngineContext.Current.CurrentClaimSid);
+            }
+        }
+        
         /// <summary>
         /// 主键值
         /// </summary>
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [MaxLength(36)]
-        public Guid Id { get; set; }
-
-        // [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        // public Guid TenantId { get; set; }
-
-        ///<summary>添加时间</summary>
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public System.DateTime CreateTime { get; set; } = DateTime.Now;
-
-        /// <summary>
-        /// 操作人员,记录后台录入人员
-        /// </summary>
-        [MaxLength(36)]
-        public Guid Creator { get; set; } = EngineContext.Current.CurrentClaimSid;
-
-        ///<summary>更新时间</summary>
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public System.DateTime UpdateTime { get; set; } = DateTime.Now;
-
+        public TKey Id { get; set; }
 
         /// <summary>
         /// 重写方法 相等运算
@@ -43,7 +69,7 @@ namespace Girvs.Domain.Models
         /// <returns></returns>
         public override bool Equals(object obj)
         {
-            var compareTo = obj as BaseEntity;
+            var compareTo = obj as BaseEntity<TKey>;
 
             if (ReferenceEquals(this, compareTo)) return true;
             if (ReferenceEquals(null, compareTo)) return false;
@@ -57,7 +83,7 @@ namespace Girvs.Domain.Models
         /// <param name="a">领域实体a</param>
         /// <param name="b">领域实体b</param>
         /// <returns></returns>
-        public static bool operator ==(BaseEntity a, BaseEntity b)
+        public static bool operator ==(BaseEntity<TKey> a, BaseEntity<TKey> b)
         {
             if (ReferenceEquals(a, null) && ReferenceEquals(b, null))
                 return true;
@@ -74,7 +100,7 @@ namespace Girvs.Domain.Models
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static bool operator !=(BaseEntity a, BaseEntity b)
+        public static bool operator !=(BaseEntity<TKey> a, BaseEntity<TKey> b)
         {
             return !(a == b);
         }

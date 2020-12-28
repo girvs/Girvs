@@ -16,7 +16,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
 
         public void ConfigureServicesRegister(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig config)
         {
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
             services.AddSpObjectContext();
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Girvs.Domain.Models;
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure
@@ -33,30 +34,31 @@ namespace Girvs.Infrastructure
             }
         }
 
-        public static bool IsWasTrack<T>(this DbContext dbContext, T t) where T : BaseEntity
+        public static bool IsWasTrack<TEntity, TKey>(this DbContext dbContext, TEntity t)
+            where TEntity : BaseEntity<TKey>
         {
-            return dbContext.ChangeTracker.Entries<T>().Any(x => x.Entity.Id == t.Id);
+            return dbContext.ChangeTracker.Entries<TEntity>().Any(x => x.Entity.Id.Equals(t.Id));
         }
 
-        public static void DetachById<T>(this DbContext dbContext, params Guid[] idStrings)
-            where T : BaseEntity
+        public static void DetachById<TEntity, TKey>(this DbContext dbContext, params TKey[] idStrings)
+            where TEntity : BaseEntity<TKey>
         {
             if (!idStrings.Any()) return;
 
-            var currentEntries = dbContext.ChangeTracker.Entries<T>().Where(x => idStrings.Contains(x.Entity.Id));
+            var currentEntries = dbContext.ChangeTracker.Entries<TEntity>().Where(x => idStrings.Contains(x.Entity.Id));
             foreach (var currentEntry in currentEntries)
             {
                 currentEntry.State = EntityState.Detached;
             }
         }
 
-        public static void Detach<T>(this DbContext dbContext) where T : BaseEntity
+        public static void Detach<TEntity, TKey>(this DbContext dbContext) where TEntity : BaseEntity<TKey>
         {
             //循环遍历DbContext中所有被跟踪的实体
             while (true)
             {
                 //每次循环获取DbContext中一个被跟踪的实体
-                var currentEntry = dbContext.ChangeTracker.Entries<T>().FirstOrDefault();
+                var currentEntry = dbContext.ChangeTracker.Entries<TEntity>().FirstOrDefault();
 
                 //currentEntry不为null，就将其State设置为EntityState.Detached，即取消跟踪该实体
                 if (currentEntry != null)
@@ -78,10 +80,11 @@ namespace Girvs.Infrastructure
         /// <param name="dbContext"></param>
         /// <param name="entity"></param>
         /// <typeparam name="T"></typeparam>
-        public static void DetachSpecifyEntity<T>(this DbContext dbContext, T entity) where T : BaseEntity
+        public static void DetachSpecifyEntity<TEntity, TKey>(this DbContext dbContext, TEntity entity)
+            where TEntity : BaseEntity<TKey>
         {
             //每次循环获取DbContext中一个被跟踪的实体
-            var currentEntry = dbContext.ChangeTracker.Entries<T>().FirstOrDefault(x => x.Entity == entity);
+            var currentEntry = dbContext.ChangeTracker.Entries<TEntity>().FirstOrDefault(x => x.Entity == entity);
 
             //currentEntry不为null，就将其State设置为EntityState.Detached，即取消跟踪该实体
             if (currentEntry != null)
@@ -97,11 +100,12 @@ namespace Girvs.Infrastructure
         /// <param name="dbContext"></param>
         /// <param name="entities"></param>
         /// <typeparam name="T"></typeparam>
-        public static void DetachSpecifyEntities<T>(this DbContext dbContext, List<T> entities) where T : BaseEntity
+        public static void DetachSpecifyEntities<TEntity, TKey>(this DbContext dbContext, List<TEntity> entities)
+            where TEntity : BaseEntity<TKey>
         {
             foreach (var entity in entities)
             {
-                DetachSpecifyEntity(dbContext, entity);
+                DetachSpecifyEntity<TEntity, TKey>(dbContext, entity);
             }
         }
     }

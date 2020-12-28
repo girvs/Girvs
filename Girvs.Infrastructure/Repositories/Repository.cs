@@ -13,7 +13,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure.Repositories
 {
-    public class Repository<TEntity> : IRepository<TEntity> where TEntity : AggregateRoot, new()
+    public class Repository<TEntity> : Repository<TEntity, Guid> where TEntity : BaseEntity<Guid>
+    {
+        public Repository(IUnitOfWork dbContext) : base(dbContext)
+        {
+        }
+    }
+    
+    public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
     {
         private readonly DbContext _dbContext;
         private readonly GirvsConfig _girvsConfig;
@@ -54,30 +61,21 @@ namespace Girvs.Infrastructure.Repositories
             }
         }
 
-        private Task ConditionalDelete(TEntity t)
-        {
-            var includeInit = t as IncludeInitField;
-            if (includeInit != null && includeInit.IsInitData)
-                return Task.CompletedTask;
-            _dbContext.Entry<TEntity>(t).State = EntityState.Deleted;
-            return Task.CompletedTask;
-        }
-
         public virtual Task DeleteAsync(TEntity t)
         {
-            return ConditionalDelete(t);
+            DbSet.Remove(t);
+            return Task.CompletedTask;
         }
 
         public virtual Task DeleteRangeAsync(List<TEntity> ts)
         {
-            ts.ForEach(async x => await ConditionalDelete(x));
+            DbSet.RemoveRange(ts);
             return Task.CompletedTask;
         }
 
-        public virtual async Task<TEntity> GetByIdAsync(Guid id)
+        public virtual async Task<TEntity> GetByIdAsync(Tkey id)
         {
-            var condition = TenantCondition.And(x => x.Id == id);
-            return await DbSet.FirstOrDefaultAsync(condition);
+            return await DbSet.FirstOrDefaultAsync(x=>x.Id.Equals(id));
         }
 
         public virtual async Task<List<TEntity>> GetAllAsync(params string[] fields)
@@ -86,18 +84,17 @@ namespace Girvs.Infrastructure.Repositories
             {
                 //临时方法，待改进,不科学的方法
                 return await Task.Run(() =>
-                    DbSet.SelectProperties(fields).Where(TenantCondition).ToList());
+                    DbSet.SelectProperties(fields).ToList());
             }
             else
             {
-                return await DbSet.Where(TenantCondition).ToListAsync();
+                return await DbSet.ToListAsync();
             }
         }
 
         public virtual async Task<List<TEntity>> GetByQueryAsync(QueryBase<TEntity> query)
         {
-            var condition = TenantCondition.And(query.GetQueryWhere());
-            query.RecordCount = await DbSet.Where(condition).CountAsync();
+            query.RecordCount = await DbSet.Where(query.GetQueryWhere()).CountAsync();
             if (query.RecordCount < 1)
             {
                 query.Result = new List<TEntity>();
@@ -110,7 +107,7 @@ namespace Girvs.Infrastructure.Repositories
                     query.Result =
                         await Task.Run(() =>
                             DbSet
-                                .Where(condition)
+                                .Where(query.GetQueryWhere())
                                 .SelectProperties(query.QueryFields)
                                 .OrderByDescending(query.OrderBy) //暂时取消排序
                                 .Skip(query.PageStart)
@@ -120,7 +117,7 @@ namespace Girvs.Infrastructure.Repositories
                 else
                 {
                     query.Result = await DbSet
-                        .Where(condition)
+                        .Where(query.GetQueryWhere())
                         .OrderByDescending(query.OrderBy) //暂时取消排序
                         .Skip(query.PageStart)
                         .Take(query.PageSize)
@@ -131,78 +128,30 @@ namespace Girvs.Infrastructure.Repositories
             return query.Result;
         }
 
-        public virtual Expression<Func<TEntity, bool>> TenantCondition
-        {
-            get
-            {
-                if (_girvsConfig.TenantEnabled && _girvsConfig.WhetherTheTenantIsInvolvedInManagement)
-                {
-                    if (typeof(TEntity) == typeof(IMultiTenant))
-                    {
-                        Expression<Func<TEntity, bool>> c = x =>
-                            x.GetType().GetProperty(nameof(IMultiTenant.TenantId)).GetValue(x).ToString() ==
-                            EngineContext.Current.CurrentClaimTenantId.ToString();
-                        return c;
-                    }
-
-                    //return x => x.TenantId == EngineContext.Current.CurrentClaimTenantId;
-                }
-
-                return x => true;
-            }
-        }
-
-
         /// <summary>
         /// 此方法暂时方法，不科学
         /// </summary>
         /// <param name="t">泛型T实例</param>
         /// <param name="fields">指定更新的字段</param>
-        private async Task UpdateEntity(TEntity t, string[] fields)
+        private Task UpdateEntity(TEntity t, string[] fields)
         {
-            await Task.Run(() =>
+            if (t is IIncludeUpdateTime updateTimeEntity)
             {
-                var dbEntityEntry = _dbContext.Entry(t);
-                if (fields != null && fields.Any())
-                {
-                    if (!fields.Contains(nameof(BaseEntity.UpdateTime)))
-                    {
-                        dbEntityEntry.Property(nameof(BaseEntity.UpdateTime)).IsModified = true;
-                    }
+                updateTimeEntity.UpdateTime = DateTime.Now;
+            }
 
-                    foreach (var property in fields)
-                    {
-                        if (property == nameof(BaseEntity.Id) || property == nameof(BaseEntity.CreateTime) ||
-                            property == nameof(BaseEntity.Creator) || property == nameof(IMultiTenant.TenantId))
-                        {
-                            dbEntityEntry.Property(property).IsModified = false;
-                        }
-                        else
-                        {
-                            dbEntityEntry.Property(property).IsModified = true;
-                        }
-                    }
-                }
-                else
-                {
-                    dbEntityEntry.State = EntityState.Modified;
-                    dbEntityEntry.Property(nameof(BaseEntity.CreateTime)).IsModified = false;
-                    dbEntityEntry.Property(nameof(BaseEntity.Id)).IsModified = false;
-                    dbEntityEntry.Property(nameof(BaseEntity.Creator)).IsModified = false;
-                    dbEntityEntry.Property(nameof(IMultiTenant.TenantId)).IsModified = false;
-                }
-            });
+            DbSet.Update(t);
+            return Task.CompletedTask;
         }
 
-        public async Task<bool> ExistEntityAsync(Guid id)
+        public async Task<bool> ExistEntityAsync(Tkey id)
         {
-            return await DbSet.AnyAsync(x => x.Id == id);
+            return await DbSet.AnyAsync(x => x.Id.Equals(id));
         }
 
 
         public async Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            predicate = predicate.And(TenantCondition);
             return await DbSet.AnyAsync(predicate);
         }
     }

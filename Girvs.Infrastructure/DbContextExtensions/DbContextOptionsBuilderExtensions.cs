@@ -54,6 +54,17 @@ namespace Girvs.Infrastructure.DbContextExtensions
                     option => option.CommandTimeout(girvsConfig.SQLCommandTimeout));
         }
 
+        public static void UseOracleWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
+            IServiceCollection services)
+        {
+            var girvsConfig = services.BuildServiceProvider().GetRequiredService<GirvsConfig>();
+
+            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, girvsConfig);
+
+            dbContextOptionsBuilder.UseOracle(girvsConfig.DataConnectionString,
+                option => option.CommandTimeout(girvsConfig.SQLCommandTimeout));
+        }
+
         public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
             IServiceCollection services)
         {
