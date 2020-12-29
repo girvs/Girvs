@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using AutoMapper;
 using AutoMapper.Configuration.Annotations;
+using Girvs.Domain.Driven.Commands;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Models;
 
@@ -11,7 +12,13 @@ namespace Girvs.Application.Extensions
 {
     public static class DtoExtensions
     {
-        public static TEntity MapTo<TEntity>(this IDto dto) where TEntity : BaseEntity, new()
+        public static TCommand MapToCommand<TCommand>(this IDto dto) where TCommand : Command
+        {
+            var mapper = EngineContext.Current.Resolve<IMapper>();
+            return mapper.Map<TCommand>(dto);
+        }
+        
+        public static TEntity MapTo<TEntity>(this IDto dto) where TEntity : Entity, new()
         {
             var mapper = EngineContext.Current.Resolve<IMapper>();
             return mapper.Map<TEntity>(dto);

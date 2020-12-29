@@ -32,7 +32,7 @@ namespace Test.Domain.Models
         public UserType UserType { get; set; }
 
         public virtual List<UserRole> UserRoles { get; set; }
-        public Guid TenantId { get; set; } = EngineContext.Current.CurrentClaimTenantId;
+        public Guid TenantId { get; set; }
         public DateTime CreateTime { get; set; }
     }
 }

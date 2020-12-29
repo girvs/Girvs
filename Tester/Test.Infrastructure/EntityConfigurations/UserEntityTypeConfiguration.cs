@@ -18,13 +18,12 @@ namespace Test.Infrastructure.EntityConfigurations
             builder.Property(x => x.ContactNumber).HasColumnType("nvarchar(12)");
             builder.Property(x => x.State).HasColumnType("int");
             builder.Property(x => x.UserType).HasColumnType("int");
-            
+
             //添加用户种子数据
             builder.HasData(new User()
             {
                 Id = Guid.Parse("58205e0e-1552-4282-bedc-a92d0afb37df"),
                 UserName = "系统管理员",
-                CreateTime = DateTime.Now,
                 UserPassword = "21232F297A57A5A743894A0E4A801FC3",
                 UserAccount = "admin",
                 UserType = UserType.SuperAdmin,

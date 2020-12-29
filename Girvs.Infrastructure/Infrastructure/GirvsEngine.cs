@@ -50,7 +50,7 @@ namespace Girvs.Infrastructure.Infrastructure
             var mapperConfigurations = typeFinder.FindClassesOfType<IOrderedMapperProfile>();
 
             var instances = mapperConfigurations
-                .Select(mapperConfiguration => (IOrderedMapperProfile) Activator.CreateInstance(mapperConfiguration))
+                .Select(mapperConfiguration => (IOrderedMapperProfile)Activator.CreateInstance(mapperConfiguration))
                 .OrderBy(mapperConfiguration => mapperConfiguration.Order);
 
             var config = new MapperConfiguration(cfg =>
@@ -87,7 +87,7 @@ namespace Girvs.Infrastructure.Infrastructure
 
             var startupConfigurations = typeFinder.FindClassesOfType<IPluginStartup>();
             var instances = startupConfigurations
-                .Select(startup => (IPluginStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IPluginStartup)Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
             ResetServiceProvider(services);
 
@@ -112,7 +112,7 @@ namespace Girvs.Infrastructure.Infrastructure
             var startupConfigurations = typeFinder.FindClassesOfType<IPluginStartup>();
 
             var instances = startupConfigurations
-                .Select(startup => (IPluginStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IPluginStartup)Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
             var logger = Resolve<ILogger<object>>();
             foreach (var instance in instances)
@@ -131,7 +131,7 @@ namespace Girvs.Infrastructure.Infrastructure
             var startupConfigurations = typeFinder.FindClassesOfType<IPluginStartup>();
 
             var instances = startupConfigurations
-                .Select(startup => (IPluginStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IPluginStartup)Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             var logger = Resolve<ILogger<object>>();
@@ -147,7 +147,7 @@ namespace Girvs.Infrastructure.Infrastructure
 
         public T Resolve<T>() where T : class
         {
-            return (T) Resolve(typeof(T));
+            return (T)Resolve(typeof(T));
         }
 
         public object Resolve(Type type)
@@ -157,7 +157,7 @@ namespace Girvs.Infrastructure.Infrastructure
 
         public virtual IEnumerable<T> ResolveAll<T>()
         {
-            return (IEnumerable<T>) GetServiceProvider().GetServices(typeof(T));
+            return (IEnumerable<T>)GetServiceProvider().GetServices(typeof(T));
         }
 
         public virtual object ResolveUnregistered(Type type)
@@ -195,50 +195,14 @@ namespace Girvs.Infrastructure.Infrastructure
             }
         }
 
-        public Guid CurrentClaimSid
+        public Claim GetCurrentClaimByName(string name)
         {
-            get
+            if (HttpContext != null
+                && HttpContext.User.Identity.IsAuthenticated)
             {
-                if (HttpContext != null
-                    && HttpContext.User.Identity.IsAuthenticated)
-                {
-                    var disclaims = HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Sid);
-                    return Guid.Parse(disclaims?.Value);
-                    // TenantId = engineContext.CurrentClaimTenantId;
-                }
-                else
-                {
-                    return Guid.Empty;
-                    // TenantId = Guid.Empty;
-                }
+                return HttpContext.User.Claims.FirstOrDefault(x => x.Type == name);
             }
-        }
-
-        public Guid CurrentClaimTenantId
-        {
-            get
-            {
-                if (HttpContext != null
-                    && HttpContext.User.Identity.IsAuthenticated)
-                {
-                    var disclaims = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "TenantId");
-                    return Guid.Parse(disclaims?.Value);
-                    // TenantId = engineContext.CurrentClaimTenantId;
-                }
-                else
-                {
-                    return Guid.Empty;
-                    // TenantId = Guid.Empty;
-                }
-            }
-        }
-
-        public string UserName
-        {
-            get
-            {
-                return "test";
-            }
+            return new Claim("","");
         }
     }
 }

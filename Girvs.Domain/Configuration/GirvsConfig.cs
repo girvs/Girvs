@@ -99,6 +99,8 @@ namespace Girvs.Domain.Configuration
 
 
         public ServerModel CurrentServerModel { get; set; } = ServerModel.WebApi;
+
+        public ClaimValueConfig ClaimValueConfig { get; set; } = new ClaimValueConfig();
     }
     
     

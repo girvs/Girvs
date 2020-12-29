@@ -1,4 +1,5 @@
 ﻿using System;
+using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 
 namespace Girvs.Domain.Models
@@ -12,18 +13,16 @@ namespace Girvs.Domain.Models
     /// </summary>
     public abstract class BaseEntity<TKey> : Entity
     {
-        public BaseEntity()
+        protected BaseEntity()
         {
             FormatPrpertyValue();
         }
 
+        /// <summary>
+        /// 初始化系统字段值
+        /// </summary>
         private void FormatPrpertyValue()
         {
-            if (this is IIncludeCreatorName creatorNameObj)
-            {
-                creatorNameObj.CreatorName = EngineContext.Current.UserName;
-            }
-
             if (this is IIncludeCreateTime createTimeObj)
             {
                 createTimeObj.CreateTime = DateTime.Now;
@@ -44,16 +43,58 @@ namespace Girvs.Domain.Models
                 initFieldObj.IsInitData = false;
             }
 
+
+            var config = EngineContext.Current.Resolve<GirvsConfig>();
+
+            if (this is IIncludeCreatorName creatorNameObj)
+            {
+                var creatorName = EngineContext.Current.GetCurrentClaimByName(config.ClaimValueConfig.ClaimName)?.Value;
+                if (!string.IsNullOrEmpty(creatorName))
+                {
+                    creatorNameObj.CreatorName = creatorName;
+                }
+            }
+
             var multiTenantPrperty = GetType().GetProperty("IIncludeMultiTenant");
             if (multiTenantPrperty != null)
             {
-                multiTenantPrperty.SetValue(this, EngineContext.Current.CurrentClaimTenantId);
+                var tenantIdStr = EngineContext.Current.GetCurrentClaimByName(config.ClaimValueConfig.ClaimTenantId)?.Value;
+
+                if (!string.IsNullOrEmpty(tenantIdStr) && multiTenantPrperty.PropertyType == typeof(Guid))
+                {
+                    multiTenantPrperty.SetValue(this, Guid.Parse(tenantIdStr));
+                }
+
+                if (!string.IsNullOrEmpty(tenantIdStr) && multiTenantPrperty.PropertyType == typeof(Int32))
+                {
+                    multiTenantPrperty.SetValue(this, int.Parse(tenantIdStr));
+                }
+
+                if (!string.IsNullOrEmpty(tenantIdStr))
+                {
+                    multiTenantPrperty.SetValue(this, tenantIdStr);
+                }
             }
             
             var creatorPrperty = GetType().GetProperty("CreatorId");
             if (creatorPrperty != null)
             {
-                creatorPrperty.SetValue(this, EngineContext.Current.CurrentClaimSid);
+                var userIdStr = EngineContext.Current.GetCurrentClaimByName(config.ClaimValueConfig.ClaimSid)?.Value;
+
+                if (!string.IsNullOrEmpty(userIdStr) && creatorPrperty.PropertyType == typeof(Guid))
+                {
+                    creatorPrperty.SetValue(this, Guid.Parse(userIdStr));
+                }
+
+                if (!string.IsNullOrEmpty(userIdStr) && creatorPrperty.PropertyType == typeof(Int32))
+                {
+                    creatorPrperty.SetValue(this, int.Parse(userIdStr));
+                }
+
+                if (!string.IsNullOrEmpty(userIdStr))
+                {
+                    creatorPrperty.SetValue(this, userIdStr);
+                }
             }
         }
         
