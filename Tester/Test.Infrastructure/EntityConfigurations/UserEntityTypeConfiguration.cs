@@ -19,17 +19,17 @@ namespace Test.Infrastructure.EntityConfigurations
             builder.Property(x => x.State).HasColumnType("int");
             builder.Property(x => x.UserType).HasColumnType("int");
 
-            //添加用户种子数据
-            builder.HasData(new User()
-            {
-                Id = Guid.Parse("58205e0e-1552-4282-bedc-a92d0afb37df"),
-                UserName = "系统管理员",
-                UserPassword = "21232F297A57A5A743894A0E4A801FC3",
-                UserAccount = "admin",
-                UserType = UserType.SuperAdmin,
-                TenantId = Guid.Parse("f339be29-7ce2-4876-bcca-d3abe3d16f75"),
-                State = DataState.Enable
-            });
+            ////添加用户种子数据
+            //builder.HasData(new User()
+            //{
+            //    Id = Guid.Parse("58205e0e-1552-4282-bedc-a92d0afb37df"),
+            //    UserName = "系统管理员",
+            //    UserPassword = "21232F297A57A5A743894A0E4A801FC3",
+            //    UserAccount = "admin",
+            //    UserType = UserType.SuperAdmin,
+            //    TenantId = Guid.Parse("f339be29-7ce2-4876-bcca-d3abe3d16f75"),
+            //    State = DataState.Enable
+            //});
         }
     }
 }

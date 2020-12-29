@@ -14,7 +14,7 @@ namespace Test.Infrastructure.Migrations
                     Id = table.Column<Guid>(nullable: false),
                     Name = table.Column<string>(type: "nvarchar(20)", nullable: true),
                     Desc = table.Column<string>(type: "nvarchar(200)", nullable: true),
-                    TenantId = table.Column<string>(type: "varchar(36)", nullable: false)
+                    TenantId = table.Column<Guid>(type: "varchar(36)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,7 +32,7 @@ namespace Test.Infrastructure.Migrations
                     ContactNumber = table.Column<string>(type: "nvarchar(12)", nullable: true),
                     State = table.Column<int>(type: "int", nullable: false),
                     UserType = table.Column<int>(type: "int", nullable: false),
-                    TenantId = table.Column<string>(type: "varchar(36)", nullable: false),
+                    TenantId = table.Column<Guid>(type: "varchar(36)", nullable: false),
                     CreateTime = table.Column<DateTime>(type: "datetime", nullable: false)
                 },
                 constraints: table =>
@@ -63,11 +63,6 @@ namespace Test.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.InsertData(
-                table: "User",
-                columns: new[] { "Id", "ContactNumber", "CreateTime", "State", "TenantId", "UserAccount", "UserName", "UserPassword", "UserType" },
-                values: new object[] { new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"), null, new DateTime(2020, 12, 28, 15, 10, 56, 260, DateTimeKind.Local).AddTicks(4362), 0, "f339be29-7ce2-4876-bcca-d3abe3d16f75", "admin", "系统管理员", "21232F297A57A5A743894A0E4A801FC3", 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRole_RoleId",

@@ -4,26 +4,28 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Oracle.EntityFrameworkCore.Metadata;
 using Test.Infrastructure;
 
 namespace Test.Infrastructure.Migrations
 {
     [DbContext(typeof(CmmpDbContext))]
-    [Migration("20201228071056_init001")]
+    [Migration("20201229021733_init001")]
     partial class init001
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasAnnotation("Oracle:ValueGenerationStrategy", OracleValueGenerationStrategy.IdentityColumn)
                 .HasAnnotation("ProductVersion", "3.1.6")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             modelBuilder.Entity("Test.Domain.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<string>("Desc")
                         .HasColumnType("nvarchar(200)");
@@ -31,8 +33,7 @@ namespace Test.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("TenantId")
-                        .IsRequired()
+                    b.Property<Guid>("TenantId")
                         .HasColumnType("varchar(36)");
 
                     b.HasKey("Id");
@@ -44,7 +45,7 @@ namespace Test.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<string>("ContactNumber")
                         .HasColumnType("nvarchar(12)");
@@ -55,8 +56,7 @@ namespace Test.Infrastructure.Migrations
                     b.Property<int>("State")
                         .HasColumnType("int");
 
-                    b.Property<string>("TenantId")
-                        .IsRequired()
+                    b.Property<Guid>("TenantId")
                         .HasColumnType("varchar(36)");
 
                     b.Property<string>("UserAccount")
@@ -74,28 +74,15 @@ namespace Test.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("User");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"),
-                            CreateTime = new DateTime(2020, 12, 28, 15, 10, 56, 260, DateTimeKind.Local).AddTicks(4362),
-                            State = 0,
-                            TenantId = "f339be29-7ce2-4876-bcca-d3abe3d16f75",
-                            UserAccount = "admin",
-                            UserName = "系统管理员",
-                            UserPassword = "21232F297A57A5A743894A0E4A801FC3",
-                            UserType = 0
-                        });
                 });
 
             modelBuilder.Entity("Test.Domain.Models.UserRole", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("RAW(16)");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("RAW(16)");
 
                     b.HasKey("UserId", "RoleId");
 

@@ -14,7 +14,7 @@ namespace Girvs.Domain.Caching.Interface
 
         string CacheKeyListQueryPrefix { get; }
 
-        string BuildCacheEntityKey(Guid id);
+        string BuildCacheEntityKey(object id);
 
         string BuildCacheEntityOtherKey(string key);
     }

@@ -24,7 +24,7 @@ namespace Girvs.Infrastructure.CacheRepository
         public string CacheKeyListAllPrefix { get; private set; }
         public string CacheKeyListQueryPrefix { get; private set; }
 
-        public string BuildCacheEntityKey(Guid id)
+        public string BuildCacheEntityKey(object id)
         {
             return $"{CacheKeyPrefix}:{id}";
         }

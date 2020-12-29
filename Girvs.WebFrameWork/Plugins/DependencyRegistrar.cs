@@ -1,8 +1,10 @@
-﻿using Girvs.Domain.Configuration;
+﻿using System;
+using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.IRepositories;
 using Girvs.Domain.Managers;
 using Girvs.Domain.TypeFinder;
+using Girvs.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +20,10 @@ namespace Girvs.WebFrameWork.Plugins
 
         public void ConfigureServicesRegister(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig config)
         {
+            services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.RegisterType(typeof(IRepository<>), typeFinder, true);
+            services.RegisterType(typeof(IRepository<,>), typeFinder, true);
             services.RegisterType<IManager>(typeFinder, true);
         }
 

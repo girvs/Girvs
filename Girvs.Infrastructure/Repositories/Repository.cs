@@ -13,13 +13,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.Infrastructure.Repositories
 {
-    public class Repository<TEntity> : Repository<TEntity, Guid> where TEntity : BaseEntity<Guid>
+    public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : BaseEntity<Guid>
     {
         public Repository(IUnitOfWork dbContext) : base(dbContext)
         {
         }
     }
-    
+
     public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
     {
         private readonly DbContext _dbContext;
@@ -75,7 +75,7 @@ namespace Girvs.Infrastructure.Repositories
 
         public virtual async Task<TEntity> GetByIdAsync(Tkey id)
         {
-            return await DbSet.FirstOrDefaultAsync(x=>x.Id.Equals(id));
+            return await DbSet.FirstOrDefaultAsync(x => x.Id.Equals(id));
         }
 
         public virtual async Task<List<TEntity>> GetAllAsync(params string[] fields)
