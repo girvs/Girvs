@@ -10,7 +10,8 @@ namespace Girvs.Domain.Caching.EventHandlers
     public class RemoveCacheEventHandlers :
         INotificationHandler<RemoveCacheEvent>,
         INotificationHandler<RemoveCacheListEvent>,
-        INotificationHandler<SetCacheEvent>
+        INotificationHandler<SetCacheEvent>,
+        INotificationHandler<RemoveCacheByPrefixEvent>
     {
         private readonly IStaticCacheManager _staticCacheManager;
 
@@ -34,6 +35,12 @@ namespace Girvs.Domain.Caching.EventHandlers
         public Task Handle(SetCacheEvent notification, CancellationToken cancellationToken)
         {
             _staticCacheManager.Set(notification.Key, notification.Object, notification.CacheTime);
+            return Task.CompletedTask;
+        }
+
+        public Task Handle(RemoveCacheByPrefixEvent notification, CancellationToken cancellationToken)
+        {
+            _staticCacheManager.RemoveByPrefix(notification.PrefixKey);
             return Task.CompletedTask;
         }
     }

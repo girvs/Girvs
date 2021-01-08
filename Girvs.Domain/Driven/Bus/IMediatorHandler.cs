@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Girvs.Domain.Driven.Events;
 using Girvs.Domain.Managers;
 
@@ -17,7 +18,8 @@ namespace Girvs.Domain.Driven.Bus
         /// <typeparam name="T"> 泛型 </typeparam>
         /// <param name="command"> 命令模型，比如RegisterStudentCommand </param>
         /// <returns></returns>
-        Task SendCommand<T>(T command) where T : Message;
+        Task SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
+            where T : Message;
 
 
         /// <summary>
@@ -27,6 +29,6 @@ namespace Girvs.Domain.Driven.Bus
         /// <param name="event"> 事件模型，比如StudentRegisteredEvent，</param>
         /// 请注意一个细节：这个命名方法和Command不一样，一个是RegisterStudentCommand注册学生命令之前,一个是StudentRegisteredEvent学生被注册事件之后
         /// <returns></returns>
-        Task RaiseEvent<T>(T @event) where T : Event;
+        Task RaiseEvent<T>(T @event, CancellationToken cancellationToken = default(CancellationToken)) where T : Event;
     }
 }

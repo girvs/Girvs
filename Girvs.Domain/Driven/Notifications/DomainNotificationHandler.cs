@@ -5,6 +5,7 @@ using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Girvs.Domain.Driven.Notifications
 {
@@ -36,21 +37,29 @@ namespace Girvs.Domain.Driven.Notifications
             return _notifications;
         }
 
-        public virtual string GetNotificationMessage()
+        public virtual (int, string) GetNotificationMessage()
         {
             if (_notifications.Any())
             {
-                var options = new JsonSerializerOptions
+                if (_notifications.Count == 1)
                 {
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
-                };
-                return JsonSerializer.Serialize(_notifications.Select(x => new
+                    return (_notifications[0].StatusCode, _notifications[0].Value);
+                }
+                else
                 {
-                    PropertyName = x.Key,
-                    ErrorMessage = x.Value
-                }),options);
+                    return (StatusCodes.Status422UnprocessableEntity, JsonSerializer.Serialize(_notifications.Select(
+                        x => new
+                        {
+                            PropertyName = x.Key,
+                            ErrorMessage = x.Value
+                        }), new JsonSerializerOptions
+                    {
+                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
+                    }));
+                }
             }
-            return string.Empty;
+
+            return (568, string.Empty);
         }
 
         // 判断在当前总线对象周期中，是否存在通知信息

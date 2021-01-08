@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Girvs.Domain.Driven.Bus;
-using Girvs.Domain.Driven.Commands;
 using Girvs.Domain.Driven.Events;
 using MediatR;
 
@@ -15,9 +15,12 @@ namespace Girvs.Infrastructure.Bus
     {
         //构造函数注入
         private readonly IMediator _mediator;
+
         //注入服务工厂
         private readonly ServiceFactory _serviceFactory;
-        private static readonly ConcurrentDictionary<Type, object> _requestHandlers = new ConcurrentDictionary<Type, object>();
+
+        private static readonly ConcurrentDictionary<Type, object> _requestHandlers =
+            new ConcurrentDictionary<Type, object>();
 
 
         public InMemoryBus(IMediator mediator, ServiceFactory serviceFactory)
@@ -33,10 +36,11 @@ namespace Girvs.Infrastructure.Bus
         /// <typeparam name="T"></typeparam>
         /// <param name="command"></param>
         /// <returns></returns>
-        public Task SendCommand<T>(T command) where T : Message
+        public Task SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
+            where T : Message
         {
             //这个是正确的
-            return _mediator.Send(command);//请注意 入参 的类型
+            return _mediator.Send(command, cancellationToken); //请注意 入参 的类型
 
             //注意！这个仅仅是用来测试和研究源码的，请开发的时候不要使用这个
             //return Send(command);//请注意 入参 的类型
@@ -48,16 +52,15 @@ namespace Girvs.Infrastructure.Bus
         /// <typeparam name="T">泛型 继承 Event：INotification</typeparam>
         /// <param name="event">事件模型，比如StudentRegisteredEvent</param>
         /// <returns></returns>
-        public Task RaiseEvent<T>(T @event) where T : Event
+        public Task RaiseEvent<T>(T @event, CancellationToken cancellationToken = default(CancellationToken))
+            where T : Event
         {
             // 除了领域通知以外的事件都保存下来
             //if (!@event.MessageType.Equals("DomainNotification"))
             //    _eventStoreService?.Save(@event);
 
             // MediatR中介者模式中的第二种方法，发布/订阅模式
-            return _mediator.Publish(@event);
+            return _mediator.Publish(@event, cancellationToken);
         }
-
-      
     }
 }

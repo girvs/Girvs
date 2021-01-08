@@ -26,10 +26,11 @@ namespace Girvs.WebFrameWork.Plugins.Swagger
 
                 var basePath = Path.GetDirectoryName(typeof(SwaggerServicesExtensions).Assembly.Location) ??
                                string.Empty;
-                var xmlPath = Path.Combine(basePath, $"{AppDomain.CurrentDomain.FriendlyName}.xml");
-                if (File.Exists(xmlPath))
+
+                var xmlFiles = Directory.GetFiles(basePath, "*.xml");
+                foreach (var xmlFile in xmlFiles)
                 {
-                    c.IncludeXmlComments(xmlPath);
+                    c.IncludeXmlComments(xmlFile);
                 }
             });
         }

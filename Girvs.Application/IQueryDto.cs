@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Girvs.Application.Extensions;
 
 namespace Girvs.Application
@@ -20,8 +21,13 @@ namespace Girvs.Application
             QueryFields = this.GetActionFields<T>();
         }
 
-        public int PageIndex { get; set; }
-        public int PageSize { get; set; }
+        [Required]
+        [Range(0,int.MaxValue)]
+        public int PageIndex { get; set; } = 0;
+        
+        [Required]
+        [Range(1,int.MaxValue)]
+        public int PageSize { get; set; } = 20;
         public int RecordCount { get; set; }
         public string[] QueryFields { get; set; }
         public List<T> Result { get; set; }

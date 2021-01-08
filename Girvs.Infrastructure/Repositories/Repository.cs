@@ -75,7 +75,7 @@ namespace Girvs.Infrastructure.Repositories
 
         public virtual async Task<TEntity> GetByIdAsync(Tkey id)
         {
-            return await DbSet.FirstOrDefaultAsync(x => x.Id.Equals(id));
+            return await DbSet.FindAsync(id);
         }
 
         public virtual async Task<List<TEntity>> GetAllAsync(params string[] fields)
@@ -144,13 +144,13 @@ namespace Girvs.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public async Task<bool> ExistEntityAsync(Tkey id)
+        public virtual async Task<bool> ExistEntityAsync(Tkey id)
         {
             return await DbSet.AnyAsync(x => x.Id.Equals(id));
         }
 
 
-        public async Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual async Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate)
         {
             return await DbSet.AnyAsync(predicate);
         }

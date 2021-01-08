@@ -10,7 +10,7 @@ using Test.Infrastructure;
 namespace Test.Infrastructure.Migrations
 {
     [DbContext(typeof(CmmpDbContext))]
-    [Migration("20201229021733_init001")]
+    [Migration("20201229084604_init001")]
     partial class init001
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

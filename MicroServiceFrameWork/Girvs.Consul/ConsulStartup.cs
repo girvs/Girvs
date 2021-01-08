@@ -47,6 +47,7 @@ namespace Girvs.Consul
 
         public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
         {
+            
         }
 
 
