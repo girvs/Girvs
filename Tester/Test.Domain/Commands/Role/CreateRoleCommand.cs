@@ -8,6 +8,8 @@
             Desc = desc;
         }
 
+        public override string CommandDesc { get; set; } = "创建角色";
+
         public override bool IsValid()
         {
             return true;

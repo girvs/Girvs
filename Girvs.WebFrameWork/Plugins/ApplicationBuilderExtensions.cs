@@ -226,7 +226,7 @@ namespace Girvs.WebFrameWork.Plugins
                     dynamic result = new
                     {
                         type = "http://tools.ietf.org/html/rfc2774#section-7",
-                        title = exception.Message,
+                        message = exception.Message,
                         status = context.Response.StatusCode,
                         traceId = context.TraceIdentifier,
                         stackTrace = useDetailedExceptionPage ? exception.StackTrace : string.Empty

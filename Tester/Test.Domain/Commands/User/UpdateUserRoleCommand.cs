@@ -10,6 +10,8 @@ namespace Test.Domain.Commands.User
             RoleIds = roleIds;
         }
 
+        public override string CommandDesc { get; set; } = "更新用户角色";
+
         public override bool IsValid()
         {
             throw new System.NotImplementedException();

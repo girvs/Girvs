@@ -11,6 +11,8 @@ namespace Test.Domain.Commands.User
             Id = id;
         }
 
+        public override string CommandDesc { get; set; } = "更新用户密码";
+
         public override bool IsValid()
         {
             throw new System.NotImplementedException();

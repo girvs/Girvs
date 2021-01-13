@@ -11,6 +11,9 @@ namespace Test.Domain.Commands.User
             Id = id;
             State = state;
         }
+
+        public override string CommandDesc { get; set; } = "更新用户状态";
+
         public override bool IsValid()
         {
             return true;

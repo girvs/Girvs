@@ -16,6 +16,8 @@ namespace Test.Domain.Commands.User
             UserType = userType;
         }
 
+        public override string CommandDesc { get; set; } = "更新用户";
+
         public override bool IsValid()
         {
             throw new System.NotImplementedException();

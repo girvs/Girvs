@@ -3,7 +3,7 @@ using Girvs.Domain.Driven.Commands;
 
 namespace Test.Domain.Commands.Role
 {
-    public class RoleCommand : Command
+    public abstract class RoleCommand : Command
     {
         public Guid Id { get; set; }
         public string Name { get; protected set; }

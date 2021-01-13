@@ -9,6 +9,8 @@ namespace Test.Domain.Commands.Role
             Id = id;
         }
 
+        public override string CommandDesc { get; set; } = "删除角色";
+
         public override bool IsValid()
         {
             return true;

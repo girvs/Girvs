@@ -9,6 +9,8 @@ namespace Test.Domain.Commands.User
             Id = id;
         }
 
+        public override string CommandDesc { get; set; } = "删除用户";
+
         public override bool IsValid()
         {
             return true;

@@ -1,9 +1,7 @@
-﻿using Girvs.Domain.Configuration;
+﻿using System;
+using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
-using Girvs.IdentityServer4.Configuration;
-using Girvs.WebFrameWork.Plugins;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -20,13 +18,13 @@ namespace Girvs.IdentityServer4
         {
             var configuration = EngineContext.Current.Resolve<IConfiguration>();
             var idsConfig =
-                services.ConfigureStartupConfig<IdentityServer4Config>(configuration.GetSection("IdentityServer4"));
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                services.AddAuthorization().AddAuthentication("Bearer").AddIdentityServerAuthentication(options =>
                 {
-                    options.Authority = idsConfig.ServerHost;
-                    options.RequireHttpsMetadata = false;
-                    options.Audience = idsConfig.ClientName;
+                    var audienceName = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
+                    options.RequireHttpsMetadata = bool.Parse(configuration["IdentityServer:UseHttps"]);
+                    options.Authority = configuration["IdentityServer:Uri"];
+                    options.ApiSecret = configuration["IdentityServer:ApiSecret"];
+                    options.ApiName = audienceName;
                 });
         }
 

@@ -31,7 +31,10 @@ namespace Girvs.WebFrameWork.Plugins.MediatR
             services.RegisterType(typeof(CommandHandler), typeFinder, asType: null);
             services.RegisterIValidatorType(typeof(IValidator), typeFinder);
             //添加验证管道
+            services.AddScoped(typeof(IPipelineBehavior<,>), typeof(CommandOperateBehavior<,>));
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
+
+            //services.RegisterType(typeof(IPipelineBehavior<,>), typeFinder, asType: null);
         }
 
         public void ConfigureRequestPipeline(IApplicationBuilder application)
