@@ -1,14 +1,9 @@
-using System;
-using System.IO;
 using Girvs.WebFrameWork.Plugins;
-using Girvs.WebFrameWork.Plugins.Swagger;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using Panda.DynamicWebApi;
 
 namespace Test.DynamicWebApi
 {
@@ -28,33 +23,19 @@ namespace Test.DynamicWebApi
             services.ConfigureApplicationServices(Configuration, WebHostEnvironment);
         }
 
-        public void Configure(IApplicationBuilder app)
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            //app.UseSwagger();
-            //app.UseSwaggerUI(c =>
-            //{
-            //    c.SwaggerEndpoint("/swagger/v1/swagger.json", AppDomain.CurrentDomain.FriendlyName);
-            //});
-
-            //app.UseRouting();
-
-            //app.UseAuthorization();
-
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapControllers();
-            //});
-
-
             if (WebHostEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            //¾²Ì¬ÎÄ¼þ
-            app.UseStaticFiles();
+            app.UseGirvsExceptionHandler();
             app.ConfigureRequestPipeline();
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

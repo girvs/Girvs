@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Girvs.Application.Cache
+namespace Girvs.Application.Services
 {
     public interface ICacheService : IAppWebApiService
     {

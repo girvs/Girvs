@@ -27,7 +27,9 @@ namespace Test.Domain.CommandHandlers
         public UserCommandHandler(
             IMediatorHandler bus,
             IUserRepository userRepository,
-            ICacheKeyManager<User> cacheKeyManager) : base(userRepository.UnitOfWork,
+            ICacheKeyManager<User> cacheKeyManager,
+            IUnitOfWork unitOfWork
+            ) : base(unitOfWork,
             bus)
         {
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));

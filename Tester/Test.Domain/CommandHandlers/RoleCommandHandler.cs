@@ -7,6 +7,7 @@ using Girvs.Domain.Driven.Bus;
 using Girvs.Domain.Driven.Commands;
 using Girvs.Domain.Driven.Notifications;
 using Girvs.Domain.IRepositories;
+using Girvs.Domain.Managers;
 using MediatR;
 using Test.Domain.Commands.Role;
 using Test.Domain.Models;
@@ -16,22 +17,24 @@ namespace Test.Domain.CommandHandlers
     public class RoleCommandHandler : CommandHandler,
         IRequestHandler<CreateRoleCommand, bool>,
         IRequestHandler<UpdateRoleCommand, bool>,
-        IRequestHandler<DeleteRoleCommand,bool>
+        IRequestHandler<DeleteRoleCommand, bool>
     {
         private readonly IRepository<Role> _roleRepository;
         private readonly ICacheKeyManager<Role> _cacheKeyManager;
         private readonly IMediatorHandler _bus;
 
-        public RoleCommandHandler(IRepository<Role> roleRepository,
+        public RoleCommandHandler(
+            IRepository<Role> roleRepository,
             ICacheKeyManager<Role> cacheKeyManager,
-            IMediatorHandler bus) : base(roleRepository.UnitOfWork,
-            bus)
+            IMediatorHandler bus,
+            IUnitOfWork uow
+        ) : base(uow, bus)
         {
             _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
             _cacheKeyManager = cacheKeyManager ?? throw new ArgumentNullException(nameof(cacheKeyManager));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
         }
-        
+
         public async Task<bool> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
         {
             if (!request.IsValid())
@@ -39,7 +42,7 @@ namespace Test.Domain.CommandHandlers
                 NotifyValidationErrors(request);
                 return false;
             }
-            
+
             var role = new Role()
             {
                 Name = request.Name,
@@ -47,7 +50,7 @@ namespace Test.Domain.CommandHandlers
             };
 
             await _roleRepository.AddAsync(role);
-            
+
             if (await Commit())
             {
                 request.Id = role.Id;
@@ -71,18 +74,18 @@ namespace Test.Domain.CommandHandlers
                 await _bus.RaiseEvent(new DomainNotification("", "not find user entity"));
                 return false;
             }
-            
+
             role.Name = request.Name;
             role.Desc = request.Desc;
 
-            var fields = new []
+            var fields = new[]
             {
                 nameof(Role.Name),
                 nameof(Role.Desc),
             };
-            
+
             await _roleRepository.UpdateAsync(role, fields);
-            
+
             if (await Commit())
             {
                 await _bus.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(role.Id)));
@@ -98,7 +101,7 @@ namespace Test.Domain.CommandHandlers
             if (role == null)
             {
                 await _bus.RaiseEvent(new DomainNotification("", "not find user entity"));
-                return false; 
+                return false;
             }
 
             await _roleRepository.DeleteAsync(role);

@@ -13,8 +13,6 @@ namespace Girvs.Domain.IRepositories
 
     public interface IRepository<TEntity, TKey> where TEntity : BaseEntity<TKey>
     {
-        IUnitOfWork UnitOfWork { get; }
-
         /// <summary>
         /// 新增或更新实体，当Id为空时则为新增，不为空代表更新
         /// </summary>

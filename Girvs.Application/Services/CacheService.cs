@@ -4,9 +4,11 @@ using System.Threading.Tasks;
 using Girvs.Domain.Caching.Commands;
 using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Driven.Bus;
+using Panda.DynamicWebApi.Attributes;
 
-namespace Girvs.Application.Cache
+namespace Girvs.Application.Services
 {
+    [DynamicWebApi]
     public class CacheService : ICacheService
     {
         private readonly IStaticCacheManager _staticCacheManager;

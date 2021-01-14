@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Girvs.Domain.Configuration;
 using Girvs.Domain.Extensions;
-using Girvs.Domain.Infrastructure;
 using Girvs.Domain.IRepositories;
 using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
@@ -15,27 +13,20 @@ namespace Girvs.Infrastructure.Repositories
 {
     public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : BaseEntity<Guid>
     {
-        public Repository(IUnitOfWork dbContext) : base(dbContext)
+        public Repository(IDbContext dbContext) : base(dbContext)
         {
         }
     }
 
     public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
     {
-        private readonly DbContext _dbContext;
-        private readonly GirvsConfig _girvsConfig;
         protected DbSet<TEntity> DbSet { get; set; }
 
 
-        public Repository(IUnitOfWork dbContext)
+        public Repository(IDbContext dbContext)
         {
-            _dbContext = dbContext as DbContext ?? throw new ArgumentNullException(nameof(dbContext));
-            _girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
-            if (_girvsConfig == null) throw new ArgumentException(nameof(_girvsConfig));
-            DbSet = _dbContext.Set<TEntity>();
+            DbSet = dbContext.Set<TEntity>();
         }
-
-        public virtual IUnitOfWork UnitOfWork => _dbContext as IUnitOfWork;
 
         public virtual async Task<TEntity> AddAsync(TEntity t)
         {

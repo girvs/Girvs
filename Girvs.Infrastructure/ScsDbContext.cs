@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Girvs.Infrastructure
 {
-    public abstract class ScsDbContext : DbContext, IUnitOfWork
+    public abstract class ScsDbContext : DbContext, IDbContext
     {
         protected ScsDbContext(DbContextOptions options)
             : base(options)
@@ -87,9 +86,9 @@ namespace Girvs.Infrastructure
             }
         }
 
-        public async Task<bool> Commit()
+        public Task<int> SaveChangesAsync()
         {
-            return await SaveChangesAsync() > 0;
+            return SaveChangesAsync();
         }
     }
 }

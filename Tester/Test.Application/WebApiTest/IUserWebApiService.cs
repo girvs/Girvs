@@ -6,7 +6,7 @@ namespace Test.Application.WebApiTest
 {
     public interface IUserWebApiService
     {
-        Task GetById(Guid id);
+        Task<dynamic> GetById(Guid id);
         Task<Guid> CreateUser(User user);
     }
 }
