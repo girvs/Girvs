@@ -4,28 +4,26 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Oracle.EntityFrameworkCore.Metadata;
 using Test.Infrastructure;
 
 namespace Test.Infrastructure.Migrations
 {
     [DbContext(typeof(CmmpDbContext))]
-    [Migration("20201229084604_init001")]
+    [Migration("20210114091049_init001")]
     partial class init001
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Oracle:ValueGenerationStrategy", OracleValueGenerationStrategy.IdentityColumn)
                 .HasAnnotation("ProductVersion", "3.1.6")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Test.Domain.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("RAW(16)");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Desc")
                         .HasColumnType("nvarchar(200)");
@@ -33,7 +31,8 @@ namespace Test.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<Guid>("TenantId")
+                    b.Property<string>("TenantId")
+                        .IsRequired()
                         .HasColumnType("varchar(36)");
 
                     b.HasKey("Id");
@@ -45,7 +44,7 @@ namespace Test.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("RAW(16)");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("ContactNumber")
                         .HasColumnType("nvarchar(12)");
@@ -56,7 +55,8 @@ namespace Test.Infrastructure.Migrations
                     b.Property<int>("State")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("TenantId")
+                    b.Property<string>("TenantId")
+                        .IsRequired()
                         .HasColumnType("varchar(36)");
 
                     b.Property<string>("UserAccount")
@@ -79,10 +79,10 @@ namespace Test.Infrastructure.Migrations
             modelBuilder.Entity("Test.Domain.Models.UserRole", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("RAW(16)");
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("RAW(16)");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("UserId", "RoleId");
 

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Girvs.Domain.Managers;
 using Girvs.Infrastructure;
 
@@ -16,9 +17,9 @@ namespace Test.Infrastructure.UoW
         }
 
         //上下文提交
-        public async Task<bool> Commit()
+        public async Task<bool> Commit(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return await _context.SaveChangesAsync() > 0;
+            return await _context.SaveChangesAsync(cancellationToken) > 0;
         }
 
         //手动回收

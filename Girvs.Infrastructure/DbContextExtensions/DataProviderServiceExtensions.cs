@@ -5,7 +5,6 @@ using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
-using Girvs.Infrastructure.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -51,7 +50,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
 
 
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var dbContexts = typeFinder.FindClassesOfType<ScsDbContext>().Where(x => x.Name != nameof(ScsDbContext))
+            var dbContexts = typeFinder.FindClassesOfType<GirvsDbContext>().Where(x => x.Name != nameof(GirvsDbContext))
                 .ToList();
 
             if (dbContexts.Any())

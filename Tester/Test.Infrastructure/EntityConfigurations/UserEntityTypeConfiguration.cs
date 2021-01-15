@@ -2,7 +2,6 @@
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Test.Domain.Enumerations;
 using Test.Domain.Models;
 
 namespace Test.Infrastructure.EntityConfigurations
@@ -11,7 +10,7 @@ namespace Test.Infrastructure.EntityConfigurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            ScsDbContext.OnModelCreatingBaseEntityAndTableKey<User,Guid>(builder);
+            GirvsDbContext.OnModelCreatingBaseEntityAndTableKey<User,Guid>(builder);
             builder.Property(x => x.UserAccount).HasColumnType("nvarchar(36)");
             builder.Property(x => x.UserPassword).HasColumnType("nvarchar(36)");
             builder.Property(x => x.UserName).HasColumnType("nvarchar(20)");

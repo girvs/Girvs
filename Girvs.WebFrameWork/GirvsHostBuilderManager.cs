@@ -9,7 +9,7 @@ namespace Girvs.WebFrameWork
 {
     public class GirvsHostBuilderManager
     {
-        public static IHostBuilder CreateSpHostBuilder<TStartup>(string[] args) where TStartup : class
+        public static IHostBuilder CreateGrivsHostBuilder<TStartup>(string[] args) where TStartup : class
         {
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
             string spConfigFile = Path.Combine(basePath, "sp.json");
@@ -26,10 +26,10 @@ namespace Girvs.WebFrameWork
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
-            return CreateSpHostBuilder<TStartup>(args, config);
+            return CreateGrivsHostBuilder<TStartup>(args, config);
         }
 
-        public static IHostBuilder CreateSpHostBuilder<TStartup>(string[] args, IConfigurationRoot configuration)
+        public static IHostBuilder CreateGrivsHostBuilder<TStartup>(string[] args, IConfigurationRoot configuration)
             where TStartup : class
         {
             return Host.CreateDefaultBuilder(args)

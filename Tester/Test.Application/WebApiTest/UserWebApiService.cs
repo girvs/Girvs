@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Girvs.Domain;
 using Girvs.Domain.Driven.Bus;
-using Girvs.Domain.Managers;
+using Girvs.Domain.Driven.Notifications;
+using MediatR;
 using Panda.DynamicWebApi;
 using Panda.DynamicWebApi.Attributes;
 using Test.Domain.Commands.User;
 using Test.Domain.Models;
-using Test.Domain.Repositories;
 
 namespace Test.Application.WebApiTest
 {
@@ -14,29 +15,21 @@ namespace Test.Application.WebApiTest
     public class UserWebApiService : IUserWebApiService, IDynamicWebApi
     {
         private readonly IMediatorHandler _bus;
-        private readonly IUserRepository _userRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IUserRepository _userRepository2;
-        private readonly IUnitOfWork _unitOfWork2;
+        private readonly DomainNotificationHandler _notifications;
 
         public UserWebApiService(
             IMediatorHandler bus,
-            IUserRepository userRepository,
-            IUnitOfWork unitOfWork,
-            IUserRepository userRepository2,
-            IUnitOfWork unitOfWork2
+            INotificationHandler<DomainNotification> notifications
         )
         {
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _userRepository2 = userRepository2 ?? throw new ArgumentNullException(nameof(userRepository2));
-            _unitOfWork2 = unitOfWork2 ?? throw new ArgumentNullException(nameof(unitOfWork2));
+            _notifications = notifications as DomainNotificationHandler ??
+                             throw new ArgumentNullException(nameof(notifications));
         }
 
-        public async Task<dynamic> GetById(Guid id)
+        public Task<dynamic> GetById(Guid id)
         {
-            return await _userRepository.GetByIdAsync(id);
+            throw new Exception();
         }
 
         public async Task<Guid> CreateUser(User user)
@@ -44,6 +37,11 @@ namespace Test.Application.WebApiTest
             CreateUserCommand command = new CreateUserCommand(user.UserAccount, user.UserPassword, user.UserName,
                 user.ContactNumber, user.State, user.UserType);
             await _bus.SendCommand(command);
+            if (_notifications.HasNotifications())
+            {
+                var (errorCode, errorMessage) = _notifications.GetNotificationMessage();
+                throw new GirvsException(errorMessage, errorCode);
+            }
 
             return command.Id;
         }

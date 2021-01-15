@@ -60,8 +60,8 @@ namespace Test.Domain.CommandHandlers
             if (await Commit())
             {
                 await _bus.RaiseEvent(new SetCacheEvent(user, _cacheKeyManager.BuildCacheEntityKey(user.Id),
-                    _cacheKeyManager.CacheTime));
-                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix));
+                    _cacheKeyManager.CacheTime), cancellationToken);
+                await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix), cancellationToken);
                 request.Id = user.Id;
             }
 

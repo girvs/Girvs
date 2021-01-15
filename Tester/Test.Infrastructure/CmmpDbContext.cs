@@ -5,7 +5,7 @@ using Test.Infrastructure.EntityConfigurations;
 
 namespace Test.Infrastructure
 {
-    public class CmmpDbContext : ScsDbContext
+    public class CmmpDbContext : GirvsDbContext
     {
         public CmmpDbContext(DbContextOptions<CmmpDbContext> options) : base(options)
         {

@@ -8,7 +8,7 @@ namespace Test.DynamicWebApi
     {
         public static void Main(string[] args)
         {
-            GirvsHostBuilderManager.CreateSpHostBuilder<Startup>(args).Build().Run();
+            GirvsHostBuilderManager.CreateGrivsHostBuilder<Startup>(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

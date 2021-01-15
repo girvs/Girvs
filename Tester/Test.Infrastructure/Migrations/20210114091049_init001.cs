@@ -14,7 +14,7 @@ namespace Test.Infrastructure.Migrations
                     Id = table.Column<Guid>(nullable: false),
                     Name = table.Column<string>(type: "nvarchar(20)", nullable: true),
                     Desc = table.Column<string>(type: "nvarchar(200)", nullable: true),
-                    TenantId = table.Column<Guid>(type: "varchar(36)", nullable: false)
+                    TenantId = table.Column<string>(type: "varchar(36)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,7 +32,7 @@ namespace Test.Infrastructure.Migrations
                     ContactNumber = table.Column<string>(type: "nvarchar(12)", nullable: true),
                     State = table.Column<int>(type: "int", nullable: false),
                     UserType = table.Column<int>(type: "int", nullable: false),
-                    TenantId = table.Column<Guid>(type: "varchar(36)", nullable: false),
+                    TenantId = table.Column<string>(type: "varchar(36)", nullable: false),
                     CreateTime = table.Column<DateTime>(type: "datetime", nullable: false)
                 },
                 constraints: table =>

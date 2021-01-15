@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Girvs.Domain.Managers
@@ -9,6 +10,6 @@ namespace Girvs.Domain.Managers
     public interface IUnitOfWork : IManager, IDisposable
     {
         //是否提交成功
-        Task<bool> Commit();
+        Task<bool> Commit(CancellationToken cancellationToken = default(CancellationToken));
     }
 }

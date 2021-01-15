@@ -1,17 +1,49 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Girvs.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Girvs.Infrastructure
 {
-    public abstract class ScsDbContext : DbContext, IDbContext
+    public abstract class GirvsDbContext : DbContext, IDbContext
     {
-        protected ScsDbContext(DbContextOptions options)
+        protected GirvsDbContext(DbContextOptions options)
             : base(options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            //void Action(DbContextOptionsBuilder builder)
+            //{
+            //    switch (config.UseDataType)
+            //    {
+            //        case UseDataType.MsSql:
+            //            builder.UseSqlServerWithLazyLoading(services);
+            //            break;
+
+            //        case UseDataType.MySql:
+            //            builder.UseMySqlWithLazyLoading(services);
+            //            break;
+
+            //        case UseDataType.SqlLite:
+            //            builder.UseSqlLiteWithLazyLoading(services);
+            //            break;
+
+            //        case UseDataType.Oracle:
+            //            builder.UseOracleWithLazyLoading(services);
+            //            break;
+            //    }
+
+            //    if (!config.UseDataTracking)
+            //    {
+            //        builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            //    }
+
+            //    builder.EnableSensitiveDataLogging();
+            //}
+            base.OnConfiguring(optionsBuilder);
         }
 
         public static void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> entity)
@@ -84,11 +116,6 @@ namespace Girvs.Infrastructure
                     entity.Property("CreatorName").HasColumnType("nvarchar(40)");
                 }
             }
-        }
-
-        public Task<int> SaveChangesAsync()
-        {
-            return SaveChangesAsync();
         }
     }
 }

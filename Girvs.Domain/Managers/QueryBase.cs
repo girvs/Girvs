@@ -13,13 +13,13 @@ namespace Girvs.Domain.Managers
         {
             OrderBy = x => "Id";
             PageSize = 20;
-            PageIndex = 0;
+            PageIndex = 1;
         }
 
-        public int PageStart => PageIndex * PageSize;
+        public int PageStart => (PageIndex - 1) * PageSize;
 
         /// <summary>
-        /// 当前页，从0开始
+        /// 当前页，从1开始
         /// </summary>
         [QueryCacheKey]
         public int PageIndex { get; set; }
