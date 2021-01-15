@@ -20,13 +20,19 @@ namespace Girvs.Infrastructure.Repositories
 
     public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
     {
+        private readonly IDbContext _dbContext;
         protected DbSet<TEntity> DbSet { get; set; }
-
 
         public Repository(IDbContext dbContext)
         {
+            _dbContext = dbContext;
             DbSet = dbContext.Set<TEntity>();
         }
+
+        //public void SetDataBaseWriteAndRead(DataBaseWriteAndRead writeAndRead)
+        //{
+        //    _dbContext.ReadAndWriteMode = writeAndRead;
+        //}
 
         public virtual async Task<TEntity> AddAsync(TEntity t)
         {

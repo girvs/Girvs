@@ -1,5 +1,11 @@
 ﻿using System;
+using System.Linq;
+using Girvs.Domain;
+using Girvs.Domain.Configuration;
+using Girvs.Domain.Enumerations;
+using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Models;
+using Girvs.Infrastructure.DbContextExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -7,6 +13,8 @@ namespace Girvs.Infrastructure
 {
     public abstract class GirvsDbContext : DbContext, IDbContext
     {
+        public abstract string DbConfigName { get; }
+        public abstract DataBaseWriteAndRead ReadAndWriteMode { get; set; }
         protected GirvsDbContext(DbContextOptions options)
             : base(options)
         {
@@ -15,35 +23,45 @@ namespace Girvs.Infrastructure
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //void Action(DbContextOptionsBuilder builder)
-            //{
-            //    switch (config.UseDataType)
-            //    {
-            //        case UseDataType.MsSql:
-            //            builder.UseSqlServerWithLazyLoading(services);
-            //            break;
+            if (string.IsNullOrEmpty(DbConfigName))
+            {
+                throw new GirvsException("DbContext未绑定指定的数据库名称", 568);
+            }
+            else
+            {
+                var config = EngineContext.Current.Resolve<GirvsConfig>();
+                var dataConnectionConfig = config.DataConnectionConfigs.FirstOrDefault(x => x.Name == DbConfigName);
+                if (dataConnectionConfig == null)
+                {
+                    throw new GirvsException("DbContext未绑定指定的数据库名称不正确", 568);
+                }
 
-            //        case UseDataType.MySql:
-            //            builder.UseMySqlWithLazyLoading(services);
-            //            break;
+                switch (dataConnectionConfig.UseDataType)
+                {
+                    case UseDataType.MsSql:
+                        optionsBuilder.UseSqlServerWithLazyLoading(dataConnectionConfig, ReadAndWriteMode);
+                        break;
 
-            //        case UseDataType.SqlLite:
-            //            builder.UseSqlLiteWithLazyLoading(services);
-            //            break;
+                    case UseDataType.MySql:
+                        optionsBuilder.UseMySqlWithLazyLoading(dataConnectionConfig, ReadAndWriteMode);
+                        break;
 
-            //        case UseDataType.Oracle:
-            //            builder.UseOracleWithLazyLoading(services);
-            //            break;
-            //    }
+                    case UseDataType.SqlLite:
+                        optionsBuilder.UseSqlLiteWithLazyLoading(dataConnectionConfig, ReadAndWriteMode);
+                        break;
 
-            //    if (!config.UseDataTracking)
-            //    {
-            //        builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-            //    }
+                    case UseDataType.Oracle:
+                        optionsBuilder.UseOracleWithLazyLoading(dataConnectionConfig, ReadAndWriteMode);
+                        break;
+                }
 
-            //    builder.EnableSensitiveDataLogging();
-            //}
-            base.OnConfiguring(optionsBuilder);
+                if (!dataConnectionConfig.UseDataTracking)
+                {
+                    optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+                }
+
+                optionsBuilder.EnableSensitiveDataLogging();
+            }
         }
 
         public static void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> entity)

@@ -16,7 +16,7 @@ namespace Girvs.Consul.Infrastructure.ApplicationExtensions
 
             var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
             
-            if (girvsConfig.CurrentServerModel == ServerModel.WebApi)
+            if (config.CurrentServerModel == ServerModel.WebApi)
             {
                 var lifetime = EngineContext.Current.Resolve<IHostApplicationLifetime>();
                 var consulClient =

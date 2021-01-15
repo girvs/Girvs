@@ -20,10 +20,9 @@ namespace Girvs.Consul
         public void ConfigureServicesRegister(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig config)
         {
             var configuration = EngineContext.Current.Resolve<IConfiguration>();
-            var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
             var consulConfig = services.ConfigureStartupConfig<ConsulConfig>(configuration.GetSection("ConsulConfig"));
             //需要添加判断是否存在GRPC服务
-            if (girvsConfig.CurrentServerModel == ServerModel.GrpcService)
+            if (consulConfig.CurrentServerModel == ServerModel.GrpcService)
             {
                 consulConfig.ServerName = string.IsNullOrEmpty(consulConfig.ServerName)
                     ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "_")

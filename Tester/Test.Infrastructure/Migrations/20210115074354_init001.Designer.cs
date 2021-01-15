@@ -9,7 +9,7 @@ using Test.Infrastructure;
 namespace Test.Infrastructure.Migrations
 {
     [DbContext(typeof(CmmpDbContext))]
-    [Migration("20210114091049_init001")]
+    [Migration("20210115074354_init001")]
     partial class init001
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -74,6 +74,19 @@ namespace Test.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("User");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"),
+                            CreateTime = new DateTime(2021, 1, 15, 15, 43, 53, 768, DateTimeKind.Local).AddTicks(6792),
+                            State = 0,
+                            TenantId = "f339be29-7ce2-4876-bcca-d3abe3d16f75",
+                            UserAccount = "admin",
+                            UserName = "系统管理员",
+                            UserPassword = "21232F297A57A5A743894A0E4A801FC3",
+                            UserType = 0
+                        });
                 });
 
             modelBuilder.Entity("Test.Domain.Models.UserRole", b =>

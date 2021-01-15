@@ -64,6 +64,11 @@ namespace Test.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "User",
+                columns: new[] { "Id", "ContactNumber", "CreateTime", "State", "TenantId", "UserAccount", "UserName", "UserPassword", "UserType" },
+                values: new object[] { new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"), null, new DateTime(2021, 1, 15, 15, 43, 53, 768, DateTimeKind.Local).AddTicks(6792), 0, "f339be29-7ce2-4876-bcca-d3abe3d16f75", "admin", "系统管理员", "21232F297A57A5A743894A0E4A801FC3", 0 });
+
             migrationBuilder.CreateIndex(
                 name: "IX_UserRole_RoleId",
                 table: "UserRole",

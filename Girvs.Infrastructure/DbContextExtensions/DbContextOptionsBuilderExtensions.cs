@@ -1,14 +1,17 @@
-﻿using Girvs.Domain.Configuration;
+﻿using System;
+using System.Linq;
+using Girvs.Domain.Configuration;
+using Girvs.Domain.Enumerations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Girvs.Infrastructure.DbContextExtensions
 {
     public static class DbContextOptionsBuilderExtensions
     {
-        private static DbContextOptionsBuilder UseLazyLoading(DbContextOptionsBuilder optionsBuilder, GirvsConfig girvsConfig)
+        private static DbContextOptionsBuilder UseLazyLoading(DbContextOptionsBuilder optionsBuilder,
+            DataConnectionConfig config)
         {
-            if (girvsConfig.UseLazyLoading)
+            if (config.UseLazyLoading)
             {
                 return optionsBuilder.UseLazyLoadingProxies();
             }
@@ -16,61 +19,85 @@ namespace Girvs.Infrastructure.DbContextExtensions
             return optionsBuilder;
         }
 
-        public static void UseSqlServerWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-            IServiceCollection services)
+        private static string GetRandomReaderDbConnectionString(DataBaseWriteAndRead dataBaseWriteAndRead,
+            DataConnectionConfig dataConnectionConfig)
         {
-            var girvsConfig = services.BuildServiceProvider().GetRequiredService<GirvsConfig>();
-            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, girvsConfig);
-            dbContextOptionsBuilder.UseSqlServer(girvsConfig.DataConnectionString);
+            if (dataBaseWriteAndRead == DataBaseWriteAndRead.Write)
+                return dataConnectionConfig.MasterDataConnectionString;
+
+            if (!dataConnectionConfig.ReadDataConnectionString.Any())
+                return dataConnectionConfig.MasterDataConnectionString;
+
+            if (dataConnectionConfig.ReadDataConnectionString.Count == 1)
+            {
+                return dataConnectionConfig.ReadDataConnectionString[0];
+            }
+            else
+            {
+                Random r = new Random();
+                var index = r.Next(0, dataConnectionConfig.ReadDataConnectionString.Count);
+                return dataConnectionConfig.ReadDataConnectionString[index];
+            }
         }
 
-        public static void UseMySqlWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-            IServiceCollection services)
+        public static void UseSqlServerWithLazyLoading(this DbContextOptionsBuilder optionsBuilder
+            , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
-            var girvsConfig = services.BuildServiceProvider().GetRequiredService<GirvsConfig>();
-            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, girvsConfig);
+            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
+            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
+            dbContextOptionsBuilder.UseSqlServer(connStr);
+        }
 
-            if (girvsConfig.UseRowNumberForPaging)
-                dbContextOptionsBuilder.UseMySql(girvsConfig.DataConnectionString,
-                    option => { option.CommandTimeout(girvsConfig.SQLCommandTimeout); });
+        public static void UseMySqlWithLazyLoading(this DbContextOptionsBuilder optionsBuilder
+            , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
+        {
+            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
+            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
+
+            if (config.UseRowNumberForPaging)
+                dbContextOptionsBuilder.UseMySql(connStr,
+                    option => { option.CommandTimeout(config.SQLCommandTimeout); });
             //dbContextOptionsBuilder.UseMySQL(spConfig.DataConnectionString, option => option.CommandTimeout(spConfig.SQLCommandTimeout));
             else
-                dbContextOptionsBuilder.UseSqlServer(girvsConfig.DataConnectionString,
-                    option => option.CommandTimeout(girvsConfig.SQLCommandTimeout));
+                dbContextOptionsBuilder.UseSqlServer(connStr,
+                    option => option.CommandTimeout(config.SQLCommandTimeout));
         }
 
-        public static void UseSqlLiteWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-            IServiceCollection services)
+        public static void UseSqlLiteWithLazyLoading(this DbContextOptionsBuilder optionsBuilder
+            , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
-            var girvsConfig = services.BuildServiceProvider().GetRequiredService<GirvsConfig>();
+            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
+            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
 
-            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, girvsConfig);
-
-            if (girvsConfig.UseRowNumberForPaging)
-                dbContextOptionsBuilder.UseSqlite(girvsConfig.DataConnectionString,
-                    option => option.CommandTimeout(girvsConfig.SQLCommandTimeout));
+            if (config.UseRowNumberForPaging)
+                dbContextOptionsBuilder.UseSqlite(connStr,
+                    option => option.CommandTimeout(config.SQLCommandTimeout));
             else
-                dbContextOptionsBuilder.UseSqlServer(girvsConfig.DataConnectionString,
-                    option => option.CommandTimeout(girvsConfig.SQLCommandTimeout));
+                dbContextOptionsBuilder.UseSqlServer(connStr,
+                    option => option.CommandTimeout(config.SQLCommandTimeout));
         }
 
-        public static void UseOracleWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-            IServiceCollection services)
+        public static void UseOracleWithLazyLoading(this DbContextOptionsBuilder optionsBuilder
+            , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
-            var girvsConfig = services.BuildServiceProvider().GetRequiredService<GirvsConfig>();
+            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
+            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
 
-            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, girvsConfig);
-
-            dbContextOptionsBuilder.UseOracle(girvsConfig.DataConnectionString,
-                option => option.CommandTimeout(girvsConfig.SQLCommandTimeout));
+            dbContextOptionsBuilder.UseOracle(connStr,
+                option =>
+                {
+                    option.CommandTimeout(config.SQLCommandTimeout);
+                    option.UseOracleSQLCompatibility(config.VersionNumber);
+                });
         }
 
-        public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-            IServiceCollection services)
+        public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder
+            , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
-            var girvsConfig = services.BuildServiceProvider().GetRequiredService<GirvsConfig>();
-            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, girvsConfig);
-            dbContextOptionsBuilder.UseInMemoryDatabase(girvsConfig.DataConnectionString);
+            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
+
+            var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
+            dbContextOptionsBuilder.UseInMemoryDatabase(connStr);
         }
     }
 }

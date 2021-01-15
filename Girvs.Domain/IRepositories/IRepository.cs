@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Girvs.Domain.Enumerations;
 using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
 
@@ -13,6 +14,11 @@ namespace Girvs.Domain.IRepositories
 
     public interface IRepository<TEntity, TKey> where TEntity : BaseEntity<TKey>
     {
+        ///// <summary>
+        ///// 设置数据库的读写模式
+        ///// </summary>
+        ///// <param name="writeAndRead"></param>
+        //void SetDataBaseWriteAndRead(DataBaseWriteAndRead writeAndRead);
         /// <summary>
         /// 新增或更新实体，当Id为空时则为新增，不为空代表更新
         /// </summary>

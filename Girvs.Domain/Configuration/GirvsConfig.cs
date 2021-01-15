@@ -13,17 +13,10 @@ namespace Girvs.Domain.Configuration
         }
 
         /// <summary>
-        /// 是否启用动态Api
-        /// </summary>
-        public bool DynamicWebApiEnable { get; set; } = false;
-        
-        /// <summary>
         /// 获取或设置一个值，该值指示是否在生产环境中显示完整错误。它在开发环境中被忽略（始终启用）
         /// </summary>
         public bool DisplayFullErrorStack { get; set; }
 
-        public string DataConnectionString { get; set; }
-        
         /// <summary>
         /// 默认缓存时间
         /// </summary>
@@ -70,44 +63,68 @@ namespace Girvs.Domain.Configuration
         public bool UseUnsafeLoadAssembly { get; set; }
 
         /// <summary>
-        /// 获取或设置一个值，该值指示是否使用与SQL Server 2008和SQL Server 2008R2的向后兼容性
-        /// </summary>
-        public bool UseRowNumberForPaging { get; set; }
-
-        /// <summary>
         /// 获取或设置一个值，该值指示是否将TempData存储在会话状态中。
         ///默认情况下，基于cookie的TempData提供程序用于在Cookie中存储TempData。
         /// </summary>
         public bool UseSessionStateTempDataProvider { get; set; }
 
-        /// <summary>
-        /// 数据库连接超时时间
-        /// </summary>
-        public int? SQLCommandTimeout { get; set; }
-
-        public UseDataType UseDataType { get; set; }
-
-        public bool UseLazyLoading { get; set; }
-        public bool UseDataTracking { get; set; }
-
         public bool TenantEnabled { get; set; }
 
         public bool WhetherTheTenantIsInvolvedInManagement { get; set; }
-
         public List<FunctionalModuleConfig> FunctionalModules { get; set; }
         public List<TaskConfig> Tasks { get; set; }
-
-
-        public ServerModel CurrentServerModel { get; set; } = ServerModel.WebApi;
-
         public ClaimValueConfig ClaimValueConfig { get; set; } = new ClaimValueConfig();
+        public IList<DataConnectionConfig> DataConnectionConfigs { get; set; }
     }
     
-    
-    public enum ServerModel
+
+
+    public class DataConnectionConfig
     {
-        WebApi,
-        GrpcService,
-        Mvc
+        /// <summary>
+        /// 数据库名称
+        /// </summary>
+        public string Name { get; set; }
+        
+        /// <summary>
+        /// 数据库类型
+        /// </summary>
+        public UseDataType UseDataType { get; set; }
+        
+        /// <summary>
+        /// 数据库版本号
+        /// </summary>
+        public string VersionNumber { get; set; }
+
+        /// <summary>
+        /// 数据库连接超时时间设置
+        /// </summary>
+        public int SQLCommandTimeout { get; set; } = 30;
+
+        /// <summary>
+        /// 是否启懒加载
+        /// </summary>
+        public bool UseLazyLoading { get; set; } = false;
+
+        /// <summary>
+        /// 是否开启数据追踪
+        /// </summary>
+        public bool UseDataTracking { get; set; } = true;
+
+        /// <summary>
+        /// 启用行分页
+        /// 获取或设置一个值，该值指示是否使用与SQL Server 2008和SQL Server 2008R2的向后兼容性
+        /// </summary>
+        public bool UseRowNumberForPaging { get; set; } = true;
+        
+        /// <summary>
+        /// 主数据库连接字符串
+        /// </summary>
+        public string MasterDataConnectionString { get; set; }
+        
+        /// <summary>
+        /// 存数据库字符串集,可以是多个
+        /// </summary>
+        public IList<string> ReadDataConnectionString { get; set; }
     }
 }
