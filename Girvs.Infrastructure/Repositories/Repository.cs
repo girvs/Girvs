@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -87,6 +88,11 @@ namespace Girvs.Infrastructure.Repositories
             {
                 return await DbSet.ToListAsync();
             }
+        }
+
+        public Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            return DbSet.Where(predicate).ToListAsync();
         }
 
         public virtual async Task<List<TEntity>> GetByQueryAsync(QueryBase<TEntity> query)

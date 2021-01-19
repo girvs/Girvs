@@ -14,6 +14,11 @@ namespace Girvs.Infrastructure
     public abstract class GirvsDbContext : DbContext, IDbContext
     {
         public abstract string DbConfigName { get; }
+        public void SetReadAndWriteMode(DataBaseWriteAndRead writeAndRead)
+        {
+            ReadAndWriteMode = writeAndRead;
+        }
+
         public abstract DataBaseWriteAndRead ReadAndWriteMode { get; set; }
         protected GirvsDbContext(DbContextOptions options)
             : base(options)

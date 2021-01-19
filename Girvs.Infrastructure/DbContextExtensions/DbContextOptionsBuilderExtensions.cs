@@ -19,7 +19,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
             return optionsBuilder;
         }
 
-        private static string GetRandomReaderDbConnectionString(DataBaseWriteAndRead dataBaseWriteAndRead,
+        public static string GetConnectionString(DataBaseWriteAndRead dataBaseWriteAndRead,
             DataConnectionConfig dataConnectionConfig)
         {
             if (dataBaseWriteAndRead == DataBaseWriteAndRead.Write)
@@ -43,7 +43,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
         public static void UseSqlServerWithLazyLoading(this DbContextOptionsBuilder optionsBuilder
             , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
-            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
+            var connStr = GetConnectionString(dataBaseWriteAndRead, config);
             var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
             dbContextOptionsBuilder.UseSqlServer(connStr);
         }
@@ -52,7 +52,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
             , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
             var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
-            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
+            var connStr = GetConnectionString(dataBaseWriteAndRead, config);
 
             if (config.UseRowNumberForPaging)
                 dbContextOptionsBuilder.UseMySql(connStr,
@@ -67,7 +67,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
             , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
             var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
-            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
+            var connStr = GetConnectionString(dataBaseWriteAndRead, config);
 
             if (config.UseRowNumberForPaging)
                 dbContextOptionsBuilder.UseSqlite(connStr,
@@ -81,7 +81,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
             , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
             var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
-            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
+            var connStr = GetConnectionString(dataBaseWriteAndRead, config);
 
             dbContextOptionsBuilder.UseOracle(connStr,
                 option =>
@@ -94,7 +94,7 @@ namespace Girvs.Infrastructure.DbContextExtensions
         public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder
             , DataConnectionConfig config, DataBaseWriteAndRead dataBaseWriteAndRead = DataBaseWriteAndRead.Write)
         {
-            var connStr = GetRandomReaderDbConnectionString(dataBaseWriteAndRead, config);
+            var connStr = GetConnectionString(dataBaseWriteAndRead, config);
 
             var dbContextOptionsBuilder = UseLazyLoading(optionsBuilder, config);
             dbContextOptionsBuilder.UseInMemoryDatabase(connStr);

@@ -9,7 +9,7 @@ namespace Girvs.Infrastructure
     public interface IDbContext : IManager
     {
         string DbConfigName { get; }
-        DataBaseWriteAndRead ReadAndWriteMode { get; set; }
+        void SetReadAndWriteMode(DataBaseWriteAndRead writeAndRead);
         DbSet<T> Set<T>() where T : class;
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
         void Dispose();
