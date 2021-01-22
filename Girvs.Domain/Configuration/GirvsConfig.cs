@@ -12,6 +12,9 @@ namespace Girvs.Domain.Configuration
             Tasks = new List<TaskConfig>();
         }
 
+        public bool UseServiceMethodPermissionCompare { get; set; }
+
+        public string ServiceMethodPermissionCompareUrl { get; set; }
         /// <summary>
         /// 获取或设置一个值，该值指示是否在生产环境中显示完整错误。它在开发环境中被忽略（始终启用）
         /// </summary>
