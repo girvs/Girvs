@@ -1,7 +1,8 @@
-﻿namespace Girvs.Application
+﻿using Girvs.Domain.Managers;
+
+namespace Girvs.Application
 {
-    public interface IAppGrpcService
+    public interface IAppGrpcService : IManager
     {
-        
     }
 }

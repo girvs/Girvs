@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <PackageVersion>1.3.0</PackageVersion>
+        <PackageVersion>1.3.5</PackageVersion>
         <RootNamespace>Girvs.WebFrameWork</RootNamespace>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>

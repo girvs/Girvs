@@ -23,7 +23,10 @@ namespace Girvs.WebFrameWork.Plugins.Grpc
         
         public void ConfigureServicesRegister(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig config)
         {
-            services.AddGrpc(options => { options.Interceptors.Add<GirvsExceptionInterceptor>(); });
+            services.AddGrpc(options =>
+            {
+                options.Interceptors.Add<GirvsExceptionInterceptor>();
+            });
         }
 
         public void ConfigureRequestPipeline(IApplicationBuilder application)
