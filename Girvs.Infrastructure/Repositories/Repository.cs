@@ -90,7 +90,7 @@ namespace Girvs.Infrastructure.Repositories
             }
         }
 
-        public Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate)
         {
             return DbSet.Where(predicate).ToListAsync();
         }

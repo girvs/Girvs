@@ -13,9 +13,7 @@ namespace Girvs.Consul.Infrastructure.ApplicationExtensions
         public static void UseConsulByWebApi(this IApplicationBuilder app)
         {
             var config = EngineContext.Current.Resolve<ConsulConfig>();
-
-            var girvsConfig = EngineContext.Current.Resolve<GirvsConfig>();
-            
+           
             if (config.CurrentServerModel == ServerModel.WebApi)
             {
                 var lifetime = EngineContext.Current.Resolve<IHostApplicationLifetime>();
