@@ -2,6 +2,7 @@
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
+using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -16,13 +17,15 @@ namespace Girvs.IdentityServer4
 
         public void ConfigureServicesRegister(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig config)
         {
-            var configuration = EngineContext.Current.Resolve<IConfiguration>();
-            var idsConfig =
-                services.AddAuthorization().AddAuthentication("Bearer").AddIdentityServerAuthentication(options =>
+            services //.AddAuthorization()
+                .AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+                .AddIdentityServerAuthentication(options =>
                 {
+                    var configuration = EngineContext.Current.Resolve<IConfiguration>();
                     var audienceName = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
-                    options.RequireHttpsMetadata = bool.Parse(configuration["IdentityServer:UseHttps"]);
                     options.Authority = configuration["IdentityServer:Uri"];
+                    options.RequireHttpsMetadata = bool.Parse(configuration["IdentityServer:UseHttps"]);
+                    options.SupportedTokens = SupportedTokens.Both;
                     options.ApiSecret = configuration["IdentityServer:ApiSecret"];
                     options.ApiName = audienceName;
                 });
