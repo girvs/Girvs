@@ -2,6 +2,7 @@
 using System.Reflection;
 using Girvs.Application.Attributes;
 using Girvs.Domain;
+using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Managers;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -13,14 +14,22 @@ namespace Girvs.WebFrameWork.Filters
     public class PermissionFilter : ActionFilterAttribute
     {
         private readonly ILogger<PermissionFilter> _logger;
+        private readonly GirvsConfig _girvsConfig;
 
-        public PermissionFilter(ILogger<PermissionFilter> logger)
+        public PermissionFilter(ILogger<PermissionFilter> logger, GirvsConfig girvsConfig)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _girvsConfig = girvsConfig ?? throw new ArgumentNullException(nameof(girvsConfig));
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            if (!_girvsConfig.UseServiceMethodPermissionCompare)
+            {
+                base.OnActionExecuting(context);
+                return;
+            }
+
             ControllerActionDescriptor ad = context.ActionDescriptor as ControllerActionDescriptor;
 
             if (ad.ControllerName.Contains("HealthController"))
@@ -30,7 +39,9 @@ namespace Girvs.WebFrameWork.Filters
             }
 
             var service = context.Controller;
-            var spd = service.GetType().GetCustomAttribute(typeof(ServicePermissionDescriptorAttribute)) as ServicePermissionDescriptorAttribute;
+            var spd =
+                service.GetType().GetCustomAttribute(typeof(ServicePermissionDescriptorAttribute)) as
+                    ServicePermissionDescriptorAttribute;
 
             if (spd == null)
             {
@@ -38,7 +49,8 @@ namespace Girvs.WebFrameWork.Filters
                 return;
             }
 
-            var isActionMethodPermission = ad.MethodInfo.IsDefined(typeof(ServiceMethodPermissionDescriptorAttribute), false);
+            var isActionMethodPermission =
+                ad.MethodInfo.IsDefined(typeof(ServiceMethodPermissionDescriptorAttribute), false);
 
             if (!isActionMethodPermission)
             {
@@ -46,7 +58,9 @@ namespace Girvs.WebFrameWork.Filters
                 return;
             }
 
-            var smpd = ad.MethodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute), false) as ServiceMethodPermissionDescriptorAttribute;
+            var smpd =
+                ad.MethodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute), false) as
+                    ServiceMethodPermissionDescriptorAttribute;
 
             _logger.LogError($"ServiceName:{spd.ServiceName}  ActionMethodName:{smpd.MethodName}");
 
