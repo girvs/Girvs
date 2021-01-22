@@ -31,8 +31,9 @@ namespace Girvs.Application.Services
 
         public async Task<List<ServiceMethodPermissionListDto>> Get()
         {
+            string key = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
             List<ServiceMethodPermissionListDto> list = await _staticCacheManager.GetAsync(
-                _cacheKeyManager.BuildCacheEntityKey(nameof(Permission)),
+                $"{key}:Permission",
                 async () => await BuilderPermissionListDtos(),
                 _cacheKeyManager.CacheTime);
             return list;
@@ -41,7 +42,7 @@ namespace Girvs.Application.Services
         private Task<List<ServiceMethodPermissionListDto>> BuilderPermissionListDtos()
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var services = typeFinder.FindClassesOfType<IManager>(onlyConcreteClasses:true,includeInterFace:false)
+            var services = typeFinder.FindClassesOfType<IManager>(onlyConcreteClasses: true, includeInterFace: false)
                 .Where(x => x.IsDefined(typeof(ServicePermissionDescriptorAttribute), false));
 
             var list = services.Select(service =>
@@ -60,7 +61,12 @@ namespace Girvs.Application.Services
                     var smpd =
                         methodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute)) as
                             ServiceMethodPermissionDescriptorAttribute;
-                    permissions.Add(smpd.MethodName, smpd.Permission.ToString());
+
+                    var permissionStr = smpd.Permission.ToString();
+                    if (!permissions.ContainsValue(permissionStr) && !permissions.ContainsKey(smpd.MethodName))
+                    {
+                        permissions.Add(smpd.MethodName, smpd.Permission.ToString());
+                    }
                 }
 
                 return new ServiceMethodPermissionListDto
