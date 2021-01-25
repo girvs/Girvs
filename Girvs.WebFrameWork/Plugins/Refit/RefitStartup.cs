@@ -8,10 +8,8 @@ using Girvs.Domain.Managers;
 using Girvs.Domain.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Refit;
 
 namespace Girvs.WebFrameWork.Plugins.Refit
 {
@@ -42,7 +40,7 @@ namespace Girvs.WebFrameWork.Plugins.Refit
             
             foreach (var client in clients)
             {
-                services.AddRefitClient(client).ConfigureHttpClient(httpClientConfig =>
+                services.AddGirvsRefitClient(client).ConfigureHttpClient(httpClientConfig =>
                 {
                     if (refitConfigs.Any())
                     {
