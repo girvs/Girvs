@@ -62,7 +62,7 @@ namespace Girvs.WebFrameWork.Filters
                 ad.MethodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute), false) as
                     ServiceMethodPermissionDescriptorAttribute;
 
-            _logger.LogError($"ServiceName:{spd.ServiceName}  ActionMethodName:{smpd.MethodName}");
+            _logger.LogInformation($"ServiceName:{spd.ServiceName}  ActionMethodName:{smpd.MethodName}");
 
             var serviceMethodPermissionCompare = EngineContext.Current.Resolve<IServiceMethodPermissionCompare>();
             if (serviceMethodPermissionCompare != null)
