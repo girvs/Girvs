@@ -30,7 +30,8 @@ namespace Girvs.WebFrameWork.Plugins.Refit
             var refitConfigs = config.FunctionalModules
                 .FirstOrDefault(d => d.Name == Name)?.Configs;
 
-            var clients = typeFinder.FindClassesOfType<IGirvsHttpClient>(false, true);
+            var clients = typeFinder.FindClassesOfType<IGirvsHttpClient>(false, true)
+                .Where(x=>x.IsInterface && x.Name != nameof(IGirvsHttpClient));
 
             foreach (var client in clients)
             {
