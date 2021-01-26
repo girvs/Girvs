@@ -73,7 +73,7 @@ namespace Girvs.Domain.Configuration
         public bool TenantEnabled { get; set; }
 
         public bool WhetherTheTenantIsInvolvedInManagement { get; set; }
-        public List<FunctionalModuleConfig> FunctionalModules { get; set; }
+        public List<FunctionalModule> FunctionalModules { get; set; }
         public List<TaskConfig> Tasks { get; set; }
         public ClaimValueConfig ClaimValueConfig { get; set; } = new ClaimValueConfig();
         public IList<DataConnectionConfig> DataConnectionConfigs { get; set; }

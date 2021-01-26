@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Girvs.Domain.Configuration;
@@ -8,7 +7,6 @@ using Girvs.Domain.Managers;
 using Girvs.Domain.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Girvs.WebFrameWork.Plugins.Refit
@@ -29,20 +27,16 @@ namespace Girvs.WebFrameWork.Plugins.Refit
 
         public void ConfigureServicesRegister(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig config)
         {
-            var configuration = EngineContext.Current.Resolve<IConfiguration>();
-
-            var indexOf = config.FunctionalModules.FindIndex(d => d.Name == Name);
-            var refitConfigs =
-                services.ConfigureStartupConfig<List<RefitConfig>>(
-                    configuration.GetSection($"Girvs:FunctionalModules:{indexOf}:RefitConfigs"));
+            var refitConfigs = config.FunctionalModules
+                .FirstOrDefault(d => d.Name == Name)?.Configs;
 
             var clients = typeFinder.FindClassesOfType<IGirvsHttpClient>(false, true);
-            
+
             foreach (var client in clients)
             {
                 services.AddGirvsRefitClient(client).ConfigureHttpClient(httpClientConfig =>
                 {
-                    if (refitConfigs.Any())
+                    if (refitConfigs != null && refitConfigs.Any())
                     {
                         var attribute = client.GetCustomAttribute<GirvsHttpClientConfigAttribute>();
 
