@@ -5,6 +5,7 @@ using Girvs.Domain;
 using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Managers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
@@ -70,7 +71,7 @@ namespace Girvs.WebFrameWork.Filters
                 var result = serviceMethodPermissionCompare.PermissionCompare(spd.ServiceId, smpd.Permission).Result;
                 if (!result)
                 {
-                    throw new GirvsException($"当前没有‘{spd.ServiceName}’的‘{smpd.MethodName}’权限", 568);
+                    throw new GirvsException($"当前没有‘{spd.ServiceName}’的‘{smpd.MethodName}’权限", StatusCodes.Status403Forbidden);
                 }
             }
 
