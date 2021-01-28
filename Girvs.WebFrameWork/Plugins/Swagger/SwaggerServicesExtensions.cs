@@ -11,7 +11,7 @@ namespace Girvs.WebFrameWork.Plugins.Swagger
         {
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = AppDomain.CurrentDomain.FriendlyName, Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = AppDomain.CurrentDomain.FriendlyName, Version = "v1"});
                 // TODO:一定要返回true！
                 c.DocInclusionPredicate((docName, description) => true);
 
@@ -32,6 +32,10 @@ namespace Girvs.WebFrameWork.Plugins.Swagger
                 {
                     c.IncludeXmlComments(xmlFile);
                 }
+
+                var serviceName = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
+                c.AddServer(new OpenApiServer() {Url = "/", Description = "默认访问"});
+                c.AddServer(new OpenApiServer() {Url = "/" + serviceName, Description = "网关访问"});
             });
         }
     }

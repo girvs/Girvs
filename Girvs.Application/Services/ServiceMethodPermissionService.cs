@@ -10,11 +10,13 @@ using Girvs.Domain.Enumerations;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Managers;
 using Girvs.Domain.TypeFinder;
+using Microsoft.AspNetCore.Authorization;
 using Panda.DynamicWebApi.Attributes;
 
 namespace Girvs.Application.Services
 {
     [DynamicWebApi]
+    [AllowAnonymous]
     public class ServiceMethodPermissionService : IServiceMethodPermissionService
     {
         private readonly IStaticCacheManager _staticCacheManager;
