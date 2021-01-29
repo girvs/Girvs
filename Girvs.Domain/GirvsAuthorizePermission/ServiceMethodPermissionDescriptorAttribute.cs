@@ -1,7 +1,7 @@
 ﻿using System;
 using Girvs.Domain.Enumerations;
 
-namespace Girvs.Application.Attributes
+namespace Girvs.Domain.GirvsAuthorizePermission
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class ServiceMethodPermissionDescriptorAttribute : System.Attribute

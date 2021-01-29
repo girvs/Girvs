@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Reflection;
-using Girvs.Application.Attributes;
 using Girvs.Domain;
 using Girvs.Domain.Configuration;
+using Girvs.Domain.GirvsAuthorizePermission;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.Managers;
 using Microsoft.AspNetCore.Http;

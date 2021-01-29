@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Girvs.Application.Attributes
+namespace Girvs.Domain.GirvsAuthorizePermission
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class ServicePermissionDescriptorAttribute : System.Attribute
