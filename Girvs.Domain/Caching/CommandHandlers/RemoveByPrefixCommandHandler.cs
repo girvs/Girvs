@@ -5,7 +5,6 @@ using Girvs.Domain.Caching.Commands;
 using Girvs.Domain.Caching.Interface;
 using Girvs.Domain.Driven.Bus;
 using Girvs.Domain.Driven.Commands;
-using Girvs.Domain.Managers;
 using MediatR;
 
 namespace Girvs.Domain.Caching.CommandHandlers
@@ -14,7 +13,7 @@ namespace Girvs.Domain.Caching.CommandHandlers
     {
         private readonly IStaticCacheManager _staticCacheManager;
 
-        public RemoveByPrefixCommandHandler(IStaticCacheManager staticCacheManager, IUnitOfWork uow, IMediatorHandler bus) : base(uow, bus)
+        public RemoveByPrefixCommandHandler(IStaticCacheManager staticCacheManager, IMediatorHandler bus) : base(null, bus)
         {
             _staticCacheManager = staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
         }

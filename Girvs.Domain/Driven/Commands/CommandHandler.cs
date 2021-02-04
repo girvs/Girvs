@@ -25,11 +25,9 @@ namespace Girvs.Domain.Driven.Commands
             }
         }
 
-        public async Task<bool> Commit()
+        public Task<bool> Commit()
         {
-            if (await _uow.Commit()) return true;
-
-            return false;
+            return _uow.Commit();
         }
     }
 }

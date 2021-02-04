@@ -155,9 +155,14 @@ namespace Girvs.Infrastructure.Infrastructure
             return GetServiceProvider().GetService(type);
         }
 
+        public IEnumerable<object> ResolveAll(Type type)
+        {
+            return GetServiceProvider().GetServices(type);
+        }
+
         public virtual IEnumerable<T> ResolveAll<T>()
         {
-            return (IEnumerable<T>)GetServiceProvider().GetServices(typeof(T));
+            return (IEnumerable<T>)ResolveAll(typeof(T));
         }
 
         public virtual object ResolveUnregistered(Type type)

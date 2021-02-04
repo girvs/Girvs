@@ -1,5 +1,4 @@
-﻿using System;
-using Girvs.Domain.Configuration;
+﻿using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
 using Girvs.Domain.IRepositories;
 using Girvs.Domain.Managers;

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Girvs.Domain.Enumerations;
 using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
 
@@ -10,6 +9,7 @@ namespace Girvs.Domain.IRepositories
 {
     public interface IRepository<TEntity> : IRepository<TEntity, Guid> where TEntity : BaseEntity<Guid>
     {
+        
     }
 
     public interface IRepository<TEntity, TKey> where TEntity : BaseEntity<TKey>

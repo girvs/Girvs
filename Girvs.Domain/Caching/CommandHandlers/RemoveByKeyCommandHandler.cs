@@ -14,7 +14,7 @@ namespace Girvs.Domain.Caching.CommandHandlers
     {
         private readonly IStaticCacheManager _staticCacheManager;
 
-        public RemoveByKeyCommandHandler(IStaticCacheManager staticCacheManager, IUnitOfWork uow, IMediatorHandler bus) : base(uow, bus)
+        public RemoveByKeyCommandHandler(IStaticCacheManager staticCacheManager, IMediatorHandler bus) : base(null, bus)
         {
             _staticCacheManager = staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
         }

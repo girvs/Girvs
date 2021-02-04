@@ -16,9 +16,9 @@ namespace Girvs.Infrastructure.DbContextExtensions
         public static void AddSpObjectContext(this IServiceCollection services)
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var dbContexts = typeFinder.FindClassesOfType<GirvsDbContext>().Where(x => x.Name != nameof(GirvsDbContext))
-                .ToList();
-            
+            var dbContexts = typeFinder.FindClassesOfType(typeof
+                    (IDbContext)).Where(x => !x.IsAbstract && !x.IsInterface);
+
             if (dbContexts.Any())
             {
                 Type serviceType = typeof(DataProviderServiceExtensions);
@@ -32,10 +32,10 @@ namespace Girvs.Infrastructure.DbContextExtensions
                     }
                 }
             }
-
         }
 
-        public static IServiceCollection AddSpDbContext<TContext>(this IServiceCollection services) where TContext : DbContext
+        public static IServiceCollection AddSpDbContext<TContext>(this IServiceCollection services)
+            where TContext : DbContext
         {
             return services.AddDbContext<TContext>(ServiceLifetime.Scoped, ServiceLifetime.Singleton);
         }

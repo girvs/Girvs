@@ -1,8 +1,6 @@
 ﻿using Girvs.Domain.Configuration;
 using Girvs.Domain.Infrastructure;
-using Girvs.Domain.IRepositories;
 using Girvs.Domain.TypeFinder;
-using Girvs.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +14,6 @@ namespace Girvs.Infrastructure.DbContextExtensions
 
         public void ConfigureServicesRegister(IServiceCollection services, ITypeFinder typeFinder, GirvsConfig config)
         {
-            services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
             services.AddSpObjectContext();
         }
 

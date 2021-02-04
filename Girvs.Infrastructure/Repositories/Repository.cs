@@ -1,39 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Girvs.Domain.Extensions;
+using Girvs.Domain.Infrastructure;
 using Girvs.Domain.IRepositories;
 using Girvs.Domain.Managers;
 using Girvs.Domain.Models;
+using Girvs.Domain.TypeFinder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Girvs.Infrastructure.Repositories
 {
     public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : BaseEntity<Guid>
     {
-        public Repository(IDbContext dbContext) : base(dbContext)
-        {
-        }
+
     }
 
     public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
     {
-        private readonly IDbContext _dbContext;
-        protected DbSet<TEntity> DbSet { get; set; }
+        private readonly ILogger<Repository<TEntity, Tkey>> _logger;
+        private readonly DbContext _dbContext;
+        protected DbSet<TEntity> DbSet { get; }
 
-        public Repository(IDbContext dbContext)
+        public Repository()
         {
-            _dbContext = dbContext;
-            DbSet = dbContext.Set<TEntity>();
+            _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ?? throw new ArgumentNullException(nameof(DbContext)); ;
+            _dbContext = GetRelatedDbContext() ?? throw new ArgumentNullException(nameof(DbContext));
+            DbSet = _dbContext.Set<TEntity>();
         }
 
-        //public void SetDataBaseWriteAndRead(DataBaseWriteAndRead writeAndRead)
-        //{
-        //    _dbContext.ReadAndWriteMode = writeAndRead;
-        //}
+        DbContext GetRelatedDbContext()
+        {
+            var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
+            var ts = typeFinder.FindClassesOfType(typeof(IDbContext), true, false);
+            foreach (var type in ts)
+            {
+                var dbcontext = EngineContext.Current.Resolve(type) as GirvsDbContext;
+                if (dbcontext.ModelTypes.Contains(typeof(TEntity)))
+                {
+
+                    return dbcontext;
+                }
+            }
+
+            return null;
+        }
 
         public virtual async Task<TEntity> AddAsync(TEntity t)
         {

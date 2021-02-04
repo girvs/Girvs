@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using Girvs.Domain.Configuration;
 using Microsoft.AspNetCore.Builder;
@@ -54,6 +55,8 @@ namespace Girvs.Domain.Infrastructure
         /// <typeparam name="T">基类类型</typeparam>
         /// <returns>收集已解决的服务</returns>
         IEnumerable<T> ResolveAll<T>();
+
+        IEnumerable<object> ResolveAll(Type type);
 
         /// <summary>
         /// 通过反射获取未注册的服务

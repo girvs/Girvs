@@ -27,7 +27,7 @@ namespace Test.Domain.CommandHandlers
             IRepository<Role> roleRepository,
             ICacheKeyManager<Role> cacheKeyManager,
             IMediatorHandler bus,
-            IUnitOfWork uow
+            IUnitOfWork<Role> uow
         ) : base(uow, bus)
         {
             _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));

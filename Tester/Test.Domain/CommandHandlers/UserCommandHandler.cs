@@ -28,7 +28,7 @@ namespace Test.Domain.CommandHandlers
             IMediatorHandler bus,
             IUserRepository userRepository,
             ICacheKeyManager<User> cacheKeyManager,
-            IUnitOfWork unitOfWork
+            IUnitOfWork<User> unitOfWork
             ) : base(unitOfWork,
             bus)
         {
