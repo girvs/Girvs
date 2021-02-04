@@ -32,8 +32,8 @@ namespace Girvs.Application.Services
 
         public async Task<List<ServiceMethodPermissionListDto>> Get()
         {
-            string key = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
-            List<ServiceMethodPermissionListDto> list = await _staticCacheManager.GetAsync(
+            var key = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
+            return await _staticCacheManager.GetAsync(
                 $"{key}:Permission",
                 async () =>
                 {
@@ -46,7 +46,6 @@ namespace Girvs.Application.Services
                     }).ToList();
                 },
                 _cacheKeyManager.CacheTime);
-            return list;
         }
     }
 }
