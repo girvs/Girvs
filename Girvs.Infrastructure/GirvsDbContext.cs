@@ -41,8 +41,6 @@ namespace Girvs.Infrastructure
                    ?? throw new GirvsException("DbContext未绑定指定的数据库名称不正确", 568);
         }
 
-        public IList<Type> ModelTypes { get; } = new List<Type>();
-
         /// <summary>
         /// 数据库的读写操作，默认为读操作，只有在注入IUnitOfWork时，进行重写字符串时才会切换至写数据库
         /// </summary>

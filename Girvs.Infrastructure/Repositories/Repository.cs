@@ -16,7 +16,6 @@ namespace Girvs.Infrastructure.Repositories
 {
     public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : BaseEntity<Guid>
     {
-
     }
 
     public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
@@ -27,7 +26,9 @@ namespace Girvs.Infrastructure.Repositories
 
         public Repository()
         {
-            _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ?? throw new ArgumentNullException(nameof(DbContext)); ;
+            _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ??
+                      throw new ArgumentNullException(nameof(DbContext));
+            ;
             _dbContext = GetRelatedDbContext() ?? throw new ArgumentNullException(nameof(DbContext));
             DbSet = _dbContext.Set<TEntity>();
         }
@@ -36,17 +37,9 @@ namespace Girvs.Infrastructure.Repositories
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
             var ts = typeFinder.FindClassesOfType(typeof(IDbContext), true, false);
-            foreach (var type in ts)
-            {
-                var dbcontext = EngineContext.Current.Resolve(type) as GirvsDbContext;
-                if (dbcontext.ModelTypes.Contains(typeof(TEntity)))
-                {
-
-                    return dbcontext;
-                }
-            }
-
-            return null;
+            return (from type in ts
+                where type.GetProperties().Any(x => x.PropertyType == typeof(DbSet<TEntity>))
+                select EngineContext.Current.Resolve(type) as GirvsDbContext).FirstOrDefault();
         }
 
         public virtual async Task<TEntity> AddAsync(TEntity t)

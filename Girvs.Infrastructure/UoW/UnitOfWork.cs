@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Girvs.Domain.Infrastructure;
@@ -24,16 +25,9 @@ namespace Girvs.Infrastructure.UoW
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
             var ts = typeFinder.FindClassesOfType(typeof(IDbContext), true, false);
-            foreach (var type in ts)
-            {
-                var dbcontext = EngineContext.Current.Resolve(type) as GirvsDbContext;
-                if (dbcontext.ModelTypes.Contains(typeof(TEntity)))
-                {
-                    return dbcontext;
-                }
-            }
-
-            return null;
+            return (from type in ts
+                where type.GetProperties().Any(x => x.PropertyType == typeof(DbSet<TEntity>))
+                select EngineContext.Current.Resolve(type) as GirvsDbContext).FirstOrDefault();
         }
 
 
