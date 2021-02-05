@@ -5,13 +5,12 @@ using Test.Infrastructure.EntityConfigurations;
 
 namespace Test.Infrastructure
 {
-    public class CmmpDbContext : GirvsDbContext{
+    public class CmmpDbContext : GirvsDbContext
+    {
         public override string DbConfigName { get; } = "CmmpDataConnection";
+
         public CmmpDbContext(DbContextOptions<CmmpDbContext> options) : base(options)
         {
-            ModelTypes.Add(typeof(User));
-            ModelTypes.Add(typeof(Role));
-            ModelTypes.Add(typeof(UserRole));
         }
 
         public DbSet<User> Users { get; set; }

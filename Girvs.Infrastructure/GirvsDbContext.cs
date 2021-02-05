@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Girvs.Domain;
 using Girvs.Domain.Configuration;
@@ -50,8 +49,6 @@ namespace Girvs.Infrastructure
         {
             ReadAndWriteMode = DataBaseWriteAndRead.Write;
             Database.GetDbConnection().ConnectionString = GetDbConnectionString();
-
-
             _logger.LogInformation($"切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{GetDbConnectionString()}");
         }
 

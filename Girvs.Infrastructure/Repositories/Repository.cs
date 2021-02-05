@@ -21,25 +21,27 @@ namespace Girvs.Infrastructure.Repositories
     public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
     {
         private readonly ILogger<Repository<TEntity, Tkey>> _logger;
-        private readonly DbContext _dbContext;
+        protected DbContext DbContext { get; }
         protected DbSet<TEntity> DbSet { get; }
 
-        public Repository()
+        protected Repository()
         {
             _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ??
-                      throw new ArgumentNullException(nameof(DbContext));
-            ;
-            _dbContext = GetRelatedDbContext() ?? throw new ArgumentNullException(nameof(DbContext));
-            DbSet = _dbContext.Set<TEntity>();
+                      throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
+            DbContext = GetRelatedDbContext() ??
+                        throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
+            DbSet = DbContext.Set<TEntity>();
         }
 
-        DbContext GetRelatedDbContext()
+        private DbContext GetRelatedDbContext()
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
             var ts = typeFinder.FindClassesOfType(typeof(IDbContext), true, false);
-            return (from type in ts
-                where type.GetProperties().Any(x => x.PropertyType == typeof(DbSet<TEntity>))
-                select EngineContext.Current.Resolve(type) as GirvsDbContext).FirstOrDefault();
+            return
+                (from type in ts
+                    where type.GetProperties().Any(x => x.PropertyType == typeof(DbSet<TEntity>))
+                    select EngineContext.Current.Resolve(type) as GirvsDbContext)
+                .FirstOrDefault();
         }
 
         public virtual async Task<TEntity> AddAsync(TEntity t)
@@ -53,9 +55,9 @@ namespace Girvs.Infrastructure.Repositories
             return ts;
         }
 
-        public virtual async Task UpdateAsync(TEntity t, params string[] fields)
+        public virtual Task UpdateAsync(TEntity t, params string[] fields)
         {
-            await UpdateEntity(t, fields);
+            return UpdateEntity(t, fields);
         }
 
         public virtual async Task UpdateRangeAsync(List<TEntity> ts, params string[] fields)
@@ -83,17 +85,17 @@ namespace Girvs.Infrastructure.Repositories
             return await DbSet.FindAsync(id);
         }
 
-        public virtual async Task<List<TEntity>> GetAllAsync(params string[] fields)
+        public virtual Task<List<TEntity>> GetAllAsync(params string[] fields)
         {
             if (fields != null && fields.Any())
             {
                 //临时方法，待改进,不科学的方法
-                return await Task.Run(() =>
+                return Task.Run(() =>
                     DbSet.SelectProperties(fields).ToList());
             }
             else
             {
-                return await DbSet.ToListAsync();
+                return DbSet.ToListAsync();
             }
         }
 
@@ -154,15 +156,14 @@ namespace Girvs.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public virtual async Task<bool> ExistEntityAsync(Tkey id)
+        public virtual Task<bool> ExistEntityAsync(Tkey id)
         {
-            return await DbSet.AnyAsync(x => x.Id.Equals(id));
+            return DbSet.AnyAsync(x => x.Id.Equals(id));
         }
 
-
-        public virtual async Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            return await DbSet.AnyAsync(predicate);
+            return DbSet.AnyAsync(predicate);
         }
     }
 }
