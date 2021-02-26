@@ -1,0 +1,280 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Power.BasicManagement.Domain</name>
+    </assembly>
+    <members>
+        <member name="P:Power.BasicManagement.Domain.Commands.SysDict.SysDictCommand.CodeType">
+            <summary>
+            字典分类
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Commands.SysDict.SysDictCommand.Code">
+            <summary>
+            编号
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Commands.SysDict.SysDictCommand.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Commands.SysDict.SysDictCommand.Desc">
+            <summary>
+            描述
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Commands.SysDict.SysDictCommand.IsInitData">
+            <summary>
+            是否初始化数据
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Commands.User.UserCommand.OtherId">
+            <summary>
+            绑定其它相关服务的关键标识Id
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.DataState.Enable">
+            <summary>
+            启用
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.DataState.Disable">
+            <summary>
+            禁用
+            </summary>
+        </member>
+        <member name="T:Power.BasicManagement.Domain.Enumerations.MessageType">
+            <summary>
+            消息类型
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.MessageType.Text">
+            <summary>
+            文本消息
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.MessageType.Image">
+            <summary>
+            图片消息
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.MessageType.Audio">
+            <summary>
+            音频消息
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.MessageType.Video">
+            <summary>
+            视频消息
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.UserType.SuperAdmin">
+            <summary>
+            超级管理员
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.UserType.UnitAdmin">
+            <summary>
+            单位管理员
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Enumerations.UserType.UnitPersion">
+            <summary>
+            单位用户
+            </summary>
+        </member>
+        <member name="T:Power.BasicManagement.Domain.Models.BasalPermission">
+            <summary>
+            BasalPermission 对象影射到表 'Permissions'.
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.BasalPermission.AppliedID">
+            <summary>
+            对应用户ID或角色ID
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.BasalPermission.AppliedObjectID">
+            <summary>
+            对应功能模块的ID
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.BasalPermission.AppliedObjectType">
+            <summary>
+            对应授权的类型
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.BasalPermission.ValidateObjectID">
+            <summary>
+            权限值
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.BasalPermission.ValidateObjectType">
+            <summary>
+            权限分类，方便扩展
+            </summary>
+        </member>
+        <member name="T:Power.BasicManagement.Domain.Models.SysDict">
+            <summary>
+            系统字典
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.SysDict.CodeType">
+            <summary>
+            字典分类
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.SysDict.Code">
+            <summary>
+            编号
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.SysDict.Name">
+            <summary>
+            名称
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.SysDict.Desc">
+            <summary>
+            描述
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.SysDict.IsInitData">
+            <summary>
+            是否初始化数据
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.User.UserAccount">
+            <summary>
+            登陆名称
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.User.UserPassword">
+            <summary>
+            用户密码
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.User.UserName">
+            <summary>
+            用户名称
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.User.ContactNumber">
+            <summary>
+            用户联系方式
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.User.OtherId">
+            <summary>
+            绑定其它相关服务的关键标识Id
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.User.State">
+            <summary>
+            用户的状态
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.User.UserType">
+            <summary>
+            用户类型
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Models.User.IsInitData">
+            <summary>
+            是否初始化数据
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Queries.PermissionQuery.AppliedObjectID">
+            <summary>
+            功能模块的ID
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Queries.PermissionQuery.AppliedType">
+            <summary>
+            接受权限类型(用户或者角色)
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Queries.PermissionQuery.AppliedID">
+            <summary>
+            用户或角色ID
+            </summary>
+        </member>
+        <member name="F:Power.BasicManagement.Domain.Queries.PermissionQuery.ValidateObjectType">
+            <summary>
+            权限分类(比如说功能菜单,数据记录等)
+            </summary>
+        </member>
+        <member name="T:Power.BasicManagement.Domain.Queries.SysDictQuery">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Power.BasicManagement.Domain.Queries.SysDictQuery.CodeType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Power.BasicManagement.Domain.Queries.SysDictQuery.GetQueryWhere">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Power.BasicManagement.Domain.Repositories.IPermissionRepository.GetUserPermissionLimit(System.Guid)">
+            <summary>
+            获取用户所授权限
+            </summary>
+            <param name="userId">用户Id</param>
+            <returns>权限列表</returns>
+        </member>
+        <member name="M:Power.BasicManagement.Domain.Repositories.IPermissionRepository.GetRolePermissionLimit(System.Guid)">
+            <summary>
+            获取角色所授权限
+            </summary>
+            <param name="roleId">角色Id</param>
+            <returns>权限列表</returns>
+        </member>
+        <member name="M:Power.BasicManagement.Domain.Repositories.IPermissionRepository.GetRoleListPermissionLimit(System.Guid[])">
+            <summary>
+            获取角色列表所授权限
+            </summary>
+            <param name="roleIds">角色Ids</param>
+            <returns>权限列表</returns>
+        </member>
+        <member name="M:Power.BasicManagement.Domain.Repositories.IPermissionRepository.UpdatePermissions(System.Collections.Generic.List{Power.BasicManagement.Domain.Models.BasalPermission})">
+            <summary>
+            保存权限
+            </summary>
+            <param name="ps">权限集合</param>
+            <returns>是否成功</returns>
+        </member>
+        <member name="T:Power.BasicManagement.Domain.Repositories.ISysDictRepository">
+            <summary>
+            系统字典仓储
+            </summary>
+        </member>
+        <member name="M:Power.BasicManagement.Domain.Repositories.ISysDictRepository.GetSysDictsByCodeType(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="codeType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Power.BasicManagement.Domain.Repositories.ISysDictRepository.GetSysDictByCode(System.String,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="codeType"></param>
+            <param name="code"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Power.BasicManagement.Domain.Repositories.ISysDictRepository.GetSysDictByName(System.String,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="codeType"></param>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Power.BasicManagement.Application</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp3.1\Power.BasicManagement.Application.xml</DocumentationFile>
+    <WarningLevel>5</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile></DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="GrpcService\protos\user_function_permission.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Girvs.Application" Version="1.5.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.29.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Power.EventBus\Power.EventBus.csproj" />
+    <ProjectReference Include="..\Power.BasicManagement.Domain\Power.BasicManagement.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="GrpcService\protos\user_function_permission.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+</Project>
