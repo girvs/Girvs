@@ -5,6 +5,8 @@
     <Version>1.0.0-preview.2.2.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageVersion>1.5.0</PackageVersion>
+    <RepositoryUrl>https://gitee.com/eternal520/Girvs</RepositoryUrl>
+    <PackageProjectUrl>https://gitee.com/eternal520/Girvs</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
