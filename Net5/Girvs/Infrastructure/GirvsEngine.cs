@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Girvs.Configuration;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -15,8 +16,6 @@ namespace Girvs.Infrastructure
     /// </summary>
     public class GirvsEngine : IEngine
     {
-        #region Utilities
-
         /// <summary>
         /// Get IServiceProvider
         /// </summary>
@@ -29,6 +28,7 @@ namespace Girvs.Infrastructure
                 var context = accessor?.HttpContext;
                 return context?.RequestServices ?? ServiceProvider;
             }
+
             return scope.ServiceProvider;
         }
 
@@ -40,14 +40,10 @@ namespace Girvs.Infrastructure
                 return assembly;
 
             //get assembly from TypeFinder
-            var tf = Resolve<ITypeFinder>();            
+            var tf = Resolve<ITypeFinder>();
             assembly = tf?.GetAssemblies().FirstOrDefault(a => a.FullName == args.Name);
             return assembly;
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Add and configure services
@@ -58,11 +54,11 @@ namespace Girvs.Infrastructure
         {
             //find startup configurations provided by other assemblies
             var typeFinder = new WebAppTypeFinder();
-            var startupConfigurations = typeFinder.FindClassesOfType<IAppModelStartup>();
+            var startupConfigurations = typeFinder.FindClassesOfType<IAppModuleStartup>();
 
             //create and sort instances of startup configurations
             var instances = startupConfigurations
-                .Select(startup => (IAppModelStartup)Activator.CreateInstance(startup))
+                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             //configure services
@@ -83,11 +79,11 @@ namespace Girvs.Infrastructure
 
             //find startup configurations provided by other assemblies
             var typeFinder = Resolve<ITypeFinder>();
-            var startupConfigurations = typeFinder.FindClassesOfType<IAppModelStartup>();
+            var startupConfigurations = typeFinder.FindClassesOfType<IAppModuleStartup>();
 
             //create and sort instances of startup configurations
             var instances = startupConfigurations
-                .Select(startup => (IAppModelStartup)Activator.CreateInstance(startup))
+                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             //configure request pipeline
@@ -103,7 +99,7 @@ namespace Girvs.Infrastructure
         /// <returns>Resolved service</returns>
         public T Resolve<T>(IServiceScope scope = null) where T : class
         {
-            return (T)Resolve(typeof(T), scope);
+            return (T) Resolve(typeof(T), scope);
         }
 
         /// <summary>
@@ -115,7 +111,7 @@ namespace Girvs.Infrastructure
         public object Resolve(Type type, IServiceScope scope = null)
         {
             return GetServiceProvider(scope)?.GetService(type);
-        }        
+        }
 
         /// <summary>
         /// Resolve dependencies
@@ -124,7 +120,7 @@ namespace Girvs.Infrastructure
         /// <returns>Collection of resolved services</returns>
         public virtual IEnumerable<T> ResolveAll<T>()
         {
-            return (IEnumerable<T>)GetServiceProvider().GetServices(typeof(T));
+            return (IEnumerable<T>) GetServiceProvider().GetServices(typeof(T));
         }
 
         /// <summary>
@@ -157,18 +153,41 @@ namespace Girvs.Infrastructure
                 }
             }
 
-            throw new GirvsException("No constructor was found that had all the dependencies satisfied.", innerException);
+            throw new GirvsException("No constructor was found that had all the dependencies satisfied.",
+                innerException);
         }
 
-        #endregion
-
-        #region Properties
 
         /// <summary>
-        /// Service provider
+        /// Register dependencies
         /// </summary>
-        public virtual IServiceProvider ServiceProvider { get; protected set; }
+        /// <param name="services">Collection of service descriptors</param>
+        /// <param name="appSettings">App settings</param>
+        public virtual void RegisterDependencies(IServiceCollection services, AppSettings appSettings)
+        {
+            var typeFinder = new WebAppTypeFinder();
 
-        #endregion
+            //register engine
+            services.AddSingleton<IEngine>(this);
+
+            //register type finder
+            services.AddSingleton<ITypeFinder>(typeFinder);
+
+            //find dependency registrars provided by other assemblies
+            var dependencyRegistrars = typeFinder.FindClassesOfType<IDependencyRegistrar>();
+
+            //create and sort instances of dependency registrars
+            var instances = dependencyRegistrars
+                .Select(dependencyRegistrar => (IDependencyRegistrar) Activator.CreateInstance(dependencyRegistrar))
+                .OrderBy(dependencyRegistrar => dependencyRegistrar.Order);
+
+            //register all provided dependencies
+            foreach (var dependencyRegistrar in instances)
+                dependencyRegistrar.Register(services, typeFinder, appSettings);
+
+            services.AddSingleton(services);
+        }
+
+        public virtual IServiceProvider ServiceProvider { get; protected set; }
     }
 }

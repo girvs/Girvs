@@ -6,4 +6,8 @@ namespace Girvs.Configuration
     {
         [JsonIgnore] string Name => GetType().Name;
     }
+
+    public interface IAppModelConfig : IConfig
+    {
+    }
 }

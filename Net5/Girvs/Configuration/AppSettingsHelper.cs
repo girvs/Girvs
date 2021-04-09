@@ -20,8 +20,8 @@ namespace Girvs.Configuration
             fileProvider.CreateFile(filePath);
 
             //check additional configuration parameters
-            var additionalData = JsonConvert.DeserializeObject<AppSettings>(await fileProvider.ReadAllTextAsync(filePath, Encoding.UTF8))?.AdditionalData;
-            appSettings.AdditionalData = additionalData;
+            // var additionalData = JsonConvert.DeserializeObject<AppSettings>(await fileProvider.ReadAllTextAsync(filePath, Encoding.UTF8))?.AdditionalData;
+            // appSettings.AdditionalData = additionalData;
 
             //save app settings to the file
             var text = JsonConvert.SerializeObject(appSettings, Formatting.Indented);
@@ -44,11 +44,39 @@ namespace Girvs.Configuration
             fileProvider.CreateFile(filePath);
 
             //check additional configuration parameters
-            var additionalData = JsonConvert.DeserializeObject<AppSettings>(fileProvider.ReadAllText(filePath, Encoding.UTF8))?.AdditionalData;
-            appSettings.AdditionalData = additionalData;
+            // var additionalData = JsonConvert.DeserializeObject<AppSettings>(fileProvider.ReadAllText(filePath, Encoding.UTF8))?.AdditionalData;
+            // appSettings.AdditionalData = additionalData;
 
             //save app settings to the file
             var text = JsonConvert.SerializeObject(appSettings, Formatting.Indented);
+            fileProvider.WriteAllText(filePath, text, Encoding.UTF8);
+        }
+        
+        public static void SaveAppModelConfigAsync(IAppModelConfig appModelConfig, IGirvsFileProvider fileProvider = null)
+        {
+            fileProvider ??= CommonHelper.DefaultFileProvider;
+
+            //create file if not exists
+            var filePath = fileProvider.MapPath(ConfigurationDefaults.AppModelSettingsFilePath);
+            filePath = fileProvider.Combine(filePath, string.Format("{0}.json", appModelConfig.GetType().Name));
+            fileProvider.CreateFile(filePath);
+
+            //save app settings to the file
+            var text = JsonConvert.SerializeObject(appModelConfig, Formatting.Indented);
+            fileProvider.WriteAllTextAsync(filePath, text, Encoding.UTF8);
+        }
+
+        public static void SaveAppModelConfig(IAppModelConfig appModelConfig, IGirvsFileProvider fileProvider = null)
+        {
+            fileProvider ??= CommonHelper.DefaultFileProvider;
+
+            //create file if not exists
+            var filePath = fileProvider.MapPath(ConfigurationDefaults.AppModelSettingsFilePath);
+            filePath = fileProvider.Combine(filePath, string.Format("{0}.json", appModelConfig.GetType().Name));
+            fileProvider.CreateFile(filePath);
+
+            //save app settings to the file
+            var text = JsonConvert.SerializeObject(appModelConfig, Formatting.Indented);
             fileProvider.WriteAllText(filePath, text, Encoding.UTF8);
         }
     }

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Girvs.Cache\Girvs.Cache.csproj" />
+      <ProjectReference Include="..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
+      <ProjectReference Include="..\Girvs\Girvs.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="App_Data" />
+    </ItemGroup>
+
+</Project>

@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <Folder Include="Applications" />
-    <Folder Include="Domian" />
   </ItemGroup>
 
 </Project>

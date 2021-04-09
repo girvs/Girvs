@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Girvs
 {
-    public interface IAppModelStartup
+    public interface IAppModuleStartup
     {
         void ConfigureServices(IServiceCollection services, IConfiguration configuration);
 

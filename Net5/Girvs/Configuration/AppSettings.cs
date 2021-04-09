@@ -1,13 +1,20 @@
 ﻿using System.Collections.Generic;
+using Girvs.Domain.Configuration;
 
 namespace Girvs.Configuration
 {
     public class AppSettings
     {
-        public HostingConfig HostingConfig { get; set; } = new HostingConfig();
-        
-        public CacheConfig CacheConfig { get; set; } = new CacheConfig();
+        public CommonConfig CommonConfig { get; set; } = new CommonConfig();
 
-        public IDictionary<string, dynamic> AdditionalData { get; set; }
+        public HostingConfig HostingConfig { get; set; } = new HostingConfig();
+
+        public ClaimValueConfig ClaimValueConfig { get; set; } = new ClaimValueConfig();
+        public IDictionary<string, dynamic> ModelConfigurations { get; private set; } = null;
+
+        public void PreLoadModelConfig()
+        {
+            ModelConfigurations = new Dictionary<string, dynamic>();
+        }
     }
 }
