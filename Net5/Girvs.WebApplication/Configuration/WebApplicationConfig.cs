@@ -2,7 +2,7 @@
 
 namespace Girvs.WebApplication.Configuration
 {
-    public class WebApplicationConfig : IAppModelConfig
+    public class WebApplicationConfig : IAppModuleConfig
     {
         public bool IsOpenWindow { get; set; } = false;
     }

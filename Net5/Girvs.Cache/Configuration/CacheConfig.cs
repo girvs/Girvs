@@ -5,7 +5,7 @@ namespace Girvs.Cache.Configuration
     /// <summary>
     /// Represents cache configuration parameters
     /// </summary>
-    public class CacheConfig : IAppModelConfig
+    public class CacheConfig : IAppModuleConfig
     {
         /// <summary>
         /// Gets or sets the default cache time in minutes

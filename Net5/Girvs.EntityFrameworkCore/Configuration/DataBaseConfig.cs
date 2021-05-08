@@ -17,11 +17,11 @@ namespace Girvs.EntityFrameworkCore.Configuration
         Oracle
     }
 
-    public class DbConfig : IAppModelConfig
+    public class DbConfig : IAppModuleConfig
     {
         public DbConfig()
         {
-            DataConnectionConfigs = new List<DataConnectionConfig> {new DataConnectionConfig()};
+            DataConnectionConfigs = new List<DataConnectionConfig>();
         }
 
         public ICollection<DataConnectionConfig> DataConnectionConfigs { get; set; }

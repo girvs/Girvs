@@ -52,7 +52,7 @@ namespace Girvs.Configuration
             fileProvider.WriteAllText(filePath, text, Encoding.UTF8);
         }
         
-        public static void SaveAppModelConfigAsync(IAppModelConfig appModelConfig, IGirvsFileProvider fileProvider = null)
+        public static void SaveAppModelConfigAsync(IAppModuleConfig appModelConfig, IGirvsFileProvider fileProvider = null)
         {
             fileProvider ??= CommonHelper.DefaultFileProvider;
 
@@ -66,7 +66,7 @@ namespace Girvs.Configuration
             fileProvider.WriteAllTextAsync(filePath, text, Encoding.UTF8);
         }
 
-        public static void SaveAppModelConfig(IAppModelConfig appModelConfig, IGirvsFileProvider fileProvider = null)
+        public static void SaveAppModelConfig(IAppModuleConfig appModelConfig, IGirvsFileProvider fileProvider = null)
         {
             fileProvider ??= CommonHelper.DefaultFileProvider;
 

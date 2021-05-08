@@ -6,7 +6,7 @@ namespace Girvs.Cache.Configuration
     /// <summary>
     /// Represents distributed cache configuration parameters
     /// </summary>
-    public class DistributedCacheConfig : IAppModelConfig
+    public class DistributedCacheConfig : IAppModuleConfig
     {
         /// <summary>
         /// Gets or sets a distributed cache type

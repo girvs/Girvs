@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using Girvs;
 using Girvs.Configuration;
 using Girvs.FileProvider;
-using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Nop.Web.Framework.Infrastructure.Extensions
+namespace Girvs.Infrastructure.Extensions
 {
     public static class ServiceCollectionExtensions
     {
@@ -49,17 +47,17 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
             appSettings.PreLoadModelConfig();
 
             var typeFinder = new WebAppTypeFinder();
-            var modelSettings = typeFinder.FindClassesOfType<IAppModelConfig>(true);
+            var modelSettings = typeFinder.FindClassesOfType<IAppModuleConfig>(true);
 
 
             var instances = modelSettings
-                .Select(startup => (IAppModelConfig) Activator.CreateInstance(startup));
+                .Select(startup => (IAppModuleConfig)Activator.CreateInstance(startup));
 
             foreach (var appModelConfig in instances)
             {
-                var nodeName = appModelConfig.GetType().Name;
-                configuration.GetSection($"ModelConfigurations:{nodeName}").Bind(appModelConfig);
-                appSettings.ModelConfigurations.Add(nodeName, appModelConfig);
+                var nodeName = appModelConfig?.GetType().Name ?? "TempModel";
+                configuration.GetSection($"ModuleConfigurations:{nodeName}").Bind(appModelConfig);
+                appSettings.ModuleConfigurations.Add(nodeName, appModelConfig);
             }
 
             services.AddSingleton(appSettings);

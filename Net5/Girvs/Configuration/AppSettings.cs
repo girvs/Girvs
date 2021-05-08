@@ -10,11 +10,11 @@ namespace Girvs.Configuration
         public HostingConfig HostingConfig { get; set; } = new HostingConfig();
 
         public ClaimValueConfig ClaimValueConfig { get; set; } = new ClaimValueConfig();
-        public IDictionary<string, dynamic> ModelConfigurations { get; private set; } = null;
+        public IDictionary<string, dynamic> ModuleConfigurations { get; private set; } = null;
 
         public void PreLoadModelConfig()
         {
-            ModelConfigurations = new Dictionary<string, dynamic>();
+            ModuleConfigurations = new Dictionary<string, dynamic>();
         }
     }
 }
