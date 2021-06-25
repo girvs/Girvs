@@ -9,7 +9,7 @@ namespace Girvs.Configuration
 
         public HostingConfig HostingConfig { get; set; } = new HostingConfig();
 
-        public ClaimValueConfig ClaimValueConfig { get; set; } = new ClaimValueConfig();
+        public ClaimValueConfig ClaimValueConfig { get; protected set; } = new ClaimValueConfig();
         public IDictionary<string, dynamic> ModuleConfigurations { get; private set; } = null;
 
         public void PreLoadModelConfig()

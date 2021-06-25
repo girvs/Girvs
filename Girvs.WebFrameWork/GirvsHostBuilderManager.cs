@@ -11,11 +11,11 @@ namespace Girvs.WebFrameWork
     {
         public static IHostBuilder CreateGrivsHostBuilder<TStartup>(string[] args) where TStartup : class
         {
-            string basePath = AppDomain.CurrentDomain.BaseDirectory;
-            string spConfigFile = Path.Combine(basePath, "sp.json");
-            string consulConfigFile = Path.Combine(basePath, "consul.json");
-            string serilogConfigFile = Path.Combine(basePath, "serilog.json");
-            string identityServerConfigFile = Path.Combine(basePath, "identityserver.json");
+            var basePath = AppDomain.CurrentDomain.BaseDirectory;
+            var spConfigFile = Path.Combine(basePath, "sp.json");
+            var consulConfigFile = Path.Combine(basePath, "consul.json");
+            var serilogConfigFile = Path.Combine(basePath, "serilog.json");
+            var identityServerConfigFile = Path.Combine(basePath, "identityserver.json");
             var config = new ConfigurationBuilder()
                 .AddJsonFile(spConfigFile, true, true)
                 .AddJsonFile(consulConfigFile, true, true)
@@ -29,7 +29,7 @@ namespace Girvs.WebFrameWork
             return CreateGrivsHostBuilder<TStartup>(args, config);
         }
 
-        public static IHostBuilder CreateGrivsHostBuilder<TStartup>(string[] args, IConfigurationRoot configuration)
+        private static IHostBuilder CreateGrivsHostBuilder<TStartup>(string[] args, IConfiguration configuration)
             where TStartup : class
         {
             return Host.CreateDefaultBuilder(args)

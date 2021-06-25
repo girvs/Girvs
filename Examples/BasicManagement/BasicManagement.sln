@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Power.BasicManagement.Infra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Power.BasicManagement.WebApi", "Power.BasicManagement.WebApi\Power.BasicManagement.WebApi.csproj", "{68250103-65DB-42FC-B26B-CCF9A0579363}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Power.EventBus", "..\Power.EventBus\Power.EventBus.csproj", "{594DFF09-926D-4F23-B101-276FE667B296}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Power.EventBus", "Power.EventBus\Power.EventBus.csproj", "{1A03B7E7-0753-49F9-B146-BEE8B73C32BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{68250103-65DB-42FC-B26B-CCF9A0579363}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68250103-65DB-42FC-B26B-CCF9A0579363}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68250103-65DB-42FC-B26B-CCF9A0579363}.Release|Any CPU.Build.0 = Release|Any CPU
-		{594DFF09-926D-4F23-B101-276FE667B296}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{594DFF09-926D-4F23-B101-276FE667B296}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{594DFF09-926D-4F23-B101-276FE667B296}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{594DFF09-926D-4F23-B101-276FE667B296}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A03B7E7-0753-49F9-B146-BEE8B73C32BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A03B7E7-0753-49F9-B146-BEE8B73C32BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A03B7E7-0753-49F9-B146-BEE8B73C32BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A03B7E7-0753-49F9-B146-BEE8B73C32BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

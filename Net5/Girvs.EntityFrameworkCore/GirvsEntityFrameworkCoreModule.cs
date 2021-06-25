@@ -1,5 +1,7 @@
 ﻿using System;
+using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +14,10 @@ namespace Girvs.EntityFrameworkCore
         }
 
         public void Configure(IApplicationBuilder application)
+        {
+        }
+
+        public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
         {
         }
 

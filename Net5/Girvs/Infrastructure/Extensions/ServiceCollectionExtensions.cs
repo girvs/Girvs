@@ -18,6 +18,7 @@ namespace Girvs.Infrastructure.Extensions
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
             CommonHelper.DefaultFileProvider = new GirvsFileProvider(webHostEnvironment);
+            
             services.AddHttpContextAccessor();
 
             var appSettings = new AppSettings();

@@ -1,25 +1,21 @@
-﻿using Girvs.Configuration;
+﻿using System.Text.Json.Serialization;
+using Girvs.Configuration;
 
 namespace Girvs.Cache.Configuration
 {
     /// <summary>
-    /// Represents cache configuration parameters
+    /// 代表分布式缓存配置参数
     /// </summary>
     public class CacheConfig : IAppModuleConfig
     {
         /// <summary>
-        /// Gets or sets the default cache time in minutes
+        /// 获取或设置分布式缓存类型
         /// </summary>
-        public int DefaultCacheTime { get; set; } = 60;
-
-        /// <summary>
-        /// Gets or sets the short term cache time in minutes
-        /// </summary>
-        public int ShortTermCacheTime { get; set; } = 3;
-
-        /// <summary>
-        /// Gets or sets the bundled files cache time in minutes
-        /// </summary>
-        public int BundledFilesCacheTime { get; set; } = 120;
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public CacheType DistributedCacheType { get; set; } = CacheType.Redis;
+        public CacheBaseConfig CacheBaseConfig { get; set; } = new CacheBaseConfig();
+        public MemoryCacheConfig MemoryCacheConfig { get; set; } = new MemoryCacheConfig();
+        public RedisCacheConfig RedisCacheConfig { get; set; } = new RedisCacheConfig();
+        public DaprCacheConfig DaprCacheConfig { get; set; } = new DaprCacheConfig();
     }
 }

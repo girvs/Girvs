@@ -5,6 +5,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Dapr.AspNetCore" Version="1.2.0" />
+      <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="5.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\Girvs\Girvs.csproj" />
     </ItemGroup>
 

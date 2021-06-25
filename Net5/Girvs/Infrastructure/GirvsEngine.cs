@@ -6,8 +6,10 @@ using Girvs.Configuration;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Girvs.Infrastructure
 {
@@ -89,6 +91,28 @@ namespace Girvs.Infrastructure
             //configure request pipeline
             foreach (var instance in instances)
                 instance.Configure(application);
+        }
+
+
+        /// <summary>
+        /// Configure pipeline endpoint
+        /// </summary>
+        /// <param name="endpointRouteBuilder"></param>
+        public void ConfigureEndpointRouteBuilder(IEndpointRouteBuilder endpointRouteBuilder)
+        {
+            var typeFinder = Resolve<ITypeFinder>();
+            var startupConfigurations = typeFinder.FindClassesOfType<IAppModuleStartup>();
+
+            var instances = startupConfigurations
+                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
+                .OrderBy(startup => startup.Order);
+
+            var logger = Resolve<ILogger<object>>();
+            foreach (var instance in instances)
+            {
+                logger.LogInformation($"开始配置-{instance.GetType().Name}-相关的映射节点EndpointRouteBuilder");
+                instance.ConfigureMapEndpointRoute(endpointRouteBuilder);
+            }
         }
 
         /// <summary>

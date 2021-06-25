@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Power.EventBus\Power.EventBus.csproj" />
     <ProjectReference Include="..\Power.BasicManagement.Domain\Power.BasicManagement.Domain.csproj" />
+    <ProjectReference Include="..\Power.EventBus\Power.EventBus.csproj" />
   </ItemGroup>
 
   <ItemGroup>
