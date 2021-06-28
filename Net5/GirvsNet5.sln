@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.EntityFrameworkCore",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Driven", "Girvs.Driven\Girvs.Driven.csproj", "{BCE4FB82-2445-4FB5-BD03-22A191F83320}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.DynamicWebApi", "Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj", "{39E40EB7-5CAE-47E3-9A9F-F3F9F2939629}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Quartz", "Girvs.Quartz\Girvs.Quartz.csproj", "{DDB8C4BD-931B-4BB8-8794-CEDFEF1FA461}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{BCE4FB82-2445-4FB5-BD03-22A191F83320}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCE4FB82-2445-4FB5-BD03-22A191F83320}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCE4FB82-2445-4FB5-BD03-22A191F83320}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39E40EB7-5CAE-47E3-9A9F-F3F9F2939629}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39E40EB7-5CAE-47E3-9A9F-F3F9F2939629}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39E40EB7-5CAE-47E3-9A9F-F3F9F2939629}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39E40EB7-5CAE-47E3-9A9F-F3F9F2939629}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDB8C4BD-931B-4BB8-8794-CEDFEF1FA461}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDB8C4BD-931B-4BB8-8794-CEDFEF1FA461}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDB8C4BD-931B-4BB8-8794-CEDFEF1FA461}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDB8C4BD-931B-4BB8-8794-CEDFEF1FA461}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
