@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Girvs.Configuration;
+using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -11,6 +12,8 @@ namespace Girvs.EntityFrameworkCore
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
+            var appSettings = Singleton<AppSettings>.Instance;
+            var dbConfig = appSettings.ModuleConfigurations[nameof(DbConfig)] as DbConfig;
         }
 
         public void Configure(IApplicationBuilder application)

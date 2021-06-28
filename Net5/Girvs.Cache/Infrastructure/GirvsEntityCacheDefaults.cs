@@ -1,4 +1,4 @@
-﻿using Girvs.Domian.Entities;
+﻿using Girvs.BusinessBasis.Entities;
 
 namespace Girvs.Cache
 {
