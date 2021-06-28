@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Girvs.Grpc\Girvs.Grpc.csproj" />
+      <ProjectReference Include="..\Girvs\Girvs.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Grpc.HealthCheck" Version="2.38.1" />
+      <PackageReference Include="NConsul.AspNetCore" Version="0.8.1" />
+    </ItemGroup>
+
+</Project>
