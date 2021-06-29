@@ -32,6 +32,6 @@ namespace Girvs.Driven
             
         }
 
-        public int Order { get; }
+        public int Order { get; } = 3;
     }
 }

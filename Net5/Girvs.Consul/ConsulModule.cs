@@ -46,6 +46,6 @@ namespace Girvs.Consul
 
         }
 
-        public int Order { get; }
+        public int Order { get; } = 99999;
     }
 }

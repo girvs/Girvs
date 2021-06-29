@@ -27,6 +27,6 @@ namespace Girvs.Cache
             
         }
 
-        public int Order { get; }
+        public int Order { get; } = 1;
     }
 }

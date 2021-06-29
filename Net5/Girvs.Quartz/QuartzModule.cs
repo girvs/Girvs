@@ -27,6 +27,6 @@ namespace Girvs.Quartz
         {
         }
 
-        public int Order { get; }
+        public int Order { get; } = 6;
     }
 }

@@ -1,11 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Girvs.Configuration;
 
 namespace Girvs.Quartz.Configuration
 {
     public class QuartzConfiguration : IAppModuleConfig
     {
+        public QuartzConfiguration()
+        {
+            Tasks = new List<TaskConfig>();
+        }
         public List<TaskConfig> Tasks { get; set; }
+        public void Init()
+        {
+            Tasks.Add(new TaskConfig());
+        }
     }
     
     

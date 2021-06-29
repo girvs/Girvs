@@ -5,6 +5,8 @@ namespace Girvs.Configuration
 {
     public class AppSettings
     {
+        public bool IsInit { get; set; } = false;
+        
         public CommonConfig CommonConfig { get; set; } = new CommonConfig();
 
         public HostingConfig HostingConfig { get; set; } = new HostingConfig();

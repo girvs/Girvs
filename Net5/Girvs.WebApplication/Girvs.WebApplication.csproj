@@ -5,12 +5,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Girvs.Cache\Girvs.Cache.csproj" />
+      <ProjectReference Include="..\Girvs.Dapr\Girvs.Dapr.csproj" />
+      <ProjectReference Include="..\Girvs.Driven\Girvs.Driven.csproj" />
+      <ProjectReference Include="..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
       <ProjectReference Include="..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
+      <ProjectReference Include="..\Girvs.Quartz\Girvs.Quartz.csproj" />
+      <ProjectReference Include="..\Girvs.SignalR\Girvs.SignalR.csproj" />
+      <ProjectReference Include="..\Girvs.Swagger\Girvs.Swagger.csproj" />
       <ProjectReference Include="..\Girvs\Girvs.csproj" />
     </ItemGroup>
 

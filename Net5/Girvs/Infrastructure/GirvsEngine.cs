@@ -56,6 +56,12 @@ namespace Girvs.Infrastructure
         {
             //find startup configurations provided by other assemblies
             var typeFinder = new WebAppTypeFinder();
+            //register engine
+            services.AddSingleton<IEngine>(this);
+
+            //register type finder
+            services.AddSingleton<ITypeFinder>(typeFinder);
+            
             var startupConfigurations = typeFinder.FindClassesOfType<IAppModuleStartup>();
 
             //create and sort instances of startup configurations

@@ -4,5 +4,9 @@ namespace Girvs.Dapr.Configuration
 {
     public class DaprConfig : IAppModuleConfig
     {
+        public void Init()
+        {
+            
+        }
     }
 }

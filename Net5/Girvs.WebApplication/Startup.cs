@@ -28,12 +28,7 @@ namespace Girvs.WebApplication
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
-            
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "Girvs.WebApplication", Version = "v1"});
-            });
-
+          
             services.ConfigureApplicationServices(Configuration, WebHostEnvironment);
         }
 
@@ -43,17 +38,16 @@ namespace Girvs.WebApplication
             if (WebHostEnvironment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Girvs.WebApplication v1"));
             }
-
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseGirvsExceptionHandler();
+            app.ConfigureRequestPipeline();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers(); 
+                endpoints.ConfigureEndpointRouteBuilder();
+            });
         }
     }
 }

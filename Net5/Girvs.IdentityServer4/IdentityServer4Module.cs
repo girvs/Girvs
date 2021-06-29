@@ -42,6 +42,6 @@ namespace Girvs.IdentityServer4
             
         }
 
-        public int Order { get; }
+        public int Order { get; } = 99904;
     }
 }

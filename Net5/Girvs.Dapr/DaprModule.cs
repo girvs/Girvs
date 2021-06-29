@@ -24,6 +24,6 @@ namespace Girvs.Dapr
             
         }
 
-        public int Order { get; }
+        public int Order { get; } = 7;
     }
 }

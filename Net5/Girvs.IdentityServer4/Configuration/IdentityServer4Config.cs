@@ -9,5 +9,9 @@ namespace Girvs.IdentityServer4.Configuration
         public string ClientName { get; set; } = "ApiName1";
         public bool UseHttps { get; set; } = false;
         public string ApiSecret { get; set; } = "ApiSecret";
+        public void Init()
+        {
+            
+        }
     }
 }

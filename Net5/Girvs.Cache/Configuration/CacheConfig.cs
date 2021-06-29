@@ -17,5 +17,9 @@ namespace Girvs.Cache.Configuration
         public MemoryCacheConfig MemoryCacheConfig { get; set; } = new MemoryCacheConfig();
         public RedisCacheConfig RedisCacheConfig { get; set; } = new RedisCacheConfig();
         public DaprCacheConfig DaprCacheConfig { get; set; } = new DaprCacheConfig();
+        public void Init()
+        {
+            
+        }
     }
 }

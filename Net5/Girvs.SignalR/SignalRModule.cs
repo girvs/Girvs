@@ -25,6 +25,6 @@ namespace Girvs.SignalR
             builder.AutoMapSignalREndpointRouteBuilder();
         }
 
-        public int Order { get; }
+        public int Order { get; } = 99903;
     }
 }

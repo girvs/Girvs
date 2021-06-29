@@ -24,6 +24,6 @@ namespace Girvs.EntityFrameworkCore
         {
         }
 
-        public int Order { get; }
+        public int Order { get; } = 5;
     }
 }

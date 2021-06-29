@@ -9,5 +9,6 @@ namespace Girvs.Configuration
 
     public interface IAppModuleConfig : IConfig
     {
+        void Init();
     }
 }

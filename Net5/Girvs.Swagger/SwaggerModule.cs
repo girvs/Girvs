@@ -11,19 +11,19 @@ namespace Girvs.Swagger
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            throw new NotImplementedException();
+            services.AddSwaggerServices();
         }
 
         public void Configure(IApplicationBuilder application)
         {
-            throw new NotImplementedException();
+            application.UseSwaggerService();
         }
 
         public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
         {
-            throw new NotImplementedException();
+            
         }
 
-        public int Order { get; }
+        public int Order { get; } = 99902;
     }
 }

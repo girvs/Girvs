@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Consul", "Girvs.Consu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.IdentityServer4", "Girvs.IdentityServer4\Girvs.IdentityServer4.csproj", "{AA48A3BA-1390-4A95-83D6-8AA5CC68A202}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Cap", "Girvs.Cap\Girvs.Cap.csproj", "{F4B9F336-85F6-4C99-B8CC-653FD85E9407}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{AA48A3BA-1390-4A95-83D6-8AA5CC68A202}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA48A3BA-1390-4A95-83D6-8AA5CC68A202}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA48A3BA-1390-4A95-83D6-8AA5CC68A202}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4B9F336-85F6-4C99-B8CC-653FD85E9407}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4B9F336-85F6-4C99-B8CC-653FD85E9407}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4B9F336-85F6-4C99-B8CC-653FD85E9407}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4B9F336-85F6-4C99-B8CC-653FD85E9407}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

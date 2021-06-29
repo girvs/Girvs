@@ -28,6 +28,6 @@ namespace Girvs.Grpc
             builder.AddEndpointRouteBuilderGrpcServices();
         }
 
-        public int Order { get; }
+        public int Order { get; } = 99901;
     }
 }

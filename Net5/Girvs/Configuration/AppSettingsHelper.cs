@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Girvs.FileProvider;
@@ -50,6 +52,13 @@ namespace Girvs.Configuration
             //save app settings to the file
             var text = JsonConvert.SerializeObject(appSettings, Formatting.Indented);
             fileProvider.WriteAllText(filePath, text, Encoding.UTF8);
+        }
+
+        public static bool ExistAppSettingsFile(IGirvsFileProvider fileProvider = null)
+        {
+            fileProvider ??= CommonHelper.DefaultFileProvider;
+            var filePath = fileProvider.MapPath(ConfigurationDefaults.AppSettingsFilePath);
+            return File.Exists(filePath);
         }
         
         public static void SaveAppModelConfigAsync(IAppModuleConfig appModelConfig, IGirvsFileProvider fileProvider = null)

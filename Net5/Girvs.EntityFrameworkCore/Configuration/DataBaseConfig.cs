@@ -25,6 +25,10 @@ namespace Girvs.EntityFrameworkCore.Configuration
         }
 
         public ICollection<DataConnectionConfig> DataConnectionConfigs { get; set; }
+        public void Init()
+        {
+            DataConnectionConfigs.Add(new DataConnectionConfig());
+        }
     }
 
     public class DataConnectionConfig

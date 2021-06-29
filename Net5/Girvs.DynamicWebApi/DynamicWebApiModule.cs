@@ -22,6 +22,6 @@ namespace Girvs.DynamicWebApi
         {
         }
 
-        public int Order { get; }
+        public int Order { get; } = 4;
     }
 }
