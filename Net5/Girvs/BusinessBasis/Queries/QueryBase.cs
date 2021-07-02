@@ -33,10 +33,10 @@ namespace Girvs.BusinessBasis.Queries
 
         public string[] QueryFields { get; set; }
 
-        public virtual string GetCacheKey(string cacheKeyListPrefix)
+        public virtual string GetCacheKey()
         {
             //此处字符串为约定，请不要随意修改
-            StringBuilder sb = new StringBuilder(cacheKeyListPrefix);
+            var sb = new StringBuilder();
 
             var ps = this.GetType().GetProperties();
             foreach (var propertyInfo in ps)

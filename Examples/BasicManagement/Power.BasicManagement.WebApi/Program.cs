@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using Girvs.WebFrameWork;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -41,7 +40,7 @@ namespace Power.BasicManagement.WebApi
         {
             return Host.CreateDefaultBuilder(args)
                 .UseConsoleLifetime()
-                .UseSerilog((context, config) => { config.ReadFrom.Configuration(context.Configuration); })
+                .UseSerilog((context, config) => { config.ReadFrom.Configuration(context.Configuration); }).
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureAppConfiguration(configurationBuilder =>

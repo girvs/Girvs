@@ -1,6 +1,3 @@
-using System.Linq;
-using Girvs.Application.Services;
-using Girvs.Domain.Infrastructure;
 using Girvs.Domain.TypeFinder;
 using Girvs.WebFrameWork.Filters;
 using Girvs.WebFrameWork.Plugins;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using Girvs.Configuration;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Builder;
@@ -61,6 +62,8 @@ namespace Girvs.Infrastructure
 
             //register type finder
             services.AddSingleton<ITypeFinder>(typeFinder);
+
+            ServiceProvider = services.BuildServiceProvider();
             
             var startupConfigurations = typeFinder.FindClassesOfType<IAppModuleStartup>();
 
@@ -218,6 +221,25 @@ namespace Girvs.Infrastructure
             services.AddSingleton(services);
         }
 
+        public HttpContext HttpContext
+        {
+            get
+            {
+                var accessor = ServiceProvider.GetService<IHttpContextAccessor>();
+                return accessor.HttpContext;
+            }
+        }
+
+        public Claim GetCurrentClaimByName(string name)
+        {
+            if (HttpContext != null
+                && HttpContext.User.Identity.IsAuthenticated)
+            {
+                return HttpContext.User.Claims.FirstOrDefault(x => x.Type == name);
+            }
+            return new Claim("","");
+        }
+        
         public virtual IServiceProvider ServiceProvider { get; protected set; }
     }
 }

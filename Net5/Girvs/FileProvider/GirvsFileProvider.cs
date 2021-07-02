@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
@@ -161,7 +162,7 @@ namespace Girvs.FileProvider
             return Combine(allPaths.ToArray());
         }
 
-        // [SupportedOSPlatform("windows")]
+        [SupportedOSPlatform("windows")]
         public virtual DirectorySecurity GetAccessControl(string path)
         {
             return new DirectoryInfo(path).GetAccessControl();

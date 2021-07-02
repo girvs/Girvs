@@ -20,6 +20,7 @@ namespace Girvs.DynamicWebApi
 
         public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
         {
+            
         }
 
         public int Order { get; } = 4;

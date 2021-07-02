@@ -5,7 +5,7 @@ namespace Girvs.Cache
     /// <summary>
     /// 表示与缓存实体相关的默认值
     /// </summary>
-    public static partial class GirvsEntityCacheDefaults<TEntity> where TEntity : BaseEntity<object>
+    public static partial class GirvsEntityCacheDefaults<TEntity> where TEntity : Entity
     {
         /// <summary>
         /// 获取缓存键中使用的实体类型名称

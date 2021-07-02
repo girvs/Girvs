@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
+      <ProjectReference Include="..\BasicManagement.Domain\BasicManagement.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Repositories\ServicePermissionAuthorizeStore.cs" />
+    </ItemGroup>
+
+</Project>

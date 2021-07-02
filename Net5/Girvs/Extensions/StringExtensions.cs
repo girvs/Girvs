@@ -425,6 +425,15 @@ namespace Girvs.Extensions
                 return sb.ToString();
             }
         }
+        
+        public static Guid? ToHasGuid(this string str)
+        {
+            if (string.IsNullOrEmpty(str))
+            {
+                return (Guid?)null;
+            }
+            return Guid.Parse(str);
+        }
 
         /// <summary>
         /// Converts camelCase string to PascalCase string.

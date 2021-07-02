@@ -30,6 +30,28 @@ namespace Girvs.Configuration
             await fileProvider.WriteAllTextAsync(filePath, text, Encoding.UTF8);
         }
 
+        public static void CreateSerilogConfig(string configJson, IGirvsFileProvider fileProvider = null)
+        {
+            fileProvider ??= CommonHelper.DefaultFileProvider;
+            //create file if not exists
+            var filePath = fileProvider.MapPath(ConfigurationDefaults.SerilogSettingFilePath);
+            fileProvider.CreateFile(filePath);
+
+            //check additional configuration parameters
+            // var additionalData = JsonConvert.DeserializeObject<AppSettings>(fileProvider.ReadAllText(filePath, Encoding.UTF8))?.AdditionalData;
+            // appSettings.AdditionalData = additionalData;
+
+            //save app settings to the file
+            fileProvider.WriteAllText(filePath, configJson, Encoding.UTF8);
+        }
+
+        public static bool ExistSerilogConfigFile(IGirvsFileProvider fileProvider = null)
+        {
+            fileProvider ??= CommonHelper.DefaultFileProvider;
+            var filePath = fileProvider.MapPath(ConfigurationDefaults.SerilogSettingFilePath);
+            return File.Exists(filePath);
+        }
+        
         /// <summary>
         /// Save app settings to the file
         /// </summary>

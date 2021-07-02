@@ -7,5 +7,7 @@
         public static string AppSettingsFilePath => "App_Data/appsettings.json";
         
         public static string AppModelSettingsFilePath => "App_Data";
+
+        public static string SerilogSettingFilePath => "App_Data/Serilog.json";
     }
 }

@@ -1,35 +1,47 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31423.177
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs", "Girvs\Girvs.csproj", "{E8FD3844-32D8-4EEF-9C66-1AD708B07A68}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.WebApplication", "Girvs.WebApplication\Girvs.WebApplication.csproj", "{E28677EF-8DE5-48CB-A6FC-294F6DEBB868}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Cache", "Girvs.Cache\Girvs.Cache.csproj", "{8C1B0727-D055-4883-9E8F-DCD7F3EA1796}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.EntityFrameworkCore", "Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj", "{4DFFA4BA-310F-4000-8EA6-A70C49375EAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Driven", "Girvs.Driven\Girvs.Driven.csproj", "{BCE4FB82-2445-4FB5-BD03-22A191F83320}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Driven", "Girvs.Driven\Girvs.Driven.csproj", "{BCE4FB82-2445-4FB5-BD03-22A191F83320}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.DynamicWebApi", "Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj", "{39E40EB7-5CAE-47E3-9A9F-F3F9F2939629}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.DynamicWebApi", "Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj", "{39E40EB7-5CAE-47E3-9A9F-F3F9F2939629}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Quartz", "Girvs.Quartz\Girvs.Quartz.csproj", "{DDB8C4BD-931B-4BB8-8794-CEDFEF1FA461}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Quartz", "Girvs.Quartz\Girvs.Quartz.csproj", "{DDB8C4BD-931B-4BB8-8794-CEDFEF1FA461}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Swagger", "Girvs.Swagger\Girvs.Swagger.csproj", "{C7F0E56C-EE3D-4D2B-A452-B3FC22974EBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Swagger", "Girvs.Swagger\Girvs.Swagger.csproj", "{C7F0E56C-EE3D-4D2B-A452-B3FC22974EBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.SignalR", "Girvs.SignalR\Girvs.SignalR.csproj", "{0F190051-FFEA-47E6-B37A-546871DDB947}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.SignalR", "Girvs.SignalR\Girvs.SignalR.csproj", "{0F190051-FFEA-47E6-B37A-546871DDB947}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Grpc", "Girvs.Grpc\Girvs.Grpc.csproj", "{76208CBF-418C-429C-B9B8-3FFB9669963C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Grpc", "Girvs.Grpc\Girvs.Grpc.csproj", "{76208CBF-418C-429C-B9B8-3FFB9669963C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Dapr", "Girvs.Dapr\Girvs.Dapr.csproj", "{6A007D49-DD6A-412A-9AE2-D4E532CC7A59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Dapr", "Girvs.Dapr\Girvs.Dapr.csproj", "{6A007D49-DD6A-412A-9AE2-D4E532CC7A59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Consul", "Girvs.Consul\Girvs.Consul.csproj", "{CFE7C9A2-E267-4B6E-AB9B-983EFD3AB4BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Consul", "Girvs.Consul\Girvs.Consul.csproj", "{CFE7C9A2-E267-4B6E-AB9B-983EFD3AB4BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.IdentityServer4", "Girvs.IdentityServer4\Girvs.IdentityServer4.csproj", "{AA48A3BA-1390-4A95-83D6-8AA5CC68A202}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.IdentityServer4", "Girvs.IdentityServer4\Girvs.IdentityServer4.csproj", "{AA48A3BA-1390-4A95-83D6-8AA5CC68A202}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Cap", "Girvs.Cap\Girvs.Cap.csproj", "{F4B9F336-85F6-4C99-B8CC-653FD85E9407}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.Cap", "Girvs.Cap\Girvs.Cap.csproj", "{F4B9F336-85F6-4C99-B8CC-653FD85E9407}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{E1F2CC0F-8001-4887-875A-6DE9627A1A55}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicManagement.Application", "Samples\BasicManagement.Application\BasicManagement.Application.csproj", "{F6DBA115-A1F4-4E90-A0C1-1CB0D88146E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicManagement.Domain", "Samples\BasicManagement.Domain\BasicManagement.Domain.csproj", "{3AEC5502-10B6-467F-BC9E-944FC981844D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicManagement.Infrastructure", "Samples\BasicManagement.Infrastructure\BasicManagement.Infrastructure.csproj", "{3E967FA2-BC9D-4186-B310-446AF1D21E9E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicManagement.WebApi", "Samples\BasicManagement.WebApi\BasicManagement.WebApi.csproj", "{31E68D84-C9FC-4667-B3D7-2E7537283674}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.AutoMapper", "Girvs.AutoMapper\Girvs.AutoMapper.csproj", "{D055AE0E-0CD0-4112-B72C-F0CCDCFFD29E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.AuthorizePermission", "Girvs.AuthorizePermission\Girvs.AuthorizePermission.csproj", "{4AF3EE93-D489-453E-B13D-7706340A8ADB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +53,6 @@ Global
 		{E8FD3844-32D8-4EEF-9C66-1AD708B07A68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8FD3844-32D8-4EEF-9C66-1AD708B07A68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8FD3844-32D8-4EEF-9C66-1AD708B07A68}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E28677EF-8DE5-48CB-A6FC-294F6DEBB868}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E28677EF-8DE5-48CB-A6FC-294F6DEBB868}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E28677EF-8DE5-48CB-A6FC-294F6DEBB868}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E28677EF-8DE5-48CB-A6FC-294F6DEBB868}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8C1B0727-D055-4883-9E8F-DCD7F3EA1796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8C1B0727-D055-4883-9E8F-DCD7F3EA1796}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C1B0727-D055-4883-9E8F-DCD7F3EA1796}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -93,9 +101,39 @@ Global
 		{F4B9F336-85F6-4C99-B8CC-653FD85E9407}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4B9F336-85F6-4C99-B8CC-653FD85E9407}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4B9F336-85F6-4C99-B8CC-653FD85E9407}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6DBA115-A1F4-4E90-A0C1-1CB0D88146E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6DBA115-A1F4-4E90-A0C1-1CB0D88146E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6DBA115-A1F4-4E90-A0C1-1CB0D88146E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6DBA115-A1F4-4E90-A0C1-1CB0D88146E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AEC5502-10B6-467F-BC9E-944FC981844D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AEC5502-10B6-467F-BC9E-944FC981844D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AEC5502-10B6-467F-BC9E-944FC981844D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AEC5502-10B6-467F-BC9E-944FC981844D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E967FA2-BC9D-4186-B310-446AF1D21E9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E967FA2-BC9D-4186-B310-446AF1D21E9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E967FA2-BC9D-4186-B310-446AF1D21E9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E967FA2-BC9D-4186-B310-446AF1D21E9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31E68D84-C9FC-4667-B3D7-2E7537283674}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31E68D84-C9FC-4667-B3D7-2E7537283674}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31E68D84-C9FC-4667-B3D7-2E7537283674}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31E68D84-C9FC-4667-B3D7-2E7537283674}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D055AE0E-0CD0-4112-B72C-F0CCDCFFD29E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D055AE0E-0CD0-4112-B72C-F0CCDCFFD29E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D055AE0E-0CD0-4112-B72C-F0CCDCFFD29E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D055AE0E-0CD0-4112-B72C-F0CCDCFFD29E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AF3EE93-D489-453E-B13D-7706340A8ADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AF3EE93-D489-453E-B13D-7706340A8ADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AF3EE93-D489-453E-B13D-7706340A8ADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AF3EE93-D489-453E-B13D-7706340A8ADB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F6DBA115-A1F4-4E90-A0C1-1CB0D88146E7} = {E1F2CC0F-8001-4887-875A-6DE9627A1A55}
+		{3AEC5502-10B6-467F-BC9E-944FC981844D} = {E1F2CC0F-8001-4887-875A-6DE9627A1A55}
+		{3E967FA2-BC9D-4186-B310-446AF1D21E9E} = {E1F2CC0F-8001-4887-875A-6DE9627A1A55}
+		{31E68D84-C9FC-4667-B3D7-2E7537283674} = {E1F2CC0F-8001-4887-875A-6DE9627A1A55}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0FC056B2-C607-4E27-9A17-B0932AA19F5E}

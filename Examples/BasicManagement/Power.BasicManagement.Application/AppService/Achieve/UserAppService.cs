@@ -40,6 +40,8 @@ namespace Power.BasicManagement.Application.AppService.Achieve
             ICacheKeyManager<User> keyManager
         )
         {
+            
+            
             _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
             _notifications = (DomainNotificationHandler) notifications;

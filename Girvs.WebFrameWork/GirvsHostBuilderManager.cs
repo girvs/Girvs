@@ -26,6 +26,7 @@ namespace Girvs.WebFrameWork
                 .AddEnvironmentVariables()
                 .AddCommandLine(args)
                 .Build();
+            
             return CreateGrivsHostBuilder<TStartup>(args, config);
         }
 

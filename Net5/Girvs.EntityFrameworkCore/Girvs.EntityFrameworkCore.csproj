@@ -2,6 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>5.0.0-preview.1.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,6 +22,10 @@
       </PackageReference>
       <PackageReference Include="Oracle.EntityFrameworkCore" Version="5.21.1" />
       <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Repositories\BaseActionRepository.cs" />
     </ItemGroup>
 
 </Project>

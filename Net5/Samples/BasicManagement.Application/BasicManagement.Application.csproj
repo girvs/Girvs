@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Remove="GrpcService\**" />
+      <Compile Remove="EventBusHandlers\**" />
+      <Compile Remove="Extensions\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="GrpcService\**" />
+      <EmbeddedResource Remove="EventBusHandlers\**" />
+      <EmbeddedResource Remove="Extensions\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="GrpcService\**" />
+      <None Remove="EventBusHandlers\**" />
+      <None Remove="Extensions\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
+      <ProjectReference Include="..\BasicManagement.Domain\BasicManagement.Domain.csproj" />
+    </ItemGroup>
+
+</Project>
