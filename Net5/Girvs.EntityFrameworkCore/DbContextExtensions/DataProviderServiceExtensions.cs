@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 using Girvs.EntityFrameworkCore.Context;
-using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,24 +12,19 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         /// <summary>
         /// 注册数据库基础对象上下文
         /// </summary>
-        public static void AddSpObjectContext(this IServiceCollection services)
+        public static void AddGirvsObjectContext(this IServiceCollection services)
         {
-            var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
+            var typeFinder =  new WebAppTypeFinder();
             var dbContexts = typeFinder.FindClassesOfType(typeof
-                    (IDbContext)).Where(x => !x.IsAbstract && !x.IsInterface);
+                    (IDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
 
-            if (dbContexts.Any())
+            if (!dbContexts.Any()) return;
+            var serviceType = typeof(DataProviderServiceExtensions);
+            var mi = serviceType.GetMethod(nameof(AddSpDbContext));
+            if (mi == null) return;
+            foreach (var dmi in dbContexts.Select(dbContext => mi.MakeGenericMethod(dbContext)))
             {
-                Type serviceType = typeof(DataProviderServiceExtensions);
-                MethodInfo mi = serviceType.GetMethod(nameof(AddSpDbContext));
-                if (mi != null)
-                {
-                    foreach (var dbContext in dbContexts)
-                    {
-                        MethodInfo dmi = mi.MakeGenericMethod(dbContext);
-                        dmi.Invoke(serviceType, new object[] {services});
-                    }
-                }
+                dmi.Invoke(serviceType, new object[] {services});
             }
         }
 

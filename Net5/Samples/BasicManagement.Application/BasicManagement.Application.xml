@@ -1,0 +1,385 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BasicManagement.Application</name>
+    </assembly>
+    <members>
+        <member name="M:BasicManagement.Application.AppService.Achieve.PermissionAppService.Get">
+            <summary>
+            获取当前用户的权限
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.PermissionAppService.Get(System.Guid)">
+            <summary>
+            获取当前用户指定功能模块权限
+            </summary>
+            <param name="appliedObjectId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.PermissionAppService.Get(BasicManagement.Application.ViewModels.Permission.PermissionQueryViewModel)">
+            <summary>
+            根据查询条件获取权限
+            </summary>
+            <param name="queryViewModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.PermissionAppService.Update(BasicManagement.Application.ViewModels.Permission.SavePermisssionEditViewModel)">
+            <summary>
+            保存设置权限
+            </summary>
+            <param name="saveViewModels"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.RoleAppService.GetAsync(System.Guid)">
+            <summary>
+            根据Id获取角色
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.RoleAppService.CreateAsync(BasicManagement.Application.ViewModels.Role.RoleEditViewModel)">
+            <summary>
+            创建角色
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.RoleAppService.UpdateAsync(BasicManagement.Application.ViewModels.Role.RoleEditViewModel)">
+            <summary>
+            更新角色
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.RoleAppService.DeleteAsync(System.Guid)">
+            <summary>
+            删除角色
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.RoleAppService.GetAsync">
+            <summary>
+            获取角色列表
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:BasicManagement.Application.AppService.Achieve.SysDictService">
+            <summary>
+            字典管理API
+            </summary>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.SysDictService.#ctor(BasicManagement.Domain.Repositories.ISysDictRepository,Girvs.Cache.IStaticCacheManager,Girvs.Driven.Bus.IMediatorHandler,MediatR.INotificationHandler{Girvs.Driven.Notifications.DomainNotification})">
+            <summary>
+            
+            </summary>
+            <param name="sysDictRepository"></param>
+            <param name="cacheManager"></param>
+            <param name="keyManager"></param>
+            <param name="bus"></param>
+            <param name="notifications"></param>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.SysDictService.CreateAsync(BasicManagement.Application.ViewModels.SysDict.SysDictEditViewModel)">
+            <summary>
+            创建字典
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.SysDictService.UpdateAsync(BasicManagement.Application.ViewModels.SysDict.SysDictEditViewModel)">
+            <summary>
+            修改字典
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.SysDictService.DeleteAsync(System.Int32)">
+            <summary>
+            删除角色
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.SysDictService.GetAsync(BasicManagement.Application.ViewModels.SysDict.SysDictQueryViewModel)">
+            <summary>
+            分页查询字典
+            </summary>
+            <param name="queryModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.UserAppService.GetAsync(System.Guid)">
+            <summary>
+            根据Id获取用户
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.UserAppService.CreateAsync(BasicManagement.Application.ViewModels.User.UserEditViewModel)">
+            <summary>
+            创建用户
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.UserAppService.UpdateAsync(BasicManagement.Application.ViewModels.User.UserEditViewModel)">
+            <summary>
+            更新用户
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.UserAppService.DeleteAsync(System.Guid)">
+            <summary>
+            删除用户
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.UserAppService.GetAsync(BasicManagement.Application.ViewModels.User.UserQueryViewModel)">
+            <summary>
+            根据查询条件获取用户
+            </summary>
+            <param name="queryModel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.UserAppService.GetByAccount(System.String)">
+            <summary>
+            根据登录名称获取用户
+            </summary>
+            <param name="account">登陆名称</param>
+            <returns></returns>
+        </member>
+        <member name="M:BasicManagement.Application.AppService.Achieve.UserAppService.GetByOtherId(System.Guid)">
+            <summary>
+            根据其它主键值获取用户
+            </summary>
+            <param name="otherId">其它主键值</param>
+            <returns></returns>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionByCurrentUserViewModel.AppliedObjectID">
+            <summary>
+            对应功能模块的ID
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionByCurrentUserViewModel.ValidateObjectType">
+            <summary>
+            权限分类，方便扩展
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionDetailViewModel.AppliedObjectID">
+            <summary>
+            对应功能模块的ID
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionDetailViewModel.AppliedObjectType">
+            <summary>
+            对应授权的类型
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionDetailViewModel.ValidateObjectType">
+            <summary>
+            权限分类，方便扩展
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionEditViewModel.AppliedID">
+            <summary>
+            对应用户ID或角色ID
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionEditViewModel.AppliedObjectID">
+            <summary>
+            对应功能模块的ID
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionEditViewModel.AppliedObjectType">
+            <summary>
+            指定对角色授权,还是用户授权(0为角色 1为用户)
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionEditViewModel.ValidateObjectType">
+            <summary>
+            权限分类，方便扩展
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.SavePermisssionEditViewModel.AppliedId">
+            <summary>
+            对应用户ID或角色ID
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.SavePermisssionEditViewModel.AppliedObjectType">
+            <summary>
+            指定对角色授权,还是用户授权(0为角色 1为用户)
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.SavePermisssionEditViewModel.Ps">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionQueryViewModel.PermissionAppliedObjectType">
+            <summary>
+            指定对角色授权,还是用户授权(0为角色 1为用户)
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.Permission.PermissionQueryViewModel.AppliedID">
+            <summary>
+            对应功能模块Id
+            </summary>
+        </member>
+        <member name="T:BasicManagement.Application.ViewModels.SysDict.SysDictEditViewModel">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.SysDict.SysDictEditViewModel.Id">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.SysDict.SysDictEditViewModel.CodeType">
+            <summary>
+            字典类型
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.SysDict.SysDictEditViewModel.Code">
+            <summary>编号</summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.SysDict.SysDictEditViewModel.Name">
+            <summary>名称</summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.SysDict.SysDictEditViewModel.Desc">
+            <summary>描述</summary>
+        </member>
+        <member name="T:BasicManagement.Application.ViewModels.SysDict.SysDictQueryViewModel">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.SysDict.SysDictQueryViewModel.CodeType">
+            <summary>
+            字典类型
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.Id">
+            <summary>
+            用户ID
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.UserAccount">
+            <summary>
+            用户登陆名称
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.UserPassword">
+            <summary>
+            用户登陆密码
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.UserName">
+            <summary>
+            用户名称
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.ContactNumber">
+            <summary>
+            联系电话
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.State">
+            <summary>
+            用户状态
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.UserType">
+            <summary>
+            用户类型
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.OtherId">
+            <summary>
+            绑定其它相关服务的关键标识Id
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserDetailViewModel.UserRoles">
+            <summary>
+            用户角色
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserEditViewModel.Id">
+            <summary>
+            用户ID
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserEditViewModel.UserAccount">
+            <summary>
+            用户登陆名称
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserEditViewModel.UserPassword">
+            <summary>
+            用户登陆密码
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserEditViewModel.UserName">
+            <summary>
+            用户名称
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserEditViewModel.ContactNumber">
+            <summary>
+            联系电话
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserEditViewModel.State">
+            <summary>
+            用户状态
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserEditViewModel.UserType">
+            <summary>
+            用户类型
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserQueryViewModel.UserName">
+            <summary>
+            用户名称
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserQueryViewModel.UserAccount">
+            <summary>
+            用户登陆名称
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserQueryViewModel.DataState">
+            <summary>
+            用户状态
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserQueryListViewModel.UserAccount">
+            <summary>
+            用户登陆名称
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserQueryListViewModel.UserName">
+            <summary>
+            用户名称
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserQueryListViewModel.ContactNumber">
+            <summary>
+            联系电话
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserQueryListViewModel.State">
+            <summary>
+            用户状态
+            </summary>
+        </member>
+        <member name="P:BasicManagement.Application.ViewModels.User.UserQueryListViewModel.UserType">
+            <summary>
+            用户类型
+            </summary>
+        </member>
+    </members>
+</doc>

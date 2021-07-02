@@ -9,6 +9,7 @@ namespace BasicManagement.Infrastructure
     {
         public BasicManagementDbContext(DbContextOptions<BasicManagementDbContext> options) : base(options)
         {
+
         }
 
         public DbSet<User> Users { get; set; }

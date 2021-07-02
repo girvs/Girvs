@@ -4,9 +4,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text.Json.Serialization;
+using BasicManagement.Infrastructure;
 using Girvs.Infrastructure.Extensions;
 
-namespace BasicManagement.WebApi
+namespace BasicManagement.Host
 {
     public class Startup
     {
@@ -27,7 +28,7 @@ namespace BasicManagement.WebApi
                 {
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
-          
+            //services.AddDbContext<BasicManagementDbContext>();
             services.ConfigureApplicationServices(Configuration, WebHostEnvironment);
         }
 

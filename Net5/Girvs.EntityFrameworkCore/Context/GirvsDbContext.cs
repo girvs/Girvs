@@ -21,12 +21,9 @@ namespace Girvs.EntityFrameworkCore.Context
             : base(options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
-            var appSetting = EngineContext.Current.Resolve<AppSettings>() ??
-                             throw new ArgumentNullException(nameof(AppSettings));
-            _dbConfig = appSetting.ModuleConfigurations[nameof(DbConfig)] ??
-                           throw new ArgumentNullException(nameof(DbConfig));
-            _logger = EngineContext.Current.Resolve<ILogger<DbContext>>() ??
-                      throw new ArgumentNullException("ILogger");
+            var appSetting = Singleton<AppSettings>.Instance ?? throw new ArgumentNullException(nameof(AppSettings));
+            _dbConfig = appSetting.ModuleConfigurations[nameof(DbConfig)] ?? throw new ArgumentNullException(nameof(DbConfig));
+            _logger = EngineContext.Current.Resolve<ILogger<DbContext>>() ?? throw new ArgumentNullException("ILogger");
         }
 
         public abstract string DbConfigName { get; }
