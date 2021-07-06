@@ -9,10 +9,29 @@ namespace Girvs.TypeFinder
     /// </summary>
     public interface ITypeFinder
     {
-        IEnumerable<Type> FindClassesOfType<T>(bool onlyConcreteClasses = true);
+        IEnumerable<Type> FindOfType<T>(FindType findType = FindType.ConcreteClasses);
 
-        IEnumerable<Type> FindClassesOfType(Type assignTypeFrom, bool onlyConcreteClasses = true);
+        IEnumerable<Type> FindOfType(Type assignTypeFrom, FindType findType = FindType.ConcreteClasses);
 
         IList<Assembly> GetAssemblies();
+    }
+
+
+    public enum FindType
+    {
+        /// <summary>
+        /// 实现的类
+        /// </summary>
+        ConcreteClasses,
+        
+        /// <summary>
+        /// 接口
+        /// </summary>
+        Interface,
+        
+        /// <summary>
+        /// 抽象类
+        /// </summary>
+        abstractClasses
     }
 }

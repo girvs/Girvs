@@ -17,7 +17,7 @@ namespace Girvs.BusinessBasis.UoW
     /// <summary>
     /// 工作单元，方便多操作事务至业务层
     /// </summary>
-    public interface IUnitOfWork<TEntity> : IUnitOfWork, IManager where TEntity : Entity
+    public interface IUnitOfWork<TEntity> : IUnitOfWork where TEntity : Entity
     {
     }
 }

@@ -15,7 +15,7 @@ namespace Girvs.AutoMapper
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             var typeFinder = new WebAppTypeFinder();
-            var mapperConfigurations = typeFinder.FindClassesOfType<IOrderedMapperProfile>();
+            var mapperConfigurations = typeFinder.FindOfType<IOrderedMapperProfile>();
 
             var instances = mapperConfigurations
                 .Select(mapperConfiguration => (IOrderedMapperProfile)Activator.CreateInstance(mapperConfiguration))

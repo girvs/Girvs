@@ -1,6 +1,8 @@
-﻿using Girvs.Configuration;
-using Girvs.EntityFrameworkCore.Configuration;
+﻿using Girvs.BusinessBasis.Repositories;
+using Girvs.BusinessBasis.UoW;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
+using Girvs.EntityFrameworkCore.Repositories;
+using Girvs.EntityFrameworkCore.UoW;
 using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -14,6 +16,9 @@ namespace Girvs.EntityFrameworkCore
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             services.AddGirvsObjectContext();
+            services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
         }
 
         public void Configure(IApplicationBuilder application)

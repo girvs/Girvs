@@ -45,7 +45,7 @@ namespace BasicManagement.Host
             app.ConfigureRequestPipeline();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers(); 
+                endpoints.MapControllers();
                 endpoints.ConfigureEndpointRouteBuilder();
             });
         }

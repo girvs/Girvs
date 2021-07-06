@@ -116,8 +116,8 @@ namespace Girvs.TypeFinder
             }
         }
 
-        protected virtual IEnumerable<Type> FindClassesOfType(Type assignTypeFrom, IEnumerable<Assembly> assemblies,
-            bool onlyConcreteClasses = true)
+        protected virtual IEnumerable<Type> FindOfType(Type assignTypeFrom, IEnumerable<Assembly> assemblies,
+            FindType findType)
         {
             var result = new List<Type>();
             try
@@ -147,20 +147,41 @@ namespace Girvs.TypeFinder
                                                                     !DoesTypeImplementOpenGeneric(t, assignTypeFrom)))
                             continue;
 
-                        if (t.IsInterface)
-                            continue;
-
-                        if (onlyConcreteClasses)
+                        switch (findType)
                         {
-                            if (t.IsClass && !t.IsAbstract)
-                            {
-                                result.Add(t);
-                            }
+                            case FindType.ConcreteClasses:
+                                if (t.IsClass && !t.IsAbstract)
+                                {
+                                    result.Add(t);
+                                }
+                                break;
+                            case FindType.Interface:
+                                if (t.IsInterface)
+                                {
+                                    result.Add(t);
+                                }
+                                break;
+                            case FindType.abstractClasses:
+                                if (t.IsClass && !t.IsAbstract)
+                                {
+                                    result.Add(t);
+                                }
+                                break;
                         }
-                        else
-                        {
-                            result.Add(t);
-                        }
+                        // if (t.IsInterface)
+                        //     continue;
+                        //
+                        // if (onlyConcreteClasses)
+                        // {
+                        //     if (t.IsClass && !t.IsAbstract)
+                        //     {
+                        //         result.Add(t);
+                        //     }
+                        // }
+                        // else
+                        // {
+                        //     result.Add(t);
+                        // }
                     }
                 }
             }
@@ -179,14 +200,14 @@ namespace Girvs.TypeFinder
             return result;
         }
 
-        public IEnumerable<Type> FindClassesOfType<T>(bool onlyConcreteClasses = true)
+        public IEnumerable<Type> FindOfType<T>(FindType findType = FindType.ConcreteClasses)
         {
-            return FindClassesOfType(typeof(T), onlyConcreteClasses);
+            return FindOfType(typeof(T), findType);
         }
 
-        public IEnumerable<Type> FindClassesOfType(Type assignTypeFrom, bool onlyConcreteClasses = true)
+        public IEnumerable<Type> FindOfType(Type assignTypeFrom, FindType findType = FindType.ConcreteClasses)
         {
-            return FindClassesOfType(assignTypeFrom, GetAssemblies(), onlyConcreteClasses);
+            return FindOfType(assignTypeFrom, GetAssemblies(), findType);
         }
 
         public virtual IList<Assembly> GetAssemblies()

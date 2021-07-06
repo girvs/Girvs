@@ -5,7 +5,7 @@ using Girvs.Driven.Notifications;
 
 namespace Girvs.Driven.Commands
 {
-    public class CommandHandler
+    public abstract class CommandHandler
     {
         private readonly IUnitOfWork _uow;
         private readonly IMediatorHandler _bus;

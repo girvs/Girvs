@@ -17,10 +17,10 @@ namespace Girvs.AutoMapper.Mapper
         private void CreateDefaultMapping()
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var modelTypes = typeFinder.FindClassesOfType<IDto>();
+            var modelTypes = typeFinder.FindOfType<IDto>();
             CreateModelMapping(modelTypes);
 
-            modelTypes = typeFinder.FindClassesOfType<IQueryDto>();
+            modelTypes = typeFinder.FindOfType<IQueryDto>();
             CreateModelMapping(modelTypes);
         }
 

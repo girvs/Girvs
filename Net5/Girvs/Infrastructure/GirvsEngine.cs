@@ -65,7 +65,7 @@ namespace Girvs.Infrastructure
 
             ServiceProvider = services.BuildServiceProvider();
             
-            var startupConfigurations = typeFinder.FindClassesOfType<IAppModuleStartup>();
+            var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
             //create and sort instances of startup configurations
             var instances = startupConfigurations
@@ -90,7 +90,7 @@ namespace Girvs.Infrastructure
 
             //find startup configurations provided by other assemblies
             var typeFinder = Resolve<ITypeFinder>();
-            var startupConfigurations = typeFinder.FindClassesOfType<IAppModuleStartup>();
+            var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
             //create and sort instances of startup configurations
             var instances = startupConfigurations
@@ -110,7 +110,7 @@ namespace Girvs.Infrastructure
         public void ConfigureEndpointRouteBuilder(IEndpointRouteBuilder endpointRouteBuilder)
         {
             var typeFinder = Resolve<ITypeFinder>();
-            var startupConfigurations = typeFinder.FindClassesOfType<IAppModuleStartup>();
+            var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
             var instances = startupConfigurations
                 .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
@@ -207,7 +207,7 @@ namespace Girvs.Infrastructure
             services.AddSingleton<ITypeFinder>(typeFinder);
 
             //find dependency registrars provided by other assemblies
-            var dependencyRegistrars = typeFinder.FindClassesOfType<IDependencyRegistrar>();
+            var dependencyRegistrars = typeFinder.FindOfType<IDependencyRegistrar>();
 
             //create and sort instances of dependency registrars
             var instances = dependencyRegistrars

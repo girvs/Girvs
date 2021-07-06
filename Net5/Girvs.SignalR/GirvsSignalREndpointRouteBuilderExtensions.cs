@@ -10,7 +10,7 @@ namespace Girvs.WebFrameWork.Plugins.SignalR
         public static void AutoMapSignalREndpointRouteBuilder(this IEndpointRouteBuilder builder)
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var signalRServices = typeFinder.FindClassesOfType<Hub>();
+            var signalRServices = typeFinder.FindOfType<Hub>();
             foreach (var signalRService in signalRServices)
             {
                 if (signalRService.IsAbstract) continue;

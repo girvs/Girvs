@@ -8,6 +8,7 @@ using Girvs.BusinessBasis.Dto;
 namespace BasicManagement.Application.ViewModels.User
 {
     [AutoMapFrom(typeof(Domain.Models.User))]
+    [AutoMapTo(typeof(Domain.Models.User))]
     public class UserDetailViewModel : IDto
     {
         /// <summary>
@@ -18,6 +19,7 @@ namespace BasicManagement.Application.ViewModels.User
         /// <summary>
         /// 用户登陆名称
         /// </summary>
+        
         public string UserAccount { get; set; }
 
         /// <summary>

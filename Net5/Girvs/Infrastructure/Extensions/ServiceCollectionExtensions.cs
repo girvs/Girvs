@@ -60,7 +60,7 @@ namespace Girvs.Infrastructure.Extensions
             appSettings.IsInit = !AppSettingsHelper.ExistAppSettingsFile();
 
             var typeFinder = new WebAppTypeFinder();
-            var modelSettings = typeFinder.FindClassesOfType<IAppModuleConfig>(true);
+            var modelSettings = typeFinder.FindOfType<IAppModuleConfig>();
             var instances = modelSettings
                 .Select(startup => (IAppModuleConfig)Activator.CreateInstance(startup));
 

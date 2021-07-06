@@ -15,7 +15,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         public static void AddGirvsObjectContext(this IServiceCollection services)
         {
             var typeFinder =  new WebAppTypeFinder();
-            var dbContexts = typeFinder.FindClassesOfType(typeof
+            var dbContexts = typeFinder.FindOfType(typeof
                     (IDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
 
             if (!dbContexts.Any()) return;

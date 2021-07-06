@@ -20,4 +20,8 @@
     <ProjectReference Include="..\BasicManagement.Infrastructure\BasicManagement.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+  </ItemGroup>
+
 </Project>

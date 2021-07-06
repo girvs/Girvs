@@ -37,7 +37,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         private DbContext GetRelatedDbContext()
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var ts = typeFinder.FindClassesOfType(typeof(IDbContext), true);
+            var ts = typeFinder.FindOfType(typeof(IDbContext));
             return ts.Where(x => x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)))
                 .Select(x => EngineContext.Current.Resolve(x) as GirvsDbContext).FirstOrDefault();
 
