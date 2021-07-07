@@ -79,9 +79,6 @@ namespace Girvs.EntityFrameworkCore.Configuration
         /// <summary>
         /// 从数据库字符串集,可以是多个
         /// </summary>
-        public IList<string> ReadDataConnectionString { get; set; } = new[]
-        {
-            "Data Source=192.168.1.199;Database=Power_Organization;User ID=root;Password=123456;pooling=true;CharSet=utf8;port=3306;sslMode=None;"
-        };
+        public IList<string> ReadDataConnectionString { get; set; } = new List<string>();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.Json;
 using Girvs.BusinessBasis.Entities;
 using Girvs.Configuration;
 using Girvs.EntityFrameworkCore.Configuration;
@@ -21,22 +22,22 @@ namespace Girvs.EntityFrameworkCore.Context
             : base(options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
-            var appSetting = Singleton<AppSettings>.Instance ?? throw new ArgumentNullException(nameof(AppSettings));
+            var appSetting = EngineContext.Current.Resolve<AppSettings>() ?? throw new ArgumentNullException(nameof(AppSettings));
             _dbConfig = appSetting.ModuleConfigurations[nameof(DbConfig)] ?? throw new ArgumentNullException(nameof(DbConfig));
             _logger = EngineContext.Current.Resolve<ILogger<DbContext>>() ?? throw new ArgumentNullException("ILogger");
         }
 
-        public abstract string DbConfigName { get; }
+        public abstract string DbConfigName { get; set; }
 
-        public DataConnectionConfig GetDataConnectionConfig()
+        public virtual DataConnectionConfig GetDataConnectionConfig()
         {
             if (string.IsNullOrEmpty(DbConfigName))
             {
-                throw new GirvsException("DbContext未绑定指定的数据库名称", 568);
+                throw new GirvsException($"DbContext未绑定指定的数据库名称:{JsonSerializer.Serialize(_dbConfig)}", 568);
             }
 
             return _dbConfig.DataConnectionConfigs.FirstOrDefault(x => x.Name == DbConfigName)
-                   ?? throw new GirvsException("DbContext未绑定指定的数据库名称不正确", 568);
+                   ?? throw new GirvsException($"DbContext未绑定指定的数据库名称不正确:{JsonSerializer.Serialize(_dbConfig)}", 568);
         }
 
         /// <summary>
@@ -51,7 +52,7 @@ namespace Girvs.EntityFrameworkCore.Context
             _logger.LogInformation($"切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{GetDbConnectionString()}");
         }
 
-        public string GetDbConnectionString()
+        public virtual string GetDbConnectionString()
         {
             var dataConnectionConfig = GetDataConnectionConfig();
 

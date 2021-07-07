@@ -1,4 +1,0 @@
-﻿namespace BasicManagement.Application.AppService
-{
-    
-}

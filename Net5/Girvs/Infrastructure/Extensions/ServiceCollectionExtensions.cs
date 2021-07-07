@@ -18,7 +18,7 @@ namespace Girvs.Infrastructure.Extensions
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
             CommonHelper.DefaultFileProvider = new GirvsFileProvider(webHostEnvironment);
-            
+
             services.AddHttpContextAccessor();
 
             var appSettings = new AppSettings();
@@ -28,7 +28,7 @@ namespace Girvs.Infrastructure.Extensions
             var engine = EngineContext.Create();
 
             engine.ConfigureServices(services, configuration);
-            
+
 
             return (engine, appSettings);
         }
@@ -57,7 +57,7 @@ namespace Girvs.Infrastructure.Extensions
             configuration.Bind(appSettings);
             appSettings.PreLoadModelConfig();
             //判断是否为新环境，如果是环境执行初始化，判断的条件就是AppData下存不存在AppSettings.json文件
-            appSettings.IsInit = !AppSettingsHelper.ExistAppSettingsFile();
+            var isInit = !AppSettingsHelper.ExistAppSettingsFile();
 
             var typeFinder = new WebAppTypeFinder();
             var modelSettings = typeFinder.FindOfType<IAppModuleConfig>();
@@ -69,7 +69,7 @@ namespace Girvs.Infrastructure.Extensions
                 var nodeName = appModelConfig?.GetType().Name ?? "TempModel";
                 configuration.GetSection($"ModuleConfigurations:{nodeName}").Bind(appModelConfig);
 
-                if (appSettings.IsInit)
+                if (isInit)
                 {
                     appModelConfig?.Init();
                 }
