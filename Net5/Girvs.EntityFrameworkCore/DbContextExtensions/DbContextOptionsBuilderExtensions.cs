@@ -1,4 +1,5 @@
-﻿using Girvs.EntityFrameworkCore.Configuration;
+﻿using System;
+using Girvs.EntityFrameworkCore.Configuration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.EntityFrameworkCore.DbContextExtensions
@@ -14,8 +15,9 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         public static void UseMySqlWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
             DataConnectionConfig config, string connStr)
         {
-            optionsBuilder.UseSqlServer(connStr,
-                option => option.CommandTimeout(config.SQLCommandTimeout));
+            var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
+
+            optionsBuilder.UseMySql(connStr, serverVersion);
         }
 
         public static void UseSqlLiteWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
