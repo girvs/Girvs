@@ -1,7 +1,6 @@
 {
-  "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "BasicManagement.WebApi": {
+    "ZhuoFan.Wb.BasicService.WebApi": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

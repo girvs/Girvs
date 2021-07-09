@@ -81,7 +81,6 @@ namespace Girvs.EntityFrameworkCore.Context
             _logger.LogInformation(
                 $"当前操作数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
             var dataConnectionConfig = GetDataConnectionConfig();
-
             switch (dataConnectionConfig.UseDataType)
             {
                 case UseDataType.MsSql:
@@ -111,7 +110,10 @@ namespace Girvs.EntityFrameworkCore.Context
                 optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             }
 
-            optionsBuilder.EnableSensitiveDataLogging();
+            if (dataConnectionConfig.EnableSensitiveDataLogging)
+            {
+                optionsBuilder.LogTo(message => _logger.LogInformation(message));
+            }
         }
 
         public static void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> entity)

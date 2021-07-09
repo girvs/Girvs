@@ -2,6 +2,7 @@
 using Girvs.EntityFrameworkCore.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ZhuoFan.Wb.BasicService.Domain.Enumerations;
 using ZhuoFan.Wb.BasicService.Domain.Models;
 
 namespace ZhuoFan.Wb.BasicService.Infrastructure.EntityConfigurations
@@ -20,16 +21,16 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.EntityConfigurations
             builder.Property(x => x.UserType).HasColumnType("int");
 
             //添加用户种子数据
-            //builder.HasData(new User()
-            //{
-            //    Id = Guid.Parse("58205e0e-1552-4282-bedc-a92d0afb37df"),
-            //    UserName = "系统管理员",
-            //    UserPassword = "21232F297A57A5A743894A0E4A801FC3",
-            //    UserAccount = "admin",
-            //    UserType = UserType.SuperAdmin,
-            //    State = DataState.Enable,
-            //    IsInitData = true
-            //});
+            builder.HasData(new User()
+            {
+                Id = Guid.Parse("58205e0e-1552-4282-bedc-a92d0afb37df"),
+                UserName = "系统管理员",
+                UserPassword = "21232F297A57A5A743894A0E4A801FC3",
+                UserAccount = "admin",
+                UserType = UserType.SuperAdmin,
+                State = DataState.Enable,
+                IsInitData = true
+            });
         }
     }
 }

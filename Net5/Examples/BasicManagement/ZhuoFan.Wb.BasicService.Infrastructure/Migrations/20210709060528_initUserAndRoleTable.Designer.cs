@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZhuoFan.Wb.BasicService.Infrastructure;
 
 namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
 {
     [DbContext(typeof(BasicManagementDbContext))]
-    partial class BasicManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210709060528_initUserAndRoleTable")]
+    partial class initUserAndRoleTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,19 +88,6 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("User");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"),
-                            IsInitData = 1ul,
-                            OtherId = "00000000-0000-0000-0000-000000000000",
-                            State = 0,
-                            UserAccount = "admin",
-                            UserName = "系统管理员",
-                            UserPassword = "21232F297A57A5A743894A0E4A801FC3",
-                            UserType = 0
-                        });
                 });
 
             modelBuilder.Entity("RoleUser", b =>

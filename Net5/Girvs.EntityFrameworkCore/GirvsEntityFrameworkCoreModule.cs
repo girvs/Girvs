@@ -15,7 +15,7 @@ namespace Girvs.EntityFrameworkCore
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            //services.AddGirvsObjectContext();
+            services.AddGirvsObjectContext();
             services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));

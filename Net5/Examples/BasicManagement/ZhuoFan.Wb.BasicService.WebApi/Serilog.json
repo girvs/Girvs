@@ -1,1 +1,60 @@
-﻿{"Serilog":{"Using":["Serilog.Settings.Configuration","Serilog.Sinks.File"],"MinimumLevel":{"Default":"Debug","Override":{"Microsoft":"Debug","System":"Warning"}},"WriteTo":[{"Name":"Console","Args":{"outputTemplate":"{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}","restrictedToMinimumLevel":"Debug"}},{"Name":"File","Args":{"restrictedToMinimumLevel":"Warning","RollingInterval":"Hour","path":"./logs/Warning/log-Warning-.log","outputTemplate":"{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"}},{"Name":"File","Args":{"restrictedToMinimumLevel":"Information","RollingInterval":"Hour","path":"./logs/Information/log-Information-.log","outputTemplate":"{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"}},{"Name":"File","Args":{"restrictedToMinimumLevel":"Error","RollingInterval":"Hour","path":"./logs/Error/log-Error-.log","outputTemplate":"{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"}},{"Name":"File","Args":{"restrictedToMinimumLevel":"Fatal","RollingInterval":"Hour","path":"./logs/Fatal/log-Fatal-.log","outputTemplate":"{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"}}]}}
+﻿{
+  "Serilog": {
+    "Using": [
+      "Serilog.Settings.Configuration",
+      "Serilog.Sinks.File"
+    ],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Information",
+        "System": "Information"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}",
+          "restrictedToMinimumLevel": "Information"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Warning",
+          "RollingInterval": "Hour",
+          "path": "./logs/Warning/log-Warning-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Information",
+          "RollingInterval": "Hour",
+          "path": "./logs/Information/log-Information-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Error",
+          "RollingInterval": "Hour",
+          "path": "./logs/Error/log-Error-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Fatal",
+          "RollingInterval": "Hour",
+          "path": "./logs/Fatal/log-Fatal-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+        }
+      }
+    ]
+  }
+}

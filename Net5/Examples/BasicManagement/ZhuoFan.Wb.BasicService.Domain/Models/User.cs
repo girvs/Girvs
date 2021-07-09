@@ -11,8 +11,6 @@ namespace ZhuoFan.Wb.BasicService.Domain.Models
         {
             Roles = new List<Role>();
         }
-
-        public Guid Id { get; set; }
         
         /// <summary>
         /// 登陆名称

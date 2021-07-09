@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ZhuoFan.Wb.BasicService.Infrastructure;
@@ -10,24 +9,23 @@ using ZhuoFan.Wb.BasicService.Infrastructure;
 namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
 {
     [DbContext(typeof(BasicManagementDbContext))]
-    [Migration("20210709044331_init001")]
-    partial class init001
+    [Migration("20210709082057_inittest")]
+    partial class inittest
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.7")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("Relational:MaxIdentifierLength", 64)
+                .HasAnnotation("ProductVersion", "5.0.7");
 
             modelBuilder.Entity("RoleUser", b =>
                 {
                     b.Property<Guid>("RolesId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("UsersId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("RolesId", "UsersId");
 
@@ -40,12 +38,12 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Desc")
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<bool>("IsInitData")
+                    b.Property<ulong>("IsInitData")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -60,12 +58,12 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("ContactNumber")
                         .HasColumnType("varchar(12)");
 
-                    b.Property<bool>("IsInitData")
+                    b.Property<ulong>("IsInitData")
                         .HasColumnType("bit");
 
                     b.Property<string>("OtherId")
@@ -90,6 +88,19 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("User");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"),
+                            IsInitData = 1ul,
+                            OtherId = "00000000-0000-0000-0000-000000000000",
+                            State = 0,
+                            UserAccount = "admin",
+                            UserName = "系统管理员",
+                            UserPassword = "21232F297A57A5A743894A0E4A801FC3",
+                            UserType = 0
+                        });
                 });
 
             modelBuilder.Entity("RoleUser", b =>

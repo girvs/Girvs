@@ -28,11 +28,6 @@ namespace ZhuoFan.Wb.BasicService.WebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (WebHostEnvironment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            
             app.UseGirvsExceptionHandler();
             app.ConfigureRequestPipeline();
             app.UseRouting();

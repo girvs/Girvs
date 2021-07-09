@@ -11,7 +11,6 @@ namespace ZhuoFan.Wb.BasicService.Domain.Models
             Users = new List<User>();
         }
 
-        public Guid Id { get; set; }
         public string Name { get; set; }
 
         public string Desc { get; set; }

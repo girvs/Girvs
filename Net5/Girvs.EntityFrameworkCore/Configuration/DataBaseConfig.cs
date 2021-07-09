@@ -70,11 +70,13 @@ namespace Girvs.EntityFrameworkCore.Configuration
         /// </summary>
         public bool UseRowNumberForPaging { get; set; } = true;
 
+        public bool EnableSensitiveDataLogging { get; set; } = false;
+
         /// <summary>
         /// 主数据库连接字符串
         /// </summary>
         public string MasterDataConnectionString { get; set; } =
-            "Data Source=192.168.1.199;Database=Power_Organization;User ID=root;Password=123456;pooling=true;CharSet=utf8;port=3306;sslMode=None;";
+            "Server=192.168.51.166;database=Wb_BasicManagement;User ID=root;Password=123456;Character Set=utf8;";
 
         /// <summary>
         /// 从数据库字符串集,可以是多个
