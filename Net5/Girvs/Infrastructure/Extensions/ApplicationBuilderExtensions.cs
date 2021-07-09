@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Girvs.Infrastructure.Extensions
@@ -85,10 +86,9 @@ namespace Girvs.Infrastructure.Extensions
 
                     var logger = application.ApplicationServices.GetService(typeof(ILogger<object>)) as ILogger<object>;
                     logger.LogError(exception, exception.Message);
-                    var spConfig = EngineContext.Current.Resolve<AppSettings>();
+                    var appSettings = EngineContext.Current.Resolve<AppSettings>();
                     var hostingEnvironment = EngineContext.Current.Resolve<IWebHostEnvironment>();
-                    var useDetailedExceptionPage = false;
-                        //spConfig.DisplayFullErrorStack || hostingEnvironment.IsDevelopment();
+                    var useDetailedExceptionPage = appSettings.CommonConfig.DisplayFullErrorStack || hostingEnvironment.IsDevelopment();
                     dynamic result = new
                     {
                         type = "http://tools.ietf.org/html/rfc2774#section-7",

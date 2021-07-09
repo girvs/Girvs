@@ -15,26 +15,29 @@ namespace Girvs.EntityFrameworkCore.Context
 {
     public abstract class GirvsDbContext : DbContext, IDbContext
     {
-        private readonly DbConfig _dbConfig;
         private readonly ILogger<DbContext> _logger;
 
-        protected GirvsDbContext(DbContextOptions options)
-            : base(options)
+        protected GirvsDbContext()
         {
-            if (options == null) throw new ArgumentNullException(nameof(options));
-            var appSetting = EngineContext.Current.Resolve<AppSettings>() ?? throw new ArgumentNullException(nameof(AppSettings));
-            _dbConfig = appSetting.ModuleConfigurations[nameof(DbConfig)] ?? throw new ArgumentNullException(nameof(DbConfig));
             _logger = EngineContext.Current.Resolve<ILogger<DbContext>>() ?? throw new ArgumentNullException("ILogger");
+        }
+
+        protected virtual DbConfig GetDbConfig()
+        {
+            var appSetting = EngineContext.Current.Resolve<AppSettings>() ?? throw new ArgumentNullException(nameof(AppSettings));
+            return appSetting.ModuleConfigurations[nameof(DbConfig)] ?? throw new ArgumentNullException(nameof(DbConfig));
         }
 
         public abstract string DbConfigName { get; set; }
 
         public virtual DataConnectionConfig GetDataConnectionConfig()
         {
+            var _dbConfig = GetDbConfig();
+
             if (string.IsNullOrEmpty(DbConfigName))
-            {
                 throw new GirvsException($"DbContext未绑定指定的数据库名称:{JsonSerializer.Serialize(_dbConfig)}", 568);
-            }
+
+            _logger.LogInformation($"开始获取指定：{DbConfigName}的数据库相关配置");
 
             return _dbConfig.DataConnectionConfigs.FirstOrDefault(x => x.Name == DbConfigName)
                    ?? throw new GirvsException($"DbContext未绑定指定的数据库名称不正确:{JsonSerializer.Serialize(_dbConfig)}", 568);

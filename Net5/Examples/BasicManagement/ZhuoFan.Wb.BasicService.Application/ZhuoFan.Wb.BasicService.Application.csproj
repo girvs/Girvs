@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
+    <ProjectReference Include="..\BasicManagement.Domain\ZhuoFan.Wb.BasicService.Domain.csproj" />
+    <ProjectReference Include="..\ZhuoFan.Wb.BasicService.Domain\ZhuoFan.Wb.BasicService.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
