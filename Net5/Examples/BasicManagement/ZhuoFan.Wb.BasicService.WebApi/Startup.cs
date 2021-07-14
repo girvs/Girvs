@@ -29,10 +29,10 @@ namespace ZhuoFan.Wb.BasicService.WebApi
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseGirvsExceptionHandler();
-            app.ConfigureRequestPipeline();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.ConfigureRequestPipeline();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

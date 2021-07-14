@@ -1,7 +1,4 @@
 ﻿using System;
-using Girvs.Configuration;
-using Girvs.Domain.Configuration;
-using Girvs.Infrastructure;
 
 namespace Girvs.BusinessBasis.Entities
 {
@@ -43,9 +40,6 @@ namespace Girvs.BusinessBasis.Entities
             {
                 initFieldObj.IsInitData = false;
             }
-
-
-            ClaimValueConfig config = Singleton<AppSettings>.Instance.ClaimValueConfig;
 
             // if (this is IIncludeCreatorName creatorNameObj)
             // {

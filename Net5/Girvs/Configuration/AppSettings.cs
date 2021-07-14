@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Girvs.Domain.Configuration;
 
 namespace Girvs.Configuration
 {
@@ -9,7 +8,11 @@ namespace Girvs.Configuration
 
         public HostingConfig HostingConfig { get; set; } = new HostingConfig();
 
-        public ClaimValueConfig ClaimValueConfig { get; protected set; } = new ClaimValueConfig();
+        public dynamic this[string index]
+        {
+            get => ModuleConfigurations[index];
+            set => ModuleConfigurations[index] = value;
+        }
         public IDictionary<string, dynamic> ModuleConfigurations { get; private set; } = null;
 
         public void PreLoadModelConfig()

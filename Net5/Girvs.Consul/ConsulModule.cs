@@ -16,7 +16,7 @@ namespace Girvs.Consul
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             var appSettings = Singleton<AppSettings>.Instance;
-            var consulConfig = appSettings.ModuleConfigurations[nameof(ConsulConfig)] as ConsulConfig;
+            var consulConfig = appSettings[nameof(ConsulConfig)] as ConsulConfig;
             
            //需要添加判断是否存在GRPC服务
             if (consulConfig.CurrentServerModel == ServerModel.GrpcService)

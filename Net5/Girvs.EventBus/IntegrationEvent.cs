@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using System.Threading;
-using Newtonsoft.Json;
 
-namespace Girvs.Cap
+namespace Girvs.EventBus
 {
     public class IntegrationEvent
     {

@@ -10,7 +10,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
 
-        public override string DbConfigName { get; set; } = "BasicManagementDataConnection";
+        public override string DbConfigName { get; set; } = "BasicManagementDataConnection11";
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

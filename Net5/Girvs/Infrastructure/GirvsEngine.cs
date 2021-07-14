@@ -237,7 +237,7 @@ namespace Girvs.Infrastructure
             {
                 return HttpContext.User.Claims.FirstOrDefault(x => x.Type == name);
             }
-            return new Claim("","");
+            return new Claim(name,"");
         }
         
         public virtual IServiceProvider ServiceProvider { get; protected set; }

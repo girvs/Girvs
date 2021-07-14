@@ -1,6 +1,7 @@
 ﻿using System;
 using Girvs.EntityFrameworkCore.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace Girvs.EntityFrameworkCore.DbContextExtensions
 {

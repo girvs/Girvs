@@ -7,6 +7,7 @@ using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.EntityFrameworkCore.Enumerations;
 using Girvs.Infrastructure;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Logging;
@@ -77,6 +78,7 @@ namespace Girvs.EntityFrameworkCore.Context
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            //SqlConnectionStringBuilder\MySqlConnectionStringBuilder
             var connStr = GetDbConnectionString();
             _logger.LogInformation(
                 $"当前操作数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");

@@ -1,4 +1,5 @@
 ﻿using System;
+using Girvs.Configuration;
 using Girvs.Consul.Configuration;
 using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -11,7 +12,8 @@ namespace Girvs.Consul.Infrastructure.ApplicationExtensions
     {
         public static void UseConsulByWebApi(this IApplicationBuilder app)
         {
-            var config = EngineContext.Current.Resolve<ConsulConfig>();
+            var appSettings = Singleton<AppSettings>.Instance;
+            var config = appSettings[nameof(ConsulConfig)] as ConsulConfig;
            
             if (config.CurrentServerModel == ServerModel.WebApi)
             {

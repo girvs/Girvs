@@ -39,6 +39,11 @@ namespace Girvs.EntityFrameworkCore.Configuration
         public string Name { get; set; } = "default";
 
         /// <summary>
+        /// 启用自动还原数据库
+        /// </summary>
+        public bool EnableAutoMigrate { get; set; } = true;
+
+        /// <summary>
         /// 数据库类型
         /// </summary>
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -82,5 +87,18 @@ namespace Girvs.EntityFrameworkCore.Configuration
         /// 从数据库字符串集,可以是多个
         /// </summary>
         public IList<string> ReadDataConnectionString { get; set; } = new List<string>();
+
+        // public DbHostServerPort MasterDatabaseHost { get; set; } = new DbHostServerPort();
+        // public IList<DbHostServerPort> SlaveDatabaseHost { get; set; } = new List<DbHostServerPort>();
+    }
+
+
+    public class DbHostServerPort
+    {
+        public string Server { get; set; } = "192.168.51.166";
+        public int Port { get; set; } = 3306;
+        public string DatabaseName { get; set; } = "Wb_BasicManagement";
+        public string UserId { get; set; } = "root";
+        public string Password { get; set; } = "123456";
     }
 }
