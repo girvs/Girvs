@@ -29,6 +29,7 @@ namespace Girvs
                             config
                                 .AddJsonFile(ConfigurationDefaults.AppSettingsFilePath, true, true)
                                 .AddJsonFile(ConfigurationDefaults.SerilogSettingFilePath, true, true)
+                                .AddJsonFile("./config/appsettings.Development.json", true, true)
                                 .AddEnvironmentVariables()
                                 .AddCommandLine(args);
                         })

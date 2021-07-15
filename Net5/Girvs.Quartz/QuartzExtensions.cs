@@ -4,7 +4,7 @@ using Girvs.Quartz.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz.Spi;
 
-namespace Girvs.WebFrameWork.Plugins.Quartz
+namespace Girvs.Quartz
 {
     public static class QuartzExtensions
     {

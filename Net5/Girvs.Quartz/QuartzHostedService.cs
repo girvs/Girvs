@@ -11,7 +11,7 @@ using Quartz;
 using Quartz.Impl;
 using Quartz.Spi;
 
-namespace Girvs.WebFrameWork.Plugins.Quartz
+namespace Girvs.Quartz
 {
     public class QuartzHostedService : IHostedService
     {

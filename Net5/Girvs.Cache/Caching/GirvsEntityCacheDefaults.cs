@@ -1,6 +1,6 @@
 ﻿using Girvs.BusinessBasis.Entities;
 
-namespace Girvs.Cache
+namespace Girvs.Cache.Caching
 {
     /// <summary>
     /// 表示与缓存实体相关的默认值

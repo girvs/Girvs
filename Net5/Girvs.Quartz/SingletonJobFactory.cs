@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 using Quartz.Spi;
 
-namespace Girvs.WebFrameWork.Plugins.Quartz
+namespace Girvs.Quartz
 {
     public class SingletonJobFactory : IJobFactory
     {

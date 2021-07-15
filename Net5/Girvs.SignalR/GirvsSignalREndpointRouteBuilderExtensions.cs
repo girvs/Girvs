@@ -3,7 +3,7 @@ using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Girvs.WebFrameWork.Plugins.SignalR
+namespace Girvs.SignalR
 {
     public static class GirvsSignalREndpointRouteBuilderExtensions
     {

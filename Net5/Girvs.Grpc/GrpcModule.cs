@@ -1,6 +1,5 @@
 ﻿using System;
 using Girvs.Infrastructure;
-using Girvs.WebFrameWork.Plugins.Grpc;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;

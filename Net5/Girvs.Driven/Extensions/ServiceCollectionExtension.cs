@@ -1,5 +1,5 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
+using AutoMapper.Internal;
 using FluentValidation;
 using Girvs.Driven.Commands;
 using Girvs.TypeFinder;
@@ -16,8 +16,8 @@ namespace Girvs.Driven.Extensions
             var types = typeFinder.FindOfType(typeof(INotificationHandler<>));
             foreach (var type in types)
             {
-                var implementedInterface = type.GetInterface("INotificationHandler`1");
-                if (implementedInterface != null)
+                // var implementedInterface = type.GetInterface("INotificationHandler`1");
+                foreach (var implementedInterface in type.GetInterfaces())
                 {
                     services.AddScoped(implementedInterface, type);
                 }

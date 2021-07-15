@@ -2,11 +2,10 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Girvs.Driven.Bus;
 using Girvs.Driven.Events;
 using MediatR;
 
-namespace Girvs.Infrastructure.Bus
+namespace Girvs.Driven.Bus
 {
     /// <summary>
     /// 一个密封类，实现我们的中介内存总线

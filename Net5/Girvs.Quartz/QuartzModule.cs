@@ -2,7 +2,6 @@
 using Girvs.Configuration;
 using Girvs.Infrastructure;
 using Girvs.Quartz.Configuration;
-using Girvs.WebFrameWork.Plugins.Quartz;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;

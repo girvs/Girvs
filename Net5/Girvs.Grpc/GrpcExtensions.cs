@@ -1,12 +1,11 @@
-﻿using Girvs.Grpc;
-using Girvs.Infrastructure;
+﻿using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 
-namespace Girvs.WebFrameWork.Plugins.Grpc
+namespace Girvs.Grpc
 {
     public static class GrpcExtensions
     {

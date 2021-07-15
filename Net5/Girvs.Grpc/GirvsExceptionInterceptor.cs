@@ -5,7 +5,7 @@ using Grpc.Core.Interceptors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace Girvs.WebFrameWork.Plugins.Grpc
+namespace Girvs.Grpc
 {
     public class GirvsExceptionInterceptor : Interceptor
     {
