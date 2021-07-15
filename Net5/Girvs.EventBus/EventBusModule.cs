@@ -16,6 +16,8 @@ namespace Girvs.EventBus
             var eventBusConfig =
                 Singleton<AppSettings>.Instance.ModuleConfigurations[nameof(EventBusConfig)] as EventBusConfig;
 
+            services.AddSingleton<IEventBus, CapEventBus.CapEventBus>();
+            
             services.AddCap(x =>
             {
                 switch (eventBusConfig.DbType)
