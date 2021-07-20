@@ -90,6 +90,7 @@ namespace Girvs.Cache.Caching
     public class CacheKey
     {
         private readonly CacheConfig _cacheConfig;
+
         public CacheKey(string prefix)
         {
             if (string.IsNullOrWhiteSpace(prefix))
@@ -100,9 +101,10 @@ namespace Girvs.Cache.Caching
             CacheTime = _cacheConfig.CacheBaseConfig.DefaultCacheTime;
         }
 
-        public CacheKey Create(string key)
+        public CacheKey Create(string key = "", int? cacheTime = null)
         {
             Key = string.Format(Prefix, key);
+            CacheTime = cacheTime ?? CacheTime;
             return this;
         }
 

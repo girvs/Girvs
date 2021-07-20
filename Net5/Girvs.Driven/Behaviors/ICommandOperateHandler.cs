@@ -4,7 +4,7 @@ using Girvs.Driven.Commands;
 
 namespace Girvs.Driven.Behaviors
 {
-    public interface ICommandOperateHandler:IManager
+    public interface ICommandOperateHandler : IManager
     {
         Task Handle(Command command);
     }
