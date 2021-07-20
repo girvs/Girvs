@@ -7,6 +7,11 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure
 {
     public class BasicManagementDbContext : GirvsDbContext
     {
+        public BasicManagementDbContext(DbContextOptions<BasicManagementDbContext> options) : base(options)
+        {
+            
+        }
+
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
 

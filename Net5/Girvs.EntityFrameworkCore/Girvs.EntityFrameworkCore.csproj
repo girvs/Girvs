@@ -3,10 +3,11 @@
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-      <Version>5.0.0-preview.1.2.5</Version>
+      <Version>5.0.0-preview.1.2.9</Version>
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
       <ProjectReference Include="..\Girvs\Girvs.csproj" />
     </ItemGroup>
 

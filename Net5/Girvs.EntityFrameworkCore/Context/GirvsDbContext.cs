@@ -7,7 +7,6 @@ using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.EntityFrameworkCore.Enumerations;
 using Girvs.Infrastructure;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.Logging;
@@ -18,11 +17,11 @@ namespace Girvs.EntityFrameworkCore.Context
     {
         private readonly ILogger<DbContext> _logger;
 
-        protected GirvsDbContext()
+        public GirvsDbContext(DbContextOptions options) : base(options)
         {
-            _logger = EngineContext.Current.Resolve<ILogger<DbContext>>() ?? throw new ArgumentNullException("ILogger");
+            _logger = EngineContext.Current.Resolve<ILogger<DbContext>>();
         }
-
+        
         protected virtual DbConfig GetDbConfig()
         {
             var appSetting = EngineContext.Current.Resolve<AppSettings>() ?? throw new ArgumentNullException(nameof(AppSettings));
@@ -38,7 +37,7 @@ namespace Girvs.EntityFrameworkCore.Context
             if (string.IsNullOrEmpty(DbConfigName))
                 throw new GirvsException($"DbContext未绑定指定的数据库名称:{JsonSerializer.Serialize(_dbConfig)}", 568);
 
-            _logger.LogInformation($"开始获取指定：{DbConfigName}的数据库相关配置");
+            _logger?.LogInformation($"开始获取指定：{DbConfigName}的数据库相关配置");
 
             return _dbConfig.DataConnectionConfigs.FirstOrDefault(x => x.Name == DbConfigName)
                    ?? throw new GirvsException($"DbContext未绑定指定的数据库名称不正确:{JsonSerializer.Serialize(_dbConfig)}", 568);
@@ -53,7 +52,7 @@ namespace Girvs.EntityFrameworkCore.Context
         {
             ReadAndWriteMode = DataBaseWriteAndRead.Write;
             Database.GetDbConnection().ConnectionString = GetDbConnectionString();
-            _logger.LogInformation($"切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{GetDbConnectionString()}");
+            _logger?.LogInformation($"切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{GetDbConnectionString()}");
         }
 
         public virtual string GetDbConnectionString()
@@ -80,7 +79,7 @@ namespace Girvs.EntityFrameworkCore.Context
         {
             //SqlConnectionStringBuilder\MySqlConnectionStringBuilder
             var connStr = GetDbConnectionString();
-            _logger.LogInformation(
+            _logger?.LogInformation(
                 $"当前操作数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
             var dataConnectionConfig = GetDataConnectionConfig();
             switch (dataConnectionConfig.UseDataType)

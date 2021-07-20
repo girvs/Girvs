@@ -8,7 +8,7 @@ namespace Girvs.Driven.Extensions
 {
     public static class MappingExtensions
     {
-        public static TEntity MapToEntity<TEntity>(this Command command) where TEntity : BaseEntity, new()
+        public static TEntity MapToEntity<TEntity>(this Command command) where TEntity : Entity, new()
         {
             IMapper mapper = EngineContext.Current.Resolve<IMapper>();
             if (mapper != null)
