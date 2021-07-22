@@ -1,24 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>5.0.0-preview.1.3.0</Version>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>5.0.0-preview.1.3.1</Version>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Girvs\Girvs.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.8" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.11.1" />
+        <PackageReference Include="IdentityServer4" Version="4.1.2" />
+        <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.7" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Microsoft.AspNetCore.Authentication.JwtBearer, Version=5.0.7.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-      <HintPath>D:\ProgramData\Nuget\Packages\microsoft.aspnetcore.authentication.jwtbearer\5.0.7\lib\net5.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.IdentityModel.Tokens, Version=6.7.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
-      <HintPath>D:\ProgramData\Nuget\Packages\microsoft.identitymodel.tokens\6.7.1\lib\netstandard2.0\Microsoft.IdentityModel.Tokens.dll</HintPath>
-    </Reference>
-    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=6.7.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
-      <HintPath>D:\ProgramData\Nuget\Packages\system.identitymodel.tokens.jwt\6.7.1\lib\netstandard2.0\System.IdentityModel.Tokens.Jwt.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Girvs\Girvs.csproj" />
+    </ItemGroup>
 </Project>

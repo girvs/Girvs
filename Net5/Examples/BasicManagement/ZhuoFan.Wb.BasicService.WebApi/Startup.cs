@@ -30,8 +30,6 @@ namespace ZhuoFan.Wb.BasicService.WebApi
         {
             app.UseGirvsExceptionHandler();
             app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
             app.ConfigureRequestPipeline();
             app.UseEndpoints(endpoints =>
             {

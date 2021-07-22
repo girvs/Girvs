@@ -15,7 +15,7 @@
       {
         "Name": "Console",
         "Args": {
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}",
           "restrictedToMinimumLevel": "Information"
         }
       },
@@ -25,7 +25,7 @@
           "restrictedToMinimumLevel": "Warning",
           "RollingInterval": "Hour",
           "path": "./logs/Warning/log-Warning-.log",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
         }
       },
       {
@@ -34,7 +34,7 @@
           "restrictedToMinimumLevel": "Information",
           "RollingInterval": "Hour",
           "path": "./logs/Information/log-Information-.log",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
         }
       },
       {
@@ -43,7 +43,7 @@
           "restrictedToMinimumLevel": "Error",
           "RollingInterval": "Hour",
           "path": "./logs/Error/log-Error-.log",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
         }
       },
       {
@@ -52,7 +52,7 @@
           "restrictedToMinimumLevel": "Fatal",
           "RollingInterval": "Hour",
           "path": "./logs/Fatal/log-Fatal-.log",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
         }
       }
     ]

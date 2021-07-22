@@ -27,7 +27,7 @@ namespace Girvs.Configuration
                         Args = new
                         {
                             outputTemplate =
-                                "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                                "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}",
                             restrictedToMinimumLevel = "Debug"
                         }
                     },
@@ -41,7 +41,7 @@ namespace Girvs.Configuration
                             RollingInterval = "Hour",
                             path = "./logs/Warning/log-Warning-.log",
                             outputTemplate =
-                                "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                                "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                         }
                     },
                     new
@@ -53,7 +53,7 @@ namespace Girvs.Configuration
                             RollingInterval = "Hour",
                             path = "./logs/Information/log-Information-.log",
                             outputTemplate =
-                                "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                                "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                         }
                     },
                     new
@@ -65,7 +65,7 @@ namespace Girvs.Configuration
                             RollingInterval = "Hour",
                             path = "./logs/Error/log-Error-.log",
                             outputTemplate =
-                                "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                                "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                         }
                     },
                     new
@@ -77,7 +77,7 @@ namespace Girvs.Configuration
                             RollingInterval = "Hour",
                             path = "./logs/Fatal/log-Fatal-.log",
                             outputTemplate =
-                                "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                                "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                         }
                     },
                 }

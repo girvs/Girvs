@@ -14,5 +14,6 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService
         Task<UserQueryViewModel> GetAsync(UserQueryViewModel model);
         Task<UserDetailViewModel> GetByAccount(string account);
         Task<UserDetailViewModel> GetByOtherId(Guid otherId);
+        Task<string> GetToken(string account, string password);
     }
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Girvs;
 using Girvs.AuthorizePermission;
 using Girvs.AuthorizePermission.Enumerations;
+using Girvs.AuthorizePermission.Extensions;
 using Girvs.AutoMapper.Extensions;
 using Girvs.Cache.Caching;
 using Girvs.Driven.Bus;
@@ -22,6 +23,7 @@ using ZhuoFan.Wb.BasicService.Domain.Repositories;
 namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
 {
     [DynamicWebApi]
+    [Authorize(AuthenticationSchemes = GirvsAuthenticationScheme.GirvsJwt)]
     [ServicePermissionDescriptor("用户管理", "587752d1-7937-4e6a-a035-ee013e58b99b")]
     public class UserAppService : IUserAppService
     {
@@ -176,7 +178,6 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// </summary>
         /// <param name="account">登陆名称</param>
         /// <returns></returns>
-        [AllowAnonymous]
         [HttpGet("{account}")]
         public async Task<UserDetailViewModel> GetByAccount(string account)
         {
@@ -210,6 +211,26 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
             }
 
             return user.MapToDto<UserDetailViewModel>();
+        }
+        
+        /// <summary>
+        /// 根据用户名和密码获取Token
+        /// </summary>
+        /// <param name="account">登陆用户名</param>
+        /// <param name="password">密码</param>
+        /// <returns></returns>
+        /// <exception cref="GirvsException"></exception>
+        [AllowAnonymous]
+        [HttpGet("{account}/{password}")]
+        public async Task<string> GetToken(string account, string password)
+        {
+            var user = await _userRepository.GetUserByLoginNameAsync(account);
+            if (user == null || user.UserPassword != password.ToMd5())
+            {
+                throw new GirvsException("未找到对应的用户", StatusCodes.Status404NotFound);
+            }
+
+            return JwtBearerAuthenticationExtension.GenerateToken(user.Id.ToString(), user.UserName, user.Id.ToString(), user.UserName);
         }
     }
 }

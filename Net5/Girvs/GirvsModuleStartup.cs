@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Girvs.Extensions;
+using LogDashboard;
 
 namespace Girvs
 {
@@ -14,11 +15,13 @@ namespace Girvs
             services.RegisterRepository();
             services.RegisterUow();
             services.RegisterManager();
+            services.AddLogDashboard();
         }
 
         public void Configure(IApplicationBuilder application)
         {
-            
+            application.UseLogDashboard();
+
         }
 
         public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
