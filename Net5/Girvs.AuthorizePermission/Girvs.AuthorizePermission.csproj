@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
         <ProjectReference Include="..\Girvs\Girvs.csproj" />
     </ItemGroup>
 </Project>

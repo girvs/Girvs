@@ -9,6 +9,7 @@ using Girvs.Cache.Caching;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Notifications;
 using Girvs.Extensions;
+using Girvs.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -179,8 +180,11 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// <param name="account">登陆名称</param>
         /// <returns></returns>
         [HttpGet("{account}")]
+        [ServiceMethodPermissionDescriptor("浏览", Permission.View)]
         public async Task<UserDetailViewModel> GetByAccount(string account)
         {
+
+            var currentName = EngineContext.Current.GetUserName();
             var user = await _userRepository.GetUserByLoginNameAsync(account);
             if (user == null)
             {

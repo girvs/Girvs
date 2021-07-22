@@ -7,11 +7,14 @@ namespace Girvs.AuthorizePermission.Extensions
 {
     public static class EngineExtension
     {
+        private static ClaimValueConfig GetClaimValueConfig(IEngine engine)
+        {
+            return Singleton<AppSettings>.Instance[nameof(AuthorizeConfig)].ClaimValueConfig;
+        }
+
         public static Guid? GetUserId(this IEngine engine)
         {
-            var appsettings = engine.Resolve<AppSettings>();
-            var claimConfig = appsettings.ModuleConfigurations[nameof(ClaimValueConfig)] as ClaimValueConfig ??
-                              throw new ArgumentNullException(nameof(ClaimValueConfig));
+            var claimConfig = GetClaimValueConfig(engine);
 
             var userId = engine.GetCurrentClaimByName(claimConfig.ClaimSid).Value;
 
@@ -23,20 +26,17 @@ namespace Girvs.AuthorizePermission.Extensions
             return Guid.Parse(userId);
         }
 
+
         public static string GetUserName(this IEngine engine)
         {
-            var appsettings = engine.Resolve<AppSettings>();
-            var claimConfig = appsettings.ModuleConfigurations[nameof(ClaimValueConfig)] as ClaimValueConfig ??
-                              throw new ArgumentNullException(nameof(ClaimValueConfig));
+            var claimConfig = GetClaimValueConfig(engine);
 
             return engine.GetCurrentClaimByName(claimConfig.ClaimName).Value;
         }
 
         public static Guid? GetTenantId(this IEngine engine)
         {
-            var appsettings = engine.Resolve<AppSettings>();
-            var claimConfig = appsettings.ModuleConfigurations[nameof(ClaimValueConfig)] as ClaimValueConfig ??
-                              throw new ArgumentNullException(nameof(ClaimValueConfig));
+            var claimConfig = GetClaimValueConfig(engine);
 
             var tenantId = engine.GetCurrentClaimByName(claimConfig.ClaimTenantId).Value;
 
@@ -47,12 +47,10 @@ namespace Girvs.AuthorizePermission.Extensions
 
             return Guid.Parse(tenantId);
         }
-        
+
         public static string GetTenantName(this IEngine engine)
         {
-            var appsettings = engine.Resolve<AppSettings>();
-            var claimConfig = appsettings.ModuleConfigurations[nameof(ClaimValueConfig)] as ClaimValueConfig ??
-                              throw new ArgumentNullException(nameof(ClaimValueConfig));
+            var claimConfig = GetClaimValueConfig(engine);
 
             return engine.GetCurrentClaimByName(claimConfig.ClaimTenantName).Value;
         }

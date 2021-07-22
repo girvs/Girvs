@@ -10,6 +10,8 @@ namespace Girvs.AuthorizePermission.Configuration
         public IdentityServer4Config IdentityServer4Config { get; set; } = new IdentityServer4Config();
         public JwtConfig JwtConfig { get; set; } = new JwtConfig();
 
+        public bool UseServiceMethodPermissionCompare { get; set; } = true;
+
         public void Init()
         {
         }

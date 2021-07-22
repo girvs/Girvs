@@ -4,7 +4,7 @@ using Girvs.AuthorizePermission.Enumerations;
 namespace Girvs.AuthorizePermission
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class ServiceMethodPermissionDescriptorAttribute : System.Attribute
+    public class ServiceMethodPermissionDescriptorAttribute : Attribute
     {
         public string MethodName { get; }
         public Permission Permission { get; }
