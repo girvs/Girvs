@@ -75,7 +75,7 @@ namespace Girvs.AuthorizePermission.ActionPermission
             }
             else
             {
-                _logger.LogInformation("当前服务没有实现接口权限认证，需要实现接口：IServiceMethodPermissionCompare");
+                _logger.LogWarning("当前服务没有实现接口权限认证，需要实现接口：IServiceMethodPermissionCompare");
             }
 
             base.OnActionExecuting(context);

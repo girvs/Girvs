@@ -5,54 +5,59 @@
       "Serilog.Sinks.File"
     ],
     "MinimumLevel": {
-      "Default": "Information",
+      "Default": "Debug",
       "Override": {
-        "Microsoft": "Information",
-        "System": "Information"
+        "Microsoft": "Debug",
+        "System": "Debug"
       }
     },
     "WriteTo": [
       {
         "Name": "Console",
         "Args": {
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}",
-          "restrictedToMinimumLevel": "Information"
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}",
+          "restrictedToMinimumLevel": "Debug"
+        }
+      },
+
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Warning", //记录日志级别
+          "RollingInterval": "Hour", //每个小时一个日志文件
+          "path": "logs\\Warning\\log-Warning-.log",
+          "outputTemplate": "{Timestamp:HH:mm} || {Level} || {SourceContext:l} || {Message} || {Exception} ||end {NewLine}",
+          "retainedFileCountLimit": 1440
         }
       },
       {
         "Name": "File",
         "Args": {
-          "restrictedToMinimumLevel": "Warning",
-          "RollingInterval": "Hour",
-          "path": "./logs/Warning/log-Warning-.log",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+          "restrictedToMinimumLevel": "Information", //记录日志级别
+          "RollingInterval": "Hour", //每个小时一个日志文件
+          "path": "logs\\Information\\log-Information-.log",
+          "outputTemplate": "{Timestamp:HH:mm} || {Level} || {SourceContext:l} || {Message} || {Exception} ||end {NewLine}",
+          "retainedFileCountLimit": 1440
         }
       },
       {
         "Name": "File",
         "Args": {
-          "restrictedToMinimumLevel": "Information",
-          "RollingInterval": "Hour",
-          "path": "./logs/Information/log-Information-.log",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+          "restrictedToMinimumLevel": "Error", //记录日志级别错误级别
+          "RollingInterval": "Hour", //每天一个日志文件
+          "path": "logs\\Error\\log-Error-.log",
+          "outputTemplate": "{Timestamp:HH:mm} || {Level} || {SourceContext:l} || {Message} || {Exception} ||end {NewLine}",
+          "retainedFileCountLimit": 1440
         }
       },
       {
         "Name": "File",
         "Args": {
-          "restrictedToMinimumLevel": "Error",
-          "RollingInterval": "Hour",
-          "path": "./logs/Error/log-Error-.log",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
-        }
-      },
-      {
-        "Name": "File",
-        "Args": {
-          "restrictedToMinimumLevel": "Fatal",
-          "RollingInterval": "Hour",
-          "path": "./logs/Fatal/log-Fatal-.log",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+          "restrictedToMinimumLevel": "Fatal", //记录日志级别错误级别
+          "RollingInterval": "Hour", //每天一个日志文件
+          "path": "logs\\Fatal\\log-Fatal-.log",
+          "outputTemplate": "{Timestamp:HH:mm} || {Level} || {SourceContext:l} || {Message} || {Exception} ||end {NewLine}",
+          "retainedFileCountLimit": 1440
         }
       }
     ]

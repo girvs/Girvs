@@ -8,7 +8,7 @@ namespace Girvs.AuthorizePermission.Extensions
 {
     public static class BaseEntityExtension
     {
-        public static void InitPropertyValue(this BaseEntity entity)
+        public static void InitPropertyValue(this Entity entity)
         {
             var appSettings = EngineContext.Current.Resolve<AppSettings>();
 

@@ -18,7 +18,7 @@ namespace Girvs.Cache.Caching
         /// <remarks>
         /// {0} : entity id
         /// </remarks>
-        public static CacheKey ByIdCacheKey => new CacheKey($"{EntityTypeName}:byid.{{0}}");
+        public static CacheKey ByIdCacheKey => new CacheKey($"{EntityTypeName}:byid:{{0}}");
 
         /// <summary>
         /// 获取通过标识符缓存实体的键
@@ -26,12 +26,12 @@ namespace Girvs.Cache.Caching
         /// <remarks>
         /// {0} : entity ids
         /// </remarks>
-        public static CacheKey ByIdsCacheKey => new CacheKey($"{ListCacheKey}:byids.{{0}}");
+        public static CacheKey ByIdsCacheKey => new CacheKey($"{EntityTypeName}:list:byids:{{0}}");
 
         /// <summary>
         /// 获取缓存所有实体的键
         /// </summary>
-        public static CacheKey AllCacheKey => new CacheKey($"{ListCacheKey}:all");
+        public static CacheKey AllCacheKey => new CacheKey($"{EntityTypeName}:list:all");
 
         /// <summary>
         /// 获取所有列表页面的缓存
@@ -41,7 +41,7 @@ namespace Girvs.Cache.Caching
         /// <summary>
         /// 获取查询列表缓存键
         /// </summary>
-        public static CacheKey QueryCacheKey => new CacheKey($"{ListCacheKey}:query.{{0}}");
+        public static CacheKey QueryCacheKey => new CacheKey($"{EntityTypeName}:list:query:{{0}}");
 
         /// <summary>
         /// 创建自定义的缓存键
