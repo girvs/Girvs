@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>5.0.0-preview.1.5.0</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
+      <ProjectReference Include="..\Girvs\Girvs.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="5.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.7">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Oracle.EntityFrameworkCore" Version="5.21.1" />
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Repositories\BaseActionRepository.cs" />
+    </ItemGroup>
+
+</Project>

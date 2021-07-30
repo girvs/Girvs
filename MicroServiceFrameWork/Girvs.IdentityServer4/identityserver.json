@@ -1,6 +1,0 @@
-﻿{
-  "IdentityServer4": {
-    "ServerHost": "http://localhost:5001",
-    "ClientName": "ApiName1"
-  }
-}
