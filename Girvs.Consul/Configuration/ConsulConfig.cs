@@ -4,7 +4,7 @@ namespace Girvs.Consul.Configuration
 {
     public class ConsulConfig : IAppModuleConfig
     {
-        public string ServerName { get; set; } = "ServiceName";
+        public string ServerName { get; set; } = "";
         public string ConsulAddress { get; set; } = "http://127.0.0.1:8500";
         public string HealthAddress { get; set; } = "http://127.0.0.1/Health";
         public int Interval { get; set; } = 10;

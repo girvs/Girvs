@@ -20,7 +20,7 @@ namespace Girvs.EventBus.CapEventBus
             where TIntegrationEvent : IntegrationEvent
         {
             var topicName = @event.GetType().Name;
-            _logger.LogInformation("Publishing event {@Event} to {PubsubName}.{TopicName}", @event, topicName);
+            _logger.LogInformation("Publishing event {@Event} to.{TopicName}", @event, topicName);
 
             await _capPublisher.PublishAsync(topicName, (dynamic) @event);
         }

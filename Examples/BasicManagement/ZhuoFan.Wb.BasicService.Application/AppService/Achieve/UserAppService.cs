@@ -9,7 +9,6 @@ using Girvs.Cache.Caching;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Notifications;
 using Girvs.Extensions;
-using Girvs.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +29,7 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
     {
         private readonly IStaticCacheManager _cacheManager;
         private readonly IMediatorHandler _bus;
+        private readonly UserClient _userClient;
         private readonly DomainNotificationHandler _notifications;
         private readonly IUserRepository _userRepository;
 
@@ -37,11 +37,13 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
             IStaticCacheManager cacheManager,
             IMediatorHandler bus,
             INotificationHandler<DomainNotification> notifications,
+            UserClient userClient,
             IUserRepository userRepository
         )
         {
             _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+            _userClient = userClient;
             _notifications = (DomainNotificationHandler) notifications;
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
@@ -181,10 +183,12 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// <param name="account">登陆名称</param>
         /// <returns></returns>
         [HttpGet("{account}")]
+        [AllowAnonymous]
         [ServiceMethodPermissionDescriptor("浏览", Permission.View)]
         public async Task<UserDetailViewModel> GetByAccount(string account)
         {
-            var currentName = EngineContext.Current.ClaimManager.GetUserName();
+            var token = await _userClient.GetUserById();
+            
             var user = await _userRepository.GetUserByLoginNameAsync(account);
             if (user == null)
             {
