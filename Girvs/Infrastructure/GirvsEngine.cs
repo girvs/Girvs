@@ -64,7 +64,7 @@ namespace Girvs.Infrastructure
             services.AddSingleton<ITypeFinder>(typeFinder);
 
             ServiceProvider = services.BuildServiceProvider();
-            
+
             var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
             //create and sort instances of startup configurations
@@ -237,10 +237,16 @@ namespace Girvs.Infrastructure
             {
                 return HttpContext.User.Claims.FirstOrDefault(x => x.Type == name);
             }
-            return new Claim(name,"");
+
+            return new Claim(name, "");
         }
 
         public IClaimManager ClaimManager => Resolve<IClaimManager>();
+
+        public T GetAppModuleConfig<T>() where T : IAppModuleConfig
+        {
+            return Singleton<AppSettings>.Instance[typeof(T).Name];
+        }
 
         public virtual IServiceProvider ServiceProvider { get; protected set; }
     }

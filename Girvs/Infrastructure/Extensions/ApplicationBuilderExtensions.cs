@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Girvs.Infrastructure.Extensions
 {
@@ -20,7 +22,7 @@ namespace Girvs.Infrastructure.Extensions
         {
             EngineContext.Current.ConfigureRequestPipeline(application);
         }
-        
+
         /// <summary>
         /// 配置应用程序HTTP请求管道
         /// </summary>
@@ -31,14 +33,16 @@ namespace Girvs.Infrastructure.Extensions
         }
 
 
-        public static void UseGirvsEndpoints(this IApplicationBuilder application,Action<IEndpointRouteBuilder> configure)
+        public static void UseGirvsEndpoints(this IApplicationBuilder application,
+            Action<IEndpointRouteBuilder> configure)
         {
             application.UseEndpoints(endpoints =>
             {
-                EngineContext.Current.ConfigureEndpointRouteBuilder(endpoints);
                 configure(endpoints);
+                EngineContext.Current.ConfigureEndpointRouteBuilder(endpoints);
             });
         }
+
 
         /// <summary>
         /// 添加一个特殊的处理程序，该处理程序检查状态码为400（错误请求）的响应
@@ -86,34 +90,62 @@ namespace Girvs.Infrastructure.Extensions
                 handler.Run(async context =>
                 {
                     var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-
                     if (exception == null)
                         return;
+
+                    var logger = application.ApplicationServices.GetService(typeof(ILogger<object>)) as ILogger<object>;
+                    logger.LogError(exception, exception.Message);
+
+                    var hostingEnvironment = EngineContext.Current.Resolve<IWebHostEnvironment>();
+                    var useDetailedExceptionPage = Singleton<AppSettings>.Instance.CommonConfig.DisplayFullErrorStack ||
+                                                   hostingEnvironment.IsDevelopment();
+
+                    var result = new ExceptionResult();
 
                     if (exception is GirvsException girvsException)
                     {
                         context.Response.StatusCode = girvsException.StatusCode;
+                        result.Errors = girvsException.Error;
                     }
 
-                    var logger = application.ApplicationServices.GetService(typeof(ILogger<object>)) as ILogger<object>;
-                    logger.LogError(exception, exception.Message);
-                    var appSettings = EngineContext.Current.Resolve<AppSettings>();
-                    var hostingEnvironment = EngineContext.Current.Resolve<IWebHostEnvironment>();
-                    var useDetailedExceptionPage = appSettings.CommonConfig.DisplayFullErrorStack || hostingEnvironment.IsDevelopment();
-                    dynamic result = new
+                    result.Errors ??= exception.Message;
+                    
+                    if (context.Response.StatusCode == 568)
                     {
-                        type = "http://tools.ietf.org/html/rfc2774#section-7",
-                        message = exception.Message,
-                        status = context.Response.StatusCode,
-                        traceId = context.TraceIdentifier,
-                        stackTrace = useDetailedExceptionPage ? exception.StackTrace : string.Empty
-                    };
+                        result.Title = "系统预置错误";
+                        result.Link = "https://github.com/girvs/Girvs";
+                    }
+                    else
+                    {
+                        var apiBehaviorOptions =  EngineContext.Current.Resolve<IOptions<ApiBehaviorOptions>>();
+                        var clientError = apiBehaviorOptions.Value.ClientErrorMapping[context.Response.StatusCode];
+                        result.Link = clientError.Link;
+                        result.Title = clientError.Title;
+                    }
 
-                    string resultContext = JsonSerializer.Serialize(result);
+                    result.Status = context.Response.StatusCode;
+                    result.TraceId = context.TraceIdentifier;
+                    result.StackTrace = useDetailedExceptionPage ? exception.StackTrace : string.Empty;
+
+                    var resultContext = JsonSerializer.Serialize(result, new JsonSerializerOptions()
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+
                     context.Response.ContentType = "application/json";
                     await context.Response.WriteAsync(resultContext, Encoding.UTF8);
                 });
             });
         }
+    }
+
+    public class ExceptionResult
+    {
+        public string Title { get; set; }
+        public string Link { get; set; }
+        public dynamic Errors { get; set; }
+        public string TraceId { get; set; }
+        public int Status { get; set; }
+        public string StackTrace { get; set; }
     }
 }

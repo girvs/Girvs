@@ -9,10 +9,12 @@ using Girvs.Cache.Caching;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Notifications;
 using Girvs.Extensions;
+using Girvs.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Panda.DynamicWebApi.Attributes;
 using ZhuoFan.Wb.BasicService.Application.ViewModels.User;
 using ZhuoFan.Wb.BasicService.Domain.Commands.User;
@@ -22,14 +24,13 @@ using ZhuoFan.Wb.BasicService.Domain.Repositories;
 
 namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
 {
-    [DynamicWebApi]
     [Authorize(AuthenticationSchemes = GirvsAuthenticationScheme.GirvsJwt)]
     [ServicePermissionDescriptor("用户管理", "587752d1-7937-4e6a-a035-ee013e58b99b")]
+    [DynamicWebApi]
     public class UserAppService : IUserAppService
     {
         private readonly IStaticCacheManager _cacheManager;
         private readonly IMediatorHandler _bus;
-        private readonly UserClient _userClient;
         private readonly DomainNotificationHandler _notifications;
         private readonly IUserRepository _userRepository;
 
@@ -37,13 +38,11 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
             IStaticCacheManager cacheManager,
             IMediatorHandler bus,
             INotificationHandler<DomainNotification> notifications,
-            UserClient userClient,
             IUserRepository userRepository
         )
         {
             _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
             _bus = bus ?? throw new ArgumentNullException(nameof(bus));
-            _userClient = userClient;
             _notifications = (DomainNotificationHandler) notifications;
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
@@ -76,16 +75,8 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// <returns></returns>
         [HttpPost]
         [ServiceMethodPermissionDescriptor("新增", Permission.Post)]
-        public async Task<UserEditViewModel> CreateAsync(UserEditViewModel model)
+        public async Task<UserEditViewModel> CreateAsync([FromForm] UserEditViewModel model)
         {
-            var existUser = await _userRepository.ExistEntityAsync(x =>
-                x.UserAccount == model.UserAccount);
-
-            if (existUser)
-            {
-                throw new GirvsException($"已存在UserAccount:{model.UserAccount} 对象");
-            }
-
             var command = new CreateUserCommand(
                 model.UserAccount,
                 model.UserPassword.ToMd5(),
@@ -98,14 +89,12 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
             await _bus.SendCommand(command);
             if (_notifications.HasNotifications())
             {
-                var (errorCode, errorMessage) = _notifications.GetNotificationMessage();
-                throw new GirvsException(errorMessage, errorCode);
+                var errorMessage = _notifications.GetNotificationMessage();
+                throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
             }
-            else
-            {
-                model.Id = command.Id;
-                return model;
-            }
+
+            model.Id = command.Id;
+            return model;
         }
 
         /// <summary>
@@ -130,8 +119,8 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
 
             if (_notifications.HasNotifications())
             {
-                var (errorCode, errorMessage) = _notifications.GetNotificationMessage();
-                throw new GirvsException(errorMessage, errorCode);
+                var errorMessage = _notifications.GetNotificationMessage();
+                throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
             }
 
             return model;
@@ -157,7 +146,7 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// <returns></returns>
         [HttpGet]
         [ServiceMethodPermissionDescriptor("浏览", Permission.View)]
-        public async Task<UserQueryViewModel> GetAsync(UserQueryViewModel queryModel)
+        public async Task<UserQueryViewModel> GetAsync([FromQuery] UserQueryViewModel queryModel)
         {
             var query = queryModel.MapToQuery<UserQuery>();
 
@@ -182,13 +171,11 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// </summary>
         /// <param name="account">登陆名称</param>
         /// <returns></returns>
-        [HttpGet("{account}")]
+        [HttpGet("ByAccount/{account}")]
         [AllowAnonymous]
         [ServiceMethodPermissionDescriptor("浏览", Permission.View)]
         public async Task<UserDetailViewModel> GetByAccount(string account)
         {
-            var token = await _userClient.GetUserById();
-            
             var user = await _userRepository.GetUserByLoginNameAsync(account);
             if (user == null)
             {
@@ -220,7 +207,7 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
 
             return user.MapToDto<UserDetailViewModel>();
         }
-        
+
         /// <summary>
         /// 根据用户名和密码获取Token
         /// </summary>
@@ -229,16 +216,19 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// <returns></returns>
         /// <exception cref="GirvsException"></exception>
         [AllowAnonymous]
-        [HttpGet("{account}/{password}")]
+        [HttpGet("Token/{account}/{password}")]
         public async Task<string> GetToken(string account, string password)
         {
+            var _apiBehaviorOptions = EngineContext.Current.Resolve<IOptions<ApiBehaviorOptions>>();
+            var d = _apiBehaviorOptions.Value.ClientErrorMapping[400];
             var user = await _userRepository.GetUserByLoginNameAsync(account);
             if (user == null || user.UserPassword != password.ToMd5())
             {
                 throw new GirvsException("未找到对应的用户", StatusCodes.Status404NotFound);
             }
 
-            return JwtBearerAuthenticationExtension.GenerateToken(user.Id.ToString(), user.UserName, user.TenantId.ToString(), user.UserName);
+            return JwtBearerAuthenticationExtension.GenerateToken(user.Id.ToString(), user.UserName,
+                user.TenantId.ToString(), user.UserName);
         }
     }
 }

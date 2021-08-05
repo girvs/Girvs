@@ -32,34 +32,26 @@ namespace Girvs.Driven.Notifications
         }
 
         // 获取当前生命周期内的全部通知信息
-        public virtual List<DomainNotification> GetNotifications()
+        public virtual IEnumerable<DomainNotification> GetNotifications()
         {
             return _notifications;
         }
 
-        public virtual (int, string) GetNotificationMessage()
+        public virtual Dictionary<string, IList<string>> GetNotificationMessage()
         {
-            if (_notifications.Any())
-            {
-                if (_notifications.Count == 1)
-                {
-                    return (_notifications[0].StatusCode, _notifications[0].Value);
-                }
-                else
-                {
-                    return (StatusCodes.Status422UnprocessableEntity, JsonSerializer.Serialize(_notifications.Select(
-                        x => new
-                        {
-                            PropertyName = x.Key,
-                            ErrorMessage = x.Value
-                        }), new JsonSerializerOptions
-                    {
-                        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
-                    }));
-                }
-            }
+            var error = new Dictionary<string, IList<string>>();
 
-            return (568, string.Empty);
+            if (!_notifications.Any()) return error;
+
+            _notifications.ForEach(x =>
+            {
+                if (!error.ContainsKey(x.Key))
+                    error.Add(x.Key, new List<string>());
+
+                error[x.Key].Add(x.Value);
+            });
+
+            return error;
         }
 
         // 判断在当前总线对象周期中，是否存在通知信息

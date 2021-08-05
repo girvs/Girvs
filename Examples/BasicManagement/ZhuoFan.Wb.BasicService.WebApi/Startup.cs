@@ -1,6 +1,5 @@
-using System.Linq;
-using Girvs.AuthorizePermission.ActionPermission;
 using Girvs.AuthorizePermission.Extensions;
+using Girvs.DynamicWebApi;
 using Girvs.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +10,7 @@ namespace ZhuoFan.Wb.BasicService.WebApi
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration,IWebHostEnvironment webHostEnvironment)
+        public Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
             Configuration = configuration;
             WebHostEnvironment = webHostEnvironment;
@@ -23,7 +22,8 @@ namespace ZhuoFan.Wb.BasicService.WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithAuthorizePermissionFilter();
+            services.AddControllersWithAuthorizePermissionFilter(
+                options => options.Filters.Add<GirvsModelStateInvalidFilter>());
             services.ConfigureApplicationServices(Configuration, WebHostEnvironment);
         }
 

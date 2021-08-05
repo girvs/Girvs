@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Girvs.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -38,5 +39,7 @@ namespace Girvs.Infrastructure
         Claim GetCurrentClaimByName(string name);
 
         IClaimManager ClaimManager { get; }
+
+        T GetAppModuleConfig<T>() where T : IAppModuleConfig;
     }
 }

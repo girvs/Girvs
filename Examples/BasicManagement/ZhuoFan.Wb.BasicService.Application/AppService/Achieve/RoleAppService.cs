@@ -74,8 +74,8 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
             await _bus.SendCommand(command);
             if (_notifications.HasNotifications())
             {
-                var (errorCode, errorMessage) = _notifications.GetNotificationMessage();
-                throw new GirvsException(errorMessage, errorCode);
+                var errorMessage = _notifications.GetNotificationMessage();
+                throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
             }
 
             model.Id = command.Id;
@@ -95,8 +95,8 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
             await _bus.SendCommand(command);
             if (_notifications.HasNotifications())
             {
-                var (errorCode, errorMessage) = _notifications.GetNotificationMessage();
-                throw new GirvsException(errorMessage, errorCode);
+                var errorMessage = _notifications.GetNotificationMessage();
+                throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
             }
 
             return model;
@@ -115,8 +115,8 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
             await _bus.SendCommand(command);
             if (_notifications.HasNotifications())
             {
-                var (errorCode, errorMessage) = _notifications.GetNotificationMessage();
-                throw new GirvsException(errorMessage, errorCode);
+                var errorMessage = _notifications.GetNotificationMessage();
+                throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
             }
         }
 

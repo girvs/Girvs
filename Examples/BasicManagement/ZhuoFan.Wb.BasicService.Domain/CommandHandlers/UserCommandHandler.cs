@@ -77,7 +77,7 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
             var user = await _userRepository.GetByIdAsync(request.Id);
             if (user == null)
             {
-                await _bus.RaiseEvent(new DomainNotification("", "未找到对应的数据",StatusCodes.Status404NotFound), cancellationToken);
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "未找到对应的数据",StatusCodes.Status404NotFound), cancellationToken);
                 return false;
             }
 
@@ -108,13 +108,13 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
             var user = await _userRepository.GetByIdAsync(request.Id);
             if (user == null)
             {
-                await _bus.RaiseEvent(new DomainNotification("", "未找到对应的数据",StatusCodes.Status404NotFound), cancellationToken);
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "未找到对应的数据",StatusCodes.Status404NotFound), cancellationToken);
                 return false;
             }
 
             if (user.IsInitData)
             {
-                await _bus.RaiseEvent(new DomainNotification("", "系统初始化数据，无法进行操作"), cancellationToken);
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "系统初始化数据，无法进行操作"), cancellationToken);
                 return false;
             }
 
@@ -135,7 +135,7 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
             var user = await _userRepository.GetByIdAsync(request.Id);
             if (user == null)
             {
-                await _bus.RaiseEvent(new DomainNotification("", "未找到对应的数据",StatusCodes.Status404NotFound), cancellationToken);
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "未找到对应的数据",StatusCodes.Status404NotFound), cancellationToken);
                 return false;
             }
 
@@ -199,7 +199,7 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
             }
             else
             {
-                await _bus.RaiseEvent(new DomainNotification("error", "旧的密码错误"), cancellationToken);
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "旧的密码错误"), cancellationToken);
                 // await _bus.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(user.Id)),
                 //     cancellationToken);
                 // await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix), cancellationToken);
@@ -213,7 +213,7 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
             var user = await _userRepository.GetUserByOtherIdAsync(request.OtherId);
             if (user == null)
             {
-                await _bus.RaiseEvent(new DomainNotification("", "未找到对应的数据",StatusCodes.Status404NotFound), cancellationToken);
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "未找到对应的数据",StatusCodes.Status404NotFound), cancellationToken);
                 return false;
             }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Girvs.BusinessBasis.Dto;
 using ZhuoFan.Wb.BasicService.Domain.Enumerations;
 
@@ -29,6 +30,9 @@ namespace ZhuoFan.Wb.BasicService.Application.ViewModels.User
         /// <summary>
         /// 联系电话
         /// </summary>
+        [Required]
+        [MaxLength(11)]
+        [MinLength(11)]
         public string ContactNumber { get;  set; }
 
         /// <summary>

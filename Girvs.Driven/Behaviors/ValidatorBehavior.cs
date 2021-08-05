@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Unicode;
@@ -41,25 +42,33 @@ namespace Girvs.Driven.Behaviors
                     {
                         foreach (var error in failures)
                         {
-                            await _mediator.RaiseEvent(new DomainNotification(error.PropertyName, error.ErrorMessage), cancellationToken);
+                            await _mediator.RaiseEvent(new DomainNotification(error.PropertyName, error.ErrorMessage),
+                                cancellationToken);
                         }
 
                         return default(TResponse);
                     }
                     else
                     {
-                        var options = new JsonSerializerOptions
-                        {
-                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
-                        };
+                        var errorDictionary = new Dictionary<string, IList<string>>();
 
-                        string error =
-                            JsonSerializer.Serialize(failures.Select(x => new
-                            {
-                                PropertyName = x.PropertyName,
-                                ErrorMessage = x.ErrorMessage
-                            }), options);
-                        throw new GirvsException(error, StatusCodes.Status422UnprocessableEntity);
+                        failures.ForEach(x =>
+                        {
+                            if (!errorDictionary.ContainsKey(x.PropertyName))
+                                errorDictionary.Add(x.PropertyName, new List<string>());
+
+                            errorDictionary[x.PropertyName].Add(x.ErrorMessage);
+                        });
+
+                        // var options = new JsonSerializerOptions
+                        // {
+                        //     Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
+                        // };
+
+                        // var errorStr = JsonSerializer.Serialize(errorDictionary, options);
+
+                        throw new GirvsException("One or more validation errors occurred.",
+                            StatusCodes.Status400BadRequest, errorDictionary);
                     }
                 }
             }

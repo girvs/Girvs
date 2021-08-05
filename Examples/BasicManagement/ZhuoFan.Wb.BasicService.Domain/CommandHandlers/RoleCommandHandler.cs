@@ -58,7 +58,7 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
             var role = await _roleRepository.GetByIdAsync(request.Id);
             if (role == null)
             {
-                await _bus.RaiseEvent(new DomainNotification("", "未找到对应的数据"));
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "未找到对应的数据"));
                 return false;
             }
 
@@ -91,13 +91,13 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
             var role = await _roleRepository.GetByIdAsync(request.Id);
             if (role == null)
             {
-                await _bus.RaiseEvent(new DomainNotification("", "未找到对应的数据"));
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "未找到对应的数据"));
                 return false;
             }
 
             if (role.IsInitData)
             {
-                await _bus.RaiseEvent(new DomainNotification("", "系统初始化数据，无法进行操作"));
+                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "系统初始化数据，无法进行操作"));
                 return false;
             }
 

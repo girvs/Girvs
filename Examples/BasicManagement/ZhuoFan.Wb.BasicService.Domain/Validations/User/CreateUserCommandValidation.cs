@@ -12,6 +12,6 @@ namespace ZhuoFan.Wb.BasicService.Domain.Validations.User
             ValidationUserPassword();
         }
 
-        public override bool IsErrorMessageDelay { get; set; } = true;
+        public override bool IsErrorMessageDelay { get; set; } = false;
     }
 }
