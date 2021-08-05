@@ -37,21 +37,21 @@ namespace Girvs.Cache.Caching
         public RedisCacheManager(IHttpContextAccessor httpContextAccessor,
             IRedisConnectionWrapper connectionWrapper)
         {
-
             _config = Singleton<AppSettings>.Instance[nameof(CacheConfig)];
-            
+
             if (string.IsNullOrEmpty(_config.RedisCacheConfig.ConnectionString))
                 throw new Exception("Redis connection string is empty");
             // ConnectionMultiplexer.Connect should only be called once and shared between callers
             _connectionWrapper = connectionWrapper;
 
-            _db = _connectionWrapper.GetDatabase(_config?.RedisCacheConfig.RedisDatabaseId ?? (int)RedisDatabaseNumber.Cache);
+            _db = _connectionWrapper.GetDatabase(_config?.RedisCacheConfig.RedisDatabaseId ??
+                                                 (int) RedisDatabaseNumber.Cache);
 
             _perRequestCache = new PerRequestCache(httpContextAccessor);
         }
-        
+
         #endregion
-        
+
         #region Utilities
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Girvs.Cache.Caching
 
             return keys;
         }
-        
+
         /// <summary>
         /// Gets the value associated with the specified key.
         /// </summary>
@@ -101,7 +101,7 @@ namespace Girvs.Cache.Caching
 
             return item;
         }
-        
+
         /// <summary>
         /// Adds the specified key and object to the cache
         /// </summary>
@@ -178,6 +178,9 @@ namespace Girvs.Cache.Caching
         /// <returns>The cached value associated with the specified key</returns>
         public async Task<T> GetAsync<T>(CacheKey key, Func<Task<T>> acquire)
         {
+            if (!key.EnableCaching)
+                return await acquire();
+
             //item already is in cache, so return it
             if (await IsSetAsync(key))
                 return await GetAsync<T>(key);
@@ -236,6 +239,9 @@ namespace Girvs.Cache.Caching
         /// <returns>The cached value associated with the specified key</returns>
         public virtual T Get<T>(CacheKey key, Func<T> acquire)
         {
+            if (!key.EnableCaching)
+                return acquire();
+
             //item already is in cache, so return it
             if (IsSet(key))
             {
@@ -262,6 +268,9 @@ namespace Girvs.Cache.Caching
         /// <param name="data">Value for caching</param>
         public virtual void Set(CacheKey key, object data)
         {
+            if (!key.EnableCaching)
+                return;
+
             if (data == null)
                 return;
 
@@ -332,7 +341,7 @@ namespace Girvs.Cache.Caching
 
                 //we can't use _perRequestCache.Clear(),
                 //because HttpContext stores some server data that we should not delete
-                foreach (var redisKey in keys) 
+                foreach (var redisKey in keys)
                     _perRequestCache.Remove(redisKey.ToString());
 
                 TryPerformAction(() => _db.KeyDelete(keys.ToArray()));
@@ -395,7 +404,7 @@ namespace Girvs.Cache.Caching
             }
 
             #endregion
-            
+
             #region Methods
 
             /// <summary>
@@ -417,14 +426,14 @@ namespace Girvs.Cache.Caching
 
                     //item already is in cache, so return it
                     if (items[key] != null)
-                        return (T)items[key];
+                        return (T) items[key];
                 }
 
                 //or create it using passed function
                 var result = acquire();
 
                 //and set in cache (if cache time is defined)
-                using (new ReaderWriteLockDisposable(_locker)) 
+                using (new ReaderWriteLockDisposable(_locker))
                     items[key] = result;
 
                 return result;
@@ -519,7 +528,7 @@ namespace Girvs.Cache.Caching
                     items?.Clear();
                 }
             }
-            
+
             #endregion
         }
 

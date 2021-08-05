@@ -108,5 +108,12 @@ namespace Girvs.BusinessBasis.Repositories
         /// <param name="predicate"></param>
         /// <returns></returns>
         Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate);
+        
+        /// <summary>
+        /// 根据条件获取单条记录集
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }

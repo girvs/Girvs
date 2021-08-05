@@ -96,9 +96,9 @@ namespace Girvs.Cache.Caching
             if (string.IsNullOrWhiteSpace(prefix))
                 throw new System.ArgumentException($"'{nameof(prefix)}' cannot be null or whitespace.", nameof(prefix));
             Prefix = prefix.Trim();
-            var appSettings = Singleton<AppSettings>.Instance;
-            _cacheConfig = appSettings.ModuleConfigurations[nameof(CacheConfig)] as CacheConfig;
+            _cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
             CacheTime = _cacheConfig.CacheBaseConfig.DefaultCacheTime;
+            EnableCaching = _cacheConfig.EnableCaching;
         }
 
         public CacheKey Create(string key = "", int? cacheTime = null)
@@ -119,5 +119,7 @@ namespace Girvs.Cache.Caching
         /// Gets or sets a cache time in minutes
         /// </summary>
         public int CacheTime { get; set; }
+
+        public bool EnableCaching { get; set; } = true;
     }
 }

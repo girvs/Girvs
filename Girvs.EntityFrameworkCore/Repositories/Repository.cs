@@ -259,5 +259,11 @@ namespace Girvs.EntityFrameworkCore.Repositories
             predicate = predicate.And(OtherQueryCondition);
             return DbSet.AnyAsync(predicate);
         }
+
+        public Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            predicate = predicate.And(OtherQueryCondition);
+            return DbSet.FirstOrDefaultAsync(predicate);
+        }
     }
 }
