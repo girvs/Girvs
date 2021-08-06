@@ -4,8 +4,8 @@ using Girvs.BusinessBasis.Entities;
 
 namespace Girvs.BusinessBasis.Repositories
 {
-    public interface IRepositoryQueryCondition : IManager
+    public interface IRepositoryOtherQueryCondition : IManager
     {
-        Expression<Func<TEntity, bool>> GetQueryCondition<TEntity>() where TEntity : Entity;
+        Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>() where TEntity : Entity;
     }
 }

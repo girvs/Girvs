@@ -22,7 +22,9 @@ namespace Girvs.Swagger
                     In = ParameterLocation.Header,
                     Scheme = "bearer"
                 });
+                
                 c.OperationFilter<AuthenticationRequirementsOperationFilter>();
+                c.DocumentFilter<SwaggerAddEnumDescriptions>();
 
                 var basePath = Path.GetDirectoryName(typeof(SwaggerServicesExtensions).Assembly.Location) ??
                                string.Empty;

@@ -80,6 +80,7 @@
 
 using Girvs.Cache.Configuration;
 using Girvs.Configuration;
+using Girvs.Extensions;
 using Girvs.Infrastructure;
 
 namespace Girvs.Cache.Caching
@@ -101,9 +102,13 @@ namespace Girvs.Cache.Caching
             EnableCaching = _cacheConfig.EnableCaching;
         }
 
-        public CacheKey Create(string key = "", int? cacheTime = null)
+        public CacheKey Create(string key = "", string otherKey = "", int? cacheTime = null)
         {
             Key = string.Format(Prefix, key);
+
+            if (otherKey.IsNullOrWhiteSpace())
+                Key += (":" + otherKey);
+
             CacheTime = cacheTime ?? CacheTime;
             return this;
         }

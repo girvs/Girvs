@@ -25,11 +25,11 @@ namespace Girvs.EntityFrameworkCore.Repositories
         private readonly ILogger<Repository<TEntity, Tkey>> _logger;
         protected DbContext DbContext { get; }
         protected DbSet<TEntity> DbSet { get; }
-        protected IRepositoryQueryCondition _repositoryQueryCondition;
+        protected readonly IRepositoryOtherQueryCondition _repositoryQueryCondition;
 
         protected Repository()
         {
-            _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryQueryCondition>();
+            _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
             _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ??
                       throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbContext = GetRelatedDbContext() ??
@@ -68,7 +68,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
                 if (_repositoryQueryCondition != null)
                 {
-                    expression = expression.And(_repositoryQueryCondition.GetQueryCondition<TEntity>());
+                    expression = expression.And(_repositoryQueryCondition.GetOtherQueryCondition<TEntity>());
                 }
 
                 if (!typeof(IIncludeMultiTenant<Tkey>).IsAssignableFrom(typeof(TEntity))) return expression;
