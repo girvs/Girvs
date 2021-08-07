@@ -1,6 +1,6 @@
-﻿using System;
-using Girvs.Configuration;
+﻿using Girvs.Configuration;
 using Girvs.EventBus.Configuration;
+using Girvs.EventBus.Extensions;
 using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -17,7 +17,7 @@ namespace Girvs.EventBus
                 Singleton<AppSettings>.Instance.ModuleConfigurations[nameof(EventBusConfig)] as EventBusConfig;
 
             services.AddSingleton<IEventBus, CapEventBus.CapEventBus>();
-            
+
             services.AddCap(x =>
             {
                 switch (eventBusConfig.DbType)
@@ -36,10 +36,20 @@ namespace Girvs.EventBus
                         break;
                 }
 
-                x.UseRabbitMQ(eventBusConfig.RabbitMqConnectionString);
+                x.UseRabbitMQ(options =>
+                {
+                    options.HostName = eventBusConfig.HostName;
+                    options.Port = eventBusConfig.Port;
+                    options.UserName = eventBusConfig.UserName;
+                    options.Password = eventBusConfig.Password;
+                    options.VirtualHost = eventBusConfig.VirtualHost;
+                    options.ExchangeName = eventBusConfig.ExchangeName;
+                });
                 //x.UseGrivsConfigDataBase();
                 x.UseDashboard();
             });
+            
+            services.AddCapSubscribe();
         }
 
         public void Configure(IApplicationBuilder application)

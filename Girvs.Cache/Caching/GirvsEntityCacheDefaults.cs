@@ -31,7 +31,7 @@ namespace Girvs.Cache.Caching
             get
             {
                 var repositoryOtherQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
-                if (repositoryOtherQueryCondition != null)
+                if (repositoryOtherQueryCondition == null)
                 {
                     return string.Empty;
                 }

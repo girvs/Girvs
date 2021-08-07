@@ -1,10 +1,13 @@
 using Girvs.AuthorizePermission.Extensions;
 using Girvs.DynamicWebApi;
+using Girvs.EventBus;
 using Girvs.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Users;
+using ZhuoFan.Wb.BasicService.Application.EventBusHandlers;
 
 namespace ZhuoFan.Wb.BasicService.WebApi
 {

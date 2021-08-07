@@ -12,7 +12,7 @@ namespace Girvs.AuthorizePermission.ActionPermission
 {
     [DynamicWebApi]
     [AllowAnonymous]
-    public class GirvsAuthorizePermissionService:IGirvsAuthorizePermissionService
+    public class GirvsAuthorizePermissionService : IGirvsAuthorizePermissionService
     {
         public Task<List<AuthorizePermissionModel>> GetAuthorizePermissionList()
         {
@@ -30,7 +30,7 @@ namespace Girvs.AuthorizePermission.ActionPermission
                     x.IsPublic && x.IsDefined(typeof(ServiceMethodPermissionDescriptorAttribute), false));
 
 
-                Dictionary<string, string> permissions = new Dictionary<string, string>();
+                var permissions = new Dictionary<string, string>();
                 foreach (var methodInfo in methodInfos)
                 {
                     var smpd =
