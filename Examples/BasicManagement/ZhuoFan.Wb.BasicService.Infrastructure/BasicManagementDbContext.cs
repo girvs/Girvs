@@ -9,26 +9,26 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure
     {
         public BasicManagementDbContext(DbContextOptions<BasicManagementDbContext> options) : base(options)
         {
-            
         }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<BasalPermission> BasalPermissions { get; set; }
+        public DbSet<ServicePermission> ServicePermissions { get; set; }
+        public DbSet<ServiceDataRule> ServiceDataRules { get; set; }
+        public DbSet<UserRules> UserRulesEnumerable { get; set; }
 
-
-// #if DEBUG
-//         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//         {
-//             
-//         }
-// #endif
-        
-        public override string DbConfigName { get; set; } = "BasicManagementDataConnection11";
+        public override string DbConfigName { get; set; } = "BasicManagementDataConnection";
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new RoleEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new UserEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new BasalPermissionEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new UserRulesEntityTypeConfiguration());
+
+            modelBuilder.ApplyConfiguration(new ServicePermissionEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new ServiceDataRuleEntityTypeConfiguration());
         }
     }
 }

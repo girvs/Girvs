@@ -10,5 +10,12 @@ namespace ZhuoFan.Wb.BasicService.WebApi
         {
             GirvsHostBuilderManager.CreateGrivsHostBuilder<Startup>(args).Build().Run();
         }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
     }
 }

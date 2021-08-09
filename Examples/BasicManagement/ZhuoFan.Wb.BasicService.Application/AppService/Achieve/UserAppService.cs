@@ -9,12 +9,10 @@ using Girvs.Cache.Caching;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Notifications;
 using Girvs.Extensions;
-using Girvs.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Panda.DynamicWebApi.Attributes;
 using ZhuoFan.Wb.BasicService.Application.ViewModels.User;
 using ZhuoFan.Wb.BasicService.Domain.Commands.User;
@@ -24,9 +22,9 @@ using ZhuoFan.Wb.BasicService.Domain.Repositories;
 
 namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
 {
+    [DynamicWebApi]
     [Authorize(AuthenticationSchemes = GirvsAuthenticationScheme.GirvsJwt)]
     [ServicePermissionDescriptor("用户管理", "587752d1-7937-4e6a-a035-ee013e58b99b")]
-    [DynamicWebApi]
     public class UserAppService : IUserAppService
     {
         private readonly IStaticCacheManager _cacheManager;
@@ -60,7 +58,6 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
                 GirvsEntityCacheDefaults<User>.ByIdCacheKey.Create(id.ToString()),
                 async () => await _userRepository.GetByIdAsync(id));
 
-            //var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
                 throw new GirvsException("未找到对应的用户", StatusCodes.Status404NotFound);
 
@@ -92,9 +89,11 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
                 var errorMessage = _notifications.GetNotificationMessage();
                 throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
             }
-
-            model.Id = command.Id;
-            return model;
+            else
+            {
+                model.Id = command.Id;
+                return model;
+            }
         }
 
         /// <summary>
@@ -102,12 +101,12 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPut("{id}")]
         [ServiceMethodPermissionDescriptor("修改", Permission.Edit)]
-        public async Task<UserEditViewModel> UpdateAsync(UserEditViewModel model)
+        public async Task<UserEditViewModel> UpdateAsync(Guid id, [FromForm] UserEditViewModel model)
         {
             var command = new UpdateUserCommand(
-                model.Id,
+                model.Id.Value,
                 model.UserPassword.ToMd5(),
                 model.UserName,
                 model.ContactNumber,
@@ -146,7 +145,7 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// <returns></returns>
         [HttpGet]
         [ServiceMethodPermissionDescriptor("浏览", Permission.View)]
-        public async Task<UserQueryViewModel> GetAsync([FromQuery] UserQueryViewModel queryModel)
+        public async Task<UserQueryViewModel> GetAsync(UserQueryViewModel queryModel)
         {
             var query = queryModel.MapToQuery<UserQuery>();
 
@@ -171,42 +170,18 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// </summary>
         /// <param name="account">登陆名称</param>
         /// <returns></returns>
-        [HttpGet("ByAccount/{account}")]
-        [AllowAnonymous]
-        [ServiceMethodPermissionDescriptor("浏览", Permission.View)]
-        public async Task<UserDetailViewModel> GetByAccount(string account)
-        {
-            var user = await _userRepository.GetUserByLoginNameAsync(account);
-            if (user == null)
-            {
-                throw new GirvsException("未找到对应的用户", StatusCodes.Status404NotFound);
-            }
-
-            return user.MapToDto<UserDetailViewModel>();
-        }
-
-        /// <summary>
-        /// 根据其它主键值获取用户
-        /// </summary>
-        /// <param name="otherId">其它主键值</param>
-        /// <returns></returns>
-        [HttpGet("{otherId}")]
-        [ServiceMethodPermissionDescriptor("浏览", Permission.View)]
-        public async Task<UserDetailViewModel> GetByOtherId(Guid otherId)
-        {
-            if (otherId == Guid.Empty)
-            {
-                throw new GirvsException("未找到对应的用户", StatusCodes.Status404NotFound);
-            }
-
-            var user = await _userRepository.GetUserByOtherIdAsync(otherId);
-            if (user == null)
-            {
-                throw new GirvsException("未找到对应的用户", StatusCodes.Status404NotFound);
-            }
-
-            return user.MapToDto<UserDetailViewModel>();
-        }
+        // [AllowAnonymous]
+        // [HttpGet("{account}")]
+        // public async Task<UserDetailViewModel> GetByAccount(string account)
+        // {
+        //     var user = await _userRepository.GetUserByLoginNameAsync(account);
+        //     if (user == null)
+        //     {
+        //         throw new GirvsException("未找到对应的用户", StatusCodes.Status404NotFound);
+        //     }
+        //
+        //     return user.MapToDto<UserDetailViewModel>();
+        // }
 
         /// <summary>
         /// 根据用户名和密码获取Token
@@ -216,11 +191,9 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// <returns></returns>
         /// <exception cref="GirvsException"></exception>
         [AllowAnonymous]
-        [HttpGet("Token/{account}/{password}")]
+        [HttpGet("{account}/{password}")]
         public async Task<string> GetToken(string account, string password)
         {
-            var _apiBehaviorOptions = EngineContext.Current.Resolve<IOptions<ApiBehaviorOptions>>();
-            var d = _apiBehaviorOptions.Value.ClientErrorMapping[400];
             var user = await _userRepository.GetUserByLoginNameAsync(account);
             if (user == null || user.UserPassword != password.ToMd5())
             {
@@ -228,7 +201,8 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
             }
 
             return JwtBearerAuthenticationExtension.GenerateToken(user.Id.ToString(), user.UserName,
-                user.TenantId.ToString(), user.UserName);
+                user.TenantId.ToString(),
+                user.UserName);
         }
     }
 }

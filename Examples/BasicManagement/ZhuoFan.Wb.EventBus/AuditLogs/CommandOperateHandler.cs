@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Girvs;
 using Girvs.Driven.Behaviors;
 using Girvs.Driven.Commands;
 using Girvs.EventBus;

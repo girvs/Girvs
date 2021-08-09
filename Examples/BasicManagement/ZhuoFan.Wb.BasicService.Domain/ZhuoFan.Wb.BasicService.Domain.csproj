@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Girvs.AuthorizePermission\Girvs.AuthorizePermission.csproj" />
-    <ProjectReference Include="..\..\..\Girvs.Cache\Girvs.Cache.csproj" />
     <ProjectReference Include="..\..\..\Girvs.Driven\Girvs.Driven.csproj" />
     <ProjectReference Include="..\ZhuoFan.Wb.EventBus\ZhuoFan.Wb.EventBus.csproj" />
   </ItemGroup>

@@ -14,7 +14,6 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.EntityConfigurations
             GirvsDbContext.OnModelCreatingBaseEntityAndTableKey<User,Guid>(builder);
             builder.Property(x => x.UserAccount).HasColumnType("varchar(36)");
             builder.Property(x => x.UserPassword).HasColumnType("varchar(36)");
-            builder.Property(x => x.OtherId).HasColumnType("varchar(36)");
             builder.Property(x => x.UserName).HasColumnType("nvarchar(20)");
             builder.Property(x => x.ContactNumber).HasColumnType("varchar(12)");
             builder.Property(x => x.State).HasColumnType("int");
@@ -27,6 +26,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.EntityConfigurations
                 UserName = "系统管理员",
                 UserPassword = "21232F297A57A5A743894A0E4A801FC3",
                 UserAccount = "admin",
+                TenantId = Guid.Empty,
                 UserType = UserType.SuperAdmin,
                 State = DataState.Enable,
                 IsInitData = true

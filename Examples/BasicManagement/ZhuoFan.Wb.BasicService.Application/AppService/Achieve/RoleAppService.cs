@@ -5,11 +5,11 @@ using Girvs;
 using Girvs.AuthorizePermission;
 using Girvs.AuthorizePermission.Enumerations;
 using Girvs.AutoMapper.Extensions;
-using Girvs.Cache;
 using Girvs.Cache.Caching;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Notifications;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Panda.DynamicWebApi.Attributes;
@@ -21,6 +21,7 @@ using ZhuoFan.Wb.BasicService.Domain.Repositories;
 namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
 {
     [DynamicWebApi]
+    [Authorize(AuthenticationSchemes = GirvsAuthenticationScheme.GirvsJwt)]
     [ServicePermissionDescriptor("角色管理", "4a4fcf52-7696-47e9-b363-2acdd5735dc8")]
     public class RoleAppService : IRoleAppService
     {
@@ -68,7 +69,7 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// <returns></returns>
         [HttpPost]
         [ServiceMethodPermissionDescriptor("新增", Permission.Post)]
-        public async Task<RoleEditViewModel> CreateAsync(RoleEditViewModel model)
+        public async Task<RoleEditViewModel> CreateAsync([FromForm] RoleEditViewModel model)
         {
             CreateRoleCommand command = new CreateRoleCommand(model.Name, model.Desc, model.UserIds);
             await _bus.SendCommand(command);
@@ -87,9 +88,9 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPut("{id}")]
         [ServiceMethodPermissionDescriptor("修改", Permission.Edit)]
-        public async Task<RoleEditViewModel> UpdateAsync(RoleEditViewModel model)
+        public async Task<RoleEditViewModel> UpdateAsync(Guid id, [FromForm] RoleEditViewModel model)
         {
             UpdateRoleCommand command = new UpdateRoleCommand(model.Id, model.Name, model.Desc, model.UserIds);
             await _bus.SendCommand(command);

@@ -9,8 +9,8 @@ using ZhuoFan.Wb.BasicService.Infrastructure;
 namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
 {
     [DbContext(typeof(BasicManagementDbContext))]
-    [Migration("20210709082125_inittest1")]
-    partial class inittest1
+    [Migration("20210709082334_inittest")]
+    partial class inittest
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

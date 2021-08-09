@@ -5,13 +5,13 @@ using ZhuoFan.Wb.BasicService.Domain.Enumerations;
 
 namespace ZhuoFan.Wb.BasicService.Domain.Models
 {
-    public class User  : AggregateRoot<Guid>, IIncludeInitField,IIncludeMultiTenant<Guid>
+    public class User : AggregateRoot<Guid>, IIncludeInitField, IIncludeMultiTenant<Guid>
     {
         public User()
         {
             Roles = new List<Role>();
         }
-        
+
         /// <summary>
         /// 登陆名称
         /// </summary>
@@ -48,11 +48,25 @@ namespace ZhuoFan.Wb.BasicService.Domain.Models
         public UserType UserType { get; set; }
 
         /// <summary>
+        /// 授权类型
+        /// </summary>
+        public AuthorizeType AuthorizeType { get; set; }
+
+        /// <summary>
         /// 是否初始化数据
         /// </summary>
         public bool IsInitData { get; set; }
-        
+
         public virtual List<Role> Roles { get; set; }
+
+        /// <summary>
+        /// 租户ID
+        /// </summary>
         public Guid TenantId { get; set; }
+
+        /// <summary>
+        /// 设置的用户规则
+        /// </summary>
+        public List<UserRules> RulesList { get; set; }
     }
 }

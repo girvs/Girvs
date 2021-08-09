@@ -1,4 +1,5 @@
-﻿using Girvs.EventBus;
+﻿using System.ComponentModel;
+using Girvs.EventBus;
 
 namespace Users
 {
@@ -21,14 +22,31 @@ namespace Users
         /// <summary>
         /// 超级管理员
         /// </summary>
+        [Description("超级管理员")]
         SuperAdmin,
+        
+        /// <summary>
+        /// 考试管理员
+        /// </summary>
+        [Description("考试管理员")]
+        ExamAdmin,
+        
+        /// <summary>
+        /// 机构管理员
+        /// </summary>
+        [Description("机构用户")]
+        OrganizationUser,
+
         /// <summary>
         /// 单位管理员
         /// </summary>
-        UnitAdmin,
+        [Description("单位用户")]
+        UnitUser,
+        
         /// <summary>
-        /// 单位用户
+        /// 授权用户
         /// </summary>
-        UnitPersion
+        [Description("单位管理员")]
+        AuthorizeUser
     }
 }

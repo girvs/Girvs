@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Text.RegularExpressions;
 using Girvs.FileProvider;
@@ -184,6 +185,12 @@ namespace Girvs
             pi.SetValue(instance, value, Array.Empty<object>());
         }
         
+        public static Expression<Func<TEntity, bool>> BuildeExpression<TEntity>(string propertyName, object value,
+            OperatorType operatorType)
+        {
+            
+        }
+        
         /// <summary>
         /// 获取对象的属性值。
         /// </summary>
@@ -278,5 +285,11 @@ namespace Girvs
         /// 获取或设置默认文件提供程序
         /// </summary>
         public static IGirvsFileProvider DefaultFileProvider { get; set; }
+    }
+    
+    
+    public enum OperatorType
+    {
+        
     }
 }

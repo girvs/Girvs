@@ -14,7 +14,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Repositories
     {
         public async Task<User> GetUserByLoginNameAsync(string loginName)
         {
-            return await DbSet.Include(x => x.Roles).FirstOrDefaultAsync(x => x.UserAccount == loginName);
+            return await DbSet.FirstOrDefaultAsync(x => x.UserAccount == loginName);
         }
 
         public Task<User> GetUserByIdIncludeRolesAsync(Guid userId)

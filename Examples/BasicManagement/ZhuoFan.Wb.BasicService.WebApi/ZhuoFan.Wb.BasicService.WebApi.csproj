@@ -16,15 +16,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Girvs.Consul\Girvs.Consul.csproj" />
-    <ProjectReference Include="..\..\..\Girvs.Refit\Girvs.Refit.csproj" />
     <ProjectReference Include="..\..\..\Girvs.Swagger\Girvs.Swagger.csproj" />
     <ProjectReference Include="..\ZhuoFan.Wb.BasicService.Application\ZhuoFan.Wb.BasicService.Application.csproj" />
     <ProjectReference Include="..\ZhuoFan.Wb.BasicService.Infrastructure\ZhuoFan.Wb.BasicService.Infrastructure.csproj" />
-    <ProjectReference Include="..\ZhuoFan.Wb.EventBus\ZhuoFan.Wb.EventBus.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="App_Data\" />
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

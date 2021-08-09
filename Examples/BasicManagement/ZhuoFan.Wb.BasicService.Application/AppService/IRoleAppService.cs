@@ -10,7 +10,7 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService
     {
         Task<RoleDetailViewModel> GetAsync(Guid id);
         Task<RoleEditViewModel> CreateAsync(RoleEditViewModel model);
-        Task<RoleEditViewModel> UpdateAsync(RoleEditViewModel model);
+        Task<RoleEditViewModel> UpdateAsync(Guid id, RoleEditViewModel model);
         Task DeleteAsync(Guid id);
         Task<List<RoleListViewModel>> GetAsync();
     }

@@ -9,8 +9,8 @@ using ZhuoFan.Wb.BasicService.Infrastructure;
 namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
 {
     [DbContext(typeof(BasicManagementDbContext))]
-    [Migration("20210709082057_inittest")]
-    partial class inittest
+    [Migration("20210730091034_useraddfieldtenant")]
+    partial class useraddfieldtenant
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -73,6 +73,10 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                     b.Property<int>("State")
                         .HasColumnType("int");
 
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasColumnType("varchar(36)");
+
                     b.Property<string>("UserAccount")
                         .HasColumnType("varchar(36)");
 
@@ -96,6 +100,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                             IsInitData = 1ul,
                             OtherId = "00000000-0000-0000-0000-000000000000",
                             State = 0,
+                            TenantId = "00000000-0000-0000-0000-000000000000",
                             UserAccount = "admin",
                             UserName = "系统管理员",
                             UserPassword = "21232F297A57A5A743894A0E4A801FC3",

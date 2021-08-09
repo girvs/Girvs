@@ -5,7 +5,7 @@ namespace Girvs.Driven.CacheDriven.Events
 {
     public class SetCacheEvent:Event
     {
-        public SetCacheEvent(dynamic o, CacheKey key, int cacheTime)
+        public SetCacheEvent(dynamic o, CacheKey key, int cacheTime = 30)
         {
             Object = o;
             Key = key;

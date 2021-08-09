@@ -199,7 +199,7 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
             }
             else
             {
-                await _bus.RaiseEvent(new DomainNotification(request.Id.ToString(), "旧的密码错误"), cancellationToken);
+                await _bus.RaiseEvent(new DomainNotification(user.UserAccount, "旧的密码错误"), cancellationToken);
                 // await _bus.RaiseEvent(new RemoveCacheEvent(_cacheKeyManager.BuildCacheEntityKey(user.Id)),
                 //     cancellationToken);
                 // await _bus.RaiseEvent(new RemoveCacheListEvent(_cacheKeyManager.CacheKeyListPrefix), cancellationToken);

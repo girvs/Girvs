@@ -4,10 +4,17 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>E:\Work\OnlineRegistration\src\Services\BasicManagement\ZhuoFan.Wb.BasicService.Application\ZhuoFan.Wb.BasicService.Application.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
-    <ProjectReference Include="..\..\..\Girvs.Refit\Girvs.Refit.csproj" />
     <ProjectReference Include="..\ZhuoFan.Wb.BasicService.Domain\ZhuoFan.Wb.BasicService.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="EventBusHandlers\DeleteUserEventHandler.cs" />
+    <Compile Remove="EventBusHandlers\UpdateUserEventHandler.cs" />
   </ItemGroup>
 
 </Project>
