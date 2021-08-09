@@ -185,11 +185,10 @@ namespace Girvs
             pi.SetValue(instance, value, Array.Empty<object>());
         }
         
-        public static Expression<Func<TEntity, bool>> BuildeExpression<TEntity>(string propertyName, object value,
-            OperatorType operatorType)
-        {
+        //public static Expression<Func<TEntity, bool>> BuildeExpression<TEntity>(string propertyName, object value,OperatorType operatorType)
+        //{
             
-        }
+        //}
         
         /// <summary>
         /// 获取对象的属性值。

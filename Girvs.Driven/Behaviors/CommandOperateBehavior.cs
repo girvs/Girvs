@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Commands;
+using Girvs.Extensions;
 using Girvs.Infrastructure;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -33,7 +34,7 @@ namespace Girvs.Driven.Behaviors
             if (!result.Equals(default(TResponse)))
             {
                 _logger.LogInformation($"Command Operate Behavior : {typeof(TRequest).FullName}");
-                if (request is Command command)
+                if (request is Command command && !string.IsNullOrEmpty(command.CommandDesc))
                 {
                     var operateHandler = EngineContext.Current.Resolve<ICommandOperateHandler>();
                     operateHandler?.Handle(command);
