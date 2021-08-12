@@ -47,6 +47,6 @@ namespace Users
         /// 授权用户
         /// </summary>
         [Description("单位管理员")]
-        AuthorizeUser
+        AuthorizeUser,
     }
 }
