@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Claims;
 using Girvs.Configuration;
@@ -230,32 +231,37 @@ namespace Girvs.Infrastructure
             }
         }
 
-        public Claim GetCurrentClaimByName(string name)
-        {
-            if (HttpContext != null
-                && HttpContext.User.Identity.IsAuthenticated)
-            {
-                return HttpContext.User.Claims.FirstOrDefault(x => x.Type == name);
-            }
-
-            return new Claim(name, "");
-        }
+        // public Claim GetCurrentClaimByName(string name)
+        // {
+        //     if (HttpContext != null
+        //         && HttpContext.User.Identity.IsAuthenticated)
+        //     {
+        //         return HttpContext.User.Claims.FirstOrDefault(x => x.Type == name);
+        //     }
+        //
+        //     return new Claim(name, "");
+        // }
 
         public IClaimManager ClaimManager
         {
             get
             {
                 var claimManager = Resolve<IClaimManager>();
-                if (claimManager != null && HttpContext != null
-                                         && HttpContext.User.Identity.IsAuthenticated)
+                if (HttpContext?.User.Identity?.IsAuthenticated == true)
                 {
                     claimManager.CurrentClaims = HttpContext.User.Claims;
-                }
-                else
-                {
-                    claimManager.CurrentClaims =
-                        claimManager.GenerateClaimsIdentity(string.Empty, string.Empty, string.Empty, string.Empty)
-                            .Claims;
+                    var identityType = claimManager.GetIdentityType();
+                    if (identityType == IdentityType.RegisterUser)
+                    {
+                        var tenantId = HttpContext.Request.Headers["TenantId"];
+                        var tenantName = HttpContext.Request.Headers["TenantName"];
+
+                        var userId = claimManager.GetUserId();
+                        var userName = claimManager.GetUserName();
+
+                        claimManager.CurrentClaims = claimManager.GenerateClaimsIdentity(userId, userName, tenantId,
+                            tenantName, IdentityType.RegisterUser).Claims;
+                    }
                 }
 
                 return claimManager;

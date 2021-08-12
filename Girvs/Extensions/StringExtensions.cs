@@ -354,7 +354,8 @@ namespace Girvs.Extensions
             return Regex.Replace(
                 str,
                 "[a-z][A-Z]",
-                m => m.Value[0] + " " + (invariantCulture ? char.ToLowerInvariant(m.Value[1]) : char.ToLower(m.Value[1]))
+                m => m.Value[0] + " " +
+                     (invariantCulture ? char.ToLowerInvariant(m.Value[1]) : char.ToLower(m.Value[1]))
             );
         }
 
@@ -411,30 +412,31 @@ namespace Girvs.Extensions
 
         public static string ToMd5(this string str)
         {
-            using (var md5 = MD5.Create())
+            if (string.IsNullOrEmpty(str)) return string.Empty;
+
+            using var md5 = MD5.Create();
+            var inputBytes = Encoding.UTF8.GetBytes(str);
+            var hashBytes = md5.ComputeHash(inputBytes);
+
+            var sb = new StringBuilder();
+            foreach (var hashByte in hashBytes)
             {
-                var inputBytes = Encoding.UTF8.GetBytes(str);
-                var hashBytes = md5.ComputeHash(inputBytes);
-
-                var sb = new StringBuilder();
-                foreach (var hashByte in hashBytes)
-                {
-                    sb.Append(hashByte.ToString("X2"));
-                }
-
-                return sb.ToString();
+                sb.Append(hashByte.ToString("X2"));
             }
+
+            return sb.ToString();
         }
-        
+
         public static Guid? ToHasGuid(this string str)
         {
             if (string.IsNullOrEmpty(str))
             {
                 return (Guid?)null;
             }
+
             return Guid.Parse(str);
         }
-        
+
         public static Guid ToGuid(this string str)
         {
             return string.IsNullOrEmpty(str) ? Guid.Empty : Guid.Parse(str);
@@ -455,7 +457,7 @@ namespace Girvs.Extensions
 
             if (str.Length == 1)
             {
-                return invariantCulture ? str.ToUpperInvariant(): str.ToUpper();
+                return invariantCulture ? str.ToUpperInvariant() : str.ToUpper();
             }
 
             return (invariantCulture ? char.ToUpperInvariant(str[0]) : char.ToUpper(str[0])) + str.Substring(1);
@@ -542,7 +544,7 @@ namespace Girvs.Extensions
 
             return str.Left(maxLength - postfix.Length) + postfix;
         }
-        
+
 
         public static string ConverterInitialsLowerCase(this string str)
         {

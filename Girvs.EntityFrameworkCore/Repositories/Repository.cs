@@ -46,45 +46,9 @@ namespace Girvs.EntityFrameworkCore.Repositories
                 .Select(x => EngineContext.Current.Resolve(x) as GirvsDbContext).FirstOrDefault();
         }
 
-        private object ConverToTkeyValue(string value)
-        {
-            if (typeof(Tkey) == typeof(Guid))
-            {
-                return value.ToHasGuid();
-            }
-
-            if (typeof(Tkey) == typeof(Int32))
-            {
-                return int.Parse(value);
-            }
-            return value;
-        }
-        
-        public Expression<Func<TEntity, bool>> OtherQueryCondition
-        {
-            get
-            {
-                Expression<Func<TEntity, bool>> expression = x => true;
-
-                if (_repositoryQueryCondition != null)
-                {
-                    expression = expression.And(_repositoryQueryCondition.GetOtherQueryCondition<TEntity>());
-                }
-
-                if (!typeof(IIncludeMultiTenant<Tkey>).IsAssignableFrom(typeof(TEntity))) return expression;
-
-                var tenantId = ConverToTkeyValue(EngineContext.Current.ClaimManager.GetTenantId());
-
-                var param = Expression.Parameter(typeof(TEntity), "entity");
-                var left = Expression.Property(param, nameof(IIncludeMultiTenant<Tkey>.TenantId));
-                var right = Expression.Constant(tenantId);
-                
-                var be = Expression.Equal(left, right);
-
-                expression = expression.And(Expression.Lambda<Func<TEntity, bool>>(be, param));
-                return expression;
-            }
-        }
+        public Expression<Func<TEntity, bool>> OtherQueryCondition => _repositoryQueryCondition != null
+            ? _repositoryQueryCondition.GetOtherQueryCondition<TEntity>()
+            : x => true;
 
         public bool CompareTenantId(TEntity entity)
         {
@@ -92,7 +56,6 @@ namespace Girvs.EntityFrameworkCore.Repositories
             var tenantId = EngineContext.Current.ClaimManager.GetTenantId();
             var propertyValue = CommonHelper.GetProperty(entity, nameof(IIncludeMultiTenant<Tkey>.TenantId));
             return propertyValue != null && propertyValue.ToString() == tenantId;
-
         }
 
         public virtual async Task<TEntity> AddAsync(TEntity t)
@@ -111,7 +74,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
             {
                 throw new GirvsException("当前租户与数据不一致，无法操作", 568);
             }
-            
+
             await DbSet.AddRangeAsync(ts);
             return ts;
         }
@@ -132,7 +95,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
             {
                 throw new GirvsException("当前租户与数据不一致，无法操作", 568);
             }
-            
+
             foreach (var entity in ts)
             {
                 await UpdateEntity(entity, fields);
@@ -145,7 +108,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
             {
                 throw new GirvsException("当前租户与数据不一致，无法操作", 568);
             }
-            
+
             DbSet.Remove(t);
             return Task.CompletedTask;
         }
@@ -156,7 +119,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
             {
                 throw new GirvsException("当前租户与数据不一致，无法操作", 568);
             }
-            
+
             DbSet.RemoveRange(ts);
             return Task.CompletedTask;
         }

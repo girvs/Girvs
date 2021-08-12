@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using Girvs.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -31,12 +30,12 @@ namespace Girvs.Infrastructure
         /// </summary>
         HttpContext HttpContext { get; }
 
-        /// <summary>
-        /// 根据Claim名称获取相关的登陆信息
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        Claim GetCurrentClaimByName(string name);
+        // /// <summary>
+        // /// 根据Claim名称获取相关的登陆信息
+        // /// </summary>
+        // /// <param name="name"></param>
+        // /// <returns></returns>
+        // Claim GetCurrentClaimByName(string name);
 
         IClaimManager ClaimManager { get; }
 

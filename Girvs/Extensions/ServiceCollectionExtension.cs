@@ -48,7 +48,7 @@ namespace Girvs.Extensions
             foreach (var managerInterfaceType in managerInterfaceTypes)
             {
                 var imp = typeFinder.FindOfType(managerInterfaceType).FirstOrDefault();
-                if (imp != null)
+                if (imp != null && imp.IsClass)
                 {
                     services.AddScoped(managerInterfaceType, imp);
                 }
