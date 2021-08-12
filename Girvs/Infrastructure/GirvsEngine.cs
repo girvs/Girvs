@@ -69,7 +69,7 @@ namespace Girvs.Infrastructure
 
             //create and sort instances of startup configurations
             var instances = startupConfigurations
-                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             //configure services
@@ -94,7 +94,7 @@ namespace Girvs.Infrastructure
 
             //create and sort instances of startup configurations
             var instances = startupConfigurations
-                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             //configure request pipeline
@@ -113,7 +113,7 @@ namespace Girvs.Infrastructure
             var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
             var instances = startupConfigurations
-                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
+                .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             var logger = Resolve<ILogger<object>>();
@@ -132,7 +132,7 @@ namespace Girvs.Infrastructure
         /// <returns>Resolved service</returns>
         public T Resolve<T>(IServiceScope scope = null) where T : class
         {
-            return (T) Resolve(typeof(T), scope);
+            return (T)Resolve(typeof(T), scope);
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace Girvs.Infrastructure
         /// <returns>Collection of resolved services</returns>
         public virtual IEnumerable<T> ResolveAll<T>()
         {
-            return (IEnumerable<T>) GetServiceProvider().GetServices(typeof(T));
+            return (IEnumerable<T>)GetServiceProvider().GetServices(typeof(T));
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace Girvs.Infrastructure
 
             //create and sort instances of dependency registrars
             var instances = dependencyRegistrars
-                .Select(dependencyRegistrar => (IDependencyRegistrar) Activator.CreateInstance(dependencyRegistrar))
+                .Select(dependencyRegistrar => (IDependencyRegistrar)Activator.CreateInstance(dependencyRegistrar))
                 .OrderBy(dependencyRegistrar => dependencyRegistrar.Order);
 
             //register all provided dependencies
@@ -241,7 +241,26 @@ namespace Girvs.Infrastructure
             return new Claim(name, "");
         }
 
-        public IClaimManager ClaimManager => Resolve<IClaimManager>();
+        public IClaimManager ClaimManager
+        {
+            get
+            {
+                var claimManager = Resolve<IClaimManager>();
+                if (claimManager != null && HttpContext != null
+                                         && HttpContext.User.Identity.IsAuthenticated)
+                {
+                    claimManager.CurrentClaims = HttpContext.User.Claims;
+                }
+                else
+                {
+                    claimManager.CurrentClaims =
+                        claimManager.GenerateClaimsIdentity(string.Empty, string.Empty, string.Empty, string.Empty)
+                            .Claims;
+                }
+
+                return claimManager;
+            }
+        }
 
         public T GetAppModuleConfig<T>() where T : IAppModuleConfig
         {

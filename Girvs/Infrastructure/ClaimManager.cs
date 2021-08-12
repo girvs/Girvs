@@ -1,31 +1,37 @@
-﻿using System.Security.Claims;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 
 namespace Girvs.Infrastructure
 {
     public class ClaimManager : IClaimManager
     {
+        public IEnumerable<Claim> CurrentClaims { get; set; }
+
+        private string GetClaimValueByTypeName(string claimName)
+        {
+            var claim = CurrentClaims?.FirstOrDefault(x => x.Type == claimName);
+            return claim?.Value ?? string.Empty;
+        }
+        
         public string GetUserId(string claimName = ClaimTypes.Sid)
         {
-            var userId = EngineContext.Current.GetCurrentClaimByName(claimName).Value;
-            return string.IsNullOrWhiteSpace(userId) ? string.Empty : userId;
+            return GetClaimValueByTypeName(claimName);
         }
 
         public string GetUserName(string claimName = ClaimTypes.Name)
         {
-            var userName = EngineContext.Current.GetCurrentClaimByName(claimName).Value;
-            return string.IsNullOrWhiteSpace(userName) ? string.Empty : userName;
+            return GetClaimValueByTypeName(claimName);
         }
 
         public string GetTenantId(string claimName = ClaimTypes.GroupSid)
         {
-            var tenantId = EngineContext.Current.GetCurrentClaimByName(claimName).Value;
-            return string.IsNullOrWhiteSpace(tenantId) ? string.Empty : tenantId;
+            return GetClaimValueByTypeName(claimName);
         }
 
         public string GetTenantName(string claimName = ClaimTypes.GivenName)
         {
-            var tenantName = EngineContext.Current.GetCurrentClaimByName(claimName).Value;
-            return string.IsNullOrWhiteSpace(tenantName) ? string.Empty : tenantName;
+            return GetClaimValueByTypeName(claimName);
         }
 
         public ClaimsIdentity GenerateClaimsIdentity(string sid, string name, string tenantId, string tenantName)
@@ -37,7 +43,7 @@ namespace Girvs.Infrastructure
                 new Claim(ClaimTypes.GroupSid, tenantId),
                 new Claim(ClaimTypes.GivenName, tenantName)
             });
-
+            
             return claimsIdentity;
         }
     }

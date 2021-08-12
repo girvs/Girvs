@@ -6,9 +6,12 @@ using Girvs.Cache.Configuration;
 using Girvs.Configuration;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Notifications;
+using Girvs.EventBus;
+using Girvs.EventBus.Extensions;
 using Girvs.Infrastructure;
 using JetBrains.Annotations;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Power.EventBus.Permission;
 using ZhuoFan.Wb.BasicService.Domain.Commands.ServiceDataRule;
@@ -17,7 +20,7 @@ using ZhuoFan.Wb.BasicService.Domain.Enumerations;
 
 namespace ZhuoFan.Wb.BasicService.Application.EventBusHandlers
 {
-    public class PermissionAuthorizeEventHandler// : IIntegrationEventHandler<PermissionAuthorizeEvent>
+    public class PermissionAuthorizeEventHandler : IIntegrationEventHandler<PermissionAuthorizeEvent>
     {
         private readonly ILocker _locker;
         private readonly ILogger<PermissionAuthorizeEventHandler> _logger;
@@ -40,8 +43,11 @@ namespace ZhuoFan.Wb.BasicService.Application.EventBusHandlers
 
 
         [CapSubscribe(nameof(PermissionAuthorizeEvent))]
-        public Task Handle(PermissionAuthorizeEvent @event)
+        public Task Handle(PermissionAuthorizeEvent @event, [FromCap] CapHeader header)
         {
+            //需要重新设置身份认证头
+            EngineContext.Current.ClaimManager.CapEventBusReSetClaim(header);
+
             _logger.LogInformation("Handling 'PermissionAuthorizeEvent' event", @event.Id,
                 AppDomain.CurrentDomain.FriendlyName,
                 @event);
@@ -66,7 +72,7 @@ namespace ZhuoFan.Wb.BasicService.Application.EventBusHandlers
                         var createOrUpdateServiceDataRuleCommand = new CreateOrUpdateServiceDataRuleCommand(
                             authorizeUserRule.ServiceName,
                             authorizeUserRule.ModuleName,
-                            (UserType) (int) authorizeUserRule.UserType,
+                            (UserType)(int)authorizeUserRule.UserType,
                             authorizeUserRule.DataSource,
                             authorizeUserRule.FieldName,
                             authorizeUserRule.FieldDesc

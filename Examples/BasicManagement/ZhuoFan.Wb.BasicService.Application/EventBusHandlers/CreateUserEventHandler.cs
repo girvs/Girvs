@@ -44,7 +44,7 @@ namespace ZhuoFan.Wb.BasicService.Application.EventBusHandlers
         }
 
         [CapSubscribe(nameof(CreateUserEvent))]
-        public Task Handle(CreateUserEvent @event)
+        public Task Handle(CreateUserEvent @event ,[FromCap]CapHeader header)
         {
             _logger.LogInformation("Handling 'CreateUserEvent' event", @event.Id, AppDomain.CurrentDomain.FriendlyName,
                 @event);
