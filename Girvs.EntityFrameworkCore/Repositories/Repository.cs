@@ -47,7 +47,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         }
 
         public Expression<Func<TEntity, bool>> OtherQueryCondition => _repositoryQueryCondition != null
-            ? _repositoryQueryCondition.GetOtherQueryCondition<TEntity>()
+            ? _repositoryQueryCondition.GetOtherQueryCondition<TEntity>().Result
             : x => true;
 
         public bool CompareTenantId(TEntity entity)

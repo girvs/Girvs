@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Girvs.BusinessBasis.Dto;
 
 namespace Girvs.AuthorizePermission
 {
-    public class AuthorizePermissionModel
+    public class AuthorizePermissionModel : IDto
     {
         public AuthorizePermissionModel()
         {

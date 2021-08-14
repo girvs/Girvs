@@ -7,5 +7,7 @@ namespace Girvs.AuthorizePermission.ActionPermission
     public interface IGirvsAuthorizePermissionService : IAppWebApiService
     {
         Task<List<AuthorizePermissionModel>> GetAuthorizePermissionList();
+
+        Task<List<AuthorizeDataRuleModel>> GetAuthorizeDataRuleList();
     }
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Girvs.BusinessBasis.Entities;
 using Girvs.DynamicWebApi;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
@@ -53,6 +54,47 @@ namespace Girvs.AuthorizePermission.ActionPermission
             }).ToList();
 
             return Task.FromResult(list);
+        }
+
+        public Task<List<AuthorizeDataRuleModel>> GetAuthorizeDataRuleList()
+        {
+            var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
+
+            var entities = typeFinder.FindOfType<Entity>();
+            var authorizeDataRuleList = new List<AuthorizeDataRuleModel>();
+
+
+            foreach (var entity in entities)
+            {
+                var entityDataRuleAttribute = entity.GetCustomAttribute<DataRuleAttribute>();
+
+                if (entityDataRuleAttribute == null) continue;
+
+                var model = new AuthorizeDataRuleModel
+                {
+                    EntityTypeName = entity.FullName,
+                    EntityDesc = entityDataRuleAttribute.AttributeDesc
+                };
+
+                var properties = entity.GetProperties();
+
+                foreach (var property in properties)
+                {
+                    var propertyDataRuleAttribute = property.GetCustomAttribute<DataRuleAttribute>();
+                    if (propertyDataRuleAttribute == null) continue;
+                    
+                    model.AuthorizeDataRuleFieldModels.Add(new AuthorizeDataRuleFieldModel()
+                    {
+                        FieldName = property.Name,
+                        FieldType = property.GetType().ToString(),
+                        FieldDesc = propertyDataRuleAttribute.AttributeDesc
+                    });
+                }
+
+                authorizeDataRuleList.Add(model);
+            }
+
+            return Task.FromResult(authorizeDataRuleList);
         }
     }
 }

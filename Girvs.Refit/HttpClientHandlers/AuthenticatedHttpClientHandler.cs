@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Girvs.Configuration;
 using Girvs.Infrastructure;
 using Girvs.Refit.Configuration;
 using NConsul;
@@ -17,7 +16,7 @@ namespace Girvs.Refit.HttpClientHandlers
 
         public AuthenticatedHttpClientHandler(RefitServiceAttribute refitServiceAttribute)
         {
-            _refitConfig = Singleton<AppSettings>.Instance[nameof(RefitConfig)] as RefitConfig;
+            _refitConfig = EngineContext.Current.GetAppModuleConfig<RefitConfig>();
             _refitServiceAttribute =
                 refitServiceAttribute ?? throw new ArgumentNullException(nameof(refitServiceAttribute));
         }
