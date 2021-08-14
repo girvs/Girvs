@@ -86,7 +86,7 @@ namespace Girvs.AuthorizePermission.ActionPermission
                     model.AuthorizeDataRuleFieldModels.Add(new AuthorizeDataRuleFieldModel()
                     {
                         FieldName = property.Name,
-                        FieldType = property.GetType().ToString(),
+                        FieldType = property.PropertyType.ToString(),
                         FieldDesc = propertyDataRuleAttribute.AttributeDesc
                     });
                 }

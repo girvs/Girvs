@@ -12,14 +12,13 @@ namespace Girvs.AuthorizePermission.ActionPermission
     {
         public abstract Task<IList<AuthorizeDataRuleModel>> GetEntityDataRules();
 
-
-        public override async Task<Expression<Func<TEntity, bool>>> GetOtherQueryCondition<TEntity>()
+        public override Task<Expression<Func<TEntity, bool>>> GetOtherQueryCondition<TEntity>()
         {
             //默认判断如果存
             Expression<Func<TEntity, bool>> expression =
                 TurnOnTenant(typeof(TEntity)) ? BuilderTenantCondition<TEntity>() : x => true;
 
-            var dataRuleModels = await GetEntityDataRules();
+            var dataRuleModels = GetEntityDataRules().Result;
 
             if (dataRuleModels == null)
             {
@@ -29,19 +28,20 @@ namespace Girvs.AuthorizePermission.ActionPermission
             var currentEntityDataRule =
                 dataRuleModels.FirstOrDefault(x => x.EntityTypeName == typeof(TEntity).FullName);
 
-            if (currentEntityDataRule == null) return expression;
-            
-            foreach (var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels)
+            if (currentEntityDataRule != null)
             {
-                var param = Expression.Parameter(typeof(TEntity), "entity");
-                var left = Expression.Property(param, dataRuleFieldModel.FieldName);
-                var right = Expression.Constant(dataRuleFieldModel.FieldValue);
-                var be = Expression.MakeBinary(dataRuleFieldModel.ExpressionType, left, right);
-                var newEx = Expression.Lambda<Func<TEntity, bool>>(be, param);
-                expression = expression.And(newEx);
+                foreach (var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels)
+                {
+                    var param = Expression.Parameter(typeof(TEntity), "entity");
+                    var left = Expression.Property(param, dataRuleFieldModel.FieldName);
+                    var right = Expression.Constant(dataRuleFieldModel.FieldValue);
+                    var be = Expression.MakeBinary(dataRuleFieldModel.ExpressionType, left, right);
+                    var newEx = Expression.Lambda<Func<TEntity, bool>>(be, param);
+                    expression = expression.And(newEx);
+                }
             }
 
-            return expression;
+            return Task.FromResult<Expression<Func<TEntity, bool>>>(expression);
         }
     }
 }

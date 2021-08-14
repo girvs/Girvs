@@ -54,6 +54,11 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             if (entity is not IIncludeMultiTenant<Tkey>) return true;
             var tenantId = EngineContext.Current.ClaimManager.GetTenantId();
+            var identityType = EngineContext.Current.ClaimManager.GetIdentityType();
+            if (string.IsNullOrEmpty(tenantId) && identityType == IdentityType.EventMessageUser)
+            {
+                tenantId = Guid.Empty.ToString();
+            }
             var propertyValue = CommonHelper.GetProperty(entity, nameof(IIncludeMultiTenant<Tkey>.TenantId));
             return propertyValue != null && propertyValue.ToString() == tenantId;
         }
