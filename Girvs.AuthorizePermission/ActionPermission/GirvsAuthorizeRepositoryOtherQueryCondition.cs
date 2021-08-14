@@ -21,6 +21,11 @@ namespace Girvs.AuthorizePermission.ActionPermission
 
             var dataRuleModels = await GetEntityDataRules();
 
+            if (dataRuleModels == null)
+            {
+                throw new GirvsException("未获取相关的数据授权信息", 568);
+            }
+
             var currentEntityDataRule =
                 dataRuleModels.FirstOrDefault(x => x.EntityTypeName == typeof(TEntity).FullName);
 

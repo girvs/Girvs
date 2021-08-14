@@ -43,7 +43,7 @@ namespace Girvs.EventBus
                     options.UserName = eventBusConfig.UserName;
                     options.Password = eventBusConfig.Password;
                     options.VirtualHost = eventBusConfig.VirtualHost;
-                    options.ExchangeName = eventBusConfig.ExchangeName;
+                    //options.ExchangeName = eventBusConfig.ExchangeName;
                 });
                 //x.UseGrivsConfigDataBase();
                 x.UseDashboard();

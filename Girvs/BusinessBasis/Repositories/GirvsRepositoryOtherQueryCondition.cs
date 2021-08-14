@@ -14,12 +14,12 @@ namespace Girvs.BusinessBasis.Repositories
 
         protected object ConverToTkeyValue(PropertyInfo propertyInfo, object value)
         {
-            if (propertyInfo?.GetType() == typeof(Guid))
+            if (propertyInfo?.PropertyType == typeof(Guid))
             {
                 return value.ToString().ToHasGuid();
             }
 
-            if (propertyInfo?.GetType() == typeof(Int32))
+            if (propertyInfo?.PropertyType == typeof(Int32))
             {
                 return int.Parse(value.ToString());
             }
