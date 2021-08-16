@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis;
 
-namespace Girvs.AuthorizePermission.ActionPermission
+namespace Girvs.AuthorizePermission.AuthorizeCompare
 {
     public interface IServiceMethodPermissionCompare : IManager
     {

@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.Extensions;
 
-namespace Girvs.AuthorizePermission.ActionPermission
+namespace Girvs.AuthorizePermission.AuthorizeCompare
 {
-    public abstract class GirvsAuthorizeRepositoryOtherQueryCondition : GirvsRepositoryOtherQueryCondition
+    public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition, IServiceMethodPermissionCompare
     {
-        public abstract Task<IList<AuthorizeDataRuleModel>> GetEntityDataRules();
+        public abstract Task<AuthorizeModel> GetCurrnetUserAuthorize();
 
         public override Task<Expression<Func<TEntity, bool>>> GetOtherQueryCondition<TEntity>()
         {
@@ -18,7 +18,8 @@ namespace Girvs.AuthorizePermission.ActionPermission
             Expression<Func<TEntity, bool>> expression =
                 TurnOnTenant(typeof(TEntity)) ? BuilderTenantCondition<TEntity>() : x => true;
 
-            var dataRuleModels = GetEntityDataRules().Result;
+            var currentUserAuthorize = GetCurrnetUserAuthorize().Result ?? new AuthorizeModel();
+            var dataRuleModels = currentUserAuthorize.AuthorizeDataRules;
 
             if (dataRuleModels == null)
             {
@@ -42,6 +43,22 @@ namespace Girvs.AuthorizePermission.ActionPermission
             }
 
             return Task.FromResult<Expression<Func<TEntity, bool>>>(expression);
+        }
+
+        public Task<bool> PermissionCompare(Guid functionId, Permission permission)
+        {
+            var currentUserAuthorize = GetCurrnetUserAuthorize().Result ?? new AuthorizeModel();
+
+            var ps = currentUserAuthorize.AuthorizePermissions;
+
+            if (ps == null || !ps.Any())
+            {
+                throw new GirvsException("未获取相关的功能授权信息", 568);
+            }
+
+            var key = permission.ToString();
+            var result = ps.Any(x => x.ServiceId == functionId && x.Permissions.ContainsValue(key));
+            return Task.FromResult(result);
         }
     }
 }

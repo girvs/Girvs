@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Girvs.DynamicWebApi;
 
-namespace Girvs.AuthorizePermission.ActionPermission
+namespace Girvs.AuthorizePermission.Services
 {
     public interface IGirvsAuthorizePermissionService : IAppWebApiService
     {

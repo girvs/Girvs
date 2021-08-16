@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 
-namespace Girvs.AuthorizePermission.ActionPermission
+namespace Girvs.AuthorizePermission.AuthorizeCompare
 {
     public class ActionPermissionFilter : ActionFilterAttribute
     {

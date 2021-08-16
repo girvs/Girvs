@@ -22,5 +22,7 @@
     <ItemGroup>
       <Compile Remove="Extensions\EngineExtension.cs" />
       <Compile Remove="Extensions\BaseEntityExtension.cs" />
+      <Compile Remove="AuthorizeCompare\GirvsServiceMethodPermissionCompare.cs" />
+      <Compile Remove="AuthorizeCompare\GirvsAuthorizeCompare11.cs" />
     </ItemGroup>
 </Project>

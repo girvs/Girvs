@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Girvs.AuthorizePermission.Enumerations;
 
-namespace Girvs.AuthorizePermission.ActionPermission
+namespace Girvs.AuthorizePermission.AuthorizeCompare
 {
     public abstract class GirvsServiceMethodPermissionCompare : IServiceMethodPermissionCompare
     {

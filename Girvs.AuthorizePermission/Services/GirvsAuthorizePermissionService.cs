@@ -9,7 +9,7 @@ using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Authorization;
 using Panda.DynamicWebApi.Attributes;
 
-namespace Girvs.AuthorizePermission.ActionPermission
+namespace Girvs.AuthorizePermission.Services
 {
     [DynamicWebApi]
     [AllowAnonymous]

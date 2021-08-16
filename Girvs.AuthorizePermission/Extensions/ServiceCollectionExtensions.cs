@@ -1,5 +1,5 @@
 ﻿using System;
-using Girvs.AuthorizePermission.ActionPermission;
+using Girvs.AuthorizePermission.AuthorizeCompare;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
