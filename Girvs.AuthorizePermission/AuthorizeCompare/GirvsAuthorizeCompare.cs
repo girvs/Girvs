@@ -35,7 +35,11 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
                 {
                     var param = Expression.Parameter(typeof(TEntity), "entity");
                     var left = Expression.Property(param, dataRuleFieldModel.FieldName);
-                    var right = Expression.Constant(dataRuleFieldModel.FieldValue);
+
+                    var rightValue =
+                        GirvsConvert.ToSpecifiedType(dataRuleFieldModel.FieldType, dataRuleFieldModel.FieldValue);
+
+                    var right = Expression.Constant(rightValue);
                     var be = Expression.MakeBinary(dataRuleFieldModel.ExpressionType, left, right);
                     var newEx = Expression.Lambda<Func<TEntity, bool>>(be, param);
                     expression = expression.And(newEx);

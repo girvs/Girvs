@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 using Girvs.BusinessBasis.Entities;
-using Girvs.Extensions;
 using Girvs.Infrastructure;
 
 namespace Girvs.BusinessBasis.Repositories
@@ -12,28 +10,13 @@ namespace Girvs.BusinessBasis.Repositories
     {
         protected const string TENANTFIELDNAME = "TenantId";
 
-        protected object ConverToTkeyValue(PropertyInfo propertyInfo, object value)
-        {
-            if (propertyInfo?.PropertyType == typeof(Guid))
-            {
-                return value.ToString().ToHasGuid();
-            }
-
-            if (propertyInfo?.PropertyType == typeof(Int32))
-            {
-                return int.Parse(value.ToString());
-            }
-
-            return value;
-        }
-
         public Expression<Func<TEntity, bool>> BuilderTenantCondition<TEntity>(object tenantId = null)
             where TEntity : Entity
         {
             var propertyInfo = typeof(TEntity).GetProperty(TENANTFIELDNAME);
             if (propertyInfo != null)
             {
-                tenantId = ConverToTkeyValue(propertyInfo,
+                tenantId = GirvsConvert.ToSpecifiedType(propertyInfo.PropertyType.ToString(),
                     tenantId ?? EngineContext.Current.ClaimManager.GetTenantId());
 
                 var param = Expression.Parameter(typeof(TEntity), "entity");
