@@ -47,7 +47,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         }
 
         public Expression<Func<TEntity, bool>> OtherQueryCondition => _repositoryQueryCondition != null
-            ? _repositoryQueryCondition.GetOtherQueryCondition<TEntity>().Result
+            ? _repositoryQueryCondition.GetOtherQueryCondition<TEntity>()
             : x => true;
 
         public bool CompareTenantId(TEntity entity)
@@ -59,6 +59,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
             {
                 tenantId = Guid.Empty.ToString();
             }
+
             var propertyValue = CommonHelper.GetProperty(entity, nameof(IIncludeMultiTenant<Tkey>.TenantId));
             return propertyValue != null && propertyValue.ToString() == tenantId;
         }
@@ -175,14 +176,13 @@ namespace Girvs.EntityFrameworkCore.Repositories
                 {
                     //临时方法，待改进,不科学的方法
                     query.Result =
-                        await Task.Run(() =>
-                            DbSet
-                                .Where(queryCondition)
-                                .SelectProperties(query.QueryFields)
-                                .OrderByDescending(query.OrderBy) //暂时取消排序
-                                .Skip(query.PageStart)
-                                .Take(query.PageSize)
-                                .ToList());
+                        await DbSet
+                            .Where(queryCondition)
+                            .SelectProperties(query.QueryFields)
+                            .OrderByDescending(query.OrderBy) //暂时取消排序
+                            .Skip(query.PageStart)
+                            .Take(query.PageSize)
+                            .ToListAsync();
                 }
                 else
                 {

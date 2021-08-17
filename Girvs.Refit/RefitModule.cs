@@ -23,8 +23,7 @@ namespace Girvs.Refit
 
             foreach (var refit in refits)
             {
-                var refitService = refit.GetCustomAttribute(typeof(RefitServiceAttribute)) as RefitServiceAttribute;
-                if (refitService != null)
+                if (refit.GetCustomAttribute(typeof(RefitServiceAttribute)) is RefitServiceAttribute refitService)
                 {
                     services.AddRefitClient(refit, new RefitSettings(new SystemTextJsonContentSerializer()))
                         // //设置服务名称，andc-api-sys是系统在Consul注册的服务名

@@ -10,15 +10,14 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
 {
     public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition, IServiceMethodPermissionCompare
     {
-        public abstract Task<AuthorizeModel> GetCurrnetUserAuthorize();
+        public abstract AuthorizeModel GetCurrnetUserAuthorize();
 
-        public override Task<Expression<Func<TEntity, bool>>> GetOtherQueryCondition<TEntity>()
+        public override Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>()
         {
             //默认判断如果存
-            Expression<Func<TEntity, bool>> expression =
-                TurnOnTenant(typeof(TEntity)) ? BuilderTenantCondition<TEntity>() : x => true;
+            Expression<Func<TEntity, bool>> expression = base.GetOtherQueryCondition<TEntity>();
 
-            var currentUserAuthorize = GetCurrnetUserAuthorize().Result ?? new AuthorizeModel();
+            var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel();
             var dataRuleModels = currentUserAuthorize.AuthorizeDataRules;
 
             if (dataRuleModels == null)
@@ -33,25 +32,22 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             {
                 foreach (var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels)
                 {
-                    var param = Expression.Parameter(typeof(TEntity), "entity");
-                    var left = Expression.Property(param, dataRuleFieldModel.FieldName);
-
-                    var rightValue =
+                    var fieldValue =
                         GirvsConvert.ToSpecifiedType(dataRuleFieldModel.FieldType, dataRuleFieldModel.FieldValue);
 
-                    var right = Expression.Constant(rightValue);
-                    var be = Expression.MakeBinary(dataRuleFieldModel.ExpressionType, left, right);
-                    var newEx = Expression.Lambda<Func<TEntity, bool>>(be, param);
-                    expression = expression.And(newEx);
+                    var ex = BuilderBinaryExpression<TEntity>(dataRuleFieldModel.FieldName, fieldValue,
+                        dataRuleFieldModel.ExpressionType);
+
+                    expression = expression.And(ex);
                 }
             }
 
-            return Task.FromResult<Expression<Func<TEntity, bool>>>(expression);
+            return expression;
         }
 
-        public Task<bool> PermissionCompare(Guid functionId, Permission permission)
+        public bool PermissionCompare(Guid functionId, Permission permission)
         {
-            var currentUserAuthorize = GetCurrnetUserAuthorize().Result ?? new AuthorizeModel();
+            var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel();
 
             var ps = currentUserAuthorize.AuthorizePermissions;
 
@@ -61,8 +57,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             }
 
             var key = permission.ToString();
-            var result = ps.Any(x => x.ServiceId == functionId && x.Permissions.ContainsValue(key));
-            return Task.FromResult(result);
+            return ps.Any(x => x.ServiceId == functionId && x.Permissions.ContainsValue(key));
         }
     }
 }

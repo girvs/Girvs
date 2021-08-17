@@ -18,7 +18,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
         public ActionPermissionFilter(ILogger<ActionPermissionFilter> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _authorizeConfig = Singleton<AppSettings>.Instance[nameof(AuthorizeConfig)] as AuthorizeConfig;
+            _authorizeConfig = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
         }
 
         public override void OnActionExecuting(ActionExecutingContext context)
@@ -66,7 +66,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             var serviceMethodPermissionCompare = EngineContext.Current.Resolve<IServiceMethodPermissionCompare>();
             if (serviceMethodPermissionCompare != null)
             {
-                var result = serviceMethodPermissionCompare.PermissionCompare(spd.ServiceId, smpd.Permission).Result;
+                var result = serviceMethodPermissionCompare.PermissionCompare(spd.ServiceId, smpd.Permission);
                 if (!result)
                 {
                     throw new GirvsException($"当前没有‘{spd.ServiceName}’的‘{smpd.MethodName}’权限",

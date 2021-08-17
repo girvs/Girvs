@@ -25,7 +25,7 @@ namespace Girvs.Refit.HttpClientHandlers
             _logger = EngineContext.Current.Resolve<ILogger<AuthenticatedHttpClientHandler>>();
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             var headers = EngineContext.Current.HttpContext.Request.Headers.ToList();
@@ -53,7 +53,7 @@ namespace Girvs.Refit.HttpClientHandlers
             _logger.LogDebug($"Girvs开始请求，请求地址为：{requestUriStr}");
             request.RequestUri = new Uri(requestUriStr);
             
-            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            return base.SendAsync(request, cancellationToken);
         }
 
         private string LookupService(string serviceName)
