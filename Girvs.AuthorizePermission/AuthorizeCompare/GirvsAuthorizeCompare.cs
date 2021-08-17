@@ -55,7 +55,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
 
             var ps = currentUserAuthorize.AuthorizePermissions;
 
-            if (ps == null || !ps.Any())
+            if (ps == null)
             {
                 throw new GirvsException("未获取相关的功能授权信息", 568);
             }
