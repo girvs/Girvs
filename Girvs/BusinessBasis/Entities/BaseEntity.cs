@@ -51,47 +51,20 @@ namespace Girvs.BusinessBasis.Entities
                 }
             }
 
-
             var multiTenantPrperty = this.GetType().GetProperty("IIncludeMultiTenant");
             if (multiTenantPrperty != null)
             {
-                var tenantIdStr = EngineContext.Current.ClaimManager.GetTenantId();
-
-                if (!string.IsNullOrEmpty(tenantIdStr) && multiTenantPrperty.PropertyType == typeof(Guid))
-                {
-                    multiTenantPrperty.SetValue(this, Guid.Parse(tenantIdStr));
-                }
-
-                if (!string.IsNullOrEmpty(tenantIdStr) && multiTenantPrperty.PropertyType == typeof(Int32))
-                {
-                    multiTenantPrperty.SetValue(this, int.Parse(tenantIdStr));
-                }
-
-                if (!string.IsNullOrEmpty(tenantIdStr))
-                {
-                    multiTenantPrperty.SetValue(this, tenantIdStr);
-                }
+                var value = GirvsConvert.ToSpecifiedType(multiTenantPrperty.PropertyType.FullName,
+                    EngineContext.Current.ClaimManager.GetTenantId());
+                multiTenantPrperty.SetValue(this, value);
             }
 
             var creatorPrperty = this.GetType().GetProperty("CreatorId");
             if (creatorPrperty != null)
             {
-                var userIdStr = EngineContext.Current.ClaimManager.GetUserId();
-
-                if (!string.IsNullOrEmpty(userIdStr) && creatorPrperty.PropertyType == typeof(Guid))
-                {
-                    creatorPrperty.SetValue(this, Guid.Parse(userIdStr));
-                }
-
-                if (!string.IsNullOrEmpty(userIdStr) && creatorPrperty.PropertyType == typeof(Int32))
-                {
-                    creatorPrperty.SetValue(this, int.Parse(userIdStr));
-                }
-
-                if (!string.IsNullOrEmpty(userIdStr))
-                {
-                    creatorPrperty.SetValue(this, userIdStr);
-                }
+                var value = GirvsConvert.ToSpecifiedType(creatorPrperty.PropertyType.FullName,
+                    EngineContext.Current.ClaimManager.GetUserId());
+                creatorPrperty.SetValue(this, value);
             }
         }
 
