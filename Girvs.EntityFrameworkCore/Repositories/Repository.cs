@@ -23,8 +23,17 @@ namespace Girvs.EntityFrameworkCore.Repositories
     public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
     {
         private readonly ILogger<Repository<TEntity, Tkey>> _logger;
-        protected DbContext DbContext { get; }
-        protected DbSet<TEntity> DbSet { get; }
+        internal DbContext DbContext { get; }
+        internal DbSet<TEntity> DbSet { get; }
+
+        /// <summary>
+        /// 绕开底层条件查询
+        /// </summary>
+        protected bool PassOtherQueryCondition = false;
+
+        protected IQueryable<TEntity> Queryable =>
+            PassOtherQueryCondition ? DbSet.Where(x => true) : DbSet.Where(OtherQueryCondition);
+
         protected readonly IRepositoryOtherQueryCondition _repositoryQueryCondition;
 
         protected Repository()
@@ -130,15 +139,9 @@ namespace Girvs.EntityFrameworkCore.Repositories
             return Task.CompletedTask;
         }
 
-        public virtual async Task<TEntity> GetByIdAsync(Tkey id)
+        public virtual Task<TEntity> GetByIdAsync(Tkey id)
         {
-            var entity = await DbSet.FindAsync(id);
-            if (!CompareTenantId(entity))
-            {
-                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
-            }
-
-            return entity;
+            return Queryable.FirstOrDefaultAsync(t => t.Id.Equals(id));
         }
 
         public virtual Task<List<TEntity>> GetAllAsync(params string[] fields)
@@ -147,18 +150,17 @@ namespace Girvs.EntityFrameworkCore.Repositories
             {
                 //临时方法，待改进,不科学的方法
                 return Task.Run(() =>
-                    DbSet.Where(OtherQueryCondition).SelectProperties(fields).ToList());
+                    Queryable.Where(OtherQueryCondition).SelectProperties(fields).ToList());
             }
             else
             {
-                return DbSet.Where(OtherQueryCondition).ToListAsync();
+                return Queryable.Where(OtherQueryCondition).ToListAsync();
             }
         }
 
         public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            predicate = predicate.And(OtherQueryCondition);
-            return DbSet.Where(predicate).ToListAsync();
+            return Queryable.Where(predicate).ToListAsync();
         }
 
         public virtual async Task<List<TEntity>> GetByQueryAsync(QueryBase<TEntity> query)
@@ -216,22 +218,17 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
         public virtual Task<bool> ExistEntityAsync(Tkey id)
         {
-            Expression<Func<TEntity, bool>> predicate = t => t.Id.Equals(id);
-            predicate = predicate.And(OtherQueryCondition);
-
-            return ExistEntityAsync(predicate);
+            return ExistEntityAsync(t => t.Id.Equals(id));
         }
 
         public virtual Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            predicate = predicate.And(OtherQueryCondition);
-            return DbSet.AnyAsync(predicate);
+            return Queryable.AnyAsync(predicate);
         }
 
         public Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            predicate = predicate.And(OtherQueryCondition);
-            return DbSet.FirstOrDefaultAsync(predicate);
+            return Queryable.FirstOrDefaultAsync(predicate);
         }
     }
 }
