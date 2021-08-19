@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -47,7 +48,7 @@ namespace Girvs.BusinessBasis.Queries
                 }
             }
 
-            if (QueryFields != null && QueryFields.Length > 0)
+            if (QueryFields != null && QueryFields.Any())
             {
                 var queryFieldStr = string.Join(',', QueryFields);
                 sb.Append($"QueryFields:{queryFieldStr}");

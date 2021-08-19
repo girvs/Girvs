@@ -13,9 +13,9 @@ namespace Girvs.Cache.Caching
         /// <summary>
         /// 获取缓存键中使用的实体类型名称
         /// </summary>
-        public static string EntityTypeName => typeof(TEntity).Name.ToLowerInvariant();
+        private static string EntityTypeName => typeof(TEntity).Name.ToLowerInvariant();
 
-        public static string TenantKey
+        private static string TenantKey
         {
             get
             {
@@ -26,7 +26,7 @@ namespace Girvs.Cache.Caching
             }
         }
 
-        public static string OtherQueryConditionKey
+        private static string OtherQueryConditionKey
         {
             get
             {
@@ -66,13 +66,13 @@ namespace Girvs.Cache.Caching
         /// 获取缓存所有实体的键
         /// </summary>
         public static CacheKey AllCacheKey =>
-            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list:all");
+            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list:all:{{0}}");
 
         /// <summary>
         /// 获取所有列表页面的缓存
         /// </summary>
         public static CacheKey ListCacheKey =>
-            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list");
+            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list:{{0}}");
 
         /// <summary>
         /// 获取查询列表缓存键
