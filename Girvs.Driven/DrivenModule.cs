@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using Girvs.Driven.Behaviors;
-using Girvs.Driven.Commands;
+﻿using Girvs.Driven.Behaviors;
 using Girvs.Driven.Extensions;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
@@ -20,7 +18,6 @@ namespace Girvs.Driven
             services.AddMediatR(typeof(DrivenModule));
             services.RegisterNotificationHandlerType();
             services.RegisterCommandHandlerType();
-
             services.RegisterIValidatorType();
             // services.RegisterType(typeof(INotificationHandler<>), typeFinder, asType: null);
             // services.RegisterType(typeof(CommandHandler), typeFinder, asType: null);

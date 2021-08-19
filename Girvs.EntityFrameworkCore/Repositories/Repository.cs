@@ -26,13 +26,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         internal DbContext DbContext { get; }
         internal DbSet<TEntity> DbSet { get; }
 
-        /// <summary>
-        /// 绕开底层条件查询
-        /// </summary>
-        protected bool PassOtherQueryCondition = false;
-
-        protected IQueryable<TEntity> Queryable =>
-            PassOtherQueryCondition ? DbSet.Where(x => true) : DbSet.Where(OtherQueryCondition);
+        protected IQueryable<TEntity> Queryable => DbSet.Where(OtherQueryCondition);
 
         protected readonly IRepositoryOtherQueryCondition _repositoryQueryCondition;
 

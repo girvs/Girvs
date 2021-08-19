@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using Girvs.AuthorizePermission.Configuration;
-using Girvs.Configuration;
 using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -29,7 +28,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
                 return;
             }
 
-            ControllerActionDescriptor ad = context.ActionDescriptor as ControllerActionDescriptor;
+            var ad = context.ActionDescriptor as ControllerActionDescriptor;
 
             if (ad.ControllerName.Contains("HealthController"))
             {
@@ -57,19 +56,19 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
                 return;
             }
 
-            var smpd =
+            var swamped =
                 ad.MethodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute), false) as
                     ServiceMethodPermissionDescriptorAttribute;
 
-            _logger.LogInformation($"ServiceName:{spd.ServiceName}  ActionMethodName:{smpd.MethodName}");
+            _logger.LogInformation($"ServiceName:{spd.ServiceName}  ActionMethodName:{swamped.MethodName}");
 
             var serviceMethodPermissionCompare = EngineContext.Current.Resolve<IServiceMethodPermissionCompare>();
             if (serviceMethodPermissionCompare != null)
             {
-                var result = serviceMethodPermissionCompare.PermissionCompare(spd.ServiceId, smpd.Permission);
+                var result = serviceMethodPermissionCompare.PermissionCompare(spd.ServiceId, swamped.Permission);
                 if (!result)
                 {
-                    throw new GirvsException($"当前没有‘{spd.ServiceName}’的‘{smpd.MethodName}’权限",
+                    throw new GirvsException($"当前没有‘{spd.ServiceName}’的‘{swamped.MethodName}’权限",
                         StatusCodes.Status403Forbidden);
                 }
             }

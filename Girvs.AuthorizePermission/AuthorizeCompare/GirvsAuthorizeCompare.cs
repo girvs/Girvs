@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.Extensions;
@@ -45,7 +44,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             return expression;
         }
 
-        public bool PermissionCompare(Guid functionId, Permission permission)
+        public virtual bool PermissionCompare(Guid functionId, Permission permission)
         {
             var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel();
 

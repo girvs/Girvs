@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using Girvs.BusinessBasis.Entities;
 using Girvs.Infrastructure;
 
@@ -8,10 +7,13 @@ namespace Girvs.BusinessBasis.Repositories
 {
     public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQueryCondition
     {
-        protected const string TENANTFIELDNAME = "TenantId";
+        protected readonly string tenantFieldName = nameof(IIncludeMultiTenant<object>.TenantId);
 
-        protected Expression<Func<TEntity, bool>> BuilderBinaryExpression<TEntity>(string fieldName, object value,
-            ExpressionType expressionType = ExpressionType.Equal)
+        protected virtual Expression<Func<TEntity, bool>> BuilderBinaryExpression<TEntity>(
+            string fieldName,
+            object value,
+            ExpressionType expressionType = ExpressionType.Equal
+        )
         {
             var param = Expression.Parameter(typeof(TEntity), "entity");
             var left = Expression.Property(param, fieldName);
@@ -20,24 +22,24 @@ namespace Girvs.BusinessBasis.Repositories
             return Expression.Lambda<Func<TEntity, bool>>(be, param);
         }
 
-        public Expression<Func<TEntity, bool>> BuilderTenantBinaryExpression<TEntity>(object tenantId = null)
+        protected virtual Expression<Func<TEntity, bool>> BuilderTenantBinaryExpression<TEntity>(object tenantId = null)
             where TEntity : Entity
         {
-            var propertyInfo = typeof(TEntity).GetProperty(TENANTFIELDNAME);
-            
+            var propertyInfo = typeof(TEntity).GetProperty(tenantFieldName);
+
             if (propertyInfo != null)
             {
                 tenantId = GirvsConvert.ToSpecifiedType(propertyInfo.PropertyType.ToString(),
                     tenantId ?? EngineContext.Current.ClaimManager.GetTenantId());
-                return BuilderBinaryExpression<TEntity>(TENANTFIELDNAME, tenantId);
+                return BuilderBinaryExpression<TEntity>(tenantFieldName, tenantId);
             }
 
             return x => true;
         }
 
-        public virtual bool EnableOnTenant(Type entityType)
+        protected virtual bool EnableOnTenant(Type entityType)
         {
-            return entityType.GetProperty(TENANTFIELDNAME) != null;
+            return entityType.GetProperty(tenantFieldName) != null;
         }
 
         public virtual Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>() where TEntity : Entity
