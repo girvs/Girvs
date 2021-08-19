@@ -7,7 +7,6 @@ using Girvs.BusinessBasis.Entities;
 using Girvs.BusinessBasis.Queries;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.EntityFrameworkCore.Context;
-using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.Extensions;
 using Girvs.Extensions.Collections;
 using Girvs.Infrastructure;
@@ -141,10 +140,10 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
         public virtual Task<List<TEntity>> GetAllAsync(params string[] fields)
         {
-            return Queryable.Where(OtherQueryCondition).ToListAsync();
+            return Queryable.SelectProperties(fields).Where(OtherQueryCondition).ToListAsync();
         }
 
-        public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate,params string[] fields)
         {
             return Queryable.Where(predicate).ToListAsync();
         }

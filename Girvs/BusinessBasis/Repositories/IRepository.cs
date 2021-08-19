@@ -9,7 +9,6 @@ namespace Girvs.BusinessBasis.Repositories
 {
     public interface IRepository<TEntity> : IRepository<TEntity, Guid> where TEntity : BaseEntity<Guid>
     {
-        
     }
 
     public interface IRepository<TEntity, TPrimaryKey> where TEntity : BaseEntity<TPrimaryKey>
@@ -80,13 +79,13 @@ namespace Girvs.BusinessBasis.Repositories
         /// <param name="fields">需要查询的字段列表</param>
         /// <returns>实体列表集合</returns>
         Task<List<TEntity>> GetAllAsync(params string[] fields);
-        
+
         /// <summary>
         /// 根据条件所有实体列表集合
         /// </summary>
         /// <param name="fields">需要查询的字段列表</param>
         /// <returns>实体列表集合</returns>
-        Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate);
+        Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate, params string[] fields);
 
         /// <summary>
         /// 根据查询条件获取集合
@@ -108,7 +107,7 @@ namespace Girvs.BusinessBasis.Repositories
         /// <param name="predicate"></param>
         /// <returns></returns>
         Task<bool> ExistEntityAsync(Expression<Func<TEntity, bool>> predicate);
-        
+
         /// <summary>
         /// 根据条件获取单条记录集
         /// </summary>
