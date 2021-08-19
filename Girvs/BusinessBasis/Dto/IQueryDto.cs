@@ -31,7 +31,7 @@ namespace Girvs.BusinessBasis.Dto
             get => _orderBy;
             set
             {
-                if (string.IsNullOrEmpty(value))
+                if (!string.IsNullOrEmpty(value))
                 {
                     _orderBy = typeof(TDto).GetTypeQueryFieldByPropertyName(value);
                 }
