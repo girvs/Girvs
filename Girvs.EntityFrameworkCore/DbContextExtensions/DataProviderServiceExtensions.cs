@@ -31,7 +31,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         public static IServiceCollection AddSpDbContext<TContext>(this IServiceCollection services)
             where TContext : DbContext
         {
-            return services.AddDbContext<TContext>(ServiceLifetime.Scoped, ServiceLifetime.Singleton);
+            return services.AddDbContext<TContext>(ServiceLifetime.Scoped, ServiceLifetime.Scoped);
         }
 
         public static IServiceCollection AddSpDbContextPool<TContext>(this IServiceCollection services,
