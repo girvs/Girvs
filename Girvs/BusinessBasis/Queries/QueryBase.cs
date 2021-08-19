@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Text.Json.Serialization;
 
 namespace Girvs.BusinessBasis.Queries
 {
@@ -11,7 +10,7 @@ namespace Girvs.BusinessBasis.Queries
     {
         protected QueryBase()
         {
-            OrderBy = x => "Id";
+            OrderBy = string.Empty;
             PageSize = 20;
             PageIndex = 1;
         }
@@ -28,7 +27,7 @@ namespace Girvs.BusinessBasis.Queries
         public int RecordCount { get; set; }
         public List<TEntity> Result { get; set; }
 
-        [JsonIgnore] [QueryCacheKey] public Expression<Func<TEntity, string>> OrderBy { get; set; }
+        [QueryCacheKey] public string OrderBy { get; set; }
 
         public int PageCount => (int) Math.Ceiling(RecordCount / (decimal) PageSize);
 
@@ -39,7 +38,7 @@ namespace Girvs.BusinessBasis.Queries
             //此处字符串为约定，请不要随意修改
             var sb = new StringBuilder();
 
-            var ps = this.GetType().GetProperties();
+            var ps = GetType().GetProperties();
             foreach (var propertyInfo in ps)
             {
                 if (propertyInfo.GetCustomAttributes(typeof(QueryCacheKeyAttribute), true).Length > 0)
@@ -52,6 +51,11 @@ namespace Girvs.BusinessBasis.Queries
             {
                 var queryFieldStr = string.Join(',', QueryFields);
                 sb.Append($"QueryFields:{queryFieldStr}");
+            }
+
+            if (!string.IsNullOrEmpty(OrderBy))
+            {
+                sb.Append($"OrderBy:{OrderBy}");
             }
 
             return HashHelper.CreateHash(Encoding.UTF8.GetBytes(sb.ToString()));

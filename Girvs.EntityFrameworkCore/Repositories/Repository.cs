@@ -9,6 +9,7 @@ using Girvs.BusinessBasis.Repositories;
 using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.Extensions;
+using Girvs.Extensions.Collections;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.EntityFrameworkCore;
@@ -140,16 +141,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
         public virtual Task<List<TEntity>> GetAllAsync(params string[] fields)
         {
-            if (fields != null && fields.Any())
-            {
-                //临时方法，待改进,不科学的方法
-                return Task.Run(() =>
-                    Queryable.Where(OtherQueryCondition).SelectProperties(fields).ToList());
-            }
-            else
-            {
-                return Queryable.Where(OtherQueryCondition).ToListAsync();
-            }
+            return Queryable.Where(OtherQueryCondition).ToListAsync();
         }
 
         public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate)
@@ -168,27 +160,13 @@ namespace Girvs.EntityFrameworkCore.Repositories
             }
             else
             {
-                if (query.QueryFields != null && query.QueryFields.Any())
-                {
-                    //临时方法，待改进,不科学的方法
-                    query.Result =
-                        await DbSet
-                            .Where(queryCondition)
-                            .SelectProperties(query.QueryFields)
-                            .OrderByDescending(query.OrderBy) //暂时取消排序
-                            .Skip(query.PageStart)
-                            .Take(query.PageSize)
-                            .ToListAsync();
-                }
-                else
-                {
-                    query.Result = await DbSet
+                query.Result =
+                    await DbSet
                         .Where(queryCondition)
-                        .OrderByDescending(query.OrderBy) //暂时取消排序
+                        .SelectProperties(query.QueryFields)
+                        .OrderByDescending(query.OrderBy)
                         .Skip(query.PageStart)
-                        .Take(query.PageSize)
-                        .ToListAsync();
-                }
+                        .Take(query.PageSize).ToListAsync();
             }
 
             return query.Result;

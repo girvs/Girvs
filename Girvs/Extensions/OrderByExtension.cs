@@ -7,20 +7,20 @@ namespace Girvs.Extensions
 {
     public static class OrderByExtension
     {
-        public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> query, string propertyName)
+        public static IQueryable<T> OrderBy<T>(this IQueryable<T> query, string propertyName)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
-            if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
+            if (string.IsNullOrEmpty(propertyName)) return query;
             return _OrderBy<T>(query, propertyName, false);
         }
-        public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> query, string propertyName)
+        public static IQueryable<T> OrderByDescending<T>(this IQueryable<T> query, string propertyName)
         {
             if (query == null) throw new ArgumentNullException(nameof(query));
-            if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
+            if (string.IsNullOrEmpty(propertyName)) return query;
             return _OrderBy<T>(query, propertyName, true);
         }
 
-        static IOrderedQueryable<T> _OrderBy<T>(IQueryable<T> query, string propertyName, bool isDesc)
+        static IQueryable<T> _OrderBy<T>(IQueryable<T> query, string propertyName, bool isDesc)
         {
             string methodname = (isDesc) ? "OrderByDescendingInternal" : "OrderByInternal";
 
@@ -31,11 +31,11 @@ namespace Girvs.Extensions
 
             return (IOrderedQueryable<T>)method.Invoke(null, new object[] { query, memberProp });
         }
-        public static IOrderedQueryable<T> OrderByInternal<T, TProp>(IQueryable<T> query, PropertyInfo memberProperty)
+        public static IQueryable<T> OrderByInternal<T, TProp>(IQueryable<T> query, PropertyInfo memberProperty)
         {//public
             return query.OrderBy(_GetLamba<T, TProp>(memberProperty));
         }
-        public static IOrderedQueryable<T> OrderByDescendingInternal<T, TProp>(IQueryable<T> query, PropertyInfo memberProperty)
+        public static IQueryable<T> OrderByDescendingInternal<T, TProp>(IQueryable<T> query, PropertyInfo memberProperty)
         {//public
             return query.OrderByDescending(_GetLamba<T, TProp>(memberProperty));
         }

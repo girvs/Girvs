@@ -7,20 +7,9 @@ namespace Girvs.BusinessBasis.QueryTypeFields
 {
     public static class TypeExtensions
     {
-        public static (string[], string) GetTypeFieldsAndCacheKey(this Type type)
+        public static (string[], string) GetTypeQueryFieldsAndCacheKey(this Type type)
         {
-            IList<string> fields = new List<string>();
-            var propertyInfos = type.GetProperties();
-            foreach (var propertyInfo in propertyInfos)
-            {
-                var ignore =
-                    Attribute.GetCustomAttribute(propertyInfo, typeof(QueryIgnoreAttribute)) as QueryIgnoreAttribute;
-                if (!(ignore is null) || !CheckPropertyInfoValidity(propertyInfo)) continue;
-                var sourceMember =
-                    Attribute.GetCustomAttribute(propertyInfo, typeof(QuerySourceMemberAttribute)) as
-                        QuerySourceMemberAttribute;
-                fields.Add(sourceMember is null ? propertyInfo.Name : sourceMember.Name);
-            }
+            IList<string> fields = GetTypeQueryFields(type);
 
             if (fields.Any())
             {
@@ -32,20 +21,34 @@ namespace Girvs.BusinessBasis.QueryTypeFields
             return (fields.ToArray(), string.Empty);
         }
 
-        public static string[] GetTypeFields(this Type type)
+
+        public static string GetTypeQueryFieldByPropertyName(this Type type, string propertyName)
         {
-            IList<string> fields = new List<string>();
-            var propertyInfos = type.GetProperties();
-            foreach (var propertyInfo in propertyInfos)
+            var propertyInfo = type.GetProperty(propertyName);
+            return GetTypeQueryFieldByProperty(type, propertyInfo);
+        }
+
+        public static string GetTypeQueryFieldByProperty(this Type type, PropertyInfo propertyInfo)
+        {
+            if (propertyInfo != null)
             {
                 var ignore =
                     Attribute.GetCustomAttribute(propertyInfo, typeof(QueryIgnoreAttribute)) as QueryIgnoreAttribute;
-                if (!(ignore is null) || !CheckPropertyInfoValidity(propertyInfo)) continue;
+                if (!(ignore is null) || !CheckPropertyInfoValidity(propertyInfo)) return string.Empty;
                 var sourceMember =
                     Attribute.GetCustomAttribute(propertyInfo, typeof(QuerySourceMemberAttribute)) as
                         QuerySourceMemberAttribute;
-                fields.Add(sourceMember is null ? propertyInfo.Name : sourceMember.Name);
+                return sourceMember is null ? propertyInfo.Name : sourceMember.Name;
             }
+
+            return string.Empty;
+        }
+
+        public static string[] GetTypeQueryFields(this Type type)
+        {
+            var propertyInfos = type.GetProperties();
+            var fields = propertyInfos.Select(propertyInfo => GetTypeQueryFieldByProperty(type, propertyInfo))
+                .Where(fieldName => !string.IsNullOrEmpty(fieldName)).ToList();
 
             return fields.ToArray();
         }
@@ -53,7 +56,7 @@ namespace Girvs.BusinessBasis.QueryTypeFields
 
         private static bool CheckPropertyInfoValidity(PropertyInfo propertyInfo)
         {
-            bool result = true;
+            var result = true;
             var getMethod = propertyInfo.GetMethod;
             if (getMethod != null)
             {
