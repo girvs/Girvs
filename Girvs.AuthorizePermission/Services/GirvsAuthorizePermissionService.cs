@@ -31,7 +31,6 @@ namespace Girvs.AuthorizePermission.Services
                     x.IsPublic && x.IsDefined(typeof(ServiceMethodPermissionDescriptorAttribute), false));
 
 
-                //var permissions = new List<PermissionModel>();
                 var operationPermissionModels = new List<OperationPermissionModel>();
                 foreach (var methodInfo in methodInfos)
                 {
@@ -39,18 +38,15 @@ namespace Girvs.AuthorizePermission.Services
                         methodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute)) as
                             ServiceMethodPermissionDescriptorAttribute;
 
+                    if (operationPermissionModels.Any(x=>x.OperationName == smpd.MethodName))
+                        continue;
+                    
                     operationPermissionModels.Add(new OperationPermissionModel()
                     {
                         OperationName = smpd.MethodName,
                         Permission = smpd.Permission,
                         UserType = smpd.UserType
                     });
-                    //
-                    // var permissionStr = smpd.Permission.ToString();
-                    // if (!permissions.ContainsValue(permissionStr) && !permissions.ContainsKey(smpd.MethodName))
-                    // {
-                    //     permissions.Add(smpd.MethodName, smpd.Permission.ToString());
-                    // }
                 }
 
                 return new AuthorizePermissionModel
