@@ -72,7 +72,7 @@ namespace Girvs.Cache.Caching
         /// 获取所有列表页面的缓存
         /// </summary>
         public static CacheKey ListCacheKey =>
-            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list:{{0}}");
+            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list");
 
         /// <summary>
         /// 获取查询列表缓存键

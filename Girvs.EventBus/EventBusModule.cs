@@ -43,10 +43,13 @@ namespace Girvs.EventBus
                     options.UserName = eventBusConfig.UserName;
                     options.Password = eventBusConfig.Password;
                     options.VirtualHost = eventBusConfig.VirtualHost;
-                    //options.ExchangeName = eventBusConfig.ExchangeName;
                 });
                 //x.UseGrivsConfigDataBase();
                 x.UseDashboard();
+
+                x.ConsumerThreadCount = 1;
+                x.ProducerThreadCount = 1;
+
             });
             
             services.AddCapSubscribe();
@@ -60,6 +63,6 @@ namespace Girvs.EventBus
         {
         }
 
-        public int Order { get; } = 13;
+        public int Order { get; } = 50000;
     }
 }
