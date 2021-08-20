@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis.Dto;
 
 namespace Girvs.AuthorizePermission
@@ -33,6 +34,7 @@ namespace Girvs.AuthorizePermission
 
     public class AuthorizeDataRuleFieldModel : IDto
     {
+        public UserType UserType { get; set; }
         /// <summary>
         /// 字段名称
         /// </summary>

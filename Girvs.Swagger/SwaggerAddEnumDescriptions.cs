@@ -19,11 +19,18 @@ namespace Girvs.Swagger
 
             foreach (var (typeName, property) in swaggerDoc.Components.Schemas)
             {
-                Type itemType = null;
-                if (property.Enum == null || property.Enum.Count <= 0) continue;
-                itemType = dict.ContainsKey(typeName) ? dict[typeName] : null;
-                var list = property.Enum.Cast<OpenApiInteger>().ToList();
-                property.Description += DescribeEnum(itemType, list);
+                try
+                {
+                    Type itemType = null;
+                    if (property.Enum == null || property.Enum.Count <= 0) continue;
+                    itemType = dict.ContainsKey(typeName) ? dict[typeName] : null;
+                    var list = property.Enum.Cast<OpenApiInteger>().ToList();
+                    property.Description += DescribeEnum(itemType, list);
+                }
+                catch (Exception e)
+                {
+                    continue;
+                }
             }
         }
 
@@ -33,7 +40,8 @@ namespace Girvs.Swagger
             var assemblies = typeFinder.GetAssemblies()
                 .Where(x => x.FullName.Contains("Domain") || x.FullName.Contains("Application")).ToList();
 
-            return assemblies.Select(ass => ass.GetTypes().Where(x => x.IsEnum).ToList()).Where(enumTypes => enumTypes.Any()).SelectMany(enumTypes => enumTypes).ToDictionary(item => item.Name);
+            return assemblies.Select(ass => ass.GetTypes().Where(x => x.IsEnum).ToList())
+                .Where(enumTypes => enumTypes.Any()).SelectMany(enumTypes => enumTypes).ToDictionary(item => item.Name);
         }
 
         private static string DescribeEnum(Type type, IEnumerable<OpenApiInteger> enums)
@@ -58,7 +66,7 @@ namespace Girvs.Swagger
                 {
                     if (attr.GetType() == typeof(DescriptionAttribute))
                     {
-                        return ((DescriptionAttribute) attr).Description;
+                        return ((DescriptionAttribute)attr).Description;
                     }
                 }
             }

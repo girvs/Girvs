@@ -31,25 +31,34 @@ namespace Girvs.AuthorizePermission.Services
                     x.IsPublic && x.IsDefined(typeof(ServiceMethodPermissionDescriptorAttribute), false));
 
 
-                var permissions = new Dictionary<string, string>();
+                //var permissions = new List<PermissionModel>();
+                var operationPermissionModels = new List<OperationPermissionModel>();
                 foreach (var methodInfo in methodInfos)
                 {
                     var smpd =
                         methodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute)) as
                             ServiceMethodPermissionDescriptorAttribute;
 
-                    var permissionStr = smpd.Permission.ToString();
-                    if (!permissions.ContainsValue(permissionStr) && !permissions.ContainsKey(smpd.MethodName))
+                    operationPermissionModels.Add(new OperationPermissionModel()
                     {
-                        permissions.Add(smpd.MethodName, smpd.Permission.ToString());
-                    }
+                        OperationName = smpd.MethodName,
+                        Permission = smpd.Permission,
+                        UserType = smpd.UserType
+                    });
+                    //
+                    // var permissionStr = smpd.Permission.ToString();
+                    // if (!permissions.ContainsValue(permissionStr) && !permissions.ContainsKey(smpd.MethodName))
+                    // {
+                    //     permissions.Add(smpd.MethodName, smpd.Permission.ToString());
+                    // }
                 }
 
                 return new AuthorizePermissionModel
                 {
                     ServiceName = spd.ServiceName,
                     ServiceId = spd.ServiceId,
-                    Permissions = permissions
+                    OperationPermissionModels = operationPermissionModels
+                    // Permissions = permissions
                 };
             }).ToList();
 
@@ -82,12 +91,13 @@ namespace Girvs.AuthorizePermission.Services
                 {
                     var propertyDataRuleAttribute = property.GetCustomAttribute<DataRuleAttribute>();
                     if (propertyDataRuleAttribute == null) continue;
-                    
+
                     model.AuthorizeDataRuleFieldModels.Add(new AuthorizeDataRuleFieldModel()
                     {
                         FieldName = property.Name,
                         FieldType = property.PropertyType.ToString(),
-                        FieldDesc = propertyDataRuleAttribute.AttributeDesc
+                        FieldDesc = propertyDataRuleAttribute.AttributeDesc,
+                        UserType = propertyDataRuleAttribute.UserType
                     });
                 }
 

@@ -9,10 +9,14 @@ namespace Girvs.AuthorizePermission
         public string MethodName { get; }
         public Permission Permission { get; }
 
-        public ServiceMethodPermissionDescriptorAttribute(string metohodName, Permission permission)
+        public UserType UserType { get; set; }
+
+        public ServiceMethodPermissionDescriptorAttribute(string metohodName, Permission permission,
+            UserType userType = UserType.All)
         {
             MethodName = metohodName;
             Permission = permission;
+            UserType = userType;
         }
     }
 }
