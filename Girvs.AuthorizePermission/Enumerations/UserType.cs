@@ -35,16 +35,16 @@ namespace Girvs.AuthorizePermission.Enumerations
         /// 高级用户
         /// </summary>
         [Description("高级用户")] HighUser = 32,
-        
+
         /// <summary>
         /// 租户管理员
         /// </summary>
-        [Description("租户管理员")]TenantAdminUser = 64,
+        [Description("租户管理员")] TenantAdminUser = 64,
 
         /// <summary>
         /// 所有用户
         /// </summary>
-        [Description("所有用户")]
-        All = AdminUser | GeneralUser | SpecialUser | LowUser | IntermediateUser | HighUser,
+        [Description("所有用户")] All = AdminUser | GeneralUser | SpecialUser | LowUser | IntermediateUser | HighUser |
+                                    TenantAdminUser
     }
 }
