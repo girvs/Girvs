@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Girvs.BusinessBasis.Entities;
+using Girvs.Extensions;
 using Girvs.Infrastructure;
 
 namespace Girvs.BusinessBasis.Repositories
@@ -13,15 +15,33 @@ namespace Girvs.BusinessBasis.Repositories
 
         protected virtual Expression<Func<TEntity, bool>> BuilderBinaryExpression<TEntity>(
             string fieldName,
-            object value,
-            ExpressionType expressionType = ExpressionType.Equal
+            string fieldType,
+            ExpressionType expressionType = ExpressionType.Equal,
+            params object[] values
         )
         {
-            var param = Expression.Parameter(typeof(TEntity), "entity");
-            var left = Expression.Property(param, fieldName);
-            var right = Expression.Constant(value);
-            var be = Expression.MakeBinary(expressionType, left, right);
-            return Expression.Lambda<Func<TEntity, bool>>(be, param);
+            Expression<Func<TEntity, bool>> expression = x => true;
+            
+            if (!values.Any()) return expression;
+            
+            Expression<Func<TEntity, bool>> internalExpression = null;
+
+            foreach (var value in values)
+            {
+                var convertValue = GirvsConvert.ToSpecifiedType(fieldType, value);
+                var param = Expression.Parameter(typeof(TEntity), "entity");
+                var left = Expression.Property(param, fieldName);
+                var right = Expression.Constant(convertValue);
+                var be = Expression.MakeBinary(ExpressionType.Equal, left, right);
+
+                internalExpression = internalExpression == null ? 
+                    Expression.Lambda<Func<TEntity, bool>>(be, param) : 
+                    internalExpression.Or(Expression.Lambda<Func<TEntity, bool>>(be, param));
+            }
+
+            expression = expression.And(internalExpression);
+
+            return expression;
         }
 
         protected virtual Expression<Func<TEntity, bool>> BuilderTenantBinaryExpression<TEntity>(object tenantId = null)
@@ -33,17 +53,21 @@ namespace Girvs.BusinessBasis.Repositories
 
             if (propertyInfo != null)
             {
-                var datas = new List<object>();
-
-                datas.Add(GirvsConvert.ToSpecifiedType(propertyInfo.PropertyType.ToString(),
-                    tenantId ?? EngineContext.Current.ClaimManager.GetTenantId()));
+                var datas = new List<object>
+                {
+                    tenantId ?? EngineContext.Current.ClaimManager.GetTenantId()
+                };
 
                 if (ContainsPublicData)
                 {
                     datas.Add(Guid.Empty);
                 }
 
-                expression = BuilderBinaryExpression<TEntity>(tenantFieldName, datas, ExpressionType.Constant);
+                expression = BuilderBinaryExpression<TEntity>(
+                    tenantFieldName,
+                    propertyInfo.PropertyType.ToString(),
+                    ExpressionType.Equal,
+                    datas.ToArray());
             }
 
             return expression;

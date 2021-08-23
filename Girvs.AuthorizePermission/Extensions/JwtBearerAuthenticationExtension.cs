@@ -3,7 +3,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Girvs.AuthorizePermission.Configuration;
-using Girvs.Configuration;
 using Girvs.Infrastructure;
 using Microsoft.IdentityModel.Tokens;
 
@@ -15,12 +14,16 @@ namespace Girvs.AuthorizePermission.Extensions
         {
             var claimsIdentity =
                 EngineContext.Current.ClaimManager.GenerateClaimsIdentity(accessid, accessName, tenantId, tenantName);
+
+            //在登陆认证成功后，设置当前为登陆
+            EngineContext.Current.ClaimManager.CurrentClaims = claimsIdentity.Claims;
+
             return GetJwtAccessToken(claimsIdentity);
         }
 
         public static string GetJwtAccessToken(ClaimsIdentity claimsIdentity)
         {
-            var authorizeConfig = Singleton<AppSettings>.Instance[nameof(AuthorizeConfig)] as AuthorizeConfig;
+            var authorizeConfig = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(authorizeConfig.JwtConfig.Secret);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Elasticsearch.Net.Specification.ClusterApi;
 using Girvs.BusinessBasis.Entities;
 using Girvs.BusinessBasis.Queries;
 using Girvs.BusinessBasis.Repositories;
@@ -26,6 +27,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         internal DbContext DbContext { get; }
         internal DbSet<TEntity> DbSet { get; }
 
+        public virtual bool IsContainsPublicData { get; set; } = true;
 
         protected IQueryable<TEntity> Queryable => DbSet.Where(OtherQueryCondition);
 
@@ -34,20 +36,20 @@ namespace Girvs.EntityFrameworkCore.Repositories
         protected Repository()
         {
             _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
+            
+            SetContainsPublicData();
+            
             _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ??
                       throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbContext = GetRelatedDbContext() ??
                         throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbSet = DbContext.Set<TEntity>();
-            
-            //设置是否包含公共数据
-            SetContainsPublicData();
         }
         
-        public void SetContainsPublicData(bool value = true)
+        public void SetContainsPublicData()
         {
             if (_repositoryQueryCondition != null)
-                _repositoryQueryCondition.ContainsPublicData = value;
+                _repositoryQueryCondition.ContainsPublicData = IsContainsPublicData;
         }
         
         private DbContext GetRelatedDbContext()

@@ -70,7 +70,7 @@ namespace Girvs
             if (typeStr == "System.Guid")
             {
                 var guidStr = value.ToString();
-                return string.IsNullOrEmpty(guidStr) ? Guid.Empty : Guid.Parse(guidStr);
+                return Guid.Parse(guidStr);
             }
 
 

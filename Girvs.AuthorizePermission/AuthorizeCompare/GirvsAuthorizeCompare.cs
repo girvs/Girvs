@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Girvs.AuthorizePermission.Enumerations;
@@ -31,11 +32,15 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             {
                 foreach (var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels)
                 {
-                    var fieldValue =
-                        GirvsConvert.ToSpecifiedType(dataRuleFieldModel.FieldType, dataRuleFieldModel.FieldValue);
+                    if (string.IsNullOrEmpty(dataRuleFieldModel.FieldValue))
+                        continue;
 
-                    var ex = BuilderBinaryExpression<TEntity>(dataRuleFieldModel.FieldName, fieldValue,
-                        dataRuleFieldModel.ExpressionType);
+                    var fieldValues = dataRuleFieldModel.FieldValue.Split(',');
+                    var ex = BuilderBinaryExpression<TEntity>(
+                        dataRuleFieldModel.FieldName,
+                        dataRuleFieldModel.FieldType,
+                        dataRuleFieldModel.ExpressionType,
+                        fieldValues);
 
                     expression = expression.And(ex);
                 }
@@ -43,6 +48,12 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
 
             return expression;
         }
+
+        // private List<object> ConverFieldValueToArray(string fieldType, string fieldValue)
+        // {
+        //     var values = fieldValue.Split(",");
+        //     return values.Select(value => GirvsConvert.ToSpecifiedType(fieldType, value)).ToList();
+        // }
 
         public virtual bool PermissionCompare(Guid functionId, Permission permission)
         {
