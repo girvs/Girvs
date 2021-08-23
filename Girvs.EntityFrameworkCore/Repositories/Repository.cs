@@ -26,6 +26,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         internal DbContext DbContext { get; }
         internal DbSet<TEntity> DbSet { get; }
 
+
         protected IQueryable<TEntity> Queryable => DbSet.Where(OtherQueryCondition);
 
         protected readonly IRepositoryOtherQueryCondition _repositoryQueryCondition;
@@ -38,8 +39,17 @@ namespace Girvs.EntityFrameworkCore.Repositories
             DbContext = GetRelatedDbContext() ??
                         throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbSet = DbContext.Set<TEntity>();
+            
+            //设置是否包含公共数据
+            SetContainsPublicData();
         }
-
+        
+        public void SetContainsPublicData(bool value = true)
+        {
+            if (_repositoryQueryCondition != null)
+                _repositoryQueryCondition.ContainsPublicData = value;
+        }
+        
         private DbContext GetRelatedDbContext()
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
@@ -143,7 +153,8 @@ namespace Girvs.EntityFrameworkCore.Repositories
             return Queryable.SelectProperties(fields).Where(OtherQueryCondition).ToListAsync();
         }
 
-        public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate,params string[] fields)
+        public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate,
+            params string[] fields)
         {
             return Queryable.Where(predicate).ToListAsync();
         }
@@ -178,6 +189,11 @@ namespace Girvs.EntityFrameworkCore.Repositories
         /// <param name="fields">指定更新的字段</param>
         private Task UpdateEntity(TEntity t, string[] fields)
         {
+            if (!CompareTenantId(t))
+            {
+                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
+            }
+
             if (t is IIncludeUpdateTime updateTimeEntity)
             {
                 updateTimeEntity.UpdateTime = DateTime.Now;

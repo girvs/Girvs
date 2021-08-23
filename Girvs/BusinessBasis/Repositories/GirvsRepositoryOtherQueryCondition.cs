@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using Girvs.BusinessBasis.Entities;
 using Girvs.Infrastructure;
@@ -8,6 +9,7 @@ namespace Girvs.BusinessBasis.Repositories
     public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQueryCondition
     {
         protected readonly string tenantFieldName = nameof(IIncludeMultiTenant<object>.TenantId);
+        public virtual bool ContainsPublicData { get; set; } = false;
 
         protected virtual Expression<Func<TEntity, bool>> BuilderBinaryExpression<TEntity>(
             string fieldName,
@@ -27,14 +29,24 @@ namespace Girvs.BusinessBasis.Repositories
         {
             var propertyInfo = typeof(TEntity).GetProperty(tenantFieldName);
 
+            Expression<Func<TEntity, bool>> expression = x => true;
+
             if (propertyInfo != null)
             {
-                tenantId = GirvsConvert.ToSpecifiedType(propertyInfo.PropertyType.ToString(),
-                    tenantId ?? EngineContext.Current.ClaimManager.GetTenantId());
-                return BuilderBinaryExpression<TEntity>(tenantFieldName, tenantId);
+                var datas = new List<object>();
+
+                datas.Add(GirvsConvert.ToSpecifiedType(propertyInfo.PropertyType.ToString(),
+                    tenantId ?? EngineContext.Current.ClaimManager.GetTenantId()));
+
+                if (ContainsPublicData)
+                {
+                    datas.Add(Guid.Empty);
+                }
+
+                expression = BuilderBinaryExpression<TEntity>(tenantFieldName, datas, ExpressionType.Constant);
             }
 
-            return x => true;
+            return expression;
         }
 
         protected virtual bool EnableOnTenant(Type entityType)

@@ -16,7 +16,7 @@ namespace Girvs.AuthorizePermission
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            var authorizeConfig = Singleton<AppSettings>.Instance[nameof(AuthorizeConfig)] as AuthorizeConfig;
+            var authorizeConfig = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
 
             var authenticationBuilder =
                 services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme);
