@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 
 namespace Girvs.Extensions.Collections
 {    
@@ -61,5 +63,17 @@ namespace Girvs.Extensions.Collections
                 ? source.Where(predicate)
                 : source;
         }
+        
+        
+        /// <summary>
+        /// 获取枚举中文描述
+        /// </summary>
+        /// <param name="enumInfo"></param>
+        /// <returns></returns>
+        public static string GetEnumDescription(this Enum enumInfo) => enumInfo.GetType()
+            .GetMember(enumInfo.ToString())
+            .FirstOrDefault()?
+            .GetCustomAttribute<DescriptionAttribute>()?
+            .Description;
     }
 }

@@ -27,7 +27,7 @@ namespace Girvs.Swagger
                     var list = property.Enum.Cast<OpenApiInteger>().ToList();
                     property.Description += DescribeEnum(itemType, list);
                 }
-                catch (Exception e)
+                catch
                 {
                     continue;
                 }

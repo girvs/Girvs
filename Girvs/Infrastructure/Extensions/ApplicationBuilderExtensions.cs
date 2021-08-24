@@ -55,7 +55,7 @@ namespace Girvs.Infrastructure.Extensions
                 if (context.HttpContext.Response.StatusCode == StatusCodes.Status400BadRequest)
                 {
                     var logger = EngineContext.Current.Resolve<ILogger>();
-                    logger.LogError("Error 400. Bad request", null);
+                    logger.LogError("Error 400. Bad request");
                 }
 
                 return Task.CompletedTask;
