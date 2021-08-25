@@ -34,7 +34,7 @@ namespace Girvs.Refit.HttpClientHandlers
             {
                 foreach (var (key, value) in headers)
                 {
-                    request.Headers.Add(key, value.ToString());
+                    request.Headers.TryAddWithoutValidation(key, value.ToString());
                 }
             }
 
@@ -47,8 +47,16 @@ namespace Girvs.Refit.HttpClientHandlers
             
             
             if (serverUrl.IsNullOrEmpty()) throw new GirvsException("GirvsRefit请求地址不能为空！");
-
-            var requestUriStr = $"{current.Scheme}://{serverUrl}{current.PathAndQuery}";
+            string requestUriStr; 
+            if (_refitServiceAttribute.InConsul)
+            {
+                requestUriStr = $"{current.Scheme}://{serverUrl}{current.PathAndQuery}";
+            }
+            else
+            {
+                requestUriStr = $"{serverUrl}{current.PathAndQuery}";
+            }
+            
 
             _logger.LogDebug($"Girvs开始请求，请求地址为：{requestUriStr}");
             request.RequestUri = new Uri(requestUriStr);

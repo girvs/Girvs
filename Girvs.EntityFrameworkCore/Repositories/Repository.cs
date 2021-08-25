@@ -27,29 +27,19 @@ namespace Girvs.EntityFrameworkCore.Repositories
         internal DbContext DbContext { get; }
         internal DbSet<TEntity> DbSet { get; }
 
-        public virtual bool IsContainsPublicData { get; set; } = true;
-
         protected IQueryable<TEntity> Queryable => DbSet.Where(OtherQueryCondition);
-
+        
         protected readonly IRepositoryOtherQueryCondition _repositoryQueryCondition;
 
         protected Repository()
         {
             _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
             
-            SetContainsPublicData();
-            
             _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ??
                       throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbContext = GetRelatedDbContext() ??
                         throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbSet = DbContext.Set<TEntity>();
-        }
-        
-        public void SetContainsPublicData()
-        {
-            if (_repositoryQueryCondition != null)
-                _repositoryQueryCondition.ContainsPublicData = IsContainsPublicData;
         }
         
         private DbContext GetRelatedDbContext()
@@ -59,6 +49,11 @@ namespace Girvs.EntityFrameworkCore.Repositories
             return ts.Where(x =>
                     x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)))
                 .Select(x => EngineContext.Current.Resolve(x) as GirvsDbContext).FirstOrDefault();
+        }
+
+        protected IQueryable<TEntity> ExcludeOtherQueryCondition()
+        {
+            return DbSet;
         }
 
         public Expression<Func<TEntity, bool>> OtherQueryCondition => _repositoryQueryCondition != null
