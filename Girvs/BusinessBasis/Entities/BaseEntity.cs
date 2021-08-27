@@ -54,17 +54,25 @@ namespace Girvs.BusinessBasis.Entities
             var multiTenantPrperty = this.GetType().GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
             if (multiTenantPrperty != null)
             {
-                var value = GirvsConvert.ToSpecifiedType(multiTenantPrperty.PropertyType.FullName,
-                    EngineContext.Current.ClaimManager.GetTenantId());
-                multiTenantPrperty.SetValue(this, value);
+                var tenantIdStr = EngineContext.Current.ClaimManager.GetTenantId();
+                if (!string.IsNullOrEmpty(tenantIdStr))
+                {
+                    var value = GirvsConvert.ToSpecifiedType(multiTenantPrperty.PropertyType.FullName,
+                        tenantIdStr);
+                    multiTenantPrperty.SetValue(this, value);
+                }
             }
 
             var creatorPrperty = this.GetType().GetProperty(nameof(IIncludeCreatorId<object>.CreatorId));
             if (creatorPrperty != null)
             {
-                var value = GirvsConvert.ToSpecifiedType(creatorPrperty.PropertyType.FullName,
-                    EngineContext.Current.ClaimManager.GetUserId());
-                creatorPrperty.SetValue(this, value);
+                var currentUserIdStr = EngineContext.Current.ClaimManager.GetUserId();
+                if (!string.IsNullOrEmpty(currentUserIdStr))
+                {
+                    var value = GirvsConvert.ToSpecifiedType(creatorPrperty.PropertyType.FullName,
+                        EngineContext.Current.ClaimManager.GetUserId());
+                    creatorPrperty.SetValue(this, value);
+                }
             }
         }
 
