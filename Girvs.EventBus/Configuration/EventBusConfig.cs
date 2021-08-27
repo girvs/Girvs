@@ -34,7 +34,7 @@ namespace Girvs.EventBus.Configuration
     {
         MsSql,
         MySql,
-        Oracle,
-        SqlLite
+        SqlLite,
+        Oracle
     }
 }

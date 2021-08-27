@@ -7,7 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Girvs.Cache\Girvs.Cache.csproj" />
     <ProjectReference Include="..\Girvs\Girvs.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Redis" Version="1.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="5.0.9" />
   </ItemGroup>
 
 </Project>

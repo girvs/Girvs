@@ -11,28 +11,54 @@ namespace Girvs.EventBus
 {
     public class EventBusModule : IAppModuleStartup
     {
+        private (DbType, string) GetDbConnString(EventBusConfig eventBusConfig)
+        {
+            try
+            {
+                var dbConfig = Singleton<AppSettings>.Instance["DbConfig"];
+
+                if (dbConfig != null)
+                {
+                    foreach (var connectionConfig in dbConfig.DataConnectionConfigs)
+                    {
+                        if (connectionConfig.Name == eventBusConfig.DbConnectionString)
+                        {
+                            return ((DbType)(int)connectionConfig.UseDataType,
+                                connectionConfig.MasterDataConnectionString);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                
+            }
+            return (eventBusConfig.DbType, eventBusConfig.DbConnectionString);
+        }
+
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            var eventBusConfig =
-                Singleton<AppSettings>.Instance.ModuleConfigurations[nameof(EventBusConfig)] as EventBusConfig;
+            var eventBusConfig = EngineContext.Current.GetAppModuleConfig<EventBusConfig>();
 
             services.AddSingleton<IEventBus, CapEventBus.CapEventBus>();
 
+            var (dbType, connStr) = GetDbConnString(eventBusConfig);            
+
             services.AddCap(x =>
             {
-                switch (eventBusConfig.DbType)
+                switch (dbType)
                 {
                     case DbType.MsSql:
-                        x.UseSqlServer(eventBusConfig.DbConnectionString);
+                        x.UseSqlServer(connStr);
                         break;
                     case DbType.MySql:
-                        x.UseMySql(eventBusConfig.DbConnectionString);
+                        x.UseMySql(connStr);
                         break;
                     case DbType.Oracle:
-                        x.UseOracle(eventBusConfig.DbConnectionString);
+                        x.UseOracle(connStr);
                         break;
                     case DbType.SqlLite:
-                        x.UseSqlite(eventBusConfig.DbConnectionString);
+                        x.UseSqlite(connStr);
                         break;
                 }
 
@@ -49,9 +75,8 @@ namespace Girvs.EventBus
 
                 x.ConsumerThreadCount = 1;
                 x.ProducerThreadCount = 1;
-
             });
-            
+
             services.AddCapSubscribe();
         }
 

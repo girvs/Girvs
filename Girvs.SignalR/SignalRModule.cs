@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Girvs.Cache.Configuration;
 using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -11,7 +11,12 @@ namespace Girvs.SignalR
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSignalRCore();
+            var signalServiceBuilder = services.AddSignalRCore();
+            var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
+            if (cacheConfig.EnableCaching && cacheConfig.DistributedCacheType == CacheType.Redis)
+            {
+                signalServiceBuilder.AddRedis(cacheConfig.RedisCacheConfig.ConnectionString);
+            }
         }
 
         public void Configure(IApplicationBuilder application)

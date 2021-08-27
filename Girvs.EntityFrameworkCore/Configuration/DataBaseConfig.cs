@@ -23,7 +23,7 @@ namespace Girvs.EntityFrameworkCore.Configuration
         {
             DataConnectionConfigs = new List<DataConnectionConfig>();
         }
-
+        
         public ICollection<DataConnectionConfig> DataConnectionConfigs { get; set; }
         public void Init()
         {

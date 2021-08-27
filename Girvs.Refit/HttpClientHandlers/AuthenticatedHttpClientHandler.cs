@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Girvs.Configuration;
 using Girvs.Extensions;
 using Girvs.Infrastructure;
 using Girvs.Refit.Configuration;
@@ -66,9 +67,10 @@ namespace Girvs.Refit.HttpClientHandlers
 
         private string LookupService(string serviceName)
         {
+            var consulAddress = GetConsulAddress();
             var consulClient = new ConsulClient(configuration =>
             {
-                configuration.Address = new Uri(_refitConfig.ConsulServiceHost);
+                configuration.Address = new Uri(consulAddress);
             });
 
             var servicesEntry = consulClient.Health.Service(serviceName, string.Empty, true).Result.Response;
@@ -81,5 +83,20 @@ namespace Girvs.Refit.HttpClientHandlers
 
             return null;
         }
+
+        private string GetConsulAddress()
+        {
+            const string ConfigNodeName = "ConsulConfig";
+            var config = Singleton<AppSettings>.Instance[ConfigNodeName];
+            try
+            {
+                return config?.ConsulAddress;
+            }
+            catch 
+            {
+                return string.Empty;
+            }
+        }
+        
     }
 }

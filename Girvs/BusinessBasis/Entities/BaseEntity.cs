@@ -51,7 +51,7 @@ namespace Girvs.BusinessBasis.Entities
                 }
             }
 
-            var multiTenantPrperty = this.GetType().GetProperty("IIncludeMultiTenant");
+            var multiTenantPrperty = this.GetType().GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
             if (multiTenantPrperty != null)
             {
                 var value = GirvsConvert.ToSpecifiedType(multiTenantPrperty.PropertyType.FullName,
@@ -59,7 +59,7 @@ namespace Girvs.BusinessBasis.Entities
                 multiTenantPrperty.SetValue(this, value);
             }
 
-            var creatorPrperty = this.GetType().GetProperty("CreatorId");
+            var creatorPrperty = this.GetType().GetProperty(nameof(IIncludeCreatorId<object>.CreatorId));
             if (creatorPrperty != null)
             {
                 var value = GirvsConvert.ToSpecifiedType(creatorPrperty.PropertyType.FullName,
