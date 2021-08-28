@@ -17,7 +17,7 @@ namespace Girvs.Driven.Commands
             {
                 if (EngineContext.Current.HttpContext != null)
                 {
-                    return EngineContext.Current.HttpContext.Request.GetUserRemoteIpAddress();
+                    return EngineContext.Current.HttpContext.Request.GetApiGateWayRemoteIpAddress();
                 }
 
                 var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
