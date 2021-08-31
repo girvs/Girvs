@@ -147,13 +147,17 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
         public virtual Task<List<TEntity>> GetAllAsync(params string[] fields)
         {
-            return Queryable.SelectProperties(fields).Where(OtherQueryCondition).ToListAsync();
+            return fields.Any() 
+                ? Queryable.SelectProperties(fields).ToListAsync() 
+                : Queryable.ToListAsync();
         }
 
         public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate,
             params string[] fields)
         {
-            return Queryable.Where(predicate).ToListAsync();
+            return fields.Any() 
+                ? Queryable.Where(predicate).SelectProperties(fields).ToListAsync() 
+                : Queryable.Where(predicate).ToListAsync();
         }
 
         public virtual async Task<List<TEntity>> GetByQueryAsync(QueryBase<TEntity> query)
