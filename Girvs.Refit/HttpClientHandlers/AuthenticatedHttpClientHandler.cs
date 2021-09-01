@@ -29,9 +29,9 @@ namespace Girvs.Refit.HttpClientHandlers
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
-            var headers = EngineContext.Current.HttpContext.Request.Headers.ToList();
+            var headers = EngineContext.Current.HttpContext?.Request.Headers.ToList();
 
-            if (headers.Any())
+            if (headers != null && headers.Any())
             {
                 foreach (var (key, value) in headers)
                 {
