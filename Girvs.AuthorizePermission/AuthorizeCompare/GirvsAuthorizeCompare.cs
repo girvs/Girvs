@@ -29,14 +29,14 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
                 dataRuleModels.FirstOrDefault(x => x.EntityTypeName == typeof(TEntity).FullName);
 
             // 如果用户没有设置数据权限，则直接抛出异常,并且配置设置用户不是默认为所有数据
-            // if (currentEntityDataRule == null || !currentEntityDataRule.AuthorizeDataRuleFieldModels.Any())
-            // {
-            //     var config = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
-            //     if (!config.UserDataRuleDefaultAll)
-            //     {
-            //         throw new GirvsException("未配置当前用户对该模块的数据权限，请先获取权限", 568);
-            //     }
-            // }
+            if (currentEntityDataRule == null || !currentEntityDataRule.AuthorizeDataRuleFieldModels.Any())
+            {
+                var config = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
+                if (!config.UserDataRuleDefaultAll)
+                {
+                    throw new GirvsException("未配置当前用户对该模块的数据权限，请先获取权限", 568);
+                }
+            }
             
             if (currentEntityDataRule != null)
             {
