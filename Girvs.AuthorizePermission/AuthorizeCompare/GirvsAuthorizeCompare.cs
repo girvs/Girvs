@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
+using Girvs.AuthorizePermission.Configuration;
 using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.Extensions;
+using Girvs.Infrastructure;
 
 namespace Girvs.AuthorizePermission.AuthorizeCompare
 {
