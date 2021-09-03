@@ -86,15 +86,15 @@ namespace Girvs.Refit.HttpClientHandlers
 
         private string GetConsulAddress()
         {
-            const string ConfigNodeName = "ConsulConfig";
-            var config = Singleton<AppSettings>.Instance[ConfigNodeName];
             try
             {
+                const string ConfigNodeName = "ConsulConfig";
+                var config = Singleton<AppSettings>.Instance[ConfigNodeName];
                 return config?.ConsulAddress;
             }
             catch 
             {
-                return string.Empty;
+                return _refitConfig.ConsulServiceHost;
             }
         }
         
