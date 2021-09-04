@@ -17,6 +17,13 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
         {
             //默认判断如果存
             Expression<Func<TEntity, bool>> expression = base.GetOtherQueryCondition<TEntity>();
+            
+            //如果是前台或者事件，只添加租户判断
+            var identityType = EngineContext.Current.ClaimManager.GetIdentityType();
+            if (identityType == IdentityType.RegisterUser || identityType == IdentityType.EventMessageUser)
+            {
+                return expression;
+            }
 
             var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel();
             var dataRuleModels = currentUserAuthorize.AuthorizeDataRules;
