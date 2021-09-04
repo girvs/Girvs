@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Girvs.Configuration;
 
 namespace Girvs.AuthorizePermission.Configuration
@@ -34,9 +34,10 @@ namespace Girvs.AuthorizePermission.Configuration
     public class IdentityServer4Config
     {
         public string ServerHost { get; set; } = "http://localhost:5001";
-        public string ClientName { get; set; } = "ApiName1";
+        public string ApiResourceName { get; set; } = AppDomain.CurrentDomain.FriendlyName
+            .Replace(".", "_");
         public bool UseHttps { get; set; } = false;
-        public string ApiSecret { get; set; } = "ApiSecret";
+        public string ApiSecret { get; set; } = "zhuofan@ids4";
     }
 
     [Flags()]
