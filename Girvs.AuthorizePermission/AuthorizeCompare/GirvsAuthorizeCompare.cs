@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using Girvs.AuthorizePermission.Configuration;
 using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis.Repositories;
@@ -13,10 +14,28 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
     {
         public abstract AuthorizeModel GetCurrnetUserAuthorize();
 
+        /// <summary>
+        /// 判断当前实体是否包含数据校验规则，不包含则直接跳过
+        /// </summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public virtual bool IsIncludeVerifyDataRuleByEntity(Type entityType)
+        {
+            var properties = entityType.GetProperties();
+            return properties.Select(propertyInfo => propertyInfo.GetCustomAttribute<DataRuleAttribute>())
+                .Any(dataRule => dataRule != null);
+        }
+
         public override Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>()
         {
             //默认判断如果存
             Expression<Func<TEntity, bool>> expression = base.GetOtherQueryCondition<TEntity>();
+
+            //当前实体不包含数据权限标识，跳过
+            if (!IsIncludeVerifyDataRuleByEntity(typeof(TEntity)))
+            {
+                return expression;
+            }
             
             //如果是前台或者事件，只添加租户判断
             var identityType = EngineContext.Current.ClaimManager.GetIdentityType();
@@ -45,7 +64,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
                     throw new GirvsException("未配置当前用户对该模块的数据权限，请先获取权限", 568);
                 }
             }
-            
+
             if (currentEntityDataRule != null)
             {
                 foreach (var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels)
