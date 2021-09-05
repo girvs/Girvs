@@ -26,8 +26,26 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
                 .Any(dataRule => dataRule != null);
         }
 
+        /// <summary>
+        /// 判断当前用户是否登陆
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool IsLogin()
+        {
+            var httpContext = EngineContext.Current.HttpContext;
+            return httpContext != null 
+                   && httpContext.User.Identity != null 
+                   && httpContext.User.Identity.IsAuthenticated;
+        }
+
         public override Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>()
         {
+            //如果当前用户没有登陆，则跳过
+            if (!IsLogin())
+            {
+                return x => true;
+            }
+            
             //默认判断如果存
             Expression<Func<TEntity, bool>> expression = base.GetOtherQueryCondition<TEntity>();
 
@@ -36,7 +54,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             {
                 return expression;
             }
-            
+
             //如果是前台或者事件，只添加租户判断
             var identityType = EngineContext.Current.ClaimManager.GetIdentityType();
             if (identityType == IdentityType.RegisterUser || identityType == IdentityType.EventMessageUser)
