@@ -36,6 +36,23 @@ namespace Girvs.EventBus
             return (eventBusConfig.DbType, eventBusConfig.DbConnectionString);
         }
 
+        private string GetRedisConnectionString(string eventBusConfigRedisConnStr)
+        {
+            try
+            {
+                var cacheConfig = Singleton<AppSettings>.Instance[eventBusConfigRedisConnStr];
+                if (cacheConfig.EnableCaching)
+                {
+                    return cacheConfig.RedisCacheConfig.ConnectionString;
+                }
+            }
+            finally
+            {
+            }
+
+            return eventBusConfigRedisConnStr;
+        }
+
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             var eventBusConfig = EngineContext.Current.GetAppModuleConfig<EventBusConfig>();
@@ -81,10 +98,13 @@ namespace Girvs.EventBus
                             configure.MainConfig.Add("ssl.ca.location", eventBusConfig.KafkaConfig.SslCaLocation);
                             configure.MainConfig.Add("sasl.mechanism", eventBusConfig.KafkaConfig.SaslMechanism);
                             configure.MainConfig.Add("security.protocol", eventBusConfig.KafkaConfig.SecurityProtocol);
-                            configure.MainConfig.Add("sasl.username",eventBusConfig.KafkaConfig.SaslUsername);
+                            configure.MainConfig.Add("sasl.username", eventBusConfig.KafkaConfig.SaslUsername);
                             configure.MainConfig.Add("sasl.password", eventBusConfig.KafkaConfig.SaslPassword);
-                            configure.MainConfig.Add("allow.auto.create.topics", "true");
+                            //configure.MainConfig.Add("allow.auto.create.topics", "true");
                         });
+                        break;
+                    case EventBusType.Redis:
+                        x.UseRedis(GetRedisConnectionString(eventBusConfig.RedisConfig.RedisConnectionString));
                         break;
                 }
 
