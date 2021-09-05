@@ -1,4 +1,4 @@
-﻿using Girvs.Configuration;
+using Girvs.Configuration;
 using Girvs.EventBus.Configuration;
 using Girvs.EventBus.Extensions;
 using Girvs.Infrastructure;
@@ -23,7 +23,7 @@ namespace Girvs.EventBus
                     {
                         if (connectionConfig.Name == eventBusConfig.DbConnectionString)
                         {
-                            return ((DbType)(int)connectionConfig.UseDataType,
+                            return ((DbType) (int) connectionConfig.UseDataType,
                                 connectionConfig.MasterDataConnectionString);
                         }
                     }
@@ -31,8 +31,8 @@ namespace Girvs.EventBus
             }
             finally
             {
-                
             }
+
             return (eventBusConfig.DbType, eventBusConfig.DbConnectionString);
         }
 
@@ -42,7 +42,7 @@ namespace Girvs.EventBus
 
             services.AddSingleton<IEventBus, CapEventBus.CapEventBus>();
 
-            var (dbType, connStr) = GetDbConnString(eventBusConfig);            
+            var (dbType, connStr) = GetDbConnString(eventBusConfig);
 
             services.AddCap(x =>
             {
@@ -62,14 +62,32 @@ namespace Girvs.EventBus
                         break;
                 }
 
-                x.UseRabbitMQ(options =>
+                switch (eventBusConfig.EventBusType)
                 {
-                    options.HostName = eventBusConfig.HostName;
-                    options.Port = eventBusConfig.Port;
-                    options.UserName = eventBusConfig.UserName;
-                    options.Password = eventBusConfig.Password;
-                    options.VirtualHost = eventBusConfig.VirtualHost;
-                });
+                    case EventBusType.RabbitMQ:
+                        x.UseRabbitMQ(options =>
+                        {
+                            options.HostName = eventBusConfig.RabbitMqConfig.HostName;
+                            options.Port = eventBusConfig.RabbitMqConfig.Port;
+                            options.UserName = eventBusConfig.RabbitMqConfig.UserName;
+                            options.Password = eventBusConfig.RabbitMqConfig.Password;
+                            options.VirtualHost = eventBusConfig.RabbitMqConfig.VirtualHost;
+                        });
+                        break;
+                    case EventBusType.Kafka:
+                        x.UseKafka(configure =>
+                        {
+                            configure.Servers = eventBusConfig.KafkaConfig.KafKaConnectionString;
+                            configure.MainConfig.Add("ssl.ca.location", eventBusConfig.KafkaConfig.SslCaLocation);
+                            configure.MainConfig.Add("sasl.mechanism", eventBusConfig.KafkaConfig.SaslMechanism);
+                            configure.MainConfig.Add("security.protocol", eventBusConfig.KafkaConfig.SecurityProtocol);
+                            configure.MainConfig.Add("sasl.username",eventBusConfig.KafkaConfig.SaslUsername);
+                            configure.MainConfig.Add("sasl.password", eventBusConfig.KafkaConfig.SaslPassword);
+                            configure.MainConfig.Add("allow.auto.create.topics", "true");
+                        });
+                        break;
+                }
+
                 //x.UseGrivsConfigDataBase();
                 x.UseDashboard();
 
