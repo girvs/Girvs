@@ -13,6 +13,8 @@ namespace Girvs.EventBus.Configuration
 
         public RabbitMQConfig RabbitMqConfig { get; set; } = new RabbitMQConfig();
         public KafkaConfig KafkaConfig { get; set; } = new KafkaConfig();
+        public RedisConfig RedisConfig { get; set; } = new RedisConfig();
+
         public void Init()
         {
         }
@@ -21,7 +23,10 @@ namespace Girvs.EventBus.Configuration
     public class RabbitMQConfig
     {
         public string HostName { get; set; } = "amqp-cn-zvp2aqiah00e.mq-amqp.cn-shenzhen-429403-a.aliyuncs.com";
-        public string Password { get; set; } = "NDFDRTEzNzIyNDYxNjY0Nzc4M0RFODZBNERCMDBDNDdBQjczMzdEMjoxNjI4NDcyOTEwMjE1";
+
+        public string Password { get; set; } =
+            "NDFDRTEzNzIyNDYxNjY0Nzc4M0RFODZBNERCMDBDNDdBQjczMzdEMjoxNjI4NDcyOTEwMjE1";
+
         public string UserName { get; set; } = "MjphbXFwLWNuLXp2cDJhcWlhaDAwZTpMVEFJT2RmYmJ1S2FqdkQ1";
         public string VirtualHost { get; set; } = "zhuofan.wb";
         public string ExchangeName { get; set; } = "cap.default.router";
@@ -38,11 +43,17 @@ namespace Girvs.EventBus.Configuration
         public string SaslPassword { get; set; } = "ZhuoFan168";
     }
 
+    public class RedisConfig
+    {
+        public string RedisConnectionString { get; set; }
+    }
+
 
     public enum EventBusType
     {
         RabbitMQ,
-        Kafka
+        Kafka,
+        Redis
     }
 
     public enum DbType
