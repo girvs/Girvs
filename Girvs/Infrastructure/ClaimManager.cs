@@ -47,8 +47,8 @@ namespace Girvs.Infrastructure
             {
                 new Claim(ClaimTypes.Sid, sid),
                 new Claim(ClaimTypes.Name, name),
-                new Claim(ClaimTypes.GroupSid, tenantId),
-                new Claim(ClaimTypes.GivenName, tenantName),
+                new Claim(ClaimTypes.GroupSid, tenantId ?? string.Empty),
+                new Claim(ClaimTypes.GivenName, tenantName ?? string.Empty),
                 new Claim(ClaimTypes.NameIdentifier, identityType.ToString())
             });
 
