@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Reflection;
-using System.Security.Claims;
 using Girvs.Configuration;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Builder;
@@ -272,6 +270,8 @@ namespace Girvs.Infrastructure
         {
             return Singleton<AppSettings>.Instance[typeof(T).Name];
         }
+
+        public bool IsAuthenticated => HttpContext?.User.Identity != null && HttpContext.User.Identity.IsAuthenticated;
 
         public virtual IServiceProvider ServiceProvider { get; protected set; }
     }
