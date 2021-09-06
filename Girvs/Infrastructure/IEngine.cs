@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Girvs.Configuration;
 using Microsoft.AspNetCore.Builder;
@@ -29,6 +29,8 @@ namespace Girvs.Infrastructure
         /// 相关的上下文信息
         /// </summary>
         HttpContext HttpContext { get; }
+
+        bool IsAuthenticated { get; }
 
         // /// <summary>
         // /// 根据Claim名称获取相关的登陆信息
