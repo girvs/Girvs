@@ -1,5 +1,6 @@
 ﻿using System;
 using Girvs.AuthorizePermission.AuthorizeCompare;
+using Girvs.JsonConverters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,7 +10,7 @@ namespace Girvs.AuthorizePermission.Extensions
     {
         public static IMvcBuilder AddControllersWithAuthorizePermissionFilter(this IServiceCollection services)
         {
-            return services.AddControllers(option =>
+            return services.AddControllersWithAuthorizePermissionFilter(option =>
             {
                 option.Filters.Add<ActionPermissionFilter>();
             });
@@ -22,7 +23,10 @@ namespace Girvs.AuthorizePermission.Extensions
             {
                 option.Filters.Add<ActionPermissionFilter>();
                 configure(option);
-            });
+            }).AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonDateTimeConverter());
+            } );
         }
     }
 }
