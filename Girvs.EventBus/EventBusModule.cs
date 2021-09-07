@@ -1,4 +1,5 @@
 using Girvs.Configuration;
+using Girvs.EventBus.CapEventBus;
 using Girvs.EventBus.Configuration;
 using Girvs.EventBus.Extensions;
 using Girvs.Infrastructure;
@@ -113,7 +114,7 @@ namespace Girvs.EventBus
 
                 x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
                 x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
-            });
+            }).AddSubscribeFilter<GirvsCapFilter>();
 
             services.AddCapSubscribe();
         }
