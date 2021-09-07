@@ -111,8 +111,8 @@ namespace Girvs.EventBus
                 //x.UseGrivsConfigDataBase();
                 x.UseDashboard();
 
-                x.ConsumerThreadCount = 1;
-                x.ProducerThreadCount = 1;
+                x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
+                x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
             });
 
             services.AddCapSubscribe();
