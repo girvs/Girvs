@@ -6,6 +6,10 @@ namespace Girvs.EventBus.Configuration
     {
         public EventBusType EventBusType { get; set; } = EventBusType.Kafka;
 
+        public int ConsumerThreadCount { get; set; } = 1;
+
+        public int ProducerThreadCount { get; set; } = 1;
+
         public DbType DbType { get; set; } = DbType.MySql;
 
         public string DbConnectionString { get; set; } =
