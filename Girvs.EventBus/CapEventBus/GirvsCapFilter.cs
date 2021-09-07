@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Girvs.EventBus.CapEventBus
 {
-    public class GirvsCapFilter:ISubscribeFilter
+    public class GirvsCapFilter : ISubscribeFilter
     {
         private readonly ILogger _logger;
 
@@ -13,21 +13,26 @@ namespace Girvs.EventBus.CapEventBus
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        
+
         public void OnSubscribeExecuting(ExecutingContext context)
         {
-            _logger.LogInformation($"^^^^^^^^^^^^^订阅收到消息：{context.DeliverMessage.Value}");
-            _logger.LogInformation("^^^^^^^^^^^^^^开始处理订阅的消息");
+            _logger.LogInformation(
+                $"^^^^^^^^^^^^^^^^^^^^^^^^^订阅收到消息：{context.DeliverMessage.Headers["cap-msg-name"]}^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            _logger.LogInformation(
+                $"^^^^^^^^^^^^^^^^^^^^^^^^^^开始处理订阅的消息:{context.DeliverMessage.Headers["cap-corr-id"]}^^^^^^^^^^^^^^^^^^^^^^^^^^");
         }
 
         public void OnSubscribeExecuted(ExecutedContext context)
         {
-            _logger.LogInformation($"^^^^^^^^^^^^^订阅收到消息处理结束");
+            _logger.LogInformation(
+                $"^^^^^^^^^^^^^^^^^^^^^^^^^^订阅收到消息处理结束  Name:{context.DeliverMessage.Headers["cap-msg-name"]} Id:{context.DeliverMessage.Headers["cap-corr-id"]}");
         }
 
         public void OnSubscribeException(ExceptionContext context)
         {
-            _logger.LogInformation($"^^^^^^^^^^^^^订阅收到消息处理出现异常");
+            _logger.LogInformation(
+                $"^^^^^^^^^^^^^^^^^^^^^^^^^^订阅收到消息处理出现异常Name:{context.DeliverMessage.Headers["cap-msg-name"]} Id:{context.DeliverMessage.Headers["cap-corr-id"]}^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            _logger.LogError(context.Exception, context.Exception.Message);
         }
     }
 }
