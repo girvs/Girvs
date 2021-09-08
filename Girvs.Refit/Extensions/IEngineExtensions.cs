@@ -1,9 +1,10 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using Girvs.Configuration;
 using Girvs.Infrastructure;
-using Girvs.JsonConverters;
 using Girvs.Refit.Configuration;
+using NConsul;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Refit;
@@ -21,12 +22,18 @@ namespace Girvs.Refit.Extensions
             }
 
             var config = EngineContext.Current.GetAppModuleConfig<RefitConfig>();
-            if (!config.ServiceAddress.ContainsKey(attr.ServiceName))
+            var requestUrl = attr.InConsul ? LookupService(attr.ServiceName) : config[attr.ServiceName];
+            if (!attr.InConsul && !config.ServiceAddress.ContainsKey(attr.ServiceName))
             {
                 throw new GirvsException($"未配置{attr.ServiceName}的请求地址");
             }
 
-            return global::Refit.RestService.For<T>(config[attr.ServiceName],
+            if (string.IsNullOrEmpty(requestUrl))
+            {
+                throw new GirvsException($"未配置{attr.ServiceName}的请求地址");
+            }
+
+            return global::Refit.RestService.For<T>(requestUrl,
                 new RefitSettings
                 {
                     ContentSerializer = new NewtonsoftJsonContentSerializer(
@@ -36,6 +43,40 @@ namespace Girvs.Refit.Extensions
                         }
                     )
                 });
+        }
+        
+        private static string LookupService(string serviceName)
+        {
+            var consulAddress = GetConsulAddress();
+            var consulClient = new ConsulClient(configuration =>
+            {
+                configuration.Address = new Uri(consulAddress);
+            });
+
+            var servicesEntry = consulClient.Health.Service(serviceName, string.Empty, true).Result.Response;
+            if (servicesEntry != null && servicesEntry.Any())
+            {
+                int index = new Random().Next(servicesEntry.Count());
+                var entry = servicesEntry.ElementAt(index);
+                return $"http://{entry.Service.Address}:{entry.Service.Port}";
+            }
+
+            return null;
+        }
+
+        private static string GetConsulAddress()
+        {
+            try
+            {
+                const string ConfigNodeName = "ConsulConfig";
+                var config = Singleton<AppSettings>.Instance[ConfigNodeName];
+                return config?.ConsulAddress;
+            }
+            catch 
+            {
+                var _refitConfig = EngineContext.Current.GetAppModuleConfig<RefitConfig>();
+                return _refitConfig.ConsulServiceHost;
+            }
         }
     }
 }
