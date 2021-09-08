@@ -1,6 +1,12 @@
 ﻿using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Girvs.Infrastructure;
+using Girvs.JsonConverters;
 using Girvs.Refit.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Refit;
 
 namespace Girvs.Refit.Extensions
 {
@@ -20,7 +26,16 @@ namespace Girvs.Refit.Extensions
                 throw new GirvsException($"未配置{attr.ServiceName}的请求地址");
             }
 
-            return global::Refit.RestService.For<T>(config[attr.ServiceName]);
+            return global::Refit.RestService.For<T>(config[attr.ServiceName],
+                new RefitSettings
+                {
+                    ContentSerializer = new NewtonsoftJsonContentSerializer(
+                        new JsonSerializerSettings
+                        {
+                            ContractResolver = new CamelCasePropertyNamesContractResolver()
+                        }
+                    )
+                });
         }
     }
 }
