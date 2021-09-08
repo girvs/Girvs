@@ -46,12 +46,13 @@ namespace Girvs.AuthorizePermission
                 authenticationBuilder
                     .AddIdentityServerAuthentication(GirvsAuthenticationScheme.GirvsIdentityServer4, options =>
                     {
-                       //由于名称过长，暂时替换
+                        //由于名称过长，暂时替换
                         options.Authority = authorizeConfig.IdentityServer4Config.ServerHost;
                         options.RequireHttpsMetadata = authorizeConfig.IdentityServer4Config.UseHttps;
                         options.SupportedTokens = SupportedTokens.Both;
                         options.ApiSecret = authorizeConfig.IdentityServer4Config.ApiSecret;
                         options.ApiName = authorizeConfig.IdentityServer4Config.ApiResourceName;
+                        options.IntrospectionDiscoveryPolicy.RequireKeySet = false;
                     });
             }
         }
