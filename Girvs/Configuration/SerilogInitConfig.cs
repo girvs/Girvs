@@ -16,7 +16,7 @@ namespace Girvs.Configuration
                     Override = new
                     {
                         Microsoft = "Debug",
-                        System = "Warning"
+                        System = "Debug"
                     }
                 },
                 WriteTo = new List<dynamic>()
@@ -31,7 +31,18 @@ namespace Girvs.Configuration
                             restrictedToMinimumLevel = "Debug"
                         }
                     },
-
+                    new
+                    {
+                        Name = "File",
+                        Args = new
+                        {
+                            restrictedToMinimumLevel = "Debug",
+                            RollingInterval = "Hour",
+                            path = "./logs/Warning/log-Debug-.log",
+                            outputTemplate =
+                                "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+                        }
+                    },
                     new
                     {
                         Name = "File",
