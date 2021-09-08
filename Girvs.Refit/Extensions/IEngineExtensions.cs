@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using Girvs.Configuration;
 using Girvs.Infrastructure;
 using Girvs.Refit.Configuration;
@@ -32,17 +33,8 @@ namespace Girvs.Refit.Extensions
             {
                 throw new GirvsException($"未配置{attr.ServiceName}的请求地址");
             }
-
-            return global::Refit.RestService.For<T>(requestUrl,
-                new RefitSettings
-                {
-                    ContentSerializer = new NewtonsoftJsonContentSerializer(
-                        new JsonSerializerSettings
-                        {
-                            ContractResolver = new CamelCasePropertyNamesContractResolver()
-                        }
-                    )
-                });
+            
+            return global::Refit.RestService.For<T>(requestUrl);
         }
         
         private static string LookupService(string serviceName)
