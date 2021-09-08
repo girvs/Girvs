@@ -44,7 +44,7 @@ namespace Girvs.Refit.HttpClientHandlers
                 ? LookupService(_refitServiceAttribute.ServiceName)
                 : _refitConfig[_refitServiceAttribute.ServiceName];
 
-            _logger.LogDebug($"Girvs开始请求，请求ServerUrl地址为：{serverUrl}");
+            _logger.LogInformation($"Girvs开始请求，请求ServerUrl地址为：{serverUrl}");
             
             
             if (serverUrl.IsNullOrEmpty()) throw new GirvsException("GirvsRefit请求地址不能为空！");
@@ -59,7 +59,7 @@ namespace Girvs.Refit.HttpClientHandlers
             }
             
 
-            _logger.LogDebug($"Girvs开始请求，请求地址为：{requestUriStr}");
+            _logger.LogInformation($"Girvs开始请求，请求地址为：{requestUriStr}");
             request.RequestUri = new Uri(requestUriStr);
             
             return base.SendAsync(request, cancellationToken);
