@@ -47,7 +47,8 @@ namespace Girvs.AuthorizePermission
                     .AddJwtBearer(GirvsAuthenticationScheme.GirvsIdentityServer4, x =>
                     {
                         //使用应用密钥得到一个加密密钥字节数组
-                        var key = Encoding.ASCII.GetBytes(authorizeConfig.JwtConfig.Secret);
+                        var key = Encoding.ASCII.GetBytes(authorizeConfig.IdentityServer4Config.ApiSecret +
+                                                          authorizeConfig.IdentityServer4Config.ApiSecret);
                         x.RequireHttpsMetadata = true;
                         x.SaveToken = true;
                         x.TokenValidationParameters = new TokenValidationParameters
