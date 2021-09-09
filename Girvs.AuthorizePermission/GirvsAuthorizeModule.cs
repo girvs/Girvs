@@ -44,16 +44,31 @@ namespace Girvs.AuthorizePermission
                 AuthorizationModel.IdentityServer4)
             {
                 authenticationBuilder
-                    .AddIdentityServerAuthentication(GirvsAuthenticationScheme.GirvsIdentityServer4, options =>
+                    .AddJwtBearer(GirvsAuthenticationScheme.GirvsIdentityServer4, x =>
                     {
-                        //由于名称过长，暂时替换
-                        options.Authority = authorizeConfig.IdentityServer4Config.ServerHost;
-                        options.RequireHttpsMetadata = authorizeConfig.IdentityServer4Config.UseHttps;
-                        options.SupportedTokens = SupportedTokens.Both;
-                        options.ApiSecret = authorizeConfig.IdentityServer4Config.ApiSecret;
-                        options.ApiName = authorizeConfig.IdentityServer4Config.ApiResourceName;
-                        options.IntrospectionDiscoveryPolicy.RequireKeySet = false;
+                        //使用应用密钥得到一个加密密钥字节数组
+                        var key = Encoding.ASCII.GetBytes(authorizeConfig.JwtConfig.Secret);
+                        x.RequireHttpsMetadata = true;
+                        x.SaveToken = true;
+                        x.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = new SymmetricSecurityKey(key),
+                            ValidateIssuer = false,
+                            ValidateAudience = false
+                        };
                     });
+                // authenticationBuilder
+                //     .AddIdentityServerAuthentication(GirvsAuthenticationScheme.GirvsIdentityServer4, options =>
+                //     {
+                //         //由于名称过长，暂时替换
+                //         options.Authority = authorizeConfig.IdentityServer4Config.ServerHost;
+                //         options.RequireHttpsMetadata = authorizeConfig.IdentityServer4Config.UseHttps;
+                //         options.SupportedTokens = SupportedTokens.Both;
+                //         options.ApiSecret = authorizeConfig.IdentityServer4Config.ApiSecret;
+                //         options.ApiName = authorizeConfig.IdentityServer4Config.ApiResourceName;
+                //         options.IntrospectionDiscoveryPolicy.RequireKeySet = false;
+                //     });
             }
         }
 
