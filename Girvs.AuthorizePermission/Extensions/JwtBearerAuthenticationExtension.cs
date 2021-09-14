@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Girvs.AuthorizePermission.Configuration;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.Infrastructure;
 using Microsoft.IdentityModel.Tokens;
 
@@ -12,8 +13,21 @@ namespace Girvs.AuthorizePermission.Extensions
     {
         public static string GenerateToken(string accessid, string accessName, string tenantId, string tenantName)
         {
+            return GenerateToken(accessid, accessName, tenantId, tenantName, UserType.All);
+        }
+
+        public static string GenerateToken(string accessid, string accessName, string tenantId, string tenantName,
+            UserType userType)
+        {
+            return GenerateToken(accessid, accessName, tenantId, tenantName, UserType.All, IdentityType.ManagerUser);
+        }
+
+        public static string GenerateToken(string accessid, string accessName, string tenantId, string tenantName,
+            UserType userType, IdentityType identityType)
+        {
             var claimsIdentity =
-                EngineContext.Current.ClaimManager.GenerateClaimsIdentity(accessid, accessName, tenantId, tenantName);
+                EngineContext.Current.ClaimManager.GenerateClaimsIdentity(accessid, accessName, tenantId, tenantName,
+                    userType, identityType);
 
             //在登陆认证成功后，设置当前为登陆
             EngineContext.Current.ClaimManager.CurrentClaims = claimsIdentity.Claims;

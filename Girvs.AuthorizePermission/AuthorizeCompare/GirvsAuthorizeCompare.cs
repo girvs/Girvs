@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Girvs.AuthorizePermission.Configuration;
 using Girvs.AuthorizePermission.Enumerations;
+using Girvs.AuthorizePermission.Extensions;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.Extensions;
 using Girvs.Infrastructure;
@@ -58,6 +59,13 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             //如果是前台或者事件，只添加租户判断
             var identityType = EngineContext.Current.ClaimManager.GetIdentityType();
             if (identityType == IdentityType.RegisterUser || identityType == IdentityType.EventMessageUser)
+            {
+                return expression;
+            }
+
+            //如果登陆的是系统管理员或者是租户管理员，则只返回租户条件，默认为所有的数据权限
+            var userType = EngineContext.Current.ClaimManager.GetUserType();
+            if (userType == UserType.AdminUser || userType == UserType.TenantAdminUser)
             {
                 return expression;
             }
