@@ -39,6 +39,17 @@ namespace Girvs.Extensions
             return request.HttpContext.Connection.RemoteIpAddress.ToString();
         }
 
+        public static string GetRequestClientAddress(this HttpRequest request)
+        {
+            var clientAddress = request.Headers["ClientAddress"];
+            if (string.IsNullOrEmpty(clientAddress))
+            {
+                return request.HttpContext.Connection.RemoteIpAddress.ToString();
+            }
+
+            return clientAddress.ToString();
+        }
+
         public static string GetApiGateWayRemoteIpAddress(this HttpRequest request)
         {
             const string ClientIP = "ClientIP";

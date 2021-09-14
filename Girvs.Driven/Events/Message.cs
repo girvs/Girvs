@@ -21,7 +21,7 @@ namespace Girvs.Driven.Events
                 MessageSource.SourceNameId = EngineContext.Current.ClaimManager.GetUserId();
                 MessageSource.TenantId = EngineContext.Current.ClaimManager.GetTenantId();
                 MessageSource.TenantName = EngineContext.Current.ClaimManager.GetTenantName();
-                MessageSource.IpAddress = EngineContext.Current.HttpContext?.Request.GetApiGateWayRemoteIpAddress();
+                MessageSource.IpAddress = EngineContext.Current.HttpContext?.Request.GetRequestClientAddress();
             }
             finally
             {
