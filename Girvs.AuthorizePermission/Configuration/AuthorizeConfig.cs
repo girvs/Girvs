@@ -8,8 +8,8 @@ namespace Girvs.AuthorizePermission.Configuration
         public AuthorizationModel AuthorizationModel { get; set; } = AuthorizationModel.Jwt;
         public IdentityServer4Config IdentityServer4Config { get; set; } = new IdentityServer4Config();
         public JwtConfig JwtConfig { get; set; } = new JwtConfig();
-        
-        public bool UserDataRuleDefaultAll = true;
+
+        public bool UserDataRuleDefaultAll { get; set; } = true;
 
         public bool UseServiceMethodPermissionCompare { get; set; } = true;
 
