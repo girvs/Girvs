@@ -348,6 +348,11 @@ namespace Girvs.Cache.Caching
             }
         }
 
+        public long StringIncrement(string key)
+        {
+            return _db.StringIncrement(key, 1);
+        }
+
         /// <summary>
         /// Dispose cache manager
         /// </summary>

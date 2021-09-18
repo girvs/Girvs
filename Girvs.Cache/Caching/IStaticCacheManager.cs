@@ -56,5 +56,7 @@ namespace Girvs.Cache.Caching
         /// Clear all cache data
         /// </summary>
         void Clear();
+
+        long StringIncrement(string key);
     }
 }

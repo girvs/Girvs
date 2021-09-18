@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -211,6 +212,26 @@ namespace Girvs.Cache.Caching
             {
                 _prefixes.TryRemove(prefix, out var tokenSource);
                 tokenSource?.Dispose();
+            }
+        }
+
+        private static Dictionary<string, long> IncrementNumber = new Dictionary<string, long>();
+
+        private static object asyncObj = new object();
+        public long StringIncrement(string key)
+        {
+            lock (asyncObj)
+            {
+                if (IncrementNumber.ContainsKey(key))
+                {
+                    IncrementNumber[key]++;
+                    return IncrementNumber[key];
+                }
+                else
+                {
+                    IncrementNumber.Add(key,1);
+                    return 1;
+                }
             }
         }
 
