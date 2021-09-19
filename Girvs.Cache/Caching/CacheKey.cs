@@ -106,7 +106,7 @@ namespace Girvs.Cache.Caching
         {
             Key = string.Format(Prefix, key);
 
-            if (otherKey.IsNullOrWhiteSpace())
+            if (!otherKey.IsNullOrWhiteSpace())
                 Key += (":" + otherKey);
 
             CacheTime = cacheTime ?? CacheTime;
