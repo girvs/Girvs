@@ -58,7 +58,7 @@ namespace Girvs.EventBus
         {
             var eventBusConfig = EngineContext.Current.GetAppModuleConfig<EventBusConfig>();
 
-            services.AddSingleton<IEventBus, CapEventBus.CapEventBus>();
+            services.AddScoped<IEventBus, CapEventBus.CapEventBus>();
 
             var (dbType, connStr) = GetDbConnString(eventBusConfig);
 
