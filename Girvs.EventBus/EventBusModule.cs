@@ -111,7 +111,6 @@ namespace Girvs.EventBus
 
                 //x.UseGrivsConfigDataBase();
                 x.UseDashboard();
-                x.FailedRetryInterval = 5;
                 x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
                 x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
             }).AddSubscribeFilter<GirvsCapFilter>();
