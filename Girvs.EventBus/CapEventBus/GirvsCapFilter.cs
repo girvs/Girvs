@@ -17,7 +17,7 @@ namespace Girvs.EventBus.CapEventBus
         public void OnSubscribeExecuting(ExecutingContext context)
         {
             _logger.LogInformation(
-                $"^^^^^^^^^^^^^^^^^^^^^^^^^订阅收到消息：{context.DeliverMessage.Headers["cap-msg-name"]}^^^^^^^^^^^^^^^^^^^^^^^^^^");
+                $"^^^^^^^^^^^^^^^^^^^^^^^^^{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}###订阅收到消息：{context.DeliverMessage.Headers["cap-msg-name"]}^^^^^^^^^^^^^^^^^^^^^^^^^^");
             _logger.LogInformation(
                 $"^^^^^^^^^^^^^^^^^^^^^^^^^^开始处理订阅的消息:{context.DeliverMessage.Headers["cap-corr-id"]}^^^^^^^^^^^^^^^^^^^^^^^^^^");
         }
@@ -25,13 +25,13 @@ namespace Girvs.EventBus.CapEventBus
         public void OnSubscribeExecuted(ExecutedContext context)
         {
             _logger.LogInformation(
-                $"^^^^^^^^^^^^^^^^^^^^^^^^^^订阅收到消息处理结束  Name:{context.DeliverMessage.Headers["cap-msg-name"]} Id:{context.DeliverMessage.Headers["cap-corr-id"]}");
+                $"^^^^^^^^^^^^^^^^^^^^^^^^^^{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}###订阅收到消息处理结束  Name:{context.DeliverMessage.Headers["cap-msg-name"]} Id:{context.DeliverMessage.Headers["cap-corr-id"]}");
         }
 
         public void OnSubscribeException(ExceptionContext context)
         {
             _logger.LogInformation(
-                $"^^^^^^^^^^^^^^^^^^^^^^^^^^订阅收到消息处理出现异常Name:{context.DeliverMessage.Headers["cap-msg-name"]} Id:{context.DeliverMessage.Headers["cap-corr-id"]}^^^^^^^^^^^^^^^^^^^^^^^^^^");
+                $"^^^^^^^^^^^^^^^^^^^^^^^^^^{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}###订阅收到消息处理出现异常Name:{context.DeliverMessage.Headers["cap-msg-name"]} Id:{context.DeliverMessage.Headers["cap-corr-id"]}^^^^^^^^^^^^^^^^^^^^^^^^^^");
             _logger.LogError(context.Exception, context.Exception.Message);
         }
     }
