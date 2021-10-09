@@ -56,6 +56,9 @@ namespace Girvs.EventBus
 
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
+            //Note: The injection of services needs before of `services.AddCap()`
+            services.AddCapSubscribe();
+            
             var eventBusConfig = EngineContext.Current.GetAppModuleConfig<EventBusConfig>();
 
             services.AddScoped<IEventBus, CapEventBus.CapEventBus>();
@@ -115,7 +118,6 @@ namespace Girvs.EventBus
                 x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
             }).AddSubscribeFilter<GirvsCapFilter>();
 
-            services.AddCapSubscribe();
         }
 
         public void Configure(IApplicationBuilder application)
