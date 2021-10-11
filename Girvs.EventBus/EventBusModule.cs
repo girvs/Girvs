@@ -1,3 +1,4 @@
+using System;
 using Girvs.Configuration;
 using Girvs.EventBus.CapEventBus;
 using Girvs.EventBus.Configuration;
@@ -58,7 +59,7 @@ namespace Girvs.EventBus
         {
             //Note: The injection of services needs before of `services.AddCap()`
             services.AddCapSubscribe();
-            
+
             var eventBusConfig = EngineContext.Current.GetAppModuleConfig<EventBusConfig>();
 
             services.AddScoped<IEventBus, CapEventBus.CapEventBus>();
@@ -113,11 +114,18 @@ namespace Girvs.EventBus
                 }
 
                 //x.UseGrivsConfigDataBase();
-                x.UseDashboard();
+                x.UseDashboard(d =>
+                {
+#if DEBUG
+                    d.PathBase = "/cap";
+#else
+                    var virticalPath = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
+                    d.PathBase = $"{virticalPath}/cap";
+#endif
+                });
                 x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
                 x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
             }).AddSubscribeFilter<GirvsCapFilter>();
-
         }
 
         public void Configure(IApplicationBuilder application)
