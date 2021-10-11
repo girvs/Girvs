@@ -1,4 +1,3 @@
-using System;
 using Girvs.Configuration;
 using Girvs.EventBus.CapEventBus;
 using Girvs.EventBus.Configuration;
