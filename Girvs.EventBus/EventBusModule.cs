@@ -119,7 +119,7 @@ namespace Girvs.EventBus
                     d.PathBase = "/cap";
 #else
                     var virticalPath = System.AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
-                    d.PathBase = $"{virticalPath}/cap";
+                    d.PathBase = $"/{virticalPath}";
 #endif
                 });
                 x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
