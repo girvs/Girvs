@@ -6,17 +6,19 @@ using ZhuoFan.Wb.BasicService.Domain.Models;
 
 namespace ZhuoFan.Wb.BasicService.Infrastructure.EntityConfigurations
 {
-    public class UserRulesEntityTypeConfiguration : IEntityTypeConfiguration<UserRules>
+    public class UserRulesEntityTypeConfiguration : IEntityTypeConfiguration<UserRule>
     {
-        public void Configure(EntityTypeBuilder<UserRules> builder)
+        public void Configure(EntityTypeBuilder<UserRule> builder)
         {
-            GirvsDbContext.OnModelCreatingBaseEntityAndTableKey<UserRules, Guid>(builder);
+            GirvsDbContext.OnModelCreatingBaseEntityAndTableKey<UserRule, Guid>(builder);
 
-            builder.Property(x => x.Operate).HasColumnType("varchar(30)");
-            builder.Property(x => x.FieldName).HasColumnType("varchar(50)");
-            builder.Property(x => x.FieldValue).HasColumnType("varchar(1024)");
-            builder.Property(x => x.ModuleName).HasColumnType("varchar(50)");
-            builder.Property(x => x.UserType).HasColumnType("int");
+            builder.Property(x => x.EntityTypeName).HasColumnType("varchar(200)");
+            builder.Property(x => x.EntityDesc).HasColumnType("varchar(200)");
+            builder.Property(x => x.FieldDesc).HasColumnType("varchar(50)");
+            builder.Property(x => x.FieldName).HasColumnType("varchar(100)");
+            builder.Property(x => x.FieldType).HasColumnType("varchar(100)");
+            builder.Property(x => x.FieldValue).HasColumnType("text");
+            builder.Property(x => x.FieldValueText).HasColumnType("text");
         }
     }
 }

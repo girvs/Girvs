@@ -12,12 +12,12 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.EntityConfigurations
         {
             GirvsDbContext.OnModelCreatingBaseEntityAndTableKey<ServiceDataRule,Guid>(builder);
             
-            builder.Property(x => x.DataSource).HasColumnType("varchar(500)");
+            builder.Property(x => x.EntityTypeName).HasColumnType("varchar(200)");
+            builder.Property(x => x.EntityDesc).HasColumnType("varchar(200)");
             builder.Property(x => x.FieldDesc).HasColumnType("varchar(50)");
-            builder.Property(x => x.FieldName).HasColumnType("varchar(50)");
-            builder.Property(x => x.ModuleName).HasColumnType("varchar(50)");
-            builder.Property(x => x.ServiceName).HasColumnType("varchar(100)");
-            builder.Property(x => x.UserType).HasColumnType("int");
+            builder.Property(x => x.FieldName).HasColumnType("varchar(100)");
+            builder.Property(x => x.FieldType).HasColumnType("varchar(100)");
+            builder.Property(x => x.FieldValue).HasColumnType("varchar(10)");
         }
     }
 }

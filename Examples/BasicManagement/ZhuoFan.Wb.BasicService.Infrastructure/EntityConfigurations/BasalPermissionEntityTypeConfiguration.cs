@@ -15,6 +15,18 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.EntityConfigurations
             builder.Property(x => x.ValidateObjectType).HasColumnType("int");
             builder.Property(x => x.DenyMask).HasColumnType("bigint");
             builder.Property(x => x.AllowMask).HasColumnType("bigint");
+            
+            
+            
+            
+            
+            //需要添加系统管理员的权限
+            //索引 
+            builder.HasIndex(x => x.AppliedObjectType);
+            builder.HasIndex(x => x.ValidateObjectType);
+            builder.HasIndex(x => x.AppliedID);
+            builder.HasIndex(x => x.AppliedObjectID);
+            builder.HasIndex(x => x.ValidateObjectID);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.7");
+                .HasAnnotation("ProductVersion", "5.0.9");
 
             modelBuilder.Entity("RoleUser", b =>
                 {
@@ -53,10 +53,6 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                     b.Property<long>("DenyMask")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasColumnType("varchar(36)");
-
                     b.Property<int>("ValidateObjectID")
                         .HasColumnType("int");
 
@@ -90,6 +86,16 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("70ecc373-16f7-42e9-b31b-e80507b7c20a"),
+                            Desc = "考试管理员具有的该角色",
+                            IsInitData = 1ul,
+                            Name = "考试管理员角色",
+                            TenantId = "00000000-0000-0000-0000-000000000000"
+                        });
                 });
 
             modelBuilder.Entity("ZhuoFan.Wb.BasicService.Domain.Models.ServiceDataRule", b =>
@@ -98,20 +104,26 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("DataSource")
-                        .HasColumnType("varchar(500)");
+                    b.Property<string>("EntityDesc")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("EntityTypeName")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("ExpressionType")
+                        .HasColumnType("int");
 
                     b.Property<string>("FieldDesc")
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("FieldName")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("ModuleName")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("ServiceName")
                         .HasColumnType("varchar(100)");
+
+                    b.Property<string>("FieldType")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("FieldValue")
+                        .HasColumnType("varchar(10)");
 
                     b.Property<int>("UserType")
                         .HasColumnType("int");
@@ -126,6 +138,9 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
+
+                    b.Property<string>("OperationPermissions")
+                        .HasColumnType("text");
 
                     b.Property<string>("Permissions")
                         .HasColumnType("text");
@@ -154,12 +169,17 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                     b.Property<string>("ContactNumber")
                         .HasColumnType("varchar(12)");
 
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("CreatorId")
+                        .HasColumnType("char(36)");
+
                     b.Property<ulong>("IsInitData")
                         .HasColumnType("bit");
 
-                    b.Property<string>("OtherId")
-                        .IsRequired()
-                        .HasColumnType("varchar(36)");
+                    b.Property<Guid>("OtherId")
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("State")
                         .HasColumnType("int");
@@ -172,7 +192,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                         .HasColumnType("varchar(36)");
 
                     b.Property<string>("UserName")
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("UserPassword")
                         .HasColumnType("varchar(36)");
@@ -189,34 +209,48 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                         {
                             Id = new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"),
                             AuthorizeType = 0,
+                            CreateTime = new DateTime(2021, 9, 14, 9, 33, 33, 331, DateTimeKind.Local).AddTicks(3390),
+                            CreatorId = new Guid("58205e0e-1552-4282-bedc-a92d0afb37df"),
                             IsInitData = 1ul,
-                            OtherId = "00000000-0000-0000-0000-000000000000",
+                            OtherId = new Guid("00000000-0000-0000-0000-000000000000"),
                             State = 0,
                             TenantId = "00000000-0000-0000-0000-000000000000",
                             UserAccount = "admin",
                             UserName = "系统管理员",
                             UserPassword = "21232F297A57A5A743894A0E4A801FC3",
-                            UserType = 0
+                            UserType = 1
                         });
                 });
 
-            modelBuilder.Entity("ZhuoFan.Wb.BasicService.Domain.Models.UserRules", b =>
+            modelBuilder.Entity("ZhuoFan.Wb.BasicService.Domain.Models.UserRule", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("FieldName")
+                    b.Property<string>("EntityDesc")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("EntityTypeName")
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("ExpressionType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FieldDesc")
                         .HasColumnType("varchar(50)");
+
+                    b.Property<string>("FieldName")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("FieldType")
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("FieldValue")
-                        .HasColumnType("varchar(1024)");
+                        .HasColumnType("text");
 
-                    b.Property<string>("ModuleName")
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("Operate")
-                        .HasColumnType("varchar(30)");
+                    b.Property<string>("FieldValueText")
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("char(36)");
@@ -228,7 +262,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRules");
+                    b.ToTable("UserRule");
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -246,7 +280,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ZhuoFan.Wb.BasicService.Domain.Models.UserRules", b =>
+            modelBuilder.Entity("ZhuoFan.Wb.BasicService.Domain.Models.UserRule", b =>
                 {
                     b.HasOne("ZhuoFan.Wb.BasicService.Domain.Models.User", null)
                         .WithMany("RulesList")

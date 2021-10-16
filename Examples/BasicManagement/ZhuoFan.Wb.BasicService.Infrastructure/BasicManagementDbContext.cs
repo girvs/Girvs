@@ -16,9 +16,16 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure
         public DbSet<BasalPermission> BasalPermissions { get; set; }
         public DbSet<ServicePermission> ServicePermissions { get; set; }
         public DbSet<ServiceDataRule> ServiceDataRules { get; set; }
-        public DbSet<UserRules> UserRulesEnumerable { get; set; }
+        public DbSet<UserRule> UserRulesEnumerable { get; set; }
 
-        public override string DbConfigName { get; set; } = "BasicManagementDataConnection";
+        public override string DbConfigName { get; set; } = "Wb_BasicManagement";
+
+
+// #if DEBUG
+//         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//         {
+//         }
+// #endif
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

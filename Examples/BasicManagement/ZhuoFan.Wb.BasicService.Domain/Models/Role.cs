@@ -10,6 +10,7 @@ namespace ZhuoFan.Wb.BasicService.Domain.Models
         {
             Users = new List<User>();
         }
+        
         public string Name { get; set; }
         public string Desc { get; set; }
         public virtual List<User> Users { get; set; }

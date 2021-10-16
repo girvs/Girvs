@@ -1,4 +1,5 @@
 ﻿using System;
+using Girvs.AuthorizePermission.Enumerations;
 using ZhuoFan.Wb.BasicService.Domain.Enumerations;
 
 namespace ZhuoFan.Wb.BasicService.Domain.Commands.User

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Girvs.EntityFrameworkCore.DbContextExtensions;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.EntityFrameworkCore.Repositories;
+using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using ZhuoFan.Wb.BasicService.Domain.Models;
 using ZhuoFan.Wb.BasicService.Domain.Repositories;
@@ -12,33 +14,41 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Repositories
 {
     public class UserRepository : Repository<User>, IUserRepository
     {
-        public async Task<User> GetUserByLoginNameAsync(string loginName)
+        public Task<User> GetUserByLoginNameAsync(string loginName)
         {
-            return await DbSet.FirstOrDefaultAsync(x => x.UserAccount == loginName);
+            //此处需地绕过所有的查询条件
+            var dbContext = EngineContext.Current.Resolve<BasicManagementDbContext>();
+            return dbContext.Set<User>().FirstOrDefaultAsync(x => x.UserAccount == loginName);
         }
 
         public Task<User> GetUserByIdIncludeRolesAsync(Guid userId)
         {
-            return DbSet.Include(x => x.Roles).FirstOrDefaultAsync(x => x.Id == userId);
+            return Queryable.Include(x => x.Roles).FirstOrDefaultAsync(x => x.Id == userId);
         }
 
         public Task<User> GetUserByOtherIdAsync(Guid otherId)
         {
-            return DbSet.FirstOrDefaultAsync(u => u.OtherId == otherId);
+            return GetAsync(u => u.OtherId == otherId);
         }
 
-        public override async Task<List<User>> GetAllAsync(params string[] fields)
+        public Task<User> GetUserByIdIncludeRoleAndDataRule(Guid userId)
         {
-            if (fields.Any())
-            {
-                //临时方法，待改进,不科学的方法
-                return await Task.Run(() =>
-                    DbSet.SelectProperties(fields).Where(u => !u.IsInitData).ToList());
-            }
-            else
-            {
-                return await DbSet.Where(u => !u.IsInitData).ToListAsync();
-            }
+            //此处需地绕过所有的查询条件，防止无限死循环
+            var dbContext = EngineContext.Current.Resolve<BasicManagementDbContext>();
+            return dbContext.Set<User>().Include(x => x.Roles).Include(x => x.RulesList).FirstOrDefaultAsync(x => x.Id == userId);
+        }
+
+        public Task CreateTenantIdAdmin(User user)
+        {
+            //此处创建的用户是通过事件创建的租户管理员，是通过总管理员创建，需要绕过租户的判断
+            var dbContext = EngineContext.Current.Resolve<BasicManagementDbContext>();
+            dbContext.Set<User>().AddAsync(user);
+            return Task.CompletedTask;
+        }
+
+        public Task<List<User>> GetUsersIncludeRolesAndDataRule(Expression<Func<User, bool>> predicate)
+        {
+            return Queryable.Include(x => x.Roles).Include(x => x.RulesList).Where(predicate).ToListAsync();
         }
     }
 }

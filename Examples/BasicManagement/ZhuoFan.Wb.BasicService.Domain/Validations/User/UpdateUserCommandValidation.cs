@@ -2,17 +2,17 @@
 
 namespace ZhuoFan.Wb.BasicService.Domain.Validations.User
 {
-    public class UpdateUserCommandValidation: UserCommandValidation<UpdateUserCommand>
+    public class UpdateUserCommandValidation : UserCommandValidation<UpdateUserCommand>
     {
         public UpdateUserCommandValidation()
         {
             ValidationName();
             ValidationContactNumber();
-            ValidationUserAccount();
+            // ValidationUserAccount();
             ValidationUserPassword();
             ValidationContactNumber();
         }
-        
+
         public override bool IsErrorMessageDelay { get; set; } = true;
     }
 }

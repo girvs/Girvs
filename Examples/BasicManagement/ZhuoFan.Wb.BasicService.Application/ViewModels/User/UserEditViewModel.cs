@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis.Dto;
 using ZhuoFan.Wb.BasicService.Domain.Enumerations;
 

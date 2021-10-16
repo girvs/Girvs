@@ -1,4 +1,5 @@
 ﻿using System;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.Driven.Commands;
 using ZhuoFan.Wb.BasicService.Domain.Enumerations;
 
@@ -14,11 +15,11 @@ namespace ZhuoFan.Wb.BasicService.Domain.Commands.User
         public string UserName { get; protected set; }
 
         public string ContactNumber { get; protected set; }
-        
+
         /// <summary>
         /// 绑定其它相关服务的关键标识Id
         /// </summary>
-        public Guid OtherId { get; set; }
+        public Guid OtherId { get; protected set; }
 
         public DataState State { get; protected set; }
 
@@ -26,7 +27,12 @@ namespace ZhuoFan.Wb.BasicService.Domain.Commands.User
 
         public string NewPassword { get; protected set; }
         public string OldPassword { get; protected set; }
-        
+
+        /// <summary>
+        /// 租户ID
+        /// </summary>
+        public Guid? TenantId { get; protected set; }
+
         public Guid[] RoleIds { get; protected set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.AutoMapper.Mapper;
 using Girvs.BusinessBasis.Dto;
 using ZhuoFan.Wb.BasicService.Domain.Enumerations;
@@ -55,5 +56,11 @@ namespace ZhuoFan.Wb.BasicService.Application.ViewModels.User
         /// 用户类型
         /// </summary>
         public UserType UserType { get; set; }
+        
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        public DateTime CreateTime { get; set; }
+        
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.AutoMapper.Mapper;
 using Girvs.BusinessBasis.Dto;
 using ZhuoFan.Wb.BasicService.Application.ViewModels.Role;

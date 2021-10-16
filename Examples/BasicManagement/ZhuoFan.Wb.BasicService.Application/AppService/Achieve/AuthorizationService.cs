@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Girvs;
-using Girvs.AuthorizePermission.ActionPermission;
+using Girvs.AuthorizePermission;
+using Girvs.AuthorizePermission.Services;
 using Girvs.Cache.Caching;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Notifications;
@@ -15,18 +16,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Panda.DynamicWebApi.Attributes;
-using Power.EventBus.Permission;
-using ZhuoFan.Wb.BasicService.Application.ViewModels.ServiceDataRule;
-using ZhuoFan.Wb.BasicService.Application.ViewModels.ServicePermission;
-using ZhuoFan.Wb.BasicService.Domain.Commands.ServiceDataRule;
-using ZhuoFan.Wb.BasicService.Domain.Commands.ServicePermission;
+using ZhuoFan.Wb.BasicService.Domain.Extensions;
 using ZhuoFan.Wb.BasicService.Domain.Models;
 using ZhuoFan.Wb.BasicService.Domain.Repositories;
+using ZhuoFan.Wb.Common.Events.Authorize;
 
 namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
 {
     [DynamicWebApi]
-    [AllowAnonymous]
+    [Authorize(AuthenticationSchemes = GirvsAuthenticationScheme.GirvsJwt)]
     public class AuthorizationService : IAuthorizationService
     {
         private readonly IStaticCacheManager _cacheManager;
@@ -58,33 +56,46 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IList<ServicePermission>> GetFunctionOperateList()
+        public async Task<IList<AuthorizePermissionModel>> GetFunctionOperateList()
         {
-            return await _cacheManager.GetAsync(GirvsEntityCacheDefaults<ServicePermission>.AllCacheKey.Create(),
+            var currentUser = EngineContext.Current.GetCurrentUser();
+
+            if (currentUser == null)
+            {
+                throw new GirvsException(StatusCodes.Status401Unauthorized, "未授权");
+            }
+
+            var currentUserType = currentUser.UserType;
+
+            var availableAuthorizePermissionList = await _cacheManager.GetAsync(
+                GirvsEntityCacheDefaults<ServicePermission>.AllCacheKey.Create(),
                 async () =>
                     await _servicePermissionRepository.GetAllAsync());
-        }
 
+            var currentAvailableAuthorizePermissionList = availableAuthorizePermissionList.Where(x =>
+                x.OperationPermissions.Any(s => (s.UserType & currentUserType) == currentUserType)).ToList();
 
-        /// <summary>
-        /// 添加需要授权的功能列表
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        public async void CreateFunctionOperateListAsync([FromForm] List<CreateServicePermissionViewModel> models)
-        {
-            foreach (var model in models)
+            var resultPermissions = new List<AuthorizePermissionModel>();
+            foreach (var permissionModel in currentAvailableAuthorizePermissionList)
             {
-                var command =
-                    new CreateOrUpdateServicePermissionCommand(model.ServiceName, model.ServiceId, model.Permissions);
-                await _bus.SendCommand(command);
+                var permissions = new Dictionary<string, string>();
+                foreach (var operationPermission in permissionModel.OperationPermissions)
+                {
+                    if (!permissions.ContainsKey(operationPermission.OperationName))
+                    {
+                        permissions.Add(operationPermission.OperationName, operationPermission.Permission.ToString());
+                    }
+                }
+
+                resultPermissions.Add(new AuthorizePermissionModel()
+                {
+                    ServiceName = permissionModel.ServiceName,
+                    ServiceId = permissionModel.ServiceId,
+                    Permissions = permissions
+                });
             }
 
-            if (_notifications.HasNotifications())
-            {
-                var errorMessage = _notifications.GetNotificationMessage();
-                throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
-            }
+            return resultPermissions;
         }
 
         /// <summary>
@@ -92,36 +103,68 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IList<ServiceDataRule>> GetDataRuleList()
+        public async Task<IList<AuthorizeDataRuleModel>> GetDataRuleList()
         {
-            return await _cacheManager.GetAsync(GirvsEntityCacheDefaults<ServiceDataRule>.AllCacheKey.Create(),
+            var currentUser = EngineContext.Current.GetCurrentUser();
+
+            if (currentUser == null)
+            {
+                throw new GirvsException(StatusCodes.Status401Unauthorized, "未授权");
+            }
+
+            var currentUserType = currentUser.UserType;
+
+            var availableAuthorizeDataRuleList = await _cacheManager.GetAsync(
+                GirvsEntityCacheDefaults<ServiceDataRule>.AllCacheKey.Create(),
                 async () =>
                     await _serviceDataRuleRepository.GetAllAsync());
+
+            var result = new List<AuthorizeDataRuleModel>();
+
+            foreach (var authorizeDataRule in availableAuthorizeDataRuleList.Where(x =>
+                currentUserType == (x.UserType & currentUserType)))
+            {
+                var existReturnReuslt =
+                    result.FirstOrDefault(x => x.EntityTypeName == authorizeDataRule.EntityTypeName);
+                if (existReturnReuslt != null)
+                {
+                    existReturnReuslt.AuthorizeDataRuleFieldModels.Add(new AuthorizeDataRuleFieldModel()
+                    {
+                        ExpressionType = authorizeDataRule.ExpressionType,
+                        FieldType = authorizeDataRule.FieldType,
+                        FieldName = authorizeDataRule.FieldName,
+                        FieldValue = authorizeDataRule.FieldValue,
+                        FieldDesc = authorizeDataRule.FieldDesc
+                    });
+                }
+                else
+                {
+                    existReturnReuslt =
+                        new AuthorizeDataRuleModel()
+                        {
+                            EntityTypeName = authorizeDataRule.EntityTypeName,
+                            EntityDesc = authorizeDataRule.EntityDesc
+                        };
+
+                    existReturnReuslt.AuthorizeDataRuleFieldModels.Add(new AuthorizeDataRuleFieldModel()
+                    {
+                        ExpressionType = authorizeDataRule.ExpressionType,
+                        FieldType = authorizeDataRule.FieldType,
+                        FieldName = authorizeDataRule.FieldName,
+                        FieldValue = authorizeDataRule.FieldValue,
+                        FieldDesc = authorizeDataRule.FieldDesc
+                    });
+
+                    result.Add(existReturnReuslt);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
-        /// 添加需要授权的功能列表
+        /// 初始化本模块的权限值
         /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        public async void CreateDataRuleListAsync([FromForm] List<CreateServiceDataRuleViewModel> models)
-        {
-            foreach (var model in models)
-            {
-                var command =
-                    new CreateOrUpdateServiceDataRuleCommand(
-                        model.ServiceName, model.ModuleName, model.UserType, model.DataSource, model.FieldName,
-                        model.FieldDesc);
-                await _bus.SendCommand(command);
-            }
-
-            if (_notifications.HasNotifications())
-            {
-                var errorMessage = _notifications.GetNotificationMessage();
-                throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
-            }
-        }
-
         [HttpGet]
         public async Task InitAuthorization()
         {
@@ -131,15 +174,11 @@ namespace ZhuoFan.Wb.BasicService.Application.AppService.Achieve
                 IGirvsAuthorizePermissionService permissionService = new GirvsAuthorizePermissionService();
 
                 var authorizePermissionList = permissionService?.GetAuthorizePermissionList().Result;
-                var authorizeEvent = new PermissionAuthorizeEvent()
+                var authorizeDataRules = permissionService?.GetAuthorizeDataRuleList().Result;
+                var authorizeEvent = new AuthorizeEvent()
                 {
-                    PermissionAuthorizes = authorizePermissionList?.Select(x =>
-                        new PermissionAuthorize
-                        {
-                            ServiceId = x.ServiceId,
-                            ServiceName = x.ServiceName,
-                            Permissions = x.Permissions
-                        }).ToList()
+                    AuthorizePermissions = authorizePermissionList,
+                    AuthorizeDataRules = authorizeDataRules
                 };
                 await eventBus.PublishAsync(authorizeEvent);
             }

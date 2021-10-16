@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using Girvs.AuthorizePermission;
 using Girvs.EntityFrameworkCore.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,25 +14,46 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.EntityConfigurations
     {
         public void Configure(EntityTypeBuilder<ServicePermission> builder)
         {
-            var converter = new ValueConverter<Dictionary<string, string>, string>(
-                v => JsonSerializerString(v),
-                v => JsonSerializerDeserialize(v));
+            var permissionConverter = new ValueConverter<Dictionary<string, string>, string>(
+                v => JsonSerializerPermissionsString(v),
+                v => JsonSerializerDeserializePermissions(v));
+            
+            
+            var operationPermissionConverter = new ValueConverter<List<OperationPermissionModel>, string>(
+                v => JsonSerializerOperationPermissionString(v),
+                v => JsonSerializerDeserializeOperationPermission(v));
 
             GirvsDbContext.OnModelCreatingBaseEntityAndTableKey<ServicePermission, Guid>(builder);
             builder.Property(x => x.ServiceId).HasColumnType("varchar(36)");
-            builder.Property(x => x.Permissions).HasColumnType("text").HasConversion(converter);
+            builder.Property(x => x.Permissions)
+                .HasColumnType("text")
+                .HasConversion(permissionConverter);
+            builder.Property(x=>x.OperationPermissions)
+                .HasColumnType("text")
+                .HasConversion(operationPermissionConverter);
             builder.Property(x => x.ServiceName).HasColumnType("varchar(255)");
         }
 
 
-        private string JsonSerializerString(Dictionary<string, string> v)
+        private string JsonSerializerPermissionsString(Dictionary<string, string> v)
         {
             return JsonSerializer.Serialize(v);
         }
 
-        private Dictionary<string, string> JsonSerializerDeserialize(string str)
+        private Dictionary<string, string> JsonSerializerDeserializePermissions(string str)
         {
             return JsonSerializer.Deserialize<Dictionary<string, string>>(str);
+        }
+        
+        
+        private string JsonSerializerOperationPermissionString(List<OperationPermissionModel> v)
+        {
+            return JsonSerializer.Serialize(v);
+        }
+
+        private List<OperationPermissionModel> JsonSerializerDeserializeOperationPermission(string str)
+        {
+            return JsonSerializer.Deserialize<List<OperationPermissionModel>>(str);
         }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis.Entities;
 using ZhuoFan.Wb.BasicService.Domain.Enumerations;
 
 namespace ZhuoFan.Wb.BasicService.Domain.Models
 {
-    public class User : AggregateRoot<Guid>, IIncludeInitField, IIncludeMultiTenant<Guid>
+    public class User : AggregateRoot<Guid>, IIncludeInitField, IIncludeMultiTenant<Guid>, IIncludeCreateTime,IIncludeCreatorId<Guid>
     {
         public User()
         {
@@ -67,6 +68,10 @@ namespace ZhuoFan.Wb.BasicService.Domain.Models
         /// <summary>
         /// 设置的用户规则
         /// </summary>
-        public List<UserRules> RulesList { get; set; }
+        public List<UserRule> RulesList { get; set; }
+
+        public DateTime CreateTime { get; set; }
+        
+        public Guid CreatorId { get; set; }
     }
 }

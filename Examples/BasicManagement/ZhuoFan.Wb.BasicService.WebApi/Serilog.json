@@ -5,10 +5,10 @@
       "Serilog.Sinks.File"
     ],
     "MinimumLevel": {
-      "Default": "Information",
+      "Default": "Debug",
       "Override": {
-        "Microsoft": "Information",
-        "System": "Information"
+        "Microsoft": "Debug",
+        "System": "Debug"
       }
     },
     "WriteTo": [
@@ -16,7 +16,16 @@
         "Name": "Console",
         "Args": {
           "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}",
-          "restrictedToMinimumLevel": "Information"
+          "restrictedToMinimumLevel": "Debug"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Debug",
+          "RollingInterval": "Hour",
+          "path": "./logs/Debug/log-Debug-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd }[{Level:u3}] {Message:lj}{NewLine}{Exception}"
         }
       },
       {

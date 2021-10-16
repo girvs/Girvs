@@ -6,7 +6,7 @@ using Girvs.BusinessBasis.Entities;
 namespace ZhuoFan.Wb.BasicService.Domain.Models
 {
     [Serializable]
-    public abstract class PermissionBase : AggregateRoot<Guid>,IIncludeMultiTenant<Guid>
+    public abstract class PermissionBase : AggregateRoot<Guid>
     {
         #region Private Members
 
@@ -127,7 +127,7 @@ namespace ZhuoFan.Wb.BasicService.Domain.Models
         /// <summary>
         /// 租户ID
         /// </summary>
-        public Guid TenantId { get; set; }
+        // public Guid TenantId { get; set; }
     }
 
     //public delegate void AccessCheckDelegate(IPlugin app, Permission permission, User user);

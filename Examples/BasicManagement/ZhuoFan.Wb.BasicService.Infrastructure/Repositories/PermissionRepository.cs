@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Girvs.EntityFrameworkCore.Repositories;
 using Girvs.Extensions;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using ZhuoFan.Wb.BasicService.Domain.Models;
 using ZhuoFan.Wb.BasicService.Domain.Repositories;
@@ -13,22 +14,26 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Repositories
 {
     public class PermissionRepository : Repository<BasalPermission>, IPermissionRepository
     {
-        public async Task<List<BasalPermission>> GetUserPermissionLimit(Guid userId)
+        private readonly BasicManagementDbContext _dbContext;
+
+        public PermissionRepository([NotNull] BasicManagementDbContext dbContext)
         {
-            Expression<Func<BasalPermission, bool>> condition = x => x.AppliedID == userId;
-            return await DbSet.Where(condition).ToListAsync();
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        }
+        
+        public Task<List<BasalPermission>> GetUserPermissionLimit(Guid userId)
+        {
+            return _dbContext.Set<BasalPermission>().Where(x => x.AppliedID == userId).ToListAsync();
         }
 
-        public async Task<List<BasalPermission>> GetRolePermissionLimit(Guid roleId)
+        public Task<List<BasalPermission>> GetRolePermissionLimit(Guid roleId)
         {
-            Expression<Func<BasalPermission, bool>> condition = x => x.AppliedID == roleId;
-            return await DbSet.Where(condition).ToListAsync();
+            return _dbContext.Set<BasalPermission>().Where(x => x.AppliedID == roleId).ToListAsync();
         }
 
-        public async Task<List<BasalPermission>> GetRoleListPermissionLimit(Guid[] roleIds)
+        public Task<List<BasalPermission>> GetRoleListPermissionLimit(Guid[] roleIds)
         {
-            Expression<Func<BasalPermission, bool>> condition = x => roleIds.Contains(x.AppliedID);
-            return await DbSet.Where(condition).ToListAsync();
+            return _dbContext.Set<BasalPermission>().Where(x => roleIds.Contains(x.AppliedID)).ToListAsync();
         }
 
         public async Task UpdatePermissions(List<BasalPermission> ps)
@@ -40,7 +45,7 @@ namespace ZhuoFan.Wb.BasicService.Infrastructure.Repositories
                 condition = condition.And(x => x.AppliedObjectType == p.AppliedObjectType);
                 condition = condition.And(x => x.ValidateObjectType == p.ValidateObjectType);
 
-                var list = await DbSet.Where(condition).ToListAsync();
+                var list = await GetWhereAsync(condition);
                 await DeleteRangeAsync(list);
                 await AddRangeAsync(ps);
             }

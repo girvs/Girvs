@@ -5,9 +5,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Girvs.AuthorizePermission\Girvs.AuthorizePermission.csproj" />
-    <ProjectReference Include="..\..\..\Girvs.Driven\Girvs.Driven.csproj" />
-    <ProjectReference Include="..\ZhuoFan.Wb.EventBus\ZhuoFan.Wb.EventBus.csproj" />
+    <Compile Remove="CommandHandlers\ServiceDataRuleCommandHandler.cs" />
+    <Compile Remove="CommandHandlers\ServicePermissionCommandHanlder.cs" />
+    <Compile Remove="Commands\ServiceDataRule\**" />
+    <Compile Remove="Commands\ServicePermission\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Commands\ServiceDataRule\**" />
+    <EmbeddedResource Remove="Commands\ServicePermission\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Commands\ServiceDataRule\**" />
+    <None Remove="Commands\ServicePermission\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZhuoFan.Wb.Common\ZhuoFan.Wb.Common.csproj" />
   </ItemGroup>
 
 </Project>

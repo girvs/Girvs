@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Girvs.AuthorizePermission;
+using Girvs.BusinessBasis;
 using Girvs.DynamicWebApi;
-using ZhuoFan.Wb.BasicService.Domain.Models;
 
 namespace ZhuoFan.Wb.BasicService.Application.AppService
 {
-    public interface IAuthorizationService : IAppWebApiService
+    public interface IAuthorizationService : IAppWebApiService, IManager
     {
-        Task<IList<ServicePermission>> GetFunctionOperateList();
-        Task<IList<ServiceDataRule>> GetDataRuleList();
-
+        Task<IList<AuthorizePermissionModel>> GetFunctionOperateList();
+        Task<IList<AuthorizeDataRuleModel>> GetDataRuleList();
         Task InitAuthorization();
     }
 }

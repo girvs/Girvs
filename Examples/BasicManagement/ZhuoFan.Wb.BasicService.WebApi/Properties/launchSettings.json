@@ -8,7 +8,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": "true",
-      "applicationUrl": "http://192.168.51.98:82"
+      "applicationUrl": "http://localhost:20083"
     },
     "Docker": {
       "commandName": "Docker",
@@ -19,9 +19,9 @@
     "WSL 2": {
       "commandName": "WSL2",
       "launchBrowser": true,
-      "launchUrl": "http://192.168.51.98:82/swagger",
+      "launchUrl": "http://192.168.51.99:20083/swagger",
       "environmentVariables": {
-        "ASPNETCORE_URLS": "http://192.168.51.98:82",
+        "ASPNETCORE_URLS": "http://192.168.51.98:20083",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "distributionName": ""

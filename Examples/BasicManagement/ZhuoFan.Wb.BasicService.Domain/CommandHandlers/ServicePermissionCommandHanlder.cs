@@ -36,34 +36,28 @@ namespace ZhuoFan.Wb.BasicService.Domain.CommandHandlers
         public async Task<bool> Handle(CreateOrUpdateServicePermissionCommand request,
             CancellationToken cancellationToken)
         {
-            var sp = new ServicePermission
+            Expression<Func<ServicePermission, bool>> expression = x => x.ServiceId == request.ServiceId;
+
+            var sp = await _servicePermissionRepository.GetEntityByWhere(expression);
+
+            if (sp == null)
             {
-                ServiceId = request.ServiceId,
-                ServiceName = request.ServiceName,
-                Permissions = request.Permissions
-            };
-            await _servicePermissionRepository.AddAsync(sp);
-            //Expression<Func<ServicePermission, bool>> expression = x => x.ServiceId == request.ServiceId;
-
-            //var sp = await _servicePermissionRepository.GetEntityByWhere(expression);
-
-            //if (sp == null)
-            //{
-            //    sp = new ServicePermission
-            //    {
-            //        ServiceId = request.ServiceId,
-            //        ServiceName = request.ServiceName,
-            //        Permissions = request.Permissions
-            //    };
-            //    await _servicePermissionRepository.AddAsync(sp);
-            //}
-            //else
-            //{
-            //    sp.ServiceId = request.ServiceId;
-            //    sp.ServiceName = request.ServiceName;
-            //    sp.Permissions = request.Permissions;
-            //    await _servicePermissionRepository.UpdateAsync(sp);
-            //}
+                sp = new ServicePermission
+                {
+                    ServiceId = request.ServiceId,
+                    ServiceName = request.ServiceName,
+                    Permissions = request.Permissions,
+                    OperationPermissions = request.OperationPermissionModels
+                };
+                await _servicePermissionRepository.AddAsync(sp);
+            }
+            else
+            {
+                sp.ServiceId = request.ServiceId;
+                sp.ServiceName = request.ServiceName;
+                sp.Permissions = request.Permissions;
+                await _servicePermissionRepository.UpdateAsync(sp);
+            }
 
             if (await Commit())
             {
