@@ -43,6 +43,15 @@ namespace Girvs.Cache.Caching
                 }
             }
         }
+        
+        /// <summary>
+        /// 通过租户标识符获取缓存实体的键
+        /// </summary>
+        /// <remarks>
+        /// {0} : entity id
+        /// </remarks>
+        public static CacheKey ByTenantKey =>
+            new CacheKey($"{EntityTypeName}{TenantKey}");
 
         /// <summary>
         /// 通过标识符获取缓存实体的键
