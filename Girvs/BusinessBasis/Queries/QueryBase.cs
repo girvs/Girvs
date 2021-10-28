@@ -36,7 +36,7 @@ namespace Girvs.BusinessBasis.Queries
         public virtual string GetCacheKey()
         {
             //此处字符串为约定，请不要随意修改
-            var sb = new StringBuilder();
+            var sb = new StringBuilder(GetType().FullName);
 
             var ps = GetType().GetProperties();
             foreach (var propertyInfo in ps)
