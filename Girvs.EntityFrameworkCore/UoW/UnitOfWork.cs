@@ -37,10 +37,10 @@ namespace Girvs.EntityFrameworkCore.UoW
 
 
         //手动回收
-        public void Dispose()
-        {
-            _context.Dispose();
-        }
+        // public void Dispose()
+        // {
+        //     _context.Dispose();
+        // }
 
         public async Task<bool> Commit(CancellationToken cancellationToken = new CancellationToken())
         {
