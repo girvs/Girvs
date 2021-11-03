@@ -156,7 +156,7 @@ namespace Girvs.Cache.Caching
         /// <param name="expirationTime">The time after which the lock will automatically be expired</param>
         /// <param name="action">Action to be performed with locking</param>
         /// <returns>True if lock was acquired and action was performed; otherwise false</returns>
-        public bool PerformActionWithLock(string key, TimeSpan expirationTime, Action action)
+        public async Task<bool> PerformActionWithLock(string key, TimeSpan expirationTime, Func<Task> action)
         {
             //ensure that lock is acquired
             if (IsSet(new CacheKey(key)))
@@ -167,7 +167,7 @@ namespace Girvs.Cache.Caching
                 _memoryCache.Set(key, key, expirationTime);
 
                 //perform action
-                action();
+                await action();
 
                 return true;
             }
