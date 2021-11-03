@@ -13,7 +13,7 @@ namespace Girvs.EventBus.Extensions
 
             foreach (var subscribe in subscribes)
             {
-                services.AddTransient(subscribe);
+                services.AddScoped(subscribe);
             }
         }
     }
