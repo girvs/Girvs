@@ -53,6 +53,18 @@ namespace Girvs.BusinessBasis.Repositories
         Task UpdateRangeAsync(List<TEntity> ts, params string[] fields);
 
         /// <summary>
+        /// 根据条件批量更新
+        /// </summary>
+        /// <param name="fieldValue">更新的字段名和值</param>
+        /// <param name="predicate">条件</param>
+        /// <typeparam name="TP">字段类型</typeparam>
+        /// <returns></returns>
+        Task UpdateRangeAsync(
+            Expression<Func<TEntity, bool>> predicate,
+            params KeyValuePair<Expression<Func<TEntity, object>>, Expression<Func<TEntity, object>>>[] fieldValue
+        );
+
+        /// <summary>
         /// 删除指定的主键值的实体
         /// </summary>
         /// <param name="t">实体</param>
@@ -65,6 +77,13 @@ namespace Girvs.BusinessBasis.Repositories
         /// <param name="ts">集合</param>
         /// <returns>主键集合</returns>
         Task DeleteRangeAsync(List<TEntity> ts);
+
+        /// <summary>
+        /// 根据条件进行批量删除
+        /// </summary>
+        /// <param name="predicate">条件表达式</param>
+        /// <returns></returns>
+        Task DeleteRangeAsync(Expression<Func<TEntity, bool>> predicate);
 
         /// <summary>
         /// 根据主键值获取相关的实体

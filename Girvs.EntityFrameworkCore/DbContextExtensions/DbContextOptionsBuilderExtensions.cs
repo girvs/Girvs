@@ -11,6 +11,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             DataConnectionConfig config, string connStr)
         {
             optionsBuilder.UseSqlServer(connStr);
+            optionsBuilder.UseBatchEF_MSSQL();
         }
 
         public static void UseMySqlWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
@@ -19,17 +20,24 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
 
             optionsBuilder.UseMySql(connStr, serverVersion);
+            optionsBuilder.UseBatchEF_MySQLPomelo();
         }
 
         public static void UseSqlLiteWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
             DataConnectionConfig config, string connStr)
         {
             if (config.UseRowNumberForPaging)
+            {
                 optionsBuilder.UseSqlite(connStr,
                     option => option.CommandTimeout(config.SQLCommandTimeout));
+                optionsBuilder.UseSqlite();
+            }
             else
+            {
                 optionsBuilder.UseSqlServer(connStr,
                     option => option.CommandTimeout(config.SQLCommandTimeout));
+                optionsBuilder.UseSqlServer();
+            }
         }
 
         public static void UseOracleWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
@@ -41,6 +49,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                     option.CommandTimeout(config.SQLCommandTimeout);
                     option.UseOracleSQLCompatibility(config.VersionNumber);
                 });
+            optionsBuilder.UseOracle();
         }
 
         public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Elasticsearch.Net.Specification.ClusterApi;
 using Girvs.BusinessBasis.Entities;
 using Girvs.BusinessBasis.Queries;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.EntityFrameworkCore.Context;
+using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.Extensions;
 using Girvs.Extensions.Collections;
 using Girvs.Infrastructure;
@@ -28,20 +28,20 @@ namespace Girvs.EntityFrameworkCore.Repositories
         internal DbSet<TEntity> DbSet { get; }
 
         protected IQueryable<TEntity> Queryable => DbSet.Where(OtherQueryCondition);
-        
+
         protected readonly IRepositoryOtherQueryCondition _repositoryQueryCondition;
 
         protected Repository()
         {
             _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
-            
+
             _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ??
                       throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbContext = GetRelatedDbContext() ??
                         throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbSet = DbContext.Set<TEntity>();
         }
-        
+
         private DbContext GetRelatedDbContext()
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
@@ -118,6 +118,22 @@ namespace Girvs.EntityFrameworkCore.Repositories
             }
         }
 
+        public virtual Task UpdateRangeAsync(
+            Expression<Func<TEntity, bool>> predicate,
+            params KeyValuePair<Expression<Func<TEntity,object>>, Expression<Func<TEntity,object>>>[] fieldValue
+        )
+        {
+            if (!fieldValue.Any()) return Task.CompletedTask;
+            var where = predicate.And(OtherQueryCondition);
+            var obj = DbContext.BatchUpdate<TEntity>().Where(where);
+            foreach (var keyValuePair in fieldValue)
+            {
+                obj.Set(keyValuePair.Key, keyValuePair.Value);
+            }
+
+            return obj.ExecuteAsync();
+        }
+
         public virtual Task DeleteAsync(TEntity t)
         {
             if (!CompareTenantId(t))
@@ -140,6 +156,12 @@ namespace Girvs.EntityFrameworkCore.Repositories
             return Task.CompletedTask;
         }
 
+        public virtual Task DeleteRangeAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            var where = predicate.And(OtherQueryCondition);
+            return DbContext.DeleteRangeAsync(where);
+        }
+
         public virtual Task<TEntity> GetByIdAsync(Tkey id)
         {
             return Queryable.FirstOrDefaultAsync(t => t.Id.Equals(id));
@@ -147,16 +169,16 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
         public virtual Task<List<TEntity>> GetAllAsync(params string[] fields)
         {
-            return fields.Any() 
-                ? Queryable.SelectProperties(fields).ToListAsync() 
+            return fields.Any()
+                ? Queryable.SelectProperties(fields).ToListAsync()
                 : Queryable.ToListAsync();
         }
 
         public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate,
             params string[] fields)
         {
-            return fields.Any() 
-                ? Queryable.Where(predicate).SelectProperties(fields).ToListAsync() 
+            return fields.Any()
+                ? Queryable.Where(predicate).SelectProperties(fields).ToListAsync()
                 : Queryable.Where(predicate).ToListAsync();
         }
 
