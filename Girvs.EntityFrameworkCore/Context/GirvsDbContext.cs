@@ -81,6 +81,7 @@ namespace Girvs.EntityFrameworkCore.Context
             var connStr = GetDbConnectionString();
             _logger?.LogInformation(
                 $"当前操作数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
+            _logger?.LogInformation($"当前DbContextId为：{ContextId.InstanceId.ToString()}");
             var dataConnectionConfig = GetDataConnectionConfig();
             switch (dataConnectionConfig.UseDataType)
             {
