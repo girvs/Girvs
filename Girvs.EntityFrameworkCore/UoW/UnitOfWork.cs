@@ -8,6 +8,7 @@ using Girvs.EntityFrameworkCore.Context;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Girvs.EntityFrameworkCore.UoW
 {
@@ -27,12 +28,15 @@ namespace Girvs.EntityFrameworkCore.UoW
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
             var ts = typeFinder.FindOfType(typeof(IDbContext));
 
-            return ts.Where(x => x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)))
+            var dbcontext = ts.Where(x =>
+                    x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)))
                 .Select(x => EngineContext.Current.Resolve(x) as GirvsDbContext).FirstOrDefault();
 
-            //return (from type in ts
-            //    where type.GetProperties().Any(x => x.PropertyType == typeof(DbSet<TEntity>))
-            //    select EngineContext.Current.Resolve(type) as GirvsDbContext).FirstOrDefault();
+            var logger = EngineContext.Current.Resolve<ILogger<UnitOfWork<TEntity>>>();
+
+            logger.LogInformation($"@@@@@@@@@@@@@@获取RelatedDbContext当前DbContextId为：{dbcontext.ContextId.InstanceId.ToString()}");
+
+            return dbcontext;
         }
 
 
