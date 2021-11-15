@@ -51,8 +51,10 @@ namespace Girvs.EntityFrameworkCore.Context
         public void SwitchMasterDataBase()
         {
             ReadAndWriteMode = DataBaseWriteAndRead.Write;
-            Database.GetDbConnection().ConnectionString = GetDbConnectionString();
-            _logger?.LogInformation($"切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{GetDbConnectionString()}");
+            var connStr = GetDbConnectionString();
+            var conn = Database.GetDbConnection();
+            _logger?.LogInformation($"当前数据的状态为：{conn.State}，切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
+            conn.ConnectionString = connStr;
         }
 
         public virtual string GetDbConnectionString()
