@@ -6,7 +6,7 @@ using Girvs.Driven.Notifications;
 
 namespace Girvs.Driven.Commands
 {
-    public abstract class CommandHandler: IDisposable
+    public abstract class CommandHandler
     {
         private readonly IUnitOfWork _uow;
         private readonly IMediatorHandler _bus;
@@ -30,7 +30,5 @@ namespace Girvs.Driven.Commands
         {
             return _uow.Commit();
         }
-
-        public abstract void Dispose();
     }
 }

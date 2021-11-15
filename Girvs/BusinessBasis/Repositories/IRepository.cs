@@ -11,7 +11,7 @@ namespace Girvs.BusinessBasis.Repositories
     {
     }
 
-    public interface IRepository<TEntity, TPrimaryKey> : IDisposable where TEntity : BaseEntity<TPrimaryKey>
+    public interface IRepository<TEntity, TPrimaryKey>  where TEntity : BaseEntity<TPrimaryKey>
     {
         Expression<Func<TEntity, bool>> OtherQueryCondition { get; }
 

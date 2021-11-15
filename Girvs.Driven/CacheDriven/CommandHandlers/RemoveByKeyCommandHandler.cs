@@ -24,9 +24,5 @@ namespace Girvs.Driven.CacheDriven.CommandHandlers
             return Task.FromResult(true);
         }
 
-        public override void Dispose()
-        {
-
-        }
     }
 }
