@@ -53,7 +53,7 @@ namespace Girvs.EntityFrameworkCore.Context
             ReadAndWriteMode = DataBaseWriteAndRead.Write;
             var connStr = GetDbConnectionString();
             var conn = Database.GetDbConnection();
-            _logger?.LogInformation($"当前数据的状态为：{conn.State}，切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
+            _logger?.LogInformation($"当前DbContextId为：{ContextId.InstanceId.ToString()}，当前数据的状态为：{conn.State}，切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
             conn.ConnectionString = connStr;
         }
 
