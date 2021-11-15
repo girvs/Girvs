@@ -1,4 +1,6 @@
-﻿using Girvs.Driven.Behaviors;
+﻿using System;
+using System.Reflection;
+using Girvs.Driven.Behaviors;
 using Girvs.Driven.Extensions;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
@@ -15,7 +17,10 @@ namespace Girvs.Driven
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
             var typeFinder = new WebAppTypeFinder();
-            services.AddMediatR(typeof(DrivenModule));
+            services.AddMediatR(configuration =>
+            {
+                configuration.AsScoped();
+            },typeof(DrivenModule));
             services.RegisterNotificationHandlerType();
             services.RegisterCommandHandlerType();
             services.RegisterIValidatorType();
