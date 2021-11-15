@@ -240,5 +240,10 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             return Queryable.FirstOrDefaultAsync(predicate);
         }
+
+        public void Dispose()
+        {
+            DbContext?.Dispose();
+        }
     }
 }

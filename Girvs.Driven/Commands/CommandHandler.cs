@@ -1,11 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Girvs.BusinessBasis.UoW;
 using Girvs.Driven.Bus;
 using Girvs.Driven.Notifications;
 
 namespace Girvs.Driven.Commands
 {
-    public abstract class CommandHandler
+    public abstract class CommandHandler: IDisposable
     {
         private readonly IUnitOfWork _uow;
         private readonly IMediatorHandler _bus;
@@ -29,5 +30,7 @@ namespace Girvs.Driven.Commands
         {
             return _uow.Commit();
         }
+
+        public abstract void Dispose();
     }
 }

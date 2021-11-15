@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Girvs.Driven.Events;
 using MediatR;
@@ -16,16 +14,16 @@ namespace Girvs.Driven.Bus
         private readonly IMediator _mediator;
 
         //注入服务工厂
-        private readonly ServiceFactory _serviceFactory;
+        // private readonly ServiceFactory _serviceFactory;
+        //
+        // private static readonly ConcurrentDictionary<Type, object> _requestHandlers =
+        //     new ConcurrentDictionary<Type, object>();
 
-        private static readonly ConcurrentDictionary<Type, object> _requestHandlers =
-            new ConcurrentDictionary<Type, object>();
 
-
-        public InMemoryBus(IMediator mediator, ServiceFactory serviceFactory)
+        public InMemoryBus(IMediator mediator)
         {
             _mediator = mediator;
-            _serviceFactory = serviceFactory;
+            // _serviceFactory = serviceFactory;
         }
 
         /// <summary>
@@ -34,6 +32,7 @@ namespace Girvs.Driven.Bus
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="command"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public Task SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
             where T : Message
@@ -50,6 +49,7 @@ namespace Girvs.Driven.Bus
         /// </summary>
         /// <typeparam name="T">泛型 继承 Event：INotification</typeparam>
         /// <param name="event">事件模型，比如StudentRegisteredEvent</param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public Task RaiseEvent<T>(T @event, CancellationToken cancellationToken = default(CancellationToken))
             where T : Event

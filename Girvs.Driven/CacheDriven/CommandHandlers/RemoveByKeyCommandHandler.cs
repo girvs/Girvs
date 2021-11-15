@@ -23,5 +23,10 @@ namespace Girvs.Driven.CacheDriven.CommandHandlers
             _staticCacheManager.Remove(new CacheKey(request.Key));
             return Task.FromResult(true);
         }
+
+        public override void Dispose()
+        {
+
+        }
     }
 }

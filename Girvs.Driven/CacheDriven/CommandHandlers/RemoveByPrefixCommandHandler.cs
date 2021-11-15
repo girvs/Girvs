@@ -23,5 +23,9 @@ namespace Girvs.Driven.CacheDriven.CommandHandlers
             _staticCacheManager.RemoveByPrefix(request.Prefix);
             return Task.FromResult(true);
         }
+
+        public override void Dispose()
+        {
+        }
     }
 }
