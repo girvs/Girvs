@@ -353,6 +353,20 @@ namespace Girvs.Cache.Caching
             return _db.StringIncrement(key, 1);
         }
 
+        public List<string> GetCacheKeys()
+        {
+            var redisKeys = new List<string>();
+            foreach (var endPoint in _connectionWrapper.GetEndPoints())
+            {
+                var keys = GetKeys(endPoint).ToArray();
+                foreach (var redisKey in keys)
+                {
+                    redisKeys.Add(redisKey.ToString());
+                }
+            }
+            return redisKeys;
+        }
+
         /// <summary>
         /// Dispose cache manager
         /// </summary>

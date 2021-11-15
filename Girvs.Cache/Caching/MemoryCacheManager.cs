@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
@@ -233,6 +235,30 @@ namespace Girvs.Cache.Caching
                     return 1;
                 }
             }
+        }
+
+        public List<string> GetCacheKeys()
+        {
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            //var entries = provider.GetType().GetField("_entries", flags)?.GetValue(provider);
+            var keys = new List<string>();
+            var cache = _memoryCache.GetType().GetField("_cache", flags)?.GetValue(_memoryCache);
+            if (cache != null)
+            {
+                if (cache.GetType().GetField("_memory", flags)?.GetValue(cache) is IDictionary memory)
+                {
+                    foreach (DictionaryEntry entry in memory)
+                    {
+                        keys.Add(entry.Key.ToString());
+                    }
+                }
+
+            }
+
+            //var cacheItems = entries as IDictionary;
+            //if (cacheItems == null) return keys;
+
+            return keys;
         }
 
         /// <summary>

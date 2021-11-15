@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Girvs.Cache.Caching
@@ -58,5 +59,7 @@ namespace Girvs.Cache.Caching
         void Clear();
 
         long StringIncrement(string key);
+
+        List<string> GetCacheKeys();
     }
 }
