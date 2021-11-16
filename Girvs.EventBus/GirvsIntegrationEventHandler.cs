@@ -9,14 +9,12 @@ namespace Girvs.EventBus
     public abstract class GirvsIntegrationEventHandler<TIntegrationEvent> : IIntegrationEventHandler<TIntegrationEvent>
         where TIntegrationEvent : IntegrationEvent
     {
-        private readonly IServiceProvider _serviceProvider;
 
         public GirvsIntegrationEventHandler(
             IServiceProvider serviceProvider
         )
         {
-            _serviceProvider = serviceProvider;
-            ServiceContextFactory.Create(_serviceProvider);
+            ServiceContextFactory.Create(serviceProvider);
         }
 
         public abstract Task Handle(TIntegrationEvent @event, CapHeader header, CancellationToken cancellationToken);

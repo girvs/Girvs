@@ -11,11 +11,11 @@ namespace Girvs.Quartz
     {
         public static void AddQuartzHosted(this IServiceCollection services,QuartzConfiguration configuration)
         {
-            services.AddSingleton<IJobFactory, SingletonJobFactory>();
+            services.AddTransient<IJobFactory, SingletonJobFactory>();
             var tasks = configuration.Tasks.Where(x => x.Enabled).ToList();
             foreach (var task in configuration.Tasks.Where(x => x.Enabled).ToList())
             {
-                Type jobt = Type.GetType(task.Type);
+                var jobt = Type.GetType(task.Type);
                 services.AddTransient(jobt);
             }
 
