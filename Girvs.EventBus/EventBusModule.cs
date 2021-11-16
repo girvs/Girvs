@@ -116,7 +116,7 @@ namespace Girvs.EventBus
                 x.UseDashboard(d =>
                 {
 #if DEBUG
-                    d.PathBase = "/cap";
+                    //d.PathBase = "/cap";
 #else
                     var virticalPath = System.AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
                     d.PathBase = $"/{virticalPath}";

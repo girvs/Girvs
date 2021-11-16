@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using Girvs.Configuration;
 using Girvs.FileProvider;
+using Girvs.Infrastructure.GirvsServiceContext;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -29,7 +30,7 @@ namespace Girvs.Infrastructure.Extensions
 
             engine.ConfigureServices(services, configuration);
 
-
+            ServiceContextFactory.Create(services.BuildServiceProvider());
             return (engine, appSettings);
         }
 

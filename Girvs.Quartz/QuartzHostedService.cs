@@ -32,10 +32,7 @@ namespace Girvs.Quartz
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             if (!_quartzConfig.Tasks.Any(x => x.Enabled)) return;
-            _logger.LogInformation(@"
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-                            系统任务调度管理中心
-");
+            _logger.LogInformation(@"★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★系统任务调度管理中心");
             _logger.LogInformation("开始装载任务");
             _logger.LogInformation($"任务个数：{_quartzConfig.Tasks.Count}");
 
@@ -54,9 +51,7 @@ namespace Girvs.Quartz
             _logger.LogInformation("装载任务结束，开始启动任务");
             await Scheduler.Start(cancellationToken);
 
-            _logger.LogInformation(@"
-★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-");
+            _logger.LogInformation(@"★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★");
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

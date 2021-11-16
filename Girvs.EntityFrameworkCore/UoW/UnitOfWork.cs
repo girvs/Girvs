@@ -8,7 +8,6 @@ using Girvs.EntityFrameworkCore.Context;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Girvs.EntityFrameworkCore.UoW
 {
@@ -28,23 +27,17 @@ namespace Girvs.EntityFrameworkCore.UoW
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
             var ts = typeFinder.FindOfType(typeof(IDbContext));
 
-            var dbcontext = ts.Where(x =>
+            return ts.Where(x =>
                     x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)))
                 .Select(x => EngineContext.Current.Resolve(x) as GirvsDbContext).FirstOrDefault();
-
-            var logger = EngineContext.Current.Resolve<ILogger<UnitOfWork<TEntity>>>();
-
-            logger.LogInformation($"@@@@@@@@@@@@@@获取RelatedDbContext当前DbContextId为：{dbcontext.ContextId.InstanceId.ToString()}");
-
-            return dbcontext;
         }
 
 
         //手动回收
-        // public void Dispose()
-        // {
-        //     _context.Dispose();
-        // }
+        public void Dispose()
+        {
+            _context.Dispose();
+        }
 
         public async Task<bool> Commit(CancellationToken cancellationToken = new CancellationToken())
         {

@@ -8,7 +8,7 @@ namespace Girvs.BusinessBasis.UoW
     /// <summary>
     /// 工作单元，方便多操作事务至业务层
     /// </summary>
-    public interface IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
         //是否提交成功
         Task<bool> Commit(CancellationToken cancellationToken = default(CancellationToken));

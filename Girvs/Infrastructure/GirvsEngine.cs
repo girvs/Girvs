@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Girvs.Configuration;
+using Girvs.Infrastructure.GirvsServiceContext;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -28,6 +29,11 @@ namespace Girvs.Infrastructure
             {
                 var accessor = ServiceProvider?.GetService<IHttpContextAccessor>();
                 var context = accessor?.HttpContext;
+                if (context == null)
+                {
+                    return ServiceContext.Provider ?? ServiceProvider;
+                }
+
                 return context?.RequestServices ?? ServiceProvider;
             }
 
@@ -68,7 +74,7 @@ namespace Girvs.Infrastructure
 
             //create and sort instances of startup configurations
             var instances = startupConfigurations
-                .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
+                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             //configure services
@@ -93,7 +99,7 @@ namespace Girvs.Infrastructure
 
             //create and sort instances of startup configurations
             var instances = startupConfigurations
-                .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
+                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             //configure request pipeline
@@ -112,7 +118,7 @@ namespace Girvs.Infrastructure
             var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
             var instances = startupConfigurations
-                .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
+                .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
                 .OrderBy(startup => startup.Order);
 
             var logger = Resolve<ILogger<object>>();
@@ -131,7 +137,7 @@ namespace Girvs.Infrastructure
         /// <returns>Resolved service</returns>
         public T Resolve<T>(IServiceScope scope = null) where T : class
         {
-            return (T)Resolve(typeof(T), scope);
+            return (T) Resolve(typeof(T), scope);
         }
 
         /// <summary>
@@ -152,7 +158,7 @@ namespace Girvs.Infrastructure
         /// <returns>Collection of resolved services</returns>
         public virtual IEnumerable<T> ResolveAll<T>()
         {
-            return (IEnumerable<T>)GetServiceProvider().GetServices(typeof(T));
+            return (IEnumerable<T>) GetServiceProvider().GetServices(typeof(T));
         }
 
         /// <summary>
@@ -210,7 +216,7 @@ namespace Girvs.Infrastructure
 
             //create and sort instances of dependency registrars
             var instances = dependencyRegistrars
-                .Select(dependencyRegistrar => (IDependencyRegistrar)Activator.CreateInstance(dependencyRegistrar))
+                .Select(dependencyRegistrar => (IDependencyRegistrar) Activator.CreateInstance(dependencyRegistrar))
                 .OrderBy(dependencyRegistrar => dependencyRegistrar.Order);
 
             //register all provided dependencies

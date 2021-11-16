@@ -2,6 +2,7 @@
 using System.Linq;
 using Girvs.Quartz.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Quartz.Spi;
 
 namespace Girvs.Quartz
@@ -19,7 +20,7 @@ namespace Girvs.Quartz
             }
 
             if (tasks.Any())
-                services.AddHostedService<QuartzHostedService>();
+                services.AddTransient<IHostedService,QuartzHostedService>();
         }
     }
 }
