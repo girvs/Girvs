@@ -7,15 +7,15 @@ namespace Girvs.Quartz
 {
     public class SingletonJobFactory : IJobFactory
     {
-        private readonly IServiceScope _serviceScope;
+        private readonly IServiceProvider _serviceProvider;
         public SingletonJobFactory(IServiceProvider serviceProvider)
         {
-            _serviceScope = serviceProvider.CreateScope();
+            _serviceProvider = serviceProvider;
         }
 
         public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
         {
-            return _serviceScope.ServiceProvider.GetRequiredService(bundle.JobDetail.JobType) as IJob;
+            return _serviceProvider.CreateScope().ServiceProvider.GetRequiredService(bundle.JobDetail.JobType) as IJob;
         }
 
         public void ReturnJob(IJob job)
