@@ -21,7 +21,7 @@ namespace Girvs.Grpc
                 var method = typeof(GrpcEndpointRouteBuilderExtensions)
                     .GetMethod(nameof(GrpcEndpointRouteBuilderExtensions.MapGrpcService))
                     ?.MakeGenericMethod(grpcService);
-                if (method != null) method.Invoke(builder, new object[] { grpcService.Name });
+                if (method != null) method.Invoke( null, new object[] { builder });
             }
 
 
