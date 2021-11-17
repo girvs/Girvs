@@ -15,7 +15,7 @@ namespace Girvs.SignalR
             {
                 if (signalRService.IsAbstract) continue;
                 var method = typeof(IEndpointRouteBuilder).GetMethod("MapHub")?.MakeGenericMethod(signalRService);
-                if (method != null) method.Invoke(signalRService.Name, new object[] {builder});
+                if (method != null) method.Invoke(builder, new object[] {signalRService.Name});
             }
         }
     }
