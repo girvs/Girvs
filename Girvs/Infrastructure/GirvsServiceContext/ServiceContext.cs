@@ -37,7 +37,7 @@ namespace Girvs.Infrastructure.GirvsServiceContext
         public static long GetId(this IServiceProvider provider) => ((SupportContextServiceProvider)provider)?.Id ?? -1;
 
 
-        private readonly static AsyncLocal<ServiceProviderAccessor> _local = new AsyncLocal<ServiceProviderAccessor>(LocalValueChanged);
+        private static readonly AsyncLocal<ServiceProviderAccessor> _local = new AsyncLocal<ServiceProviderAccessor>(LocalValueChanged);
 
         private static void LocalValueChanged(AsyncLocalValueChangedArgs<ServiceProviderAccessor> obj)
         {

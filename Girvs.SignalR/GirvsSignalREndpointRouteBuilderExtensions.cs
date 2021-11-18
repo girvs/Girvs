@@ -15,10 +15,15 @@ namespace Girvs.SignalR
             foreach (var signalRService in signalRServices)
             {
                 if (signalRService.IsAbstract) continue;
-                var method = typeof(IEndpointRouteBuilder).GetMethod(nameof(HubEndpointRouteBuilderExtensions.MapHub))
+                var method = typeof(GirvsSignalREndpointRouteBuilderExtensions).GetMethod("GirvsMapHub")
                     ?.MakeGenericMethod(signalRService);
-                if (method != null) method.Invoke(null, new object[] {builder, signalRService.Name});
+                if (method != null) method.Invoke(null, new object[] { builder});
             }
+        }
+
+        public static void GirvsMapHub<THub>(this IEndpointRouteBuilder builder) where THub : Hub
+        {
+            builder.MapHub<THub>(typeof(THub).Name);
         }
     }
 }

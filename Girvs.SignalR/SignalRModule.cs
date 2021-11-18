@@ -11,7 +11,7 @@ namespace Girvs.SignalR
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            var signalServiceBuilder = services.AddSignalRCore();
+            var signalServiceBuilder = services.AddSignalR();
             var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
             if (cacheConfig.EnableCaching && cacheConfig.DistributedCacheType == CacheType.Redis)
             {

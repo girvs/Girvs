@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Girvs.Infrastructure.GirvsServiceContext
 {
-    class SupportContextServiceProvider: IServiceProvider
+    class SupportContextServiceProvider : IServiceProvider
     {
         private static long _sequence = -1;
 
@@ -25,6 +25,7 @@ namespace Girvs.Infrastructure.GirvsServiceContext
 
         public long Id { get; }
         private SupportContextServiceProvider() => Accessor = new ServiceProviderAccessor(this);
+
         public SupportContextServiceProvider(IServiceProvider provider, SupportContextServiceProvider parent) : this()
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
@@ -39,6 +40,7 @@ namespace Girvs.Infrastructure.GirvsServiceContext
 
         private int _disposed;
         public bool IsDisposed => _disposed > 0;
+
         internal void Dispose()
         {
             if (_disposed == 0 && Interlocked.Increment(ref _disposed) == 1)
@@ -52,14 +54,15 @@ namespace Girvs.Infrastructure.GirvsServiceContext
         public bool IsMyParent(SupportContextServiceProvider provider)
         {
             for (var parent = Parent;
-                     parent != null;
-                     parent = parent.Parent)
+                parent != null;
+                parent = parent.Parent)
             {
                 if (ReferenceEquals(parent, provider))
                 {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -71,10 +74,12 @@ namespace Girvs.Infrastructure.GirvsServiceContext
             {
                 return new SupportContextServiceScopeFactory(this, factory);
             }
+
             if (ReferenceEquals(value, _provider))
             {
                 return this;
             }
+
             return value;
         }
 
@@ -82,11 +87,12 @@ namespace Girvs.Infrastructure.GirvsServiceContext
         {
             var list = new List<string>();
             for (var current = this;
-                     current != null;
-                     current = current.Parent)
+                current != null;
+                current = current.Parent)
             {
                 list.Add(current.Id.ToString());
             }
+
             list.Reverse();
             return string.Join("-", list);
         }
