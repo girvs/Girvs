@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Text;
+using System.Threading.Tasks;
 using Girvs.AuthorizePermission.Configuration;
 using Girvs.Configuration;
+using Girvs.Extensions;
 using Girvs.Infrastructure;
 using IdentityServer4.AccessTokenValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +40,7 @@ namespace Girvs.AuthorizePermission
                             ValidateIssuer = false,
                             ValidateAudience = false
                         };
+                        x.Events = TransferHeadToken();
                     });
             }
 
@@ -58,6 +62,7 @@ namespace Girvs.AuthorizePermission
                             ValidateIssuer = false,
                             ValidateAudience = false
                         };
+                        x.Events = TransferHeadToken();
                     });
                 // authenticationBuilder
                 //     .AddIdentityServerAuthentication(GirvsAuthenticationScheme.GirvsIdentityServer4, options =>
@@ -71,6 +76,19 @@ namespace Girvs.AuthorizePermission
                 //         options.IntrospectionDiscoveryPolicy.RequireKeySet = false;
                 //     });
             }
+        }
+
+        private JwtBearerEvents TransferHeadToken()
+        {
+           return new JwtBearerEvents()
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.HttpContext.Request.Query["access_token"];
+                    context.Token = accessToken.ToString();
+                    return Task.CompletedTask;
+                }
+            };
         }
 
         public void Configure(IApplicationBuilder application)
