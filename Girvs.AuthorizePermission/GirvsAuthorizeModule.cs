@@ -5,10 +5,12 @@ using Girvs.AuthorizePermission.Configuration;
 using Girvs.Configuration;
 using Girvs.Extensions;
 using Girvs.Infrastructure;
+using Girvs.TypeFinder;
 using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -84,8 +86,11 @@ namespace Girvs.AuthorizePermission
             {
                 OnMessageReceived = context =>
                 {
-                    var accessToken = context.HttpContext.Request.Query["access_token"];
-                    context.Token = accessToken.ToString();
+                    var accessToken = context.HttpContext.Request.Query["access_token"].ToString();
+                    if (!accessToken.IsNullOrEmpty())
+                    {
+                        context.Token = accessToken;
+                    }
                     return Task.CompletedTask;
                 }
             };
