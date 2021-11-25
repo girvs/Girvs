@@ -18,6 +18,16 @@ namespace Girvs.AuthorizePermission
 
         public List<OperationPermissionModel> OperationPermissionModels { get; set; }
         public Dictionary<string, string> Permissions { get; set; }
+        
+        /// <summary>
+        /// 所属标签
+        /// </summary>
+        public string Tag { get; set; }
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public int Order { get; set; }
     }
 
 

@@ -51,6 +51,8 @@ namespace Girvs.AuthorizePermission.Services
 
                 return new AuthorizePermissionModel
                 {
+                    Tag = spd.Tag,
+                    Order = spd.Order,
                     ServiceName = spd.ServiceName,
                     ServiceId = spd.ServiceId,
                     OperationPermissionModels = operationPermissionModels
@@ -77,6 +79,8 @@ namespace Girvs.AuthorizePermission.Services
 
                 var model = new AuthorizeDataRuleModel
                 {
+                    Tag = entityDataRuleAttribute.Tag,
+                    Order = entityDataRuleAttribute.Order,
                     EntityTypeName = entity.FullName,
                     EntityDesc = entityDataRuleAttribute.AttributeDesc
                 };

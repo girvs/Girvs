@@ -6,9 +6,16 @@ namespace Girvs.AuthorizePermission
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
     public class DataRuleAttribute : Attribute
     {
-        public DataRuleAttribute(string attributeDesc, UserType userType = UserType.All)
+        public DataRuleAttribute(
+            string attributeDesc,
+            UserType userType = UserType.All,
+            string tag = "",
+            int order = 0
+        )
         {
             AttributeDesc = attributeDesc;
+            Tag = tag;
+            Order = order;
             UserType = userType;
         }
 
@@ -18,5 +25,15 @@ namespace Girvs.AuthorizePermission
         public string AttributeDesc { get; private set; }
 
         public UserType UserType { get; private set; }
+
+        /// <summary>
+        /// 所属标签
+        /// </summary>
+        public string Tag { get; private set; }
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public int Order { get; private set; }
     }
 }

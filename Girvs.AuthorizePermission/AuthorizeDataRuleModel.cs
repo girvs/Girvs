@@ -26,6 +26,16 @@ namespace Girvs.AuthorizePermission
         public string EntityTypeName { get; set; }
 
         /// <summary>
+        /// 所属标签
+        /// </summary>
+        public string Tag { get; set; }
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public int Order { get; set; }
+
+        /// <summary>
         /// 实体需要相关授权的字段列表
         /// </summary>
         public List<AuthorizeDataRuleFieldModel> AuthorizeDataRuleFieldModels { get; set; }
