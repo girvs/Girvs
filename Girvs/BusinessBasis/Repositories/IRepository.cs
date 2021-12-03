@@ -133,5 +133,19 @@ namespace Girvs.BusinessBasis.Repositories
         /// <param name="predicate"></param>
         /// <returns></returns>
         Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate);
+
+        /// <summary>
+        /// 判断当前实体是否被追踪
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        Task<bool> IsWasTrack(TEntity entity);
+
+        /// <summary>
+        /// 取消数据追踪
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        Task<bool> DetachById(TPrimaryKey key);
     }
 }

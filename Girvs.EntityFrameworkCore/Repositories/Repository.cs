@@ -240,5 +240,16 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             return Queryable.FirstOrDefaultAsync(predicate);
         }
+
+        public Task<bool> IsWasTrack(TEntity entity)
+        {
+            return Task.FromResult(DbContext.IsWasTrack<TEntity,Tkey>(entity));
+        }
+
+        public Task<bool> DetachById(Tkey key)
+        {
+            DbContext.DetachById<TEntity, Tkey>(key);
+            return Task.FromResult(true);
+        }
     }
 }
