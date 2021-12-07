@@ -83,8 +83,8 @@ namespace Girvs.Cache.Caching
             //little performance workaround here:
             //we use "PerRequestCache" to cache a loaded object in memory for the current HTTP request.
             //this way we won't connect to Redis server many times per HTTP request (e.g. each time to load a locale or setting)
-            if (_perRequestCache.IsSet(key.Key))
-                return _perRequestCache.Get(key.Key, () => default(T));
+            // if (_perRequestCache.IsSet(key.Key))
+            //     return _perRequestCache.Get(key.Key, () => default(T));
 
             //get serialized item from cache
             var serializedItem = await _db.StringGetAsync(key.Key);
