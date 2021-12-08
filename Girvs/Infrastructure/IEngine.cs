@@ -42,5 +42,7 @@ namespace Girvs.Infrastructure
         IClaimManager ClaimManager { get; }
 
         T GetAppModuleConfig<T>() where T : IAppModuleConfig;
+
+        void SetCurrentThreadServiceProvider(IServiceProvider serviceProvider);
     }
 }

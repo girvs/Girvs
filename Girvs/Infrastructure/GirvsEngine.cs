@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Girvs.Configuration;
-using Girvs.Infrastructure.GirvsServiceContext;
 using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -29,12 +29,7 @@ namespace Girvs.Infrastructure
             {
                 var accessor = ServiceProvider?.GetService<IHttpContextAccessor>();
                 var context = accessor?.HttpContext;
-                if (context == null)
-                {
-                    return ServiceContext.Provider ?? ServiceProvider;
-                }
-
-                return context?.RequestServices ?? ServiceProvider;
+                return context?.RequestServices ?? _asyncLocalServiceProvider.Value ?? ServiceProvider;
             }
 
             return scope.ServiceProvider;
@@ -277,7 +272,15 @@ namespace Girvs.Infrastructure
             return Singleton<AppSettings>.Instance[typeof(T).Name];
         }
 
+        public void SetCurrentThreadServiceProvider(IServiceProvider serviceProvider)
+        {
+            _asyncLocalServiceProvider.Value = serviceProvider;
+        }
+
         public bool IsAuthenticated => HttpContext?.User.Identity != null && HttpContext.User.Identity.IsAuthenticated;
+
+        private static AsyncLocal<IServiceProvider> _asyncLocalServiceProvider = new AsyncLocal<IServiceProvider>();
+
 
         public virtual IServiceProvider ServiceProvider { get; protected set; }
     }
