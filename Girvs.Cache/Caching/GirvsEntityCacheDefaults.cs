@@ -60,7 +60,7 @@ namespace Girvs.Cache.Caching
         /// {0} : entity id
         /// </remarks>
         public static CacheKey ByIdCacheKey =>
-            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:byid:{{0}}");
+            new CacheKey($"{EntityTypeName}{TenantKey}:byid:{{0}}");
 
         /// <summary>
         /// 获取通过标识符缓存实体的键

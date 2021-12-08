@@ -83,8 +83,8 @@ namespace Girvs.Cache.Caching
             //little performance workaround here:
             //we use "PerRequestCache" to cache a loaded object in memory for the current HTTP request.
             //this way we won't connect to Redis server many times per HTTP request (e.g. each time to load a locale or setting)
-            // if (_perRequestCache.IsSet(key.Key))
-            //     return _perRequestCache.Get(key.Key, () => default(T));
+            if (_perRequestCache.IsSet(key.Key))
+                return _perRequestCache.Get(key.Key, () => default(T));
 
             //get serialized item from cache
             var serializedItem = await _db.StringGetAsync(key.Key);
@@ -97,7 +97,7 @@ namespace Girvs.Cache.Caching
                 return default;
 
             //set item in the per-request cache
-            //_perRequestCache.Set(key.Key, item);
+            _perRequestCache.Set(key.Key, item);
 
             return item;
         }
@@ -133,8 +133,8 @@ namespace Girvs.Cache.Caching
             //little performance workaround here:
             //we use "PerRequestCache" to cache a loaded object in memory for the current HTTP request.
             //this way we won't connect to Redis server many times per HTTP request (e.g. each time to load a locale or setting)
-            // if (_perRequestCache.IsSet(key.Key))
-            //     return true;
+            if (_perRequestCache.IsSet(key.Key))
+                return true;
 
             return await _db.KeyExistsAsync(key.Key);
         }
@@ -206,8 +206,8 @@ namespace Girvs.Cache.Caching
             //little performance workaround here:
             //we use "PerRequestCache" to cache a loaded object in memory for the current HTTP request.
             //this way we won't connect to Redis server many times per HTTP request (e.g. each time to load a locale or setting)
-            // if (_perRequestCache.IsSet(key.Key))
-            //     return _perRequestCache.Get(key.Key, () => default(T));
+            if (_perRequestCache.IsSet(key.Key))
+                return _perRequestCache.Get(key.Key, () => default(T));
 
             var (_, rez) = TryPerformAction(() =>
             {
@@ -222,7 +222,7 @@ namespace Girvs.Cache.Caching
                     return default;
 
                 //set item in the per-request cache
-                //_perRequestCache.Set(key.Key, item);
+                _perRequestCache.Set(key.Key, item);
 
                 return item;
             });
@@ -282,7 +282,7 @@ namespace Girvs.Cache.Caching
 
             //and set it to cache
             TryPerformAction(() => _db.StringSet(key.Key, serializedItem, expiresIn));
-            // _perRequestCache.Set(key.Key, data);
+            _perRequestCache.Set(key.Key, data);
         }
 
         /// <summary>
@@ -295,8 +295,8 @@ namespace Girvs.Cache.Caching
             //little performance workaround here:
             //we use "PerRequestCache" to cache a loaded object in memory for the current HTTP request.
             //this way we won't connect to Redis server many times per HTTP request (e.g. each time to load a locale or setting)
-            // if (_perRequestCache.IsSet(key.Key))
-            //     return true;
+            if (_perRequestCache.IsSet(key.Key))
+                return true;
 
             var (flag, rez) = TryPerformAction(() => _db.KeyExists(key.Key));
 
@@ -311,7 +311,7 @@ namespace Girvs.Cache.Caching
         {
             //remove item from caches
             TryPerformAction(() => _db.KeyDelete(key.Key));
-            // _perRequestCache.Remove(key.Key);
+            _perRequestCache.Remove(key.Key);
         }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace Girvs.Cache.Caching
         /// <param name="prefix">String key prefix</param>
         public virtual void RemoveByPrefix(string prefix)
         {
-            // _perRequestCache.RemoveByPrefix(prefix);
+            _perRequestCache.RemoveByPrefix(prefix);
 
             foreach (var endPoint in _connectionWrapper.GetEndPoints())
             {
@@ -342,7 +342,7 @@ namespace Girvs.Cache.Caching
                 //we can't use _perRequestCache.Clear(),
                 //because HttpContext stores some server data that we should not delete
                 foreach (var redisKey in keys)
-                    // _perRequestCache.Remove(redisKey.ToString());
+                    _perRequestCache.Remove(redisKey.ToString());
 
                 TryPerformAction(() => _db.KeyDelete(keys.ToArray()));
             }
