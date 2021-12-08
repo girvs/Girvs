@@ -34,7 +34,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
         /// <returns></returns>
         public virtual bool IsLogin()
         {
-            return (EngineContext.Current.ClaimManager?.CurrentClaims ?? Array.Empty<Claim>()).Any();
+            //return (EngineContext.Current.ClaimManager?.CurrentClaims ?? Array.Empty<Claim>()).Any();
             var httpContext = EngineContext.Current.HttpContext;
             return httpContext != null
                    && httpContext.User.Identity != null

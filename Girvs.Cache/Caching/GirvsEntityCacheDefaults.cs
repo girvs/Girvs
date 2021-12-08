@@ -69,25 +69,31 @@ namespace Girvs.Cache.Caching
         /// {0} : entity ids
         /// </remarks>
         public static CacheKey ByIdsCacheKey =>
-            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list:byids:{{0}}");
+            new CacheKey($"{EntityTypeName}{TenantKey}:list{OtherQueryConditionKey}:byids:{{0}}");
 
         /// <summary>
         /// 获取缓存所有实体的键
         /// </summary>
         public static CacheKey AllCacheKey =>
-            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list:all:{{0}}");
+            new CacheKey($"{EntityTypeName}{TenantKey}:list{OtherQueryConditionKey}:all:{{0}}");
 
         /// <summary>
         /// 获取所有列表页面的缓存
         /// </summary>
         public static CacheKey ListCacheKey =>
-            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list");
+            new CacheKey($"{EntityTypeName}{TenantKey}:list{OtherQueryConditionKey}");
+
+        /// <summary>
+        /// 以租户为单位列表页面的缓存
+        /// </summary>
+        public static CacheKey TenantListCacheKey =>
+            new CacheKey($"{EntityTypeName}{TenantKey}:list");
 
         /// <summary>
         /// 获取查询列表缓存键
         /// </summary>
         public static CacheKey QueryCacheKey =>
-            new CacheKey($"{EntityTypeName}{TenantKey}{OtherQueryConditionKey}:list:query:{{0}}");
+            new CacheKey($"{EntityTypeName}{TenantKey}:list{OtherQueryConditionKey}:query:{{0}}");
 
         /// <summary>
         /// 创建自定义的缓存键
