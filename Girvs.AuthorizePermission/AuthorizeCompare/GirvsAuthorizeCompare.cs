@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Claims;
 using Girvs.AuthorizePermission.Configuration;
 using Girvs.AuthorizePermission.Enumerations;
 using Girvs.AuthorizePermission.Extensions;
@@ -33,9 +34,10 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
         /// <returns></returns>
         public virtual bool IsLogin()
         {
+            return (EngineContext.Current.ClaimManager?.CurrentClaims ?? Array.Empty<Claim>()).Any();
             var httpContext = EngineContext.Current.HttpContext;
-            return httpContext != null 
-                   && httpContext.User.Identity != null 
+            return httpContext != null
+                   && httpContext.User.Identity != null
                    && httpContext.User.Identity.IsAuthenticated;
         }
 
@@ -46,7 +48,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             {
                 return x => true;
             }
-            
+
             //默认判断如果存
             Expression<Func<TEntity, bool>> expression = base.GetOtherQueryCondition<TEntity>();
 
