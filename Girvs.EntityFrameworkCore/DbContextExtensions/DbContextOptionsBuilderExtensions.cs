@@ -19,7 +19,8 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         {
             var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
 
-            optionsBuilder.UseMySql(connStr, serverVersion);
+            optionsBuilder.UseMySql(connStr, serverVersion,
+                builder => { builder.EnableRetryOnFailure(maxRetryCount: 5); });
             optionsBuilder.UseBatchEF_MySQLPomelo();
         }
 
