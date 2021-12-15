@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Girvs.BusinessBasis.Entities;
 using Girvs.BusinessBasis.Repositories;
+using Girvs.Extensions;
 using Girvs.Infrastructure;
 
 namespace Girvs.Cache.Caching
@@ -39,7 +40,7 @@ namespace Girvs.Cache.Caching
                 {
                     var expression = repositoryOtherQueryCondition.GetOtherQueryCondition<TEntity>();
                     return
-                        $":OtherQueryConditionKey_{HashHelper.CreateHash(Encoding.UTF8.GetBytes(expression.ToString()))}";
+                        $":OtherQueryConditionKey_{expression.ToString().ToMd5()}";
                 }
             }
         }

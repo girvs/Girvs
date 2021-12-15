@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using Girvs.Extensions;
 
 namespace Girvs.BusinessBasis.Queries
 {
@@ -58,7 +59,7 @@ namespace Girvs.BusinessBasis.Queries
                 sb.Append($"OrderBy:{OrderBy}");
             }
 
-            return HashHelper.CreateHash(Encoding.UTF8.GetBytes(sb.ToString()));
+            return sb.ToString().ToMd5();
         }
 
         public abstract Expression<Func<TEntity, bool>> GetQueryWhere();
