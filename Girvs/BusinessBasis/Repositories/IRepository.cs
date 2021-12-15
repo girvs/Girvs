@@ -147,5 +147,11 @@ namespace Girvs.BusinessBasis.Repositories
         /// <param name="key"></param>
         /// <returns></returns>
         Task<bool> DetachById(TPrimaryKey key);
+
+        /// <summary>
+        /// 追踪数据
+        /// </summary>
+        /// <param name="entity"></param>
+        object Entry(TEntity entity);
     }
 }

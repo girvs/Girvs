@@ -13,6 +13,7 @@ using Girvs.Extensions.Collections;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
 
 namespace Girvs.EntityFrameworkCore.Repositories
@@ -120,7 +121,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
         public virtual Task UpdateRangeAsync(
             Expression<Func<TEntity, bool>> predicate,
-            params KeyValuePair<Expression<Func<TEntity,object>>, Expression<Func<TEntity,object>>>[] fieldValue
+            params KeyValuePair<Expression<Func<TEntity, object>>, Expression<Func<TEntity, object>>>[] fieldValue
         )
         {
             if (!fieldValue.Any()) return Task.CompletedTask;
@@ -243,13 +244,18 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
         public Task<bool> IsWasTrack(TEntity entity)
         {
-            return Task.FromResult(DbContext.IsWasTrack<TEntity,Tkey>(entity));
+            return Task.FromResult(DbContext.IsWasTrack<TEntity, Tkey>(entity));
         }
 
         public Task<bool> DetachById(Tkey key)
         {
             DbContext.DetachById<TEntity, Tkey>(key);
             return Task.FromResult(true);
+        }
+
+        public object Entry(TEntity entity)
+        {
+            return DbContext.Entry(entity);
         }
     }
 }
