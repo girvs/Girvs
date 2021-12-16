@@ -11,7 +11,7 @@ namespace Girvs.BusinessBasis.Repositories
     {
     }
 
-    public interface IRepository<TEntity, TPrimaryKey>  where TEntity : BaseEntity<TPrimaryKey>
+    public interface IRepository<TEntity, TPrimaryKey> where TEntity : BaseEntity<TPrimaryKey>
     {
         Expression<Func<TEntity, bool>> OtherQueryCondition { get; }
 
@@ -61,7 +61,7 @@ namespace Girvs.BusinessBasis.Repositories
         /// <returns></returns>
         Task UpdateRangeAsync(
             Expression<Func<TEntity, bool>> predicate,
-            params KeyValuePair<Expression<Func<TEntity, object>>, Expression<Func<TEntity, object>>>[] fieldValue
+            params KeyValuePair<string, object>[] fieldValue
         );
 
         /// <summary>

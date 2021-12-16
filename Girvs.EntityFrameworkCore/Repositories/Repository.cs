@@ -121,7 +121,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
         public virtual Task UpdateRangeAsync(
             Expression<Func<TEntity, bool>> predicate,
-            params KeyValuePair<Expression<Func<TEntity, object>>, Expression<Func<TEntity, object>>>[] fieldValue
+            params KeyValuePair<string, object>[] fieldValue
         )
         {
             if (!fieldValue.Any()) return Task.CompletedTask;
