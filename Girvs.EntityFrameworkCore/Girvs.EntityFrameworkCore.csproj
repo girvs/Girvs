@@ -24,10 +24,10 @@
         </PackageReference>
         <PackageReference Include="Oracle.EntityFrameworkCore" Version="5.21.1" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
-        <PackageReference Include="Zack.EFCore.Batch.MySQL.Pomelo" Version="1.4.10" />
-        <PackageReference Include="Zack.EFCore.Batch.MSSQL" Version="1.4.10" />
-        <PackageReference Include="Zack.EFCore.Batch.Oracle" Version="1.4.10" />
-        <PackageReference Include="Zack.EFCore.Batch.Sqlite" Version="1.4.10" />
+        <PackageReference Include="Zack.EFCore.Batch.MySQL.Pomelo" Version="1.5.6" />
+        <PackageReference Include="Zack.EFCore.Batch.MSSQL" Version="1.5.6" />
+        <PackageReference Include="Zack.EFCore.Batch.Oracle" Version="1.5.6" />
+        <PackageReference Include="Zack.EFCore.Batch.Sqlite" Version="1.5.6" />
     </ItemGroup>
 
     <ItemGroup>
