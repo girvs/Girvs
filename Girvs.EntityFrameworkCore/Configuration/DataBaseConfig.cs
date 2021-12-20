@@ -2,6 +2,7 @@
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using Girvs.Configuration;
+using Girvs.EntityFrameworkCore.Enumerations;
 
 namespace Girvs.EntityFrameworkCore.Configuration
 {
@@ -37,6 +38,12 @@ namespace Girvs.EntityFrameworkCore.Configuration
         /// 数据库名称
         /// </summary>
         public string Name { get; set; } = "default";
+
+        /// <summary>
+        /// 租户数据分隔模式
+        /// </summary>
+        public MultiTenantDataSeparateModel MultiTenantDataSeparateModel { get; set; } =
+            MultiTenantDataSeparateModel.None;
 
         /// <summary>
         /// 启用自动还原数据库

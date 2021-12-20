@@ -21,11 +21,13 @@ namespace Girvs.EntityFrameworkCore.Context
         {
             _logger = EngineContext.Current.Resolve<ILogger<DbContext>>();
         }
-        
+
         protected virtual DbConfig GetDbConfig()
         {
-            var appSetting = EngineContext.Current.Resolve<AppSettings>() ?? throw new ArgumentNullException(nameof(AppSettings));
-            return appSetting.ModuleConfigurations[nameof(DbConfig)] ?? throw new ArgumentNullException(nameof(DbConfig));
+            var appSetting = EngineContext.Current.Resolve<AppSettings>() ??
+                             throw new ArgumentNullException(nameof(AppSettings));
+            return appSetting.ModuleConfigurations[nameof(DbConfig)] ??
+                   throw new ArgumentNullException(nameof(DbConfig));
         }
 
         public abstract string DbConfigName { get; set; }
@@ -48,33 +50,49 @@ namespace Girvs.EntityFrameworkCore.Context
         /// </summary>
         public DataBaseWriteAndRead ReadAndWriteMode { get; set; } = DataBaseWriteAndRead.Read;
 
+        /// <summary>
+        /// 切换到写数据库
+        /// </summary>
         public void SwitchMasterDataBase()
         {
             ReadAndWriteMode = DataBaseWriteAndRead.Write;
             var connStr = GetDbConnectionString();
             var conn = Database.GetDbConnection();
-            _logger?.LogInformation($"当前DbContextId为：{ContextId.InstanceId.ToString()}，当前数据的状态为：{conn.State}，切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
+            _logger?.LogInformation(
+                $"当前DbContextId为：{ContextId.InstanceId.ToString()}，当前数据的状态为：{conn.State}，切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
             conn.ConnectionString = connStr;
         }
 
         public virtual string GetDbConnectionString()
         {
             var dataConnectionConfig = GetDataConnectionConfig();
+            string connStr;
 
-            if (ReadAndWriteMode == DataBaseWriteAndRead.Write)
-                return dataConnectionConfig.MasterDataConnectionString;
-
-            if (!dataConnectionConfig.ReadDataConnectionString.Any())
-                return dataConnectionConfig.MasterDataConnectionString;
-
-            if (dataConnectionConfig.ReadDataConnectionString.Count == 1)
+            if (ReadAndWriteMode == DataBaseWriteAndRead.Write || !dataConnectionConfig.ReadDataConnectionString.Any())
             {
-                return dataConnectionConfig.ReadDataConnectionString[0];
+                connStr = dataConnectionConfig.MasterDataConnectionString;
+            }
+            else
+            {
+                if (dataConnectionConfig.ReadDataConnectionString.Count == 1)
+                {
+                    connStr = dataConnectionConfig.ReadDataConnectionString[0];
+                }
+                else
+                {
+                    var index = SecureRandomNumberGenerator.GetInt32(0, dataConnectionConfig.ReadDataConnectionString.Count);
+                    connStr = dataConnectionConfig.ReadDataConnectionString[index];
+                }
             }
 
-            var r = new Random();
-            var index = r.Next(0, dataConnectionConfig.ReadDataConnectionString.Count);
-            return dataConnectionConfig.ReadDataConnectionString[index];
+            // // 判断数据库是否启分库的方式
+            // if (dataConnectionConfig.MultiTenantDataSeparateModel == MultiTenantDataSeparateModel.DataBase)
+            // {
+            //     var tenantId = EngineContext.Current.ClaimManager.GetTenantId();
+            //     connStr = string.Format(connStr, tenantId);
+            // }
+
+            return connStr;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -85,6 +103,8 @@ namespace Girvs.EntityFrameworkCore.Context
                 $"当前操作数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
             _logger?.LogInformation($"当前DbContextId为：{ContextId.InstanceId.ToString()}");
             var dataConnectionConfig = GetDataConnectionConfig();
+
+
             switch (dataConnectionConfig.UseDataType)
             {
                 case UseDataType.MsSql:
@@ -119,6 +139,8 @@ namespace Girvs.EntityFrameworkCore.Context
                 optionsBuilder.LogTo(message => _logger.LogInformation(message));
             }
         }
+
+        #region OnModel Girvs Default
 
         public static void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> entity)
             where TEntity : BaseEntity<TKey>, new()
@@ -191,5 +213,7 @@ namespace Girvs.EntityFrameworkCore.Context
                 }
             }
         }
+
+        #endregion
     }
 }

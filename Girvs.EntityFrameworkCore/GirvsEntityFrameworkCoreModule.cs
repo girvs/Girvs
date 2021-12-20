@@ -51,9 +51,9 @@ namespace Girvs.EntityFrameworkCore
                     var dataConnectionConfigName = dbContext?.DbConfigName;
                     var dataConnectionConfig =
                         dbConfig?.DataConnectionConfigs.FirstOrDefault(x => x.Name == dataConnectionConfigName);
-                    if (dataConnectionConfig.EnableAutoMigrate)
+                    if (dataConnectionConfig is {EnableAutoMigrate: true})
                     {
-                        dbContext.ReadAndWriteMode = DataBaseWriteAndRead.Write;
+                        dbContext?.SwitchMasterDataBase();
                         dbContext?.Database.MigrateAsync().Wait();
                     }
                 }

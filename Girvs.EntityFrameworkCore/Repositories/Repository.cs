@@ -8,6 +8,7 @@ using Girvs.BusinessBasis.Queries;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
+using Girvs.EntityFrameworkCore.Enumerations;
 using Girvs.Extensions;
 using Girvs.Extensions.Collections;
 using Girvs.Infrastructure;
@@ -47,10 +48,21 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
             var ts = typeFinder.FindOfType(typeof(IDbContext));
-            return ts.Where(x =>
+            var dbContext = ts.Where(x =>
                     x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)))
                 .Select(x => EngineContext.Current.Resolve(x) as GirvsDbContext).FirstOrDefault();
+
+            // 如果开启了分表同步该模型实现了IIncludeMultiTenant接口，则进行数据库表名切换
+            var dbConfig = ((IDbContext) dbContext)?.GetDataConnectionConfig();
+            if (dbConfig is {MultiTenantDataSeparateModel: MultiTenantDataSeparateModel.DataTable} &&
+                typeof(TEntity).IsSubclassOf(typeof(IIncludeMultiTenant<Tkey>)))
+            {
+
+            }
+
+            return dbContext;
         }
+
 
         protected IQueryable<TEntity> ExcludeOtherQueryCondition()
         {
