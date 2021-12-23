@@ -40,12 +40,6 @@ namespace Girvs.EntityFrameworkCore.Configuration
         public string Name { get; set; } = "default";
 
         /// <summary>
-        /// 租户数据分隔模式
-        /// </summary>
-        public MultiTenantDataSeparateModel MultiTenantDataSeparateModel { get; set; } =
-            MultiTenantDataSeparateModel.None;
-
-        /// <summary>
         /// 启用自动还原数据库
         /// </summary>
         public bool EnableAutoMigrate { get; set; } = true;
