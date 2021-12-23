@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ShardingCore.Bootstrapers;
 
 namespace Girvs.EntityFrameworkCore
 {
@@ -24,7 +25,8 @@ namespace Girvs.EntityFrameworkCore
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddGirvsObjectContext();
+            // services.AddGirvsObjectContext();
+            services.AddGirvsShardingCoreContext();
             services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
@@ -32,12 +34,10 @@ namespace Girvs.EntityFrameworkCore
 
         public void Configure(IApplicationBuilder application)
         {
+            application.ApplicationServices.GetRequiredService<IShardingBootstrapper>().Start();
             var logger = application.ApplicationServices.GetService(typeof(ILogger<object>)) as ILogger<object>;
             try
             {
-                var dbConfig =
-                    EngineContext.Current.Resolve<AppSettings>()[nameof(DbConfig)] as DbConfig;
-
                 logger.LogInformation("开始执行数据库还原");
                 var typeFinder = new WebAppTypeFinder();
                 var dbContexts = typeFinder.FindOfType(typeof
@@ -48,12 +48,10 @@ namespace Girvs.EntityFrameworkCore
                 foreach (var dbContext in dbContexts.Select(dbContextType =>
                     EngineContext.Current.Resolve(dbContextType) as GirvsDbContext))
                 {
-                    var dataConnectionConfigName = dbContext?.DbConfigName;
-                    var dataConnectionConfig =
-                        dbConfig?.DataConnectionConfigs.FirstOrDefault(x => x.Name == dataConnectionConfigName);
-                    if (dataConnectionConfig is {EnableAutoMigrate: true})
+                    var dbConfig = DataProviderServiceExtensions.GetDataConnectionConfig(dbContext.GetType());
+                    if (dbConfig is {EnableAutoMigrate: true})
                     {
-                        dbContext?.SwitchMasterDataBase();
+                        dbContext?.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
                         dbContext?.Database.MigrateAsync().Wait();
                     }
                 }

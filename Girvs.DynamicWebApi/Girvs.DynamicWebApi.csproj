@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Panda.DynamicWebApi" Version="1.1.0" />
+      <PackageReference Include="Panda.DynamicWebApi" Version="1.1.2" />
     </ItemGroup>
 
     <ItemGroup>

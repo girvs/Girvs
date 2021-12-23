@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Girvs.EntityFrameworkCore.Context;
+using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.EntityFrameworkCore.Enumerations;
 using Girvs.Extensions;
 using Girvs.Infrastructure;
@@ -46,16 +47,17 @@ namespace Girvs.EntityFrameworkCore.MigrationHandler
                 foreach (var dbContext in dbContexts.Select(dbContextType =>
                     EngineContext.Current.Resolve(dbContextType) as GirvsDbContext))
                 {
+                    var dbConfig = DataProviderServiceExtensions.GetDataConnectionConfig(dbContext.GetType());
                     try
                     {
-                        dbContext.ReadAndWriteMode = DataBaseWriteAndRead.Write;
+                        dbContext.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
                         await dbContext?.Database.MigrateAsync();
-                        result.Add($"数据库{dbContext?.DbConfigName}：迁移成功！");
+                        result.Add($"数据库{dbConfig.Name}：迁移成功！");
                     }
                     catch (Exception e)
                     {
-                        result.Add($"数据库{dbContext?.DbConfigName}：迁移失败！");
-                        _logger.LogError(e, $"数据库{dbContext?.DbConfigName}：迁移失败！");
+                        result.Add($"数据库{dbConfig.Name}：迁移失败！");
+                        _logger.LogError(e, $"数据库{dbConfig.Name}：迁移失败！");
                     }
                 }
             }

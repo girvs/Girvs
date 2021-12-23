@@ -7,11 +7,7 @@ namespace Girvs.EntityFrameworkCore.Context
 {
     public interface IDbContext
     {
-        void SwitchMasterDataBase();
-        string DbConfigName { get; }
-        DataConnectionConfig GetDataConnectionConfig();
-        DataBaseWriteAndRead ReadAndWriteMode { get; set; }
-        string GetDbConnectionString();
+        void SwitchReadWriteDataBase(DataBaseWriteAndRead dataBaseWriteAndRead);
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
         void Dispose();
     }

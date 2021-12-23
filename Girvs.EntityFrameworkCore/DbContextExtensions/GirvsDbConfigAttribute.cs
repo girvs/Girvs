@@ -3,9 +3,9 @@
 namespace Girvs.EntityFrameworkCore.DbContextExtensions
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class GirvsDbContextAttribute : Attribute
+    public class GirvsDbConfigAttribute : Attribute
     {
-        public GirvsDbContextAttribute(string dbName)
+        public GirvsDbConfigAttribute(string dbName)
         {
             DbName = dbName;
         }

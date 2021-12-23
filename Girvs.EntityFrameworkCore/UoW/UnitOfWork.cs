@@ -21,7 +21,6 @@ namespace Girvs.EntityFrameworkCore.UoW
         public UnitOfWork()
         {
             _context = GetRelatedDbContext() ?? throw new ArgumentNullException(nameof(DbContext));
-            _context.SwitchMasterDataBase();
             _logger = EngineContext.Current.Resolve<ILogger<UnitOfWork<TEntity>>>();
         }
 

@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Linq;
-using System.Text.Json;
 using Girvs.BusinessBasis.Entities;
-using Girvs.Configuration;
-using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.EntityFrameworkCore.Enumerations;
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 namespace Girvs.EntityFrameworkCore.Context
 {
-    public abstract class GirvsDbContext : DbContext, IDbContext
+    public abstract class GirvsDbContext : GirvsShardingCoreDbContext
     {
         private readonly ILogger<DbContext> _logger;
 
@@ -22,121 +21,35 @@ namespace Girvs.EntityFrameworkCore.Context
             _logger = EngineContext.Current.Resolve<ILogger<DbContext>>();
         }
 
-        protected virtual DbConfig GetDbConfig()
+        public override void SwitchReadWriteDataBase(DataBaseWriteAndRead dataBaseWriteAndRead)
         {
-            var appSetting = EngineContext.Current.Resolve<AppSettings>() ??
-                             throw new ArgumentNullException(nameof(AppSettings));
-            return appSetting.ModuleConfigurations[nameof(DbConfig)] ??
-                   throw new ArgumentNullException(nameof(DbConfig));
-        }
-
-        public abstract string DbConfigName { get; set; }
-
-        public virtual DataConnectionConfig GetDataConnectionConfig()
-        {
-            var _dbConfig = GetDbConfig();
-
-            if (string.IsNullOrEmpty(DbConfigName))
-                throw new GirvsException($"DbContext未绑定指定的数据库名称:{JsonSerializer.Serialize(_dbConfig)}", 568);
-
-            _logger?.LogInformation($"开始获取指定：{DbConfigName}的数据库相关配置");
-
-            return _dbConfig.DataConnectionConfigs.FirstOrDefault(x => x.Name == DbConfigName)
-                   ?? throw new GirvsException($"DbContext未绑定指定的数据库名称不正确:{JsonSerializer.Serialize(_dbConfig)}", 568);
-        }
-
-        /// <summary>
-        /// 数据库的读写操作，默认为读操作，只有在注入IUnitOfWork时，进行重写字符串时才会切换至写数据库
-        /// </summary>
-        public DataBaseWriteAndRead ReadAndWriteMode { get; set; } = DataBaseWriteAndRead.Read;
-
-        /// <summary>
-        /// 切换到写数据库
-        /// </summary>
-        public void SwitchMasterDataBase()
-        {
-            ReadAndWriteMode = DataBaseWriteAndRead.Write;
-            var connStr = GetDbConnectionString();
+            var connStr = GetDbConnectionString(dataBaseWriteAndRead);
             var conn = Database.GetDbConnection();
             _logger?.LogInformation(
-                $"当前DbContextId为：{ContextId.InstanceId.ToString()}，当前数据的状态为：{conn.State}，切换数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
+                $"当前DbContextId为：{ContextId.InstanceId.ToString()}，当前数据的状态为：{conn.State}，切换数据库模式为：{dataBaseWriteAndRead}，数据库字符串为：{connStr}");
             conn.ConnectionString = connStr;
         }
 
-        public virtual string GetDbConnectionString()
+        private string GetDbConnectionString(DataBaseWriteAndRead dataBaseWriteAndRead)
         {
-            var dataConnectionConfig = GetDataConnectionConfig();
-            string connStr;
+            var dataConnectionConfig = DataProviderServiceExtensions.GetDataConnectionConfig(GetType());
 
-            if (ReadAndWriteMode == DataBaseWriteAndRead.Write || !dataConnectionConfig.ReadDataConnectionString.Any())
+            if (dataBaseWriteAndRead == DataBaseWriteAndRead.Write || !dataConnectionConfig.ReadDataConnectionString.Any())
             {
-                connStr = dataConnectionConfig.MasterDataConnectionString;
+                return dataConnectionConfig.MasterDataConnectionString;
             }
             else
             {
                 if (dataConnectionConfig.ReadDataConnectionString.Count == 1)
                 {
-                    connStr = dataConnectionConfig.ReadDataConnectionString[0];
+                    return dataConnectionConfig.ReadDataConnectionString[0];
                 }
                 else
                 {
-                    var index = SecureRandomNumberGenerator.GetInt32(0, dataConnectionConfig.ReadDataConnectionString.Count);
-                    connStr = dataConnectionConfig.ReadDataConnectionString[index];
+                    var index = SecureRandomNumberGenerator.GetInt32(0,
+                        dataConnectionConfig.ReadDataConnectionString.Count);
+                    return dataConnectionConfig.ReadDataConnectionString[index];
                 }
-            }
-
-            // // 判断数据库是否启分库的方式
-            // if (dataConnectionConfig.MultiTenantDataSeparateModel == MultiTenantDataSeparateModel.DataBase)
-            // {
-            //     var tenantId = EngineContext.Current.ClaimManager.GetTenantId();
-            //     connStr = string.Format(connStr, tenantId);
-            // }
-
-            return connStr;
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            //SqlConnectionStringBuilder\MySqlConnectionStringBuilder
-            var connStr = GetDbConnectionString();
-            _logger?.LogInformation(
-                $"当前操作数据库模式为：{ReadAndWriteMode}，数据库字符串为：{connStr}");
-            _logger?.LogInformation($"当前DbContextId为：{ContextId.InstanceId.ToString()}");
-            var dataConnectionConfig = GetDataConnectionConfig();
-
-
-            switch (dataConnectionConfig.UseDataType)
-            {
-                case UseDataType.MsSql:
-                    optionsBuilder.UseSqlServerWithLazyLoading(dataConnectionConfig, connStr);
-                    break;
-
-                case UseDataType.MySql:
-                    optionsBuilder.UseMySqlWithLazyLoading(dataConnectionConfig, connStr);
-                    break;
-
-                case UseDataType.SqlLite:
-                    optionsBuilder.UseSqlLiteWithLazyLoading(dataConnectionConfig, connStr);
-                    break;
-
-                case UseDataType.Oracle:
-                    optionsBuilder.UseOracleWithLazyLoading(dataConnectionConfig, connStr);
-                    break;
-            }
-
-            if (dataConnectionConfig.UseLazyLoading)
-            {
-                optionsBuilder.UseLazyLoadingProxies();
-            }
-
-            if (!dataConnectionConfig.UseDataTracking)
-            {
-                optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-            }
-
-            if (dataConnectionConfig.EnableSensitiveDataLogging)
-            {
-                optionsBuilder.LogTo(message => _logger.LogInformation(message));
             }
         }
 
@@ -145,7 +58,7 @@ namespace Girvs.EntityFrameworkCore.Context
         public static void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> entity)
             where TEntity : BaseEntity<TKey>, new()
         {
-            string tableName = typeof(TEntity).Name.Replace("Entity", "").Replace("Model", "");
+            var tableName = typeof(TEntity).Name.Replace("Entity", "").Replace("Model", "");
             entity.ToTable(tableName).HasKey(x => x.Id);
 
 
@@ -211,6 +124,15 @@ namespace Girvs.EntityFrameworkCore.Context
                 {
                     entity.Property("CreatorName").HasColumnType("nvarchar(40)");
                 }
+            }
+        }
+
+
+        void CreateDataTable()
+        {
+            if (Database.GetService<IDatabaseCreator>() is RelationalDatabaseCreator databaseCreator)
+            {
+                databaseCreator.CreateTables();
             }
         }
 
