@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Data.Common;
 using Girvs.EntityFrameworkCore.Configuration;
+using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace Girvs.EntityFrameworkCore.DbContextExtensions
@@ -57,6 +60,68 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             DataConnectionConfig config, string connStr)
         {
             optionsBuilder.UseInMemoryDatabase(connStr);
+        }
+
+        public static void ConfigDbContextOptionsBuilderTransaction(this DbContextOptionsBuilder optionsBuilder,
+            DbConnection connection, DataConnectionConfig config)
+        {
+            switch (config.UseDataType)
+            {
+                case UseDataType.MsSql:
+                    optionsBuilder.UseSqlServer(connection);
+                    break;
+
+                case UseDataType.MySql:
+                    optionsBuilder.UseMySql(connection, new MySqlServerVersion(config.VersionNumber));
+                    break;
+            }
+
+            var loggerFactory = EngineContext.Current.Resolve<ILoggerFactory>();
+            optionsBuilder.UseLoggerFactory(loggerFactory);
+        }
+
+        public static void ConfigDbContextOptionsBuilder(this DbContextOptionsBuilder optionsBuilder,
+            DataConnectionConfig config, string connStr = null)
+        {
+            var dataConnectionConfig = config;
+            connStr ??= config.MasterDataConnectionString;
+
+            switch (dataConnectionConfig.UseDataType)
+            {
+                case UseDataType.MsSql:
+                    optionsBuilder.UseSqlServerWithLazyLoading(dataConnectionConfig, connStr);
+                    break;
+
+                case UseDataType.MySql:
+                    optionsBuilder.UseMySqlWithLazyLoading(dataConnectionConfig, connStr);
+                    break;
+
+                case UseDataType.SqlLite:
+                    optionsBuilder.UseSqlLiteWithLazyLoading(dataConnectionConfig, connStr);
+                    break;
+
+                case UseDataType.Oracle:
+                    optionsBuilder.UseOracleWithLazyLoading(dataConnectionConfig, connStr);
+                    break;
+            }
+
+            if (dataConnectionConfig.UseLazyLoading)
+            {
+                optionsBuilder.UseLazyLoadingProxies();
+            }
+
+            if (!dataConnectionConfig.UseDataTracking)
+            {
+                optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+            }
+
+            if (dataConnectionConfig.EnableSensitiveDataLogging)
+            {
+                var loggerFactory = EngineContext.Current.Resolve<ILoggerFactory>();
+                optionsBuilder.UseLoggerFactory(loggerFactory).EnableSensitiveDataLogging();
+            }
+
+            // optionsBuilder.ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>();
         }
     }
 }

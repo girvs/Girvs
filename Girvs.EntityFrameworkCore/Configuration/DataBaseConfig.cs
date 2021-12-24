@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using Girvs.Configuration;
-using Girvs.EntityFrameworkCore.Enumerations;
+using Girvs.EntityFrameworkCore.DbContextExtensions;
 
 namespace Girvs.EntityFrameworkCore.Configuration
 {
@@ -29,6 +32,25 @@ namespace Girvs.EntityFrameworkCore.Configuration
         public void Init()
         {
             DataConnectionConfigs.Add(new DataConnectionConfig());
+        }
+
+        public DataConnectionConfig GetDataConnectionConfig(Type dbContextType)
+        {
+            var dbConfigAttribute = dbContextType.GetCustomAttribute<GirvsDbConfigAttribute>();
+
+            if (dbConfigAttribute == null)
+            {
+                throw new GirvsException($"{dbContextType.Name} 未绑定指定的数据库配置");
+            }
+
+            var dataBaseConfig = DataConnectionConfigs.FirstOrDefault(x => x.Name == dbConfigAttribute.DbName);
+
+            if (dataBaseConfig == null)
+            {
+                throw new GirvsException($"{dbContextType.Name} 绑定指定的数据库配置不正确 {dbConfigAttribute.DbName}");
+            }
+
+            return dataBaseConfig;
         }
     }
 
@@ -91,6 +113,28 @@ namespace Girvs.EntityFrameworkCore.Configuration
 
         // public DbHostServerPort MasterDatabaseHost { get; set; } = new DbHostServerPort();
         // public IList<DbHostServerPort> SlaveDatabaseHost { get; set; } = new List<DbHostServerPort>();
+
+        public string GetSecureRandomReadDataConnectionString()
+        {
+            if (ReadDataConnectionString == null ||
+                !ReadDataConnectionString.Any())
+            {
+                return MasterDataConnectionString;
+            }
+            else
+            {
+                if (ReadDataConnectionString.Count == 1)
+                {
+                    return ReadDataConnectionString[0];
+                }
+                else
+                {
+                    var index = SecureRandomNumberGenerator.GetInt32(0,
+                        ReadDataConnectionString.Count);
+                    return ReadDataConnectionString[index];
+                }
+            }
+        }
     }
 
 

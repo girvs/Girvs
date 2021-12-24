@@ -37,20 +37,10 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
             _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ??
                       throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
-            DbContext = GetRelatedDbContext() ??
+            DbContext = EngineContext.Current.GetEntityRelatedDbContext<TEntity>() ??
                         throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbSet = DbContext.Set<TEntity>();
         }
-
-        private DbContext GetRelatedDbContext()
-        {
-            var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var ts = typeFinder.FindOfType(typeof(IDbContext));
-            return ts.Where(x =>
-                    x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)))
-                .Select(x => EngineContext.Current.Resolve(x) as GirvsShardingCoreDbContext).FirstOrDefault();
-        }
-
 
         protected IQueryable<TEntity> ExcludeOtherQueryCondition()
         {

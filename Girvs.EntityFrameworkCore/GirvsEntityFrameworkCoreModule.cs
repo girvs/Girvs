@@ -2,6 +2,7 @@
 using System.Linq;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.BusinessBasis.UoW;
+using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.EntityFrameworkCore.Enumerations;
@@ -23,8 +24,8 @@ namespace Girvs.EntityFrameworkCore
     {
         public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            // services.AddGirvsObjectContext();
-            services.AddGirvsShardingCoreContext();
+            services.AddGirvsObjectContext();
+            // services.AddGirvsShardingCoreContext();
             services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
@@ -32,21 +33,23 @@ namespace Girvs.EntityFrameworkCore
 
         public void Configure(IApplicationBuilder application)
         {
-            application.ApplicationServices.GetRequiredService<IShardingBootstrapper>().Start();
+            // application.ApplicationServices.GetRequiredService<IShardingBootstrapper>().Start();
             var logger = application.ApplicationServices.GetService(typeof(ILogger<object>)) as ILogger<object>;
             try
             {
                 logger.LogInformation("开始执行数据库还原");
                 var typeFinder = new WebAppTypeFinder();
                 var dbContexts = typeFinder.FindOfType(typeof
-                    (IDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
+                    (GirvsDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
                 if (!dbContexts.Any()) return;
 
 
                 foreach (var dbContext in dbContexts.Select(dbContextType =>
                     EngineContext.Current.Resolve(dbContextType) as GirvsDbContext))
                 {
-                    var dbConfig = DataProviderServiceExtensions.GetDataConnectionConfig(dbContext.GetType());
+                    var dbConfig = EngineContext.Current.GetAppModuleConfig<DbConfig>()
+                        .GetDataConnectionConfig(dbContext.GetType());
+
                     if (dbConfig is {EnableAutoMigrate: true})
                     {
                         dbContext?.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);

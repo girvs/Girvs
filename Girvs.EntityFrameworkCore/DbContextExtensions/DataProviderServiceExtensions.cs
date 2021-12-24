@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
-using System.Reflection;
 using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.TableRoutes;
@@ -27,7 +27,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         {
             var typeFinder = new WebAppTypeFinder();
             var dbContexts = typeFinder.FindOfType(typeof
-                (IDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
+                (GirvsDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
 
             if (!dbContexts.Any()) return;
             var serviceType = typeof(DataProviderServiceExtensions);
@@ -36,25 +36,14 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             foreach (var dbContext in dbContexts)
             {
                 var dmi = mi.MakeGenericMethod(dbContext);
-                var config = GetDataConnectionConfig(dbContext);
+                var config = EngineContext.Current.GetAppModuleConfig<DbConfig>()?.GetDataConnectionConfig(dbContext);
                 Action<IServiceProvider, DbContextOptionsBuilder> optionsAction = (provider, builder) =>
                 {
-                    builder.ConfigDbContextOptionsBuilder(config);
+                    builder.ConfigDbContextOptionsBuilder(config,
+                        config?.GetSecureRandomReadDataConnectionString());
                 };
                 dmi.Invoke(serviceType, new object[] {services, optionsAction});
             }
-        }
-
-        public static DataConnectionConfig GetDataConnectionConfig(Type dbContext)
-        {
-            var girvsDbConfigAttribute = dbContext.GetCustomAttribute<GirvsDbConfigAttribute>();
-            if (girvsDbConfigAttribute == null)
-            {
-                throw new GirvsException($"{dbContext.Name} 未绑定数据库配置");
-            }
-
-            var dbConfig = EngineContext.Current.GetAppModuleConfig<DbConfig>();
-            return dbConfig.DataConnectionConfigs.FirstOrDefault(x => x.Name == girvsDbConfigAttribute.DbName);
         }
 
         /// <summary>
@@ -65,7 +54,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         {
             var typeFinder = new WebAppTypeFinder();
             var dbContexts = typeFinder.FindOfType(typeof
-                (IDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
+                (GirvsDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
 
 
             if (!dbContexts.Any()) return;
@@ -104,7 +93,9 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         public static void AddGirvsShardingConfigure<TContext>(this IServiceCollection services)
             where TContext : DbContext, IShardingDbContext
         {
-            var config = GetDataConnectionConfig(typeof(TContext));
+            var config = EngineContext.Current.GetAppModuleConfig<DbConfig>()
+                ?.GetDataConnectionConfig(typeof(TContext));
+
             services.AddShardingDbContext<TContext>((conn, optionsBuilder) =>
                 {
                     optionsBuilder.ConfigDbContextOptionsBuilder(config, conn);
@@ -117,19 +108,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                 })
                 .AddShardingTransaction((connection, builder) =>
                 {
-                    switch (config.UseDataType)
-                    {
-                        case UseDataType.MsSql:
-                            builder.UseSqlServer(connection);
-                            break;
-
-                        case UseDataType.MySql:
-                            builder.UseMySql(connection, new MySqlServerVersion(config.VersionNumber));
-                            break;
-                    }
-
-                    var loggerFactory = EngineContext.Current.Resolve<ILoggerFactory>();
-                    builder.UseLoggerFactory(loggerFactory);
+                    builder.ConfigDbContextOptionsBuilderTransaction(connection, config);
                 })
                 .AddDefaultDataSource(config.Name, config.MasterDataConnectionString)
                 .AddShardingTableRoute(op => { op.AddGirvsShardingTableRoutes(); })
@@ -146,50 +125,6 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             where TContext : DbContext
         {
             return services.AddDbContext<TContext>(optionsAction, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
-        }
-
-        private static void ConfigDbContextOptionsBuilder(this DbContextOptionsBuilder optionsBuilder,
-            DataConnectionConfig config, string connStr = null)
-        {
-            var dataConnectionConfig = config;
-            connStr ??= config.MasterDataConnectionString;
-
-            switch (dataConnectionConfig.UseDataType)
-            {
-                case UseDataType.MsSql:
-                    optionsBuilder.UseSqlServerWithLazyLoading(dataConnectionConfig, connStr);
-                    break;
-
-                case UseDataType.MySql:
-                    optionsBuilder.UseMySqlWithLazyLoading(dataConnectionConfig, connStr);
-                    break;
-
-                case UseDataType.SqlLite:
-                    optionsBuilder.UseSqlLiteWithLazyLoading(dataConnectionConfig, connStr);
-                    break;
-
-                case UseDataType.Oracle:
-                    optionsBuilder.UseOracleWithLazyLoading(dataConnectionConfig, connStr);
-                    break;
-            }
-
-            if (dataConnectionConfig.UseLazyLoading)
-            {
-                optionsBuilder.UseLazyLoadingProxies();
-            }
-
-            if (!dataConnectionConfig.UseDataTracking)
-            {
-                optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-            }
-
-            if (dataConnectionConfig.EnableSensitiveDataLogging)
-            {
-                var loggerFactory = EngineContext.Current.Resolve<ILoggerFactory>();
-                optionsBuilder.UseLoggerFactory(loggerFactory).EnableSensitiveDataLogging();
-            }
-
-            // optionsBuilder.ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>();
         }
     }
 }

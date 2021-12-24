@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.EntityFrameworkCore.Enumerations;
@@ -31,13 +32,13 @@ namespace Girvs.EntityFrameworkCore.MigrationHandler
         public async Task<dynamic> InitMigration(string verificationCode)
         {
             var result = new List<string>();
-            
+
             if (verificationCode.ToMd5() == "zhuofan@168".ToMd5())
             {
                 _logger.LogInformation("开始执行数据库还原");
                 var typeFinder = new WebAppTypeFinder();
                 var dbContexts = typeFinder.FindOfType(typeof
-                    (IDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
+                    (GirvsDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
 
                 if (!dbContexts.Any())
 
@@ -47,7 +48,8 @@ namespace Girvs.EntityFrameworkCore.MigrationHandler
                 foreach (var dbContext in dbContexts.Select(dbContextType =>
                     EngineContext.Current.Resolve(dbContextType) as GirvsDbContext))
                 {
-                    var dbConfig = DataProviderServiceExtensions.GetDataConnectionConfig(dbContext.GetType());
+                    var dbConfig = EngineContext.Current.GetAppModuleConfig<DbConfig>()
+                        .GetDataConnectionConfig(dbContext.GetType());
                     try
                     {
                         dbContext.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
