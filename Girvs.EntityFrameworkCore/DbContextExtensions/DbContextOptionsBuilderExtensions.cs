@@ -3,6 +3,7 @@ using System.Data.Common;
 using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
@@ -121,7 +122,10 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                 optionsBuilder.UseLoggerFactory(loggerFactory).EnableSensitiveDataLogging();
             }
 
-            // optionsBuilder.ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>();
+            if (dataConnectionConfig.IsTenantShardingTable)
+            {
+                optionsBuilder.ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>();
+            }
         }
     }
 }

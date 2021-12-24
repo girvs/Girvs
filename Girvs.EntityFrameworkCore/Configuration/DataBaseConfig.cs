@@ -100,6 +100,8 @@ namespace Girvs.EntityFrameworkCore.Configuration
 
         public bool EnableSensitiveDataLogging { get; set; } = false;
 
+        public bool IsTenantShardingTable { get; set; } = false;
+
         /// <summary>
         /// 主数据库连接字符串
         /// </summary>
