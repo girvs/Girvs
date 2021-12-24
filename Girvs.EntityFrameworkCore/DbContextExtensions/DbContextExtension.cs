@@ -42,18 +42,23 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             var contextModel = dbContext.Model as Model;
             var contextModelRelationalModel = contextModel.RelationalModel as RelationalModel;
 
-            var valueTuples = contextModelRelationalModel.Tables
-                .Where(o => o.Value.EntityTypeMappings.All(m =>
+            foreach (var table in contextModelRelationalModel.Tables)
+            {
+                var isRemove = table.Value.EntityTypeMappings.Any(x =>
                 {
-                    var entityType = m.EntityType.ClrType;
+                    var entityType = x.EntityType.ClrType;
                     return entityType.IsAssignableTo(typeof(ITenantShardingTable)) &&
                            entityType.IsAssignableTo(typeof(IIncludeMultiTenant<Guid>));
-                }))
-                .Select(o => o.Key).ToList();
+                });
 
-            for (int i = 0; i < valueTuples.Count; i++)
-            {
-                contextModelRelationalModel.Tables.Remove(valueTuples[i]);
+                if (isRemove)
+                {
+                    break;
+                }
+                else
+                {
+                    contextModelRelationalModel.Tables.Remove(table.Key);
+                }
             }
         }
 
@@ -92,6 +97,8 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         /// <param name="shardingEntityType"></param>
         public static void CreateTable(this DbContext dbContext, Type shardingEntityType)
         {
+            // 需要判断表是否已经存在
+
             dbContext.RemoveDbContextRelationModelTableEntityWithType(shardingEntityType);
             var databaseCreator = dbContext.Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator;
             try
@@ -111,6 +118,8 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         /// <exception cref="GirvsException"></exception>
         public static void CreateTenantShardTable(this DbContext dbContext)
         {
+            // 需要判断表是否已经存在
+
             dbContext.RemoveDbContextRelationModelNotShardTableEntity();
             var databaseCreator = dbContext.Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator;
             try

@@ -24,7 +24,7 @@ namespace Girvs.EntityFrameworkCore.EntityConfigurations
                     return tableName;
                 }
 
-                return tableName += $"_{tenantId}";
+                return $"{tableName}_{tenantId.Replace("-", "")}";
             }
 
             return tableName;

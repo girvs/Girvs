@@ -410,6 +410,17 @@ namespace Girvs.Extensions
             return (T)Enum.Parse(typeof(T), value, ignoreCase);
         }
 
+        public static string ToShortMd5(this string str)
+        {
+            using var md5Hash = MD5.Create();
+            var data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(str));
+            //转换成字符串，并取9到25位
+            var sBuilder = BitConverter.ToString(data, 4, 8);
+            //BitConverter转换出来的字符串会在每个字符中间产生一个分隔符，需要去除掉
+            sBuilder = sBuilder.Replace("-", "");
+            return sBuilder.ToString().ToUpper();
+        }
+
         public static string ToMd5(this string str)
         {
             if (string.IsNullOrEmpty(str)) return string.Empty;
