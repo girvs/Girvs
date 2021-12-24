@@ -1,13 +1,8 @@
-﻿using System;
-using System.Linq;
-using Girvs.BusinessBasis.Entities;
+﻿using System.Linq;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.EntityFrameworkCore.Enumerations;
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
 namespace Girvs.EntityFrameworkCore.Context
@@ -34,7 +29,8 @@ namespace Girvs.EntityFrameworkCore.Context
         {
             var dataConnectionConfig = DataProviderServiceExtensions.GetDataConnectionConfig(GetType());
 
-            if (dataBaseWriteAndRead == DataBaseWriteAndRead.Write || !dataConnectionConfig.ReadDataConnectionString.Any())
+            if (dataBaseWriteAndRead == DataBaseWriteAndRead.Write ||
+                !dataConnectionConfig.ReadDataConnectionString.Any())
             {
                 return dataConnectionConfig.MasterDataConnectionString;
             }
@@ -52,90 +48,5 @@ namespace Girvs.EntityFrameworkCore.Context
                 }
             }
         }
-
-        #region OnModel Girvs Default
-
-        public static void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> entity)
-            where TEntity : BaseEntity<TKey>, new()
-        {
-            var tableName = typeof(TEntity).Name.Replace("Entity", "").Replace("Model", "");
-            entity.ToTable(tableName).HasKey(x => x.Id);
-
-
-            foreach (var propertyInfo in typeof(TEntity).GetProperties())
-            {
-                if (propertyInfo.Name == nameof(IIncludeCreateTime.CreateTime))
-                {
-                    entity.Property("CreateTime").HasColumnType("datetime");
-                }
-
-                if (propertyInfo.Name == nameof(IIncludeUpdateTime.UpdateTime))
-                {
-                    entity.Property("UpdateTime").HasColumnType("datetime");
-                }
-
-                if (propertyInfo.Name == nameof(IIncludeInitField.IsInitData))
-                {
-                    entity.Property("IsInitData").HasColumnType("bit");
-                }
-
-                if (propertyInfo.Name == "TenantId")
-                {
-                    if (propertyInfo.PropertyType == typeof(Guid))
-                    {
-                        entity.Property("TenantId").HasColumnType("varchar(36)");
-                    }
-
-                    if (propertyInfo.PropertyType == typeof(Int32))
-                    {
-                        entity.Property("TenantId").HasColumnType("number");
-                    }
-
-                    if (propertyInfo.PropertyType == typeof(string))
-                    {
-                        entity.Property("TenantId").HasColumnType("varchar(36)");
-                    }
-                }
-
-                if (propertyInfo.Name == nameof(IIncludeDeleteField.IsDelete))
-                {
-                    entity.Property("IsDelete").HasColumnType("bit");
-                }
-
-                if (propertyInfo.Name == "CreatorId")
-                {
-                    if (propertyInfo.PropertyType == typeof(Guid))
-                    {
-                        entity.Property("TenantId").HasColumnType("varchar(36)");
-                    }
-
-                    if (propertyInfo.PropertyType == typeof(Int32))
-                    {
-                        entity.Property("TenantId").HasColumnType("number");
-                    }
-
-                    if (propertyInfo.PropertyType == typeof(string))
-                    {
-                        entity.Property("TenantId").HasColumnType("varchar(36)");
-                    }
-                }
-
-                if (propertyInfo.Name == nameof(IIncludeCreatorName.CreatorName))
-                {
-                    entity.Property("CreatorName").HasColumnType("nvarchar(40)");
-                }
-            }
-        }
-
-
-        void CreateDataTable()
-        {
-            if (Database.GetService<IDatabaseCreator>() is RelationalDatabaseCreator databaseCreator)
-            {
-                databaseCreator.CreateTables();
-            }
-        }
-
-        #endregion
     }
 }

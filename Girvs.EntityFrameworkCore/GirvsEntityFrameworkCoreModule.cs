@@ -2,8 +2,6 @@
 using System.Linq;
 using Girvs.BusinessBasis.Repositories;
 using Girvs.BusinessBasis.UoW;
-using Girvs.Configuration;
-using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.EntityFrameworkCore.Enumerations;
