@@ -107,7 +107,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             }
             catch (Exception ex)
             {
-                throw new GirvsException($" create table error :{ex.Message}", ex);
+                // throw new GirvsException($" create table error :{ex.Message}", ex);
             }
         }
 
@@ -128,7 +128,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             }
             catch (Exception ex)
             {
-                throw new GirvsException($" create table error :{ex.Message}", ex);
+                // throw new GirvsException($" create table error :{ex.Message}", ex);
             }
         }
     }
