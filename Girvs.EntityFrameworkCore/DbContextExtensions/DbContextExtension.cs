@@ -48,14 +48,10 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                 {
                     var entityType = x.EntityType.ClrType;
                     return entityType.IsAssignableTo(typeof(ITenantShardingTable)) &&
-                           entityType.IsAssignableTo(typeof(IIncludeMultiTenant<Guid>));
+                           entityType.GetProperties().Any(x => x.Name == nameof(IIncludeMultiTenant<object>.TenantId));
                 });
 
-                if (isRemove)
-                {
-                    break;
-                }
-                else
+                if (!isRemove)
                 {
                     contextModelRelationalModel.Tables.Remove(table.Key);
                 }

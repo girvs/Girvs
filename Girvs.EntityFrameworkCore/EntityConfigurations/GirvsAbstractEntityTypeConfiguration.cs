@@ -1,6 +1,6 @@
 using System;
+using System.Linq;
 using Girvs.BusinessBasis.Entities;
-using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.Extensions;
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,7 @@ namespace Girvs.EntityFrameworkCore.EntityConfigurations
             var tableName = typeof(TEntity).Name.Replace("Entity", "").Replace("Model", "");
             var entityType = typeof(TEntity);
             if (entityType.IsAssignableTo(typeof(ITenantShardingTable)) &&
-                entityType.IsAssignableTo(typeof(IIncludeMultiTenant<Guid>)))
+                entityType.GetProperties().Any(x => x.Name == nameof(IIncludeMultiTenant<object>.TenantId)))
             {
                 var tenantId = EngineContext.Current.ClaimManager.GetTenantId();
                 if (tenantId.IsNullOrEmpty())
