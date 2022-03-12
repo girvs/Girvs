@@ -7,7 +7,7 @@ namespace Girvs.EntityFrameworkCore.Context
     {
         public GirvsDbContext(DbContextOptions options) : base(options)
         {
-            ShardingSuffix = EngineContext.Current.ClaimManager.GetTenantId();
+            ShardingSuffix = EngineContext.Current.ClaimManager.GetTenantId().Replace("-", "");
         }
 
         public string ShardingSuffix { get; protected set; }

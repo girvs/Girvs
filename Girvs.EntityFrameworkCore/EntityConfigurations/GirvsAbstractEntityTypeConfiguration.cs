@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Girvs.BusinessBasis.Entities;
 using Girvs.EntityFrameworkCore.Configuration;
+using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.Extensions;
 using Girvs.Infrastructure;
@@ -32,13 +33,13 @@ namespace Girvs.EntityFrameworkCore.EntityConfigurations
             if (entityType.IsAssignableTo(typeof(ITenantShardingTable)) &&
                 entityType.GetProperties().Any(x => x.Name == nameof(IIncludeMultiTenant<object>.TenantId)))
             {
-                var tenantId = EngineContext.Current.ClaimManager.GetTenantId();
-                if (tenantId.IsNullOrEmpty())
+                if (EngineContext.Current.GetEntityRelatedDbContext<TEntity>() is not GirvsDbContext context ||
+                    context.ShardingSuffix.IsNullOrEmpty())
                 {
                     return tableName;
                 }
 
-                return $"{tableName}_{tenantId.Replace("-", "")}";
+                return $"{tableName}_{context.ShardingSuffix}";
             }
 
             return tableName;
