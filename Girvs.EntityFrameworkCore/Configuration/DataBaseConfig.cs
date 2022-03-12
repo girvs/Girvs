@@ -5,20 +5,17 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using Girvs.Configuration;
+using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.DbContextExtensions;
 
 namespace Girvs.EntityFrameworkCore.Configuration
 {
     public enum UseDataType
     {
-        [EnumMember(Value = "mssql")]
-        MsSql,
-        [EnumMember(Value = "mysql")]
-        MySql,
-        [EnumMember(Value = "sqllite")]
-        SqlLite,
-        [EnumMember(Value = "oracle")]
-        Oracle
+        [EnumMember(Value = "mssql")] MsSql,
+        [EnumMember(Value = "mysql")] MySql,
+        [EnumMember(Value = "sqllite")] SqlLite,
+        [EnumMember(Value = "oracle")] Oracle
     }
 
     public class DbConfig : IAppModuleConfig
@@ -27,11 +24,17 @@ namespace Girvs.EntityFrameworkCore.Configuration
         {
             DataConnectionConfigs = new List<DataConnectionConfig>();
         }
-        
+
         public ICollection<DataConnectionConfig> DataConnectionConfigs { get; set; }
+
         public void Init()
         {
             DataConnectionConfigs.Add(new DataConnectionConfig());
+        }
+
+        public DataConnectionConfig GetDataConnectionConfig<TDbContext>() where TDbContext : GirvsDbContext
+        {
+            return GetDataConnectionConfig(typeof(TDbContext));
         }
 
         public DataConnectionConfig GetDataConnectionConfig(Type dbContextType)

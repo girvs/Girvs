@@ -24,9 +24,6 @@
         </PackageReference>
         <PackageReference Include="Oracle.EntityFrameworkCore" Version="5.21.4" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.3" />
-        <PackageReference Include="ShardingCore" Version="5.3.1.94" />
-        <PackageReference Include="ShardingCore.MySql" Version="5.1.0.21" />
-        <PackageReference Include="ShardingCore.SqlServer" Version="5.1.0.21" />
         <PackageReference Include="Zack.EFCore.Batch.MySQL.Pomelo" Version="1.5.8" />
         <PackageReference Include="Zack.EFCore.Batch.MSSQL" Version="1.5.8" />
         <PackageReference Include="Zack.EFCore.Batch.Oracle" Version="1.5.8" />
