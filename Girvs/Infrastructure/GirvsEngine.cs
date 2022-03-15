@@ -226,7 +226,7 @@ namespace Girvs.Infrastructure
             get
             {
                 var accessor = ServiceProvider.GetService<IHttpContextAccessor>();
-                return accessor.HttpContext;
+                return accessor?.HttpContext;
             }
         }
 

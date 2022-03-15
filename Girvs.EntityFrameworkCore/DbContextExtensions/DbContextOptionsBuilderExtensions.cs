@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Data.Common;
 using Girvs.EntityFrameworkCore.Configuration;
+using Girvs.EntityFrameworkCore.Context;
+using Girvs.EntityFrameworkCore.MigrationShardingTable;
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Logging;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace Girvs.EntityFrameworkCore.DbContextExtensions
 {
@@ -14,7 +16,15 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         public static void UseSqlServerWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
             DataConnectionConfig config, string connStr)
         {
-            optionsBuilder.UseSqlServer(connStr);
+            optionsBuilder.UseSqlServer(connStr,
+                builder =>
+                {
+                    if (config.IsTenantShardingTable)
+                    {
+                        builder.MigrationsHistoryTable(
+                            $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                    }
+                });
             optionsBuilder.UseBatchEF_MSSQL();
         }
 
@@ -24,7 +34,15 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
 
             optionsBuilder.UseMySql(connStr, serverVersion,
-                builder => { builder.EnableRetryOnFailure(maxRetryCount: 5); });
+                builder =>
+                {
+                    builder.EnableRetryOnFailure(maxRetryCount: 5);
+                    if (config.IsTenantShardingTable)
+                    {
+                        builder.MigrationsHistoryTable(
+                            $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                    }
+                });
             optionsBuilder.UseBatchEF_MySQLPomelo();
         }
 
@@ -34,13 +52,29 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             if (config.UseRowNumberForPaging)
             {
                 optionsBuilder.UseSqlite(connStr,
-                    option => option.CommandTimeout(config.SQLCommandTimeout));
+                    builder =>
+                    {
+                        builder.CommandTimeout(config.SQLCommandTimeout);
+                        if (config.IsTenantShardingTable)
+                        {
+                            builder.MigrationsHistoryTable(
+                                $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                        }
+                    });
                 optionsBuilder.UseSqlite();
             }
             else
             {
                 optionsBuilder.UseSqlServer(connStr,
-                    option => option.CommandTimeout(config.SQLCommandTimeout));
+                    builder =>
+                    {
+                        builder.CommandTimeout(config.SQLCommandTimeout);
+                        if (config.IsTenantShardingTable)
+                        {
+                            builder.MigrationsHistoryTable(
+                                $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                        }
+                    });
                 optionsBuilder.UseSqlServer();
             }
         }
@@ -49,10 +83,15 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             DataConnectionConfig config, string connStr)
         {
             optionsBuilder.UseOracle(connStr,
-                option =>
+                builder =>
                 {
-                    option.CommandTimeout(config.SQLCommandTimeout);
-                    option.UseOracleSQLCompatibility(config.VersionNumber);
+                    builder.CommandTimeout(config.SQLCommandTimeout);
+                    builder.UseOracleSQLCompatibility(config.VersionNumber);
+                    if (config.IsTenantShardingTable)
+                    {
+                        builder.MigrationsHistoryTable(
+                            $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                    }
                 });
             optionsBuilder.UseOracle();
         }
@@ -60,7 +99,11 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
             DataConnectionConfig config, string connStr)
         {
-            optionsBuilder.UseInMemoryDatabase(connStr);
+            optionsBuilder.UseInMemoryDatabase(connStr, builder =>
+            {
+                // builder.MigrationsHistoryTable(
+                //     $"__EFMigrationsHistory_{EngineContext.Current.GetSafeShardingTableSuffix()}");
+            });
         }
 
         public static void ConfigDbContextOptionsBuilderTransaction(this DbContextOptionsBuilder optionsBuilder,
@@ -81,8 +124,8 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             optionsBuilder.UseLoggerFactory(loggerFactory);
         }
 
-        public static void ConfigDbContextOptionsBuilder(this DbContextOptionsBuilder optionsBuilder,
-            DataConnectionConfig config, string connStr = null)
+        public static void ConfigDbContextOptionsBuilder<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
+            DataConnectionConfig config, string connStr = null) where TDbContext : GirvsDbContext
         {
             var dataConnectionConfig = config;
             connStr ??= config.MasterDataConnectionString;
@@ -124,7 +167,8 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
 
             if (dataConnectionConfig.IsTenantShardingTable)
             {
-                optionsBuilder.ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>();
+                optionsBuilder.ReplaceService<IModelCacheKeyFactory, GirvsTenantModelCacheKeyFactory<TDbContext>>();
+                optionsBuilder.ReplaceService<IMigrationsAssembly, GirvsMigrationByTenantAssembly>();
             }
         }
     }

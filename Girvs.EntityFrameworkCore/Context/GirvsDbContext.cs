@@ -7,9 +7,12 @@ namespace Girvs.EntityFrameworkCore.Context
     {
         public GirvsDbContext(DbContextOptions options) : base(options)
         {
-            ShardingSuffix = EngineContext.Current.ClaimManager.GetTenantId().Replace("-", "");
         }
 
-        public string ShardingSuffix { get; protected set; }
+        public virtual string GetRelationalTableName<TEntity>()
+        {
+            var entityType = Model.FindEntityType(typeof(TEntity));
+            return entityType.GetTableName();
+        }
     }
 }

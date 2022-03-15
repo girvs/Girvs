@@ -40,6 +40,9 @@ namespace Girvs.EntityFrameworkCore.Repositories
             DbContext = EngineContext.Current.GetEntityRelatedDbContext<TEntity>() ??
                         throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbSet = DbContext.Set<TEntity>();
+
+            // MigrationShardingTable.MigrationShardingTable.CreateTenantShardTable(DbContext);
+            DbContext.ShardingAutoMigration();
         }
 
         protected IQueryable<TEntity> ExcludeOtherQueryCondition()

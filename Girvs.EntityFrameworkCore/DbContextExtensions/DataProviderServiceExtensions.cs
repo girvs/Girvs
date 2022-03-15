@@ -1,10 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Context;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Girvs.EntityFrameworkCore.DbContextExtensions
@@ -28,20 +26,19 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             {
                 var dmi = mi.MakeGenericMethod(dbContext);
                 var config = EngineContext.Current.GetAppModuleConfig<DbConfig>()?.GetDataConnectionConfig(dbContext);
-                Action<IServiceProvider, DbContextOptionsBuilder> optionsAction = (provider, builder) =>
-                {
-                    builder.ConfigDbContextOptionsBuilder(config,
-                        config?.GetSecureRandomReadDataConnectionString());
-                };
-                dmi.Invoke(serviceType, new object[] {services, optionsAction});
+                dmi.Invoke(serviceType, new object[] {services, config});
             }
         }
 
         public static IServiceCollection AddGirvsDbContext<TContext>(this IServiceCollection services,
-            Action<IServiceProvider, DbContextOptionsBuilder> optionsAction)
-            where TContext : DbContext
+            DataConnectionConfig config)
+            where TContext : GirvsDbContext
         {
-            return services.AddDbContext<TContext>(optionsAction, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+            return services.AddDbContext<TContext>((provider, builder) =>
+            {
+                builder.ConfigDbContextOptionsBuilder<TContext>(config,
+                    config?.GetSecureRandomReadDataConnectionString());
+            }, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
         }
     }
 }

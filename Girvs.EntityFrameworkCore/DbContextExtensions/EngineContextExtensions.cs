@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Girvs.BusinessBasis.Entities;
+using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Context;
+using Girvs.Extensions;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +25,9 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                 if (!_relatedDbContextCache.ContainsKey(entityType))
                 {
                     var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-                    var ts = typeFinder.FindOfType(typeof(GirvsDbContext));
+                    var ts = typeFinder?.FindOfType(typeof(GirvsDbContext));
 
-                    var dbContextType = ts
+                    var dbContextType = ts?
                         .FirstOrDefault(x =>
                             x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)));
 
@@ -39,6 +41,55 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
 
                 return EngineContext.Current.Resolve(_relatedDbContextCache[entityType]) as DbContext;
             }
+        }
+
+        public static string GetSafeShardingTableSuffix(this IEngine engine)
+        {
+            try
+            {
+                var shardingTag = engine.ClaimManager.GetTenantId();
+                if (Guid.Parse(shardingTag) == Guid.Empty)
+                {
+                    return string.Empty;
+                }
+
+                return shardingTag.IsNullOrEmpty() ? string.Empty : $"_{shardingTag.Replace("-", "")}";
+            }
+            catch (Exception e)
+            {
+                return string.Empty;
+            }
+        }
+
+        public static bool IsNeedShardingTable<TEntity>(this IEngine engine) where TEntity : Entity
+        {
+            try
+            {
+                var suffix = GetSafeShardingTableSuffix(engine);
+                if (suffix.IsNullOrEmpty())
+                {
+                    return true;
+                }
+                var entityType = typeof(TEntity);
+                var dbContext = engine.GetEntityRelatedDbContext<TEntity>();
+                var dataProviderConfig =
+                    engine.GetAppModuleConfig<DbConfig>().GetDataConnectionConfig(dbContext.GetType());
+
+                return dataProviderConfig.IsTenantShardingTable && !suffix.IsNullOrEmpty() &&
+                       entityType.IsAssignableTo(typeof(ITenantShardingTable));
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static string GetMigrationEntityTableName<TEntity>(this IEngine engine) where TEntity : Entity
+        {
+            var entityType = typeof(TEntity);
+            if (!IsNeedShardingTable<TEntity>(engine)) return entityType.Name;
+            var suffix = GetSafeShardingTableSuffix(engine);
+            return $"{entityType.Name}{suffix}";
         }
     }
 }
