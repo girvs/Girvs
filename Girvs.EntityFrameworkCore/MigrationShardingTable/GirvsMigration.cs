@@ -16,5 +16,11 @@ namespace Girvs.EntityFrameworkCore.MigrationShardingTable
         {
             return EngineContext.Current.IsNeedShardingTable<T>();
         }
+
+        public virtual string GetShardingForeignKey<T>(string OriginalKeyName) where T : Entity
+        {
+            var suffix = EngineContext.Current.GetSafeShardingTableSuffix();
+            return $"{OriginalKeyName}{suffix}";
+        }
     }
 }

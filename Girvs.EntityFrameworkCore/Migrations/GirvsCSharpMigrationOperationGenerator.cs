@@ -1087,7 +1087,7 @@ namespace Girvs.EntityFrameworkCore.Migrations
                         {
                             builder
                                 .Append("name: ")
-                                .Append(Code.Literal(foreignKey.Name))
+                                .Append($"GetShardingForeignKey<{operation.Name}>({Code.Literal(foreignKey.Name)})")
                                 .AppendLine(",")
                                 .Append(
                                     foreignKey.Columns.Length == 1
