@@ -68,7 +68,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                 var suffix = GetSafeShardingTableSuffix(engine);
                 if (suffix.IsNullOrEmpty())
                 {
-                    return true;
+                    return false;
                 }
                 var entityType = typeof(TEntity);
                 var dbContext = engine.GetEntityRelatedDbContext<TEntity>();

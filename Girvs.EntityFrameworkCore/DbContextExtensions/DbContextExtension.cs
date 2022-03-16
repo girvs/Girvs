@@ -1,8 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using Girvs.BusinessBasis.Entities;
 using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Enumerations;
 using Girvs.Extensions;
 using Girvs.Infrastructure;
+using Girvs.TypeFinder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -50,10 +54,28 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
             lock (_async)
             {
                 if (MigrationSuffixs.Contains(suffix)) return;
-                //切换到写的数据库
-                dbContext.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
-                dbContext.Database.Migrate();
+                if (GetNeedMigrationEntities().Count > 0)
+                {
+                    //切换到写的数据库
+                    dbContext.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
+                    dbContext.Database.Migrate();
+                }
+
                 MigrationSuffixs.Add(suffix);
+            }
+        }
+
+        private static List<Type> GetNeedMigrationEntities()
+        {
+            try
+            {
+                var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
+                var result = typeFinder.FindOfType<ITenantShardingTable>().ToList();
+                return result;
+            }
+            catch
+            {
+                return new List<Type>();
             }
         }
 
