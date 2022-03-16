@@ -45,7 +45,7 @@ namespace Girvs.EntityFrameworkCore.Migrations
             var namespaces = new List<string>
             {
                 "Microsoft.EntityFrameworkCore.Migrations",
-                "Girvs.EntityFrameworkCore.MigrationShardingTable"
+                "Girvs.EntityFrameworkCore.Migrations"
             };
             namespaces.AddRange(GetNamespaces(upOperations.Concat(downOperations)));
             foreach (var n in namespaces.OrderBy(x => x, new NamespaceComparer()).Distinct())

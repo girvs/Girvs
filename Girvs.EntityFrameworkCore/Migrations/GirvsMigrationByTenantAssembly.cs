@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Internal;
 
-namespace Girvs.EntityFrameworkCore.MigrationShardingTable
+namespace Girvs.EntityFrameworkCore.Migrations
 {
     public class GirvsMigrationByTenantAssembly: MigrationsAssembly
     {

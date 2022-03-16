@@ -3,7 +3,7 @@ using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Girvs.EntityFrameworkCore.MigrationShardingTable
+namespace Girvs.EntityFrameworkCore.Migrations
 {
     public class GirvsTenantModelCacheKeyFactory<TContext> : ModelCacheKeyFactory
         where TContext : DbContext

@@ -56,19 +56,22 @@ namespace Girvs.EntityFrameworkCore.Migrations
                 {
                     builder.AppendLine($"if (IsCreateShardingTable<{tableName}>())");
                     builder.AppendLine("{");
-                }
+                    using (builder.Indent())
+                    {
+                        builder.Append(builderName);
+                        Generate((dynamic) operation, builder);
+                        builder.Append(";");
+                        builder.AppendLine();
+                    }
 
-                using (builder.Indent())
+                    builder.AppendLine("}");
+                }
+                else
                 {
                     builder.Append(builderName);
                     Generate((dynamic) operation, builder);
                     builder.Append(";");
                     builder.AppendLine();
-                }
-
-                if (!tableName.IsNullOrEmpty())
-                {
-                    builder.AppendLine("}");
                 }
             }
         }

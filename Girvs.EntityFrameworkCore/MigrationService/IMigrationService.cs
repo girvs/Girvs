@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Girvs.DynamicWebApi;
 
-namespace Girvs.EntityFrameworkCore.MigrationHandler
+namespace Girvs.EntityFrameworkCore.MigrationService
 {
     public interface IMigrationService : IAppWebApiService
     {

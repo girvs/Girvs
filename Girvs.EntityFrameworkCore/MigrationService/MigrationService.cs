@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Panda.DynamicWebApi.Attributes;
 
-namespace Girvs.EntityFrameworkCore.MigrationHandler
+namespace Girvs.EntityFrameworkCore.MigrationService
 {
     [DynamicWebApi]
     [AllowAnonymous]

@@ -2,7 +2,7 @@
 using System.Data.Common;
 using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Context;
-using Girvs.EntityFrameworkCore.MigrationShardingTable;
+using Girvs.EntityFrameworkCore.Migrations;
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;

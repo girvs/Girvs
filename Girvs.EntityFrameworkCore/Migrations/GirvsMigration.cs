@@ -3,7 +3,7 @@ using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Girvs.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Girvs.EntityFrameworkCore.MigrationShardingTable
+namespace Girvs.EntityFrameworkCore.Migrations
 {
     public abstract class GirvsMigration : Migration
     {
