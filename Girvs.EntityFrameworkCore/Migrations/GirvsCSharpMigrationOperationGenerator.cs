@@ -145,7 +145,7 @@ namespace Girvs.EntityFrameworkCore.Migrations
                 builder
                     .AppendLine(",")
                     .Append("table: ")
-                    .Append($"GetShardingTableName<{Code.Literal(operation.Table)}>()");
+                    .Append($"GetShardingTableName<{operation.Table}>()");
 
                 if (operation.ColumnType != null)
                 {
