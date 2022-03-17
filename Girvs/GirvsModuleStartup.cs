@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Girvs.Extensions;
 using LogDashboard;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Girvs
 {
@@ -16,12 +17,21 @@ namespace Girvs
             services.RegisterUow();
             services.RegisterManager();
             services.AddLogDashboard();
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
         }
 
         public void Configure(IApplicationBuilder application)
         {
+            application.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
             application.UseLogDashboard();
-
         }
 
         public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
