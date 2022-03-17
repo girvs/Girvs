@@ -1,4 +1,4 @@
-﻿using Girvs.Infrastructure;
+﻿using Girvs.EntityFrameworkCore.DbContextExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.EntityFrameworkCore.Context
@@ -7,6 +7,7 @@ namespace Girvs.EntityFrameworkCore.Context
     {
         public GirvsDbContext(DbContextOptions options) : base(options)
         {
+            this.ShardingAutoMigration();
         }
 
         public virtual string GetRelationalTableName<TEntity>()
