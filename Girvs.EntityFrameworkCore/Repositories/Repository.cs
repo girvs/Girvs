@@ -39,6 +39,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
                       throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbContext = EngineContext.Current.GetEntityRelatedDbContext<TEntity>() ??
                         throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
+            DbContext.ShardingAutoMigration();
             DbSet = DbContext.Set<TEntity>();
         }
 
