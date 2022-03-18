@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Girvs.Infrastructure;
-using Girvs.Infrastructure.GirvsServiceContext;
 using Quartz;
 
 namespace Girvs.Quartz

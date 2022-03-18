@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DotNetCore.CAP;
 using Girvs.Infrastructure;
-using Girvs.Infrastructure.GirvsServiceContext;
 using JetBrains.Annotations;
 
 namespace Girvs.EventBus
