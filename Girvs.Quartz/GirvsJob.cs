@@ -1,22 +1,33 @@
 using System;
 using System.Threading.Tasks;
 using Girvs.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 
 namespace Girvs.Quartz
 {
     public abstract class GirvsJob : IJob,IDisposable
     {
+        private readonly IServiceProvider _serviceProvider;
+
         public GirvsJob(
             IServiceProvider serviceProvider
         )
         {
-            EngineContext.Current.SetCurrentThreadServiceProvider(serviceProvider);
+            _serviceProvider = serviceProvider;
+
         }
 
-        public abstract Task Execute(IJobExecutionContext context);
+        public virtual Task Execute(IJobExecutionContext context)
+        {
+            EngineContext.Current.SetCurrentThreadServiceProvider(_serviceProvider.CreateScope().ServiceProvider);
+            GirvsExecute(context);
+            return Task.CompletedTask;
+        }
 
-        public void Dispose()
+        public abstract void GirvsExecute(IJobExecutionContext context);
+
+        public virtual void Dispose()
         {
             EngineContext.Current.SetCurrentThreadServiceProvider(null);
         }
