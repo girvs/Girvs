@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Girvs.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 
 namespace Girvs.Quartz
@@ -20,7 +19,7 @@ namespace Girvs.Quartz
 
         public virtual Task Execute(IJobExecutionContext context)
         {
-            EngineContext.Current.SetCurrentThreadServiceProvider(_serviceProvider.CreateScope().ServiceProvider);
+            EngineContext.Current.SetCurrentThreadServiceProvider(_serviceProvider);
             GirvsExecute(context);
             return Task.CompletedTask;
         }
