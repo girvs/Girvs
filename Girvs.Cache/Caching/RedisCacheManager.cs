@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,8 +12,6 @@ using Girvs.Cache.Redis;
 using Girvs.Configuration;
 using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 
 namespace Girvs.Cache.Caching
@@ -30,7 +29,6 @@ namespace Girvs.Cache.Caching
         private readonly IRedisConnectionWrapper _connectionWrapper;
         private readonly CacheConfig _config;
         private readonly PerRequestCache _perRequestCache;
-        private readonly JsonSerializerSettings _jsonSerializerSettings = new() {ReferenceLoopHandling = ReferenceLoopHandling.Ignore};
 
         #endregion
 
@@ -94,7 +92,7 @@ namespace Girvs.Cache.Caching
                 return default;
 
             //deserialize item
-            var item = JsonConvert.DeserializeObject<T>(serializedItem);
+            var item = JsonSerializer.Deserialize<T>(serializedItem);
             if (item == null)
                 return default;
 
@@ -119,7 +117,7 @@ namespace Girvs.Cache.Caching
             var expiresIn = TimeSpan.FromMinutes(cacheTime);
 
             //serialize item
-            var serializedItem = JsonConvert.SerializeObject(data,_jsonSerializerSettings);
+            var serializedItem = JsonSerializer.Serialize(data);
 
             //and set it to cache
             await _db.StringSetAsync(key, serializedItem, expiresIn);
@@ -219,7 +217,7 @@ namespace Girvs.Cache.Caching
                     return default;
 
                 //deserialize item
-                var item = JsonConvert.DeserializeObject<T>(serializedItem);
+                var item = JsonSerializer.Deserialize<T>(serializedItem);
                 if (item == null)
                     return default;
 
@@ -280,7 +278,7 @@ namespace Girvs.Cache.Caching
             var expiresIn = TimeSpan.FromMinutes(key.CacheTime);
 
             //serialize item
-            var serializedItem = JsonConvert.SerializeObject(data,_jsonSerializerSettings);
+            var serializedItem = JsonSerializer.Serialize(data);
 
             //and set it to cache
             TryPerformAction(() => _db.StringSet(key.Key, serializedItem, expiresIn));
