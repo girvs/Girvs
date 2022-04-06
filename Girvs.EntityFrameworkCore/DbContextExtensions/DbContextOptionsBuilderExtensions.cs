@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data.Common;
 using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EntityFrameworkCore.Context;
 using Girvs.EntityFrameworkCore.Migrations;
@@ -61,7 +60,6 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                                 $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
                         }
                     });
-                optionsBuilder.UseSqlite();
             }
             else
             {
@@ -75,7 +73,6 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                                 $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
                         }
                     });
-                optionsBuilder.UseSqlServer();
             }
         }
 
@@ -104,24 +101,6 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
                 // builder.MigrationsHistoryTable(
                 //     $"__EFMigrationsHistory_{EngineContext.Current.GetSafeShardingTableSuffix()}");
             });
-        }
-
-        public static void ConfigDbContextOptionsBuilderTransaction(this DbContextOptionsBuilder optionsBuilder,
-            DbConnection connection, DataConnectionConfig config)
-        {
-            switch (config.UseDataType)
-            {
-                case UseDataType.MsSql:
-                    optionsBuilder.UseSqlServer(connection);
-                    break;
-
-                case UseDataType.MySql:
-                    optionsBuilder.UseMySql(connection, new MySqlServerVersion(config.VersionNumber));
-                    break;
-            }
-
-            var loggerFactory = EngineContext.Current.Resolve<ILoggerFactory>();
-            optionsBuilder.UseLoggerFactory(loggerFactory);
         }
 
         public static void ConfigDbContextOptionsBuilder<TDbContext>(this DbContextOptionsBuilder optionsBuilder,

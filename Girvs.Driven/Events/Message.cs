@@ -1,5 +1,4 @@
 ﻿using System;
-using Girvs.Extensions;
 using Girvs.Infrastructure;
 using MediatR;
 
@@ -16,12 +15,14 @@ namespace Girvs.Driven.Events
             MessageType = GetType().Name;
             try
             {
-                MessageSource = new MessageSource();
-                MessageSource.SourceName = EngineContext.Current.ClaimManager.GetTenantName();
-                MessageSource.SourceNameId = EngineContext.Current.ClaimManager.GetUserId();
-                MessageSource.TenantId = EngineContext.Current.ClaimManager.GetTenantId();
-                MessageSource.TenantName = EngineContext.Current.ClaimManager.GetTenantName();
-                MessageSource.IpAddress = EngineContext.Current.HttpContext?.Request.GetRequestClientAddress();
+                MessageSource = new MessageSource
+                {
+                    SourceName = EngineContext.Current.ClaimManager.GetUserName(),
+                    SourceNameId = EngineContext.Current.ClaimManager.GetUserId(),
+                    TenantId = EngineContext.Current.ClaimManager.GetTenantId(),
+                    TenantName = EngineContext.Current.ClaimManager.GetTenantName(),
+                    IpAddress = EngineContext.Current.HttpContext.Request.Headers["X-Forwarded-For"].ToString()
+                };
             }
             finally
             {
