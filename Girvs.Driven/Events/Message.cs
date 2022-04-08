@@ -15,14 +15,12 @@ namespace Girvs.Driven.Events
             MessageType = GetType().Name;
             try
             {
-                MessageSource = new MessageSource
-                {
-                    SourceName = EngineContext.Current.ClaimManager.GetUserName(),
-                    SourceNameId = EngineContext.Current.ClaimManager.GetUserId(),
-                    TenantId = EngineContext.Current.ClaimManager.GetTenantId(),
-                    TenantName = EngineContext.Current.ClaimManager.GetTenantName(),
-                    IpAddress = EngineContext.Current.HttpContext.Request.Headers["X-Forwarded-For"].ToString()
-                };
+                MessageSource = new MessageSource();
+                MessageSource.SourceName = EngineContext.Current.ClaimManager.GetUserName();
+                MessageSource.SourceNameId = EngineContext.Current.ClaimManager.GetUserId();
+                MessageSource.TenantId = EngineContext.Current.ClaimManager.GetTenantId();
+                MessageSource.TenantName = EngineContext.Current.ClaimManager.GetTenantName();
+                MessageSource.IpAddress = EngineContext.Current.HttpContext.Request.Headers["X-Forwarded-For"].ToString();
             }
             finally
             {
