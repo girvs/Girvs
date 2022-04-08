@@ -20,10 +20,17 @@ namespace Girvs.Driven.Events
                 MessageSource.SourceNameId = EngineContext.Current.ClaimManager.GetUserId();
                 MessageSource.TenantId = EngineContext.Current.ClaimManager.GetTenantId();
                 MessageSource.TenantName = EngineContext.Current.ClaimManager.GetTenantName();
-                MessageSource.IpAddress = EngineContext.Current.HttpContext.Request.Headers["X-Forwarded-For"].ToString();
+                if (EngineContext.Current != null && EngineContext.Current.HttpContext != null)
+                {
+                    MessageSource.IpAddress =
+                        EngineContext.Current.HttpContext?.Request.Headers["X-Forwarded-For"].ToString();
+                }
+
+                MessageSource.IpAddress = "localhost";
             }
-            finally
+            catch
             {
+                // ignored
             }
         }
     }
