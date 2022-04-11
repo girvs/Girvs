@@ -25,11 +25,14 @@ namespace Girvs.Driven.Events
                     MessageSource.IpAddress =
                         EngineContext.Current.HttpContext?.Request.Headers["X-Forwarded-For"].ToString();
                 }
-
-                MessageSource.IpAddress = "localhost";
+                else
+                {
+                    MessageSource.IpAddress = "localhost";
+                }
             }
             catch
             {
+                MessageSource.IpAddress = "localhost";
                 // ignored
             }
         }
