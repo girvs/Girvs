@@ -20,7 +20,7 @@ namespace Girvs.Infrastructure
     public class GirvsEngine : IEngine
     {
         /// <summary>
-        /// Get IServiceProvider
+        /// Get I
         /// </summary>
         /// <returns>IServiceProvider</returns>
         protected IServiceProvider GetServiceProvider(IServiceScope scope = null)
@@ -225,7 +225,7 @@ namespace Girvs.Infrastructure
         {
             get
             {
-                var accessor = ServiceProvider.GetService<IHttpContextAccessor>();
+                var accessor = Resolve<IHttpContextAccessor>();
                 return accessor?.HttpContext;
             }
         }
