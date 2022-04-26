@@ -107,7 +107,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
                         dataRuleFieldModel.ExpressionType,
                         fieldValues);
 
-                    expression = expression.And(ex);
+                    expression = expression.Or(ex);
                 }
             }
 
