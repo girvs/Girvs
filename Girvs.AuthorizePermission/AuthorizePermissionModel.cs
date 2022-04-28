@@ -28,6 +28,17 @@ namespace Girvs.AuthorizePermission
         /// 排序
         /// </summary>
         public int Order { get; set; }
+
+
+        /// <summary>
+        /// 所属的子系统模块
+        /// </summary>
+        public FuncModule FuncModule { get; set; }
+
+        /// <summary>
+        /// 其它相关参数
+        /// </summary>
+        public string[] OtherParams { get; set; }
     }
 
 
@@ -36,5 +47,15 @@ namespace Girvs.AuthorizePermission
         public string OperationName { get; set; }
         public Permission Permission { get; set; }
         public UserType UserType { get; set; }
+
+        /// <summary>
+        /// 所属的子系统模块
+        /// </summary>
+        public FuncModule FuncModule { get; set; }
+
+        /// <summary>
+        /// 其它相关参数
+        /// </summary>
+        public string[] OtherParams { get; set; }
     }
 }

@@ -13,7 +13,6 @@ using Girvs.Extensions.Collections;
 using Girvs.Infrastructure;
 using Girvs.TypeFinder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Girvs.EntityFrameworkCore.Repositories
 {
@@ -23,7 +22,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
     public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
     {
-        private readonly ILogger<Repository<TEntity, Tkey>> _logger;
+        private readonly string ShareDataOperateErrorMessage = "当前租户与数据不一致，无法操作";
         internal DbContext DbContext { get; }
         internal DbSet<TEntity> DbSet { get; }
 
@@ -35,8 +34,6 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
 
-            _logger = EngineContext.Current.Resolve<ILogger<Repository<TEntity, Tkey>>>() ??
-                      throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbContext = EngineContext.Current.GetEntityRelatedDbContext<TEntity>() ??
                         throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
             DbContext.ShardingAutoMigration();
@@ -70,7 +67,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             if (!CompareTenantId(t))
             {
-                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
+                throw new GirvsException(ShareDataOperateErrorMessage, 568);
             }
 
             return (await DbSet.AddAsync(t)).Entity;
@@ -80,7 +77,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             if (ts.Any(entity => !CompareTenantId(entity)))
             {
-                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
+                throw new GirvsException(ShareDataOperateErrorMessage, 568);
             }
 
             await DbSet.AddRangeAsync(ts);
@@ -91,7 +88,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             if (!CompareTenantId(t))
             {
-                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
+                throw new GirvsException(ShareDataOperateErrorMessage, 568);
             }
 
             return UpdateEntity(t, fields);
@@ -101,7 +98,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             if (ts.Any(entity => !CompareTenantId(entity)))
             {
-                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
+                throw new GirvsException(ShareDataOperateErrorMessage, 568);
             }
 
             foreach (var entity in ts)
@@ -130,7 +127,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             if (!CompareTenantId(t))
             {
-                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
+                throw new GirvsException(ShareDataOperateErrorMessage, 568);
             }
 
             DbSet.Remove(t);
@@ -141,7 +138,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             if (ts.Any(entity => !CompareTenantId(entity)))
             {
-                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
+                throw new GirvsException(ShareDataOperateErrorMessage, 568);
             }
 
             DbSet.RemoveRange(ts);
@@ -206,7 +203,7 @@ namespace Girvs.EntityFrameworkCore.Repositories
         {
             if (!CompareTenantId(t))
             {
-                throw new GirvsException("当前租户与数据不一致，无法操作", 568);
+                throw new GirvsException(ShareDataOperateErrorMessage, 568);
             }
 
             if (t is IIncludeUpdateTime updateTimeEntity)
