@@ -95,7 +95,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
 
             if (currentEntityDataRule != null)
             {
-                Expression<Func<TEntity, bool>> innerExpression = x => true;
+                Expression<Func<TEntity, bool>> innerExpression = x => false;
                 foreach (var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels)
                 {
                     if (string.IsNullOrEmpty(dataRuleFieldModel.FieldValue))
