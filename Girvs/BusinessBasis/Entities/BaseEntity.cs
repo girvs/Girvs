@@ -42,28 +42,30 @@ namespace Girvs.BusinessBasis.Entities
                 initFieldObj.IsInitData = false;
             }
 
-            if (this is IIncludeCreatorName creatorNameObj)
-            {
-                var creatorName = EngineContext.Current.ClaimManager.GetUserName();
-                if (!string.IsNullOrEmpty(creatorName))
-                {
-                    creatorNameObj.CreatorName = creatorName;
-                }
-            }
-
-            if (this is IIncludeMultiTenantName multiTenantNameObj)
-            {
-                var tenantName = EngineContext.Current.ClaimManager.GetTenantName();
-                if (!string.IsNullOrEmpty(tenantName))
-                {
-                    multiTenantNameObj.TenantName = tenantName;
-                }
-            }
+          
 
             var httpContext = EngineContext.Current.HttpContext;
 
             if (httpContext != null && httpContext.User != null && httpContext.User.Identity.IsAuthenticated)
             {
+                if (this is IIncludeCreatorName creatorNameObj)
+                {
+                    var creatorName = EngineContext.Current.ClaimManager.GetUserName();
+                    if (!string.IsNullOrEmpty(creatorName))
+                    {
+                        creatorNameObj.CreatorName = creatorName;
+                    }
+                }  
+
+                if (this is IIncludeMultiTenantName multiTenantNameObj)
+                {
+                    var tenantName = EngineContext.Current.ClaimManager.GetTenantName();
+                    if (!string.IsNullOrEmpty(tenantName))
+                    {
+                        multiTenantNameObj.TenantName = tenantName;
+                    }
+                }
+
                 var multiTenantPrperty = this.GetType().GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
                 if (multiTenantPrperty != null)
                 {
