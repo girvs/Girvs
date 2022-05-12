@@ -51,6 +51,15 @@ namespace Girvs.BusinessBasis.Entities
                 }
             }
 
+            if (this is IIncludeMultiTenantName multiTenantNameObj)
+            {
+                var tenantName = EngineContext.Current.ClaimManager.GetTenantName();
+                if (!string.IsNullOrEmpty(tenantName))
+                {
+                    multiTenantNameObj.TenantName = tenantName;
+                }
+            }
+
             var httpContext = EngineContext.Current.HttpContext;
 
             if (httpContext != null && httpContext.User != null && httpContext.User.Identity.IsAuthenticated)
