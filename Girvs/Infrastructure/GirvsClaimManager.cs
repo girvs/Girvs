@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Web;
 using Girvs.Extensions;
 
 namespace Girvs.Infrastructure
@@ -35,7 +36,7 @@ namespace Girvs.Infrastructure
                     var tenantName = httpContext.Request.Headers[nameof(GirvsIdentityClaim.TenantName)];
 
                     claims.Add(GirvsIdentityClaimTypes.TenantId, tenantId);
-                    claims.Add(GirvsIdentityClaimTypes.TenantName, tenantName);
+                    claims.Add(GirvsIdentityClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
                 }
 
                 SetFromDictionary(claims);
