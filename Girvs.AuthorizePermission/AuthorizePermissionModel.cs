@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Girvs.AuthorizePermission.Enumerations;
 using Girvs.BusinessBasis.Dto;
+using Girvs.Infrastructure;
 
 namespace Girvs.AuthorizePermission
 {
@@ -33,7 +34,7 @@ namespace Girvs.AuthorizePermission
         /// <summary>
         /// 所属的子系统模块
         /// </summary>
-        public FuncModule FuncModule { get; set; }
+        public SystemModule SystemModule { get; set; }
 
         /// <summary>
         /// 其它相关参数
@@ -51,7 +52,7 @@ namespace Girvs.AuthorizePermission
         /// <summary>
         /// 所属的子系统模块
         /// </summary>
-        public FuncModule FuncModule { get; set; }
+        public SystemModule SystemModule { get; set; }
 
         /// <summary>
         /// 其它相关参数

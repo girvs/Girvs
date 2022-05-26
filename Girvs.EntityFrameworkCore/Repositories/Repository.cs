@@ -52,8 +52,8 @@ namespace Girvs.EntityFrameworkCore.Repositories
         public bool CompareTenantId(TEntity entity)
         {
             if (entity is not IIncludeMultiTenant<Tkey>) return true;
-            var tenantId = EngineContext.Current.ClaimManager.GetTenantId();
-            var identityType = EngineContext.Current.ClaimManager.GetIdentityType();
+            var tenantId = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
+            var identityType = EngineContext.Current.ClaimManager.IdentityClaim.IdentityType;
             if (string.IsNullOrEmpty(tenantId) && identityType == IdentityType.EventMessageUser)
             {
                 tenantId = Guid.Empty.ToString();

@@ -39,7 +39,7 @@ namespace Girvs.Infrastructure
         // /// <returns></returns>
         // Claim GetCurrentClaimByName(string name);
 
-        IClaimManager ClaimManager { get; }
+        IGirvsClaimManager ClaimManager { get; }
 
         T GetAppModuleConfig<T>() where T : IAppModuleConfig;
 

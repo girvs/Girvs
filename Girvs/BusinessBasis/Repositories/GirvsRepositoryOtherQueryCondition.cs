@@ -55,7 +55,7 @@ namespace Girvs.BusinessBasis.Repositories
             {
                 var datas = new List<object>
                 {
-                    tenantId ?? EngineContext.Current.ClaimManager.GetTenantId()
+                    tenantId ?? EngineContext.Current.ClaimManager.IdentityClaim.TenantId
                 };
 
                 if (ContainsPublicData)

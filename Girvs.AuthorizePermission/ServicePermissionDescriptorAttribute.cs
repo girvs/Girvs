@@ -1,5 +1,5 @@
 ﻿using System;
-using Girvs.AuthorizePermission.Enumerations;
+using Girvs.Infrastructure;
 
 namespace Girvs.AuthorizePermission
 {
@@ -7,13 +7,13 @@ namespace Girvs.AuthorizePermission
     public class ServicePermissionDescriptorAttribute : System.Attribute
     {
         public ServicePermissionDescriptorAttribute(string serviceName, string serviceId, string tag = "",
-            int order = 0, FuncModule funcModule = FuncModule.All, params string[] otherParams)
+            int order = 0, SystemModule systemModule = SystemModule.All, params string[] otherParams)
         {
             ServiceId = Guid.Parse(serviceId);
             ServiceName = serviceName;
             Tag = tag;
             Order = order;
-            FuncModule = funcModule;
+            SystemModule = systemModule;
             OtherParams = otherParams;
         }
 
@@ -33,7 +33,7 @@ namespace Girvs.AuthorizePermission
         /// <summary>
         /// 所属的子系统模块
         /// </summary>
-        public FuncModule FuncModule { get; }
+        public SystemModule SystemModule { get; }
 
         /// <summary>
         /// 其它相关参数

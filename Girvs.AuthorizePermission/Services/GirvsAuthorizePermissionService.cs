@@ -46,7 +46,7 @@ namespace Girvs.AuthorizePermission.Services
                         OperationName = smpd.MethodName,
                         Permission = smpd.Permission,
                         UserType = smpd.UserType,
-                        FuncModule = smpd.FuncModule,
+                        SystemModule = smpd.SystemModule,
                         OtherParams = smpd.OtherParams
                     });
                 }
@@ -57,7 +57,7 @@ namespace Girvs.AuthorizePermission.Services
                     Order = spd.Order,
                     ServiceName = spd.ServiceName,
                     ServiceId = spd.ServiceId,
-                    FuncModule = spd.FuncModule,
+                    SystemModule = spd.SystemModule,
                     OtherParams = spd.OtherParams,
                     OperationPermissionModels = operationPermissionModels
                     // Permissions = permissions

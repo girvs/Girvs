@@ -23,7 +23,7 @@ namespace Girvs.Cache.Caching
                 var property = typeof(TEntity).GetProperty("TenantId");
                 return property == null
                     ? string.Empty
-                    : $":TenantId_{EngineContext.Current.ClaimManager.GetTenantId()}";
+                    : $":TenantId_{EngineContext.Current.ClaimManager.IdentityClaim.TenantId}";
             }
         }
 

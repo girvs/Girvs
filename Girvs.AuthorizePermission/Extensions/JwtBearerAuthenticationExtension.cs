@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -11,27 +12,34 @@ namespace Girvs.AuthorizePermission.Extensions
 {
     public static class JwtBearerAuthenticationExtension
     {
-        public static string GenerateToken(string accessid, string accessName, string tenantId, string tenantName)
+        public static string GenerateToken(
+            string userId,
+            string userName,
+            string tenantId = null,
+            string tenantName = null,
+            UserType userType = UserType.All,
+            IdentityType identityType = IdentityType.ManagerUser,
+            SystemModule claimSystemModule = SystemModule.All)
         {
-            return GenerateToken(accessid, accessName, tenantId, tenantName, UserType.All);
+            var girvsIdentityClaim = new GirvsIdentityClaim()
+            {
+                UserId = userId,
+                UserName = userName,
+                TenantId = tenantId,
+                TenantName = tenantName,
+                IdentityType = identityType,
+                SystemModule = claimSystemModule,
+                OtherClaims = new Dictionary<string, string>()
+                {
+                    {GirvsClaimManagerExtensions.GirvsIdentityUserTypeClaimTypes, userType.ToString()}
+                }
+            };
+            return GenerateToken(girvsIdentityClaim);
         }
 
-        public static string GenerateToken(string accessid, string accessName, string tenantId, string tenantName,
-            UserType userType)
+        public static string GenerateToken(GirvsIdentityClaim girvsIdentityClaim)
         {
-            return GenerateToken(accessid, accessName, tenantId, tenantName, UserType.All, IdentityType.ManagerUser);
-        }
-
-        public static string GenerateToken(string accessid, string accessName, string tenantId, string tenantName,
-            UserType userType, IdentityType identityType)
-        {
-            var claimsIdentity =
-                EngineContext.Current.ClaimManager.GenerateClaimsIdentity(accessid, accessName, tenantId, tenantName,
-                    userType, identityType);
-
-            //在登陆认证成功后，设置当前为登陆
-            EngineContext.Current.ClaimManager.CurrentClaims = claimsIdentity.Claims;
-
+            var claimsIdentity = EngineContext.Current.ClaimManager.BuildClaimsIdentity(girvsIdentityClaim);
             return GetJwtAccessToken(claimsIdentity);
         }
 

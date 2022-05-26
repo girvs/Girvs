@@ -22,7 +22,7 @@ namespace Girvs.EventBus.CapEventBus
             where TIntegrationEvent : IntegrationEvent
         {
             //传递身份信息头
-            var headers = EngineContext.Current.ClaimManager.CurrentClaims.ToDictionary(claim => claim.Type, claim => claim.Value);
+            var headers = EngineContext.Current.ClaimManager.IdentityClaim.OtherClaims;
 
             var topicName = @event.GetType().Name;
             _logger.LogInformation("Publishing event {@Event} to.{TopicName}", @event, topicName);

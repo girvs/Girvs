@@ -47,7 +47,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions
         {
             try
             {
-                var shardingTag = engine.ClaimManager.GetTenantId();
+                var shardingTag = engine.ClaimManager.IdentityClaim.TenantId;
                 if (Guid.Parse(shardingTag) == Guid.Empty)
                 {
                     return string.Empty;

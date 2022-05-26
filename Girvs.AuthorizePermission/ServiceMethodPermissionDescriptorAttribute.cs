@@ -1,5 +1,6 @@
 ﻿using System;
 using Girvs.AuthorizePermission.Enumerations;
+using Girvs.Infrastructure;
 
 namespace Girvs.AuthorizePermission
 {
@@ -10,16 +11,16 @@ namespace Girvs.AuthorizePermission
         public Permission Permission { get; }
 
         public UserType UserType { get; set; }
-        public FuncModule FuncModule { get; }
+        public SystemModule SystemModule { get; }
         public string[] OtherParams { get; }
 
         public ServiceMethodPermissionDescriptorAttribute(string metohodName, Permission permission,
-            UserType userType = UserType.All, FuncModule funcModule = FuncModule.All, params string[] otherParams)
+            UserType userType = UserType.All, SystemModule systemModule = SystemModule.All, params string[] otherParams)
         {
             MethodName = metohodName;
             Permission = permission;
             UserType = userType;
-            FuncModule = funcModule;
+            SystemModule = systemModule;
             OtherParams = otherParams;
         }
     }

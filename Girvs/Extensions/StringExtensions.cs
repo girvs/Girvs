@@ -269,7 +269,7 @@ namespace Girvs.Extensions
         /// </summary>
         public static string[] Split(this string str, string separator)
         {
-            return str.Split(new[] { separator }, StringSplitOptions.None);
+            return str.Split(new[] {separator}, StringSplitOptions.None);
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace Girvs.Extensions
         /// </summary>
         public static string[] Split(this string str, string separator, StringSplitOptions options)
         {
-            return str.Split(new[] { separator }, options);
+            return str.Split(new[] {separator}, options);
         }
 
         /// <summary>
@@ -389,7 +389,7 @@ namespace Girvs.Extensions
                 throw new ArgumentNullException(nameof(value));
             }
 
-            return (T)Enum.Parse(typeof(T), value);
+            return (T) Enum.Parse(typeof(T), value);
         }
 
         /// <summary>
@@ -407,7 +407,7 @@ namespace Girvs.Extensions
                 throw new ArgumentNullException(nameof(value));
             }
 
-            return (T)Enum.Parse(typeof(T), value, ignoreCase);
+            return (T) Enum.Parse(typeof(T), value, ignoreCase);
         }
 
         public static string ToShortMd5(this string str)
@@ -442,11 +442,22 @@ namespace Girvs.Extensions
         {
             if (string.IsNullOrEmpty(str))
             {
-                return (Guid?)null;
+                return (Guid?) null;
             }
 
             return Guid.Parse(str);
         }
+
+        public static Guid ToGuidDefaultEmpty(this string str)
+        {
+            var s = Guid.TryParse(str, out var result);
+            return s ? result : Guid.Empty;
+        }
+
+        // public static T ToEnum<T>(this string str)
+        // {
+        //     return (T) Enum.Parse(typeof(T), str);
+        // }
 
         public static Guid ToGuid(this string str)
         {

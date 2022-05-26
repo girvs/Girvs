@@ -42,7 +42,6 @@ namespace Girvs.BusinessBasis.Entities
                 initFieldObj.IsInitData = false;
             }
 
-          
 
             var httpContext = EngineContext.Current.HttpContext;
 
@@ -50,26 +49,26 @@ namespace Girvs.BusinessBasis.Entities
             {
                 if (this is IIncludeCreatorName creatorNameObj)
                 {
-                    var creatorName = EngineContext.Current.ClaimManager.GetUserName();
+                    var creatorName = EngineContext.Current.ClaimManager.IdentityClaim.UserName;
                     if (!string.IsNullOrEmpty(creatorName))
                     {
                         creatorNameObj.CreatorName = creatorName;
                     }
-                }  
+                }
 
                 if (this is IIncludeMultiTenantName multiTenantNameObj)
                 {
-                    var tenantName = EngineContext.Current.ClaimManager.GetTenantName();
+                    var tenantName = EngineContext.Current.ClaimManager.IdentityClaim.TenantName;
                     if (!string.IsNullOrEmpty(tenantName))
                     {
                         multiTenantNameObj.TenantName = tenantName;
                     }
                 }
 
-                var multiTenantPrperty = this.GetType().GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
+                var multiTenantPrperty = GetType().GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
                 if (multiTenantPrperty != null)
                 {
-                    var tenantIdStr = EngineContext.Current.ClaimManager.GetTenantId();
+                    var tenantIdStr = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
                     if (!string.IsNullOrEmpty(tenantIdStr))
                     {
                         var value = GirvsConvert.ToSpecifiedType(multiTenantPrperty.PropertyType.FullName,
@@ -78,19 +77,18 @@ namespace Girvs.BusinessBasis.Entities
                     }
                 }
 
-                var creatorPrperty = this.GetType().GetProperty(nameof(IIncludeCreatorId<object>.CreatorId));
+                var creatorPrperty = GetType().GetProperty(nameof(IIncludeCreatorId<object>.CreatorId));
                 if (creatorPrperty != null)
                 {
-                    var currentUserIdStr = EngineContext.Current.ClaimManager.GetUserId();
+                    var currentUserIdStr = EngineContext.Current.ClaimManager.IdentityClaim.UserId;
                     if (!string.IsNullOrEmpty(currentUserIdStr))
                     {
                         var value = GirvsConvert.ToSpecifiedType(creatorPrperty.PropertyType.FullName,
-                            EngineContext.Current.ClaimManager.GetUserId());
+                            currentUserIdStr);
                         creatorPrperty.SetValue(this, value);
                     }
                 }
             }
-
         }
 
         /// <summary>

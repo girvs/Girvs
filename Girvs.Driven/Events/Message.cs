@@ -16,10 +16,10 @@ namespace Girvs.Driven.Events
             try
             {
                 MessageSource = new MessageSource();
-                MessageSource.SourceName = EngineContext.Current.ClaimManager.GetUserName();
-                MessageSource.SourceNameId = EngineContext.Current.ClaimManager.GetUserId();
-                MessageSource.TenantId = EngineContext.Current.ClaimManager.GetTenantId();
-                MessageSource.TenantName = EngineContext.Current.ClaimManager.GetTenantName();
+                MessageSource.SourceName = EngineContext.Current.ClaimManager.IdentityClaim.UserName;
+                MessageSource.SourceNameId = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
+                MessageSource.TenantId = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
+                MessageSource.TenantName = EngineContext.Current.ClaimManager.IdentityClaim.TenantName;
                 if (EngineContext.Current != null && EngineContext.Current.HttpContext != null)
                 {
                     MessageSource.IpAddress =

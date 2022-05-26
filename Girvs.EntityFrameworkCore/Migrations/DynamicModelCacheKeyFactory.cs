@@ -9,7 +9,7 @@ namespace Girvs.EntityFrameworkCore
     {
         public object Create(DbContext context)
         {
-            var tenantId = EngineContext.Current.ClaimManager.GetTenantId();
+            var tenantId = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
             return context is GirvsDbContext
                 ? (context.GetType(), tenantId)
                 : (object) context.GetType();

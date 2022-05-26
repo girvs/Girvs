@@ -241,28 +241,12 @@ namespace Girvs.Infrastructure
         //     return new Claim(name, "");
         // }
 
-        public IClaimManager ClaimManager
+        public IGirvsClaimManager ClaimManager
         {
             get
             {
-                var claimManager = Resolve<IClaimManager>();
-                if (HttpContext?.User.Identity?.IsAuthenticated == true)
-                {
-                    claimManager.CurrentClaims = HttpContext.User.Claims;
-                    var identityType = claimManager.GetIdentityType();
-                    if (identityType == IdentityType.RegisterUser)
-                    {
-                        var tenantId = HttpContext.Request.Headers["TenantId"];
-                        var tenantName = HttpContext.Request.Headers["TenantName"];
-
-                        var userId = claimManager.GetUserId();
-                        var userName = claimManager.GetUserName();
-
-                        claimManager.CurrentClaims = claimManager.GenerateClaimsIdentity(userId, userName, tenantId,
-                            tenantName, IdentityType.RegisterUser).Claims;
-                    }
-                }
-
+                var claimManager = Resolve<IGirvsClaimManager>();
+                claimManager.SetFromHttpRequestToken();
                 return claimManager;
             }
         }

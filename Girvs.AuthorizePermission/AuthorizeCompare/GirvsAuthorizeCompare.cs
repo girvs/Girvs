@@ -59,7 +59,7 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             }
 
             //如果是前台或者事件，只添加租户判断
-            var identityType = EngineContext.Current.ClaimManager.GetIdentityType();
+            var identityType = EngineContext.Current.ClaimManager.IdentityClaim.IdentityType;
             if (identityType == IdentityType.RegisterUser || identityType == IdentityType.EventMessageUser)
             {
                 return expression;
