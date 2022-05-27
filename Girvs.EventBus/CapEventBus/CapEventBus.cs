@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNetCore.CAP;
@@ -22,12 +23,14 @@ namespace Girvs.EventBus.CapEventBus
             where TIntegrationEvent : IntegrationEvent
         {
             //传递身份信息头
-            var headers = EngineContext.Current.ClaimManager.IdentityClaim.OtherClaims;
+            var headers =
+                EngineContext.Current.ClaimManager.IdentityClaim?.OtherClaims ??
+                new Dictionary<string, string>();
 
             var topicName = @event.GetType().Name;
             _logger.LogInformation("Publishing event {@Event} to.{TopicName}", @event, topicName);
 
-            await _capPublisher.PublishAsync(topicName, (dynamic)@event, headers, @event.CancellationToken);
+            await _capPublisher.PublishAsync(topicName, (dynamic) @event, headers, @event.CancellationToken);
         }
     }
 }
