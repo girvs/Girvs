@@ -62,12 +62,19 @@ namespace Girvs.Infrastructure
             IdentityClaim.TenantName =
                 dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.TenantName);
 
-            IdentityClaim.IdentityType =
-                dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.IdentityType).ToEnum<IdentityType>();
+            var identityType = dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.IdentityType);
+            if (!identityType.IsNullOrEmpty())
+            {
+                IdentityClaim.IdentityType =
+                    identityType.ToEnum<IdentityType>();
+            }
 
-            IdentityClaim.SystemModule =
-                dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.ClaimSystemModule)
-                    .ToEnum<SystemModule>();
+            var systemModule = dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.ClaimSystemModule);
+
+            if (!systemModule.IsNullOrEmpty())
+            {
+                IdentityClaim.SystemModule = systemModule.ToEnum<SystemModule>();
+            }
         }
 
         public ClaimsIdentity BuildClaimsIdentity(GirvsIdentityClaim girvsIdentityClaim)
