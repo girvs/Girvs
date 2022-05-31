@@ -17,13 +17,13 @@ namespace Girvs.SignalR
                 if (signalRService.IsAbstract) continue;
                 var method = typeof(GirvsSignalREndpointRouteBuilderExtensions).GetMethod("GirvsMapHub")
                     ?.MakeGenericMethod(signalRService);
-                if (method != null) method.Invoke(null, new object[] { builder});
+                if (method != null) method.Invoke(null, new object[] {builder});
             }
         }
 
         public static void GirvsMapHub<THub>(this IEndpointRouteBuilder builder) where THub : Hub
         {
-            builder.MapHub<THub>(typeof(THub).Name);
+            builder.MapHub<THub>($"/hubs/{typeof(THub).Name}");
         }
     }
 }

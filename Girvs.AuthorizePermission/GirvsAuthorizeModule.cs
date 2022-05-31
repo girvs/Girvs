@@ -1,16 +1,10 @@
-﻿using System;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Girvs.AuthorizePermission.Configuration;
-using Girvs.Configuration;
-using Girvs.Extensions;
 using Girvs.Infrastructure;
-using Girvs.TypeFinder;
 using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -42,7 +36,7 @@ namespace Girvs.AuthorizePermission
                             ValidateIssuer = false,
                             ValidateAudience = false
                         };
-                        x.Events = TransferHeadToken();
+                        x.Events = new JwtBearerEvents();
                     });
             }
 
@@ -64,7 +58,7 @@ namespace Girvs.AuthorizePermission
                             ValidateIssuer = false,
                             ValidateAudience = false
                         };
-                        x.Events = TransferHeadToken();
+                        x.Events = new JwtBearerEvents();
                     });
                 // authenticationBuilder
                 //     .AddIdentityServerAuthentication(GirvsAuthenticationScheme.GirvsIdentityServer4, options =>
@@ -78,22 +72,6 @@ namespace Girvs.AuthorizePermission
                 //         options.IntrospectionDiscoveryPolicy.RequireKeySet = false;
                 //     });
             }
-        }
-
-        private JwtBearerEvents TransferHeadToken()
-        {
-           return new JwtBearerEvents()
-            {
-                OnMessageReceived = context =>
-                {
-                    var accessToken = context.HttpContext.Request.Query["access_token"].ToString();
-                    if (!accessToken.IsNullOrEmpty())
-                    {
-                        context.Token = accessToken;
-                    }
-                    return Task.CompletedTask;
-                }
-            };
         }
 
         public void Configure(IApplicationBuilder application)
