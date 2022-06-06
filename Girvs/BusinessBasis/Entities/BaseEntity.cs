@@ -43,9 +43,9 @@ namespace Girvs.BusinessBasis.Entities
             }
 
 
-            var httpContext = EngineContext.Current.HttpContext;
+            var identityClaim = EngineContext.Current.ClaimManager.IdentityClaim;
 
-            if (httpContext != null && httpContext.User != null && httpContext.User.Identity.IsAuthenticated)
+            if (identityClaim != null)
             {
                 if (this is IIncludeCreatorName creatorNameObj)
                 {
