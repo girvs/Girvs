@@ -5,16 +5,6 @@ using Girvs.BusinessBasis;
 
 namespace Girvs.Infrastructure
 {
-    public static class GirvsIdentityClaimTypes
-    {
-        public static string UserId = ClaimTypes.Sid;
-        public static string UserName = ClaimTypes.Name;
-        public static string TenantId = ClaimTypes.GroupSid;
-        public static string TenantName = ClaimTypes.GivenName;
-        public static string IdentityType = ClaimTypes.Locality;
-        public static string ClaimSystemModule = ClaimTypes.System;
-    }
-    
     public interface IGirvsClaimManager : IManager
     {
         string GetTenantId();
@@ -26,9 +16,9 @@ namespace Girvs.Infrastructure
         string GetTenantName();
 
         IdentityType GetIdentityType();
-        
-        GirvsIdentityClaim IdentityClaim { get; set;}
-        
+
+        GirvsIdentityClaim IdentityClaim { get; set; }
+
         void SetFromHttpRequestToken();
 
         void SetFromDictionary(Dictionary<string, string> dictionary);
@@ -36,6 +26,15 @@ namespace Girvs.Infrastructure
         ClaimsIdentity BuildClaimsIdentity(GirvsIdentityClaim girvsIdentityClaim);
     }
 
+    public static class GirvsIdentityClaimTypes
+    {
+        public static string UserId = ClaimTypes.Sid;
+        public static string UserName = ClaimTypes.Name;
+        public static string TenantId = ClaimTypes.GroupSid;
+        public static string TenantName = ClaimTypes.GivenName;
+        public static string IdentityType = ClaimTypes.Locality;
+        public static string ClaimSystemModule = ClaimTypes.System;
+    }
 
     public class GirvsIdentityClaim
     {
@@ -57,7 +56,7 @@ namespace Girvs.Infrastructure
         {
             return (T) GirvsConvert.ToSpecifiedType(typeof(T).FullName, UserId);
         }
-        
+
         public T GetTenantId<T>()
         {
             return (T) GirvsConvert.ToSpecifiedType(typeof(T).FullName, TenantId);

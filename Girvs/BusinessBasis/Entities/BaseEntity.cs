@@ -43,7 +43,7 @@ namespace Girvs.BusinessBasis.Entities
             }
 
 
-            var identityClaim = EngineContext.Current.ClaimManager.IdentityClaim;
+            var identityClaim = EngineContext.Current.ClaimManager?.IdentityClaim;
 
             if (identityClaim != null)
             {

@@ -22,7 +22,7 @@ namespace Girvs.Swagger
                     In = ParameterLocation.Header,
                     Scheme = "bearer"
                 });
-                
+
                 c.OperationFilter<AuthenticationRequirementsOperationFilter>();
                 c.DocumentFilter<SwaggerAddEnumDescriptions>();
 
@@ -32,7 +32,7 @@ namespace Girvs.Swagger
                 var xmlFiles = Directory.GetFiles(basePath, "*.xml");
                 foreach (var xmlFile in xmlFiles)
                 {
-                    c.IncludeXmlComments(xmlFile);
+                    c.IncludeXmlComments(xmlFile, true);
                 }
 
                 var serviceName = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");

@@ -246,7 +246,11 @@ namespace Girvs.Infrastructure
             get
             {
                 var claimManager = Resolve<IGirvsClaimManager>();
-                claimManager.SetFromHttpRequestToken();
+                if (claimManager != null)
+                {
+                    claimManager.SetFromHttpRequestToken();
+                }
+
                 return claimManager;
             }
         }
