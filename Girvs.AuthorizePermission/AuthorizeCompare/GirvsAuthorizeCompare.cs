@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -95,26 +96,62 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
 
             if (currentEntityDataRule != null)
             {
-                Expression<Func<TEntity, bool>> innerExpression = x => false;
-                foreach (var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels)
+                //临时解决方案 查找出所有为Or的字段条件
+                var orFields = typeof(TEntity).GetProperties().Where(x =>
                 {
-                    if (string.IsNullOrEmpty(dataRuleFieldModel.FieldValue))
-                        continue;
+                    var dataRule = x.GetCustomAttribute<DataRuleAttribute>();
+                    if (dataRule != null)
+                    {
+                        return dataRule.ConditionType == ConditionType.Or;
+                    }
 
-                    var fieldValues = dataRuleFieldModel.FieldValue.Split(',');
-                    var ex = BuilderBinaryExpression<TEntity>(
-                        dataRuleFieldModel.FieldName,
-                        dataRuleFieldModel.FieldType,
-                        dataRuleFieldModel.ExpressionType,
-                        fieldValues);
+                    return false;
+                }).Select(x => x.Name);
 
-                    innerExpression = innerExpression.Or(ex);
-                }
+                //先处理Or 的字段条件
 
-                expression = expression.And(innerExpression);
+                var orAuthorizeDataRuleFieldModels =
+                    currentEntityDataRule.AuthorizeDataRuleFieldModels.Where(x => orFields.Contains(x.FieldName));
+
+                var orExpression = SpliceCondition<TEntity>(orAuthorizeDataRuleFieldModels, ConditionType.Or);
+                expression =
+                    expression.And(orExpression);
+
+                //再处理And的字段条件
+
+                var andAuthorizeDataRuleFieldModels =
+                    currentEntityDataRule.AuthorizeDataRuleFieldModels.Where(x => !orFields.Contains(x.FieldName));
+                
+                var andExpression = SpliceCondition<TEntity>(andAuthorizeDataRuleFieldModels, ConditionType.And);
+                expression =
+                    expression.And(andExpression);
             }
 
             return expression;
+        }
+
+        private Expression<Func<TEntity, bool>> SpliceCondition<TEntity>(
+            IEnumerable<AuthorizeDataRuleFieldModel> dataRuleFieldModels, ConditionType conditionType)
+        {
+            Expression<Func<TEntity, bool>> innerExpression = x => false;
+            foreach (var dataRuleFieldModel in dataRuleFieldModels)
+            {
+                if (string.IsNullOrEmpty(dataRuleFieldModel.FieldValue))
+                    continue;
+
+                var fieldValues = dataRuleFieldModel.FieldValue.Split(',');
+                var ex = BuilderBinaryExpression<TEntity>(
+                    dataRuleFieldModel.FieldName,
+                    dataRuleFieldModel.FieldType,
+                    dataRuleFieldModel.ExpressionType,
+                    fieldValues);
+
+                innerExpression = conditionType == ConditionType.And
+                    ? innerExpression.And(ex)
+                    : innerExpression.Or(ex);
+            }
+
+            return innerExpression;
         }
 
         // private List<object> ConverFieldValueToArray(string fieldType, string fieldValue)
