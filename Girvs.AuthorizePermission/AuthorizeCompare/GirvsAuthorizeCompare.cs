@@ -97,43 +97,60 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
             if (currentEntityDataRule != null)
             {
                 //临时解决方案 查找出所有为Or的字段条件
-                var orFields = typeof(TEntity).GetProperties().Where(x =>
-                {
-                    var dataRule = x.GetCustomAttribute<DataRuleAttribute>();
-                    if (dataRule != null)
-                    {
-                        return dataRule.ConditionType == ConditionType.Or;
-                    }
-
-                    return false;
-                }).Select(x => x.Name);
-
+                var orFields = GetEntityDataRuleOrFields(typeof(TEntity));
                 //先处理Or 的字段条件
-
                 var orAuthorizeDataRuleFieldModels =
                     currentEntityDataRule.AuthorizeDataRuleFieldModels.Where(x => orFields.Contains(x.FieldName));
 
                 var orExpression = SpliceCondition<TEntity>(orAuthorizeDataRuleFieldModels, ConditionType.Or);
-                expression =
-                    expression.And(orExpression);
+                expression = expression.And(orExpression);
 
                 //再处理And的字段条件
 
                 var andAuthorizeDataRuleFieldModels =
                     currentEntityDataRule.AuthorizeDataRuleFieldModels.Where(x => !orFields.Contains(x.FieldName));
-                
+
                 var andExpression = SpliceCondition<TEntity>(andAuthorizeDataRuleFieldModels, ConditionType.And);
-                expression =
-                    expression.And(andExpression);
+                expression = expression.And(andExpression);
             }
 
             return expression;
         }
 
+        #region 获取实体中所有带Or的条件字段
+
+        private Dictionary<string, string[]> entityDataRuleOrFields = new Dictionary<string, string[]>();
+        private static object sync = new object();
+
+        private string[] GetEntityDataRuleOrFields(Type entityType)
+        {
+            lock (sync)
+            {
+                if (!entityDataRuleOrFields.ContainsKey(entityType.Name))
+                {
+                    var orFields = entityType.GetProperties().Where(x =>
+                    {
+                        var dataRule = x.GetCustomAttribute<DataRuleAttribute>();
+                        if (dataRule != null)
+                        {
+                            return dataRule.ConditionType == ConditionType.Or;
+                        }
+
+                        return false;
+                    }).Select(x => x.Name).ToArray();
+                    entityDataRuleOrFields.Add(entityType.Name, orFields);
+                }
+
+                return entityDataRuleOrFields[entityType.Name];
+            }
+        }
+
+        #endregion
+
         private Expression<Func<TEntity, bool>> SpliceCondition<TEntity>(
             IEnumerable<AuthorizeDataRuleFieldModel> dataRuleFieldModels, ConditionType conditionType)
         {
-            Expression<Func<TEntity, bool>> innerExpression = x => false;
+            Expression<Func<TEntity, bool>> innerExpression = x => conditionType == ConditionType.And;
             foreach (var dataRuleFieldModel in dataRuleFieldModels)
             {
                 if (string.IsNullOrEmpty(dataRuleFieldModel.FieldValue))
