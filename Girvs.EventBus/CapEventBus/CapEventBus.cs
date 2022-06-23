@@ -27,10 +27,12 @@ namespace Girvs.EventBus.CapEventBus
                 EngineContext.Current.ClaimManager.IdentityClaim?.OtherClaims ??
                 new Dictionary<string, string>();
 
+            var newHeaders = new Dictionary<string, string>(headers);
+
             var topicName = @event.GetType().Name;
             _logger.LogInformation("Publishing event {@Event} to.{TopicName}", @event, topicName);
 
-            await _capPublisher.PublishAsync(topicName, (dynamic) @event, headers, @event.CancellationToken);
+            await _capPublisher.PublishAsync(topicName, (dynamic) @event, newHeaders, @event.CancellationToken);
         }
     }
 }
