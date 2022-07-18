@@ -102,5 +102,14 @@ namespace Girvs.Cache.Caching
         /// <param name="key">自定义缓存键</param>
         /// <returns></returns>
         public static CacheKey BuideCustomize(string key) => new CacheKey(key);
+        
+        /// <summary>
+        /// 通过租户标识符获取缓存实体的键
+        /// </summary>
+        /// <remarks>
+        /// {0} : entity id
+        /// </remarks>
+        public static CacheKey ByTenantKeyCustomize =>
+            new CacheKey($"{EntityTypeName}{TenantKey}:{{0}}");
     }
 }

@@ -12,6 +12,23 @@ namespace Girvs.Extensions
     /// </summary>
     public static class StringExtensions
     {
+        public static string Base64Encode(this string content)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
+            return Convert.ToBase64String(bytes);
+        }
+
+        /// <summary>
+        /// 将base64格式，转换utf8
+        /// </summary>
+        /// <param name="content">解密内容</param>
+        /// <returns></returns>
+        public static string Base64Decode(this string content)
+        {
+            byte[] bytes = Convert.FromBase64String(content);
+            return Encoding.UTF8.GetString(bytes);
+        }
+
         /// <summary>
         /// Adds a char to end of given string if it does not ends with the char.
         /// </summary>
