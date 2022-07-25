@@ -38,8 +38,8 @@ namespace Girvs.AuthorizePermission
                     var tenantId = httpContext.Request.Headers[nameof(GirvsIdentityClaim.TenantId)];
                     var tenantName = httpContext.Request.Headers[nameof(GirvsIdentityClaim.TenantName)];
 
-                    claims.Add(GirvsIdentityClaimTypes.TenantId, tenantId);
-                    claims.Add(GirvsIdentityClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
+                    claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantId, tenantId);
+                    claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
                 }
 
                 SetFromDictionary(claims);
