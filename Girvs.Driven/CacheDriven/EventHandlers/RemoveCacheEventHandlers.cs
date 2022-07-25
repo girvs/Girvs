@@ -22,26 +22,25 @@ namespace Girvs.Driven.CacheDriven.EventHandlers
 
         public Task Handle(RemoveCacheEvent notification, CancellationToken cancellationToken)
         {
-            _staticCacheManager.Remove(notification.CacheKey);
-            return Task.CompletedTask;
+            return Task.Run(() => { _staticCacheManager.Remove(notification.CacheKey); }, cancellationToken);
         }
 
         public Task Handle(RemoveCacheListEvent notification, CancellationToken cancellationToken)
         {
-            _staticCacheManager.RemoveByPrefix(notification.PrefixKey.Key);
-            return Task.CompletedTask;
+            return Task.Run(() => { _staticCacheManager.RemoveByPrefix(notification.PrefixKey.Key); },
+                cancellationToken);
         }
 
         public Task Handle(SetCacheEvent notification, CancellationToken cancellationToken)
         {
-            _staticCacheManager.Set(notification.Key, notification.Object);
-            return Task.CompletedTask;
+            return Task.Run(() => { _staticCacheManager.Set(notification.Key, notification.Object); },
+                cancellationToken);
         }
 
         public Task Handle(RemoveCacheByPrefixEvent notification, CancellationToken cancellationToken)
         {
-            _staticCacheManager.RemoveByPrefix(notification.PrefixKey.Key);
-            return Task.CompletedTask;
+            return Task.Run(() => { _staticCacheManager.RemoveByPrefix(notification.PrefixKey.Key); },
+                cancellationToken);
         }
     }
 }
