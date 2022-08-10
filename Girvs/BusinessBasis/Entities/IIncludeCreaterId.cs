@@ -1,7 +1,6 @@
-﻿namespace Girvs.BusinessBasis.Entities
+﻿namespace Girvs.BusinessBasis.Entities;
+
+public interface IIncludeCreatorId<TUserKey>
 {
-    public interface IIncludeCreatorId<TUserKey> 
-    {
-        public TUserKey CreatorId { get; set; }
-    }
+    TUserKey CreatorId { get; set; }
 }

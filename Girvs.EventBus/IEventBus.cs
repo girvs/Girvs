@@ -1,10 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿namespace Girvs.EventBus;
 
-namespace Girvs.EventBus
+public interface IEventBus
 {
-    public interface IEventBus
-    {
-        Task PublishAsync<TIntegrationEvent>(TIntegrationEvent @event)
-            where TIntegrationEvent : IntegrationEvent;
-    }
+    Task PublishAsync<TIntegrationEvent>(TIntegrationEvent @event)
+        where TIntegrationEvent : IntegrationEvent;
 }

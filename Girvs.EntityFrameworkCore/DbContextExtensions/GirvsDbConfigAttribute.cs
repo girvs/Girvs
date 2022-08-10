@@ -1,15 +1,12 @@
-﻿using System;
+﻿namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
-namespace Girvs.EntityFrameworkCore.DbContextExtensions
+[AttributeUsage(AttributeTargets.Class)]
+public class GirvsDbConfigAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class GirvsDbConfigAttribute : Attribute
+    public GirvsDbConfigAttribute(string dbName)
     {
-        public GirvsDbConfigAttribute(string dbName)
-        {
-            DbName = dbName;
-        }
-
-        public string DbName { get; }
+        DbName = dbName;
     }
+
+    public string DbName { get; }
 }

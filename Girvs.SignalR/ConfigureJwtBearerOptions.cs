@@ -1,28 +1,24 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
+namespace Girvs.SignalR;
 
-namespace Girvs.SignalR
+public class ConfigureJwtBearerOptions: IPostConfigureOptions<JwtBearerOptions>
 {
-    public class ConfigureJwtBearerOptions: IPostConfigureOptions<JwtBearerOptions>
+    public void PostConfigure(string name, JwtBearerOptions options)
     {
-        public void PostConfigure(string name, JwtBearerOptions options)
+        var originalOnMessageReceived = options.Events.OnMessageReceived;
+        options.Events.OnMessageReceived = async context =>
         {
-            var originalOnMessageReceived = options.Events.OnMessageReceived;
-            options.Events.OnMessageReceived = async context =>
-            {
-                await originalOnMessageReceived(context);
+            await originalOnMessageReceived(context);
 
-                if (string.IsNullOrEmpty(context.Token))
+            if (string.IsNullOrEmpty(context.Token))
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs"))
                 {
-                    var accessToken = context.Request.Query["access_token"];
-                    var path = context.HttpContext.Request.Path;
-                    if (!string.IsNullOrEmpty(accessToken) &&
-                        path.StartsWithSegments("/hubs"))
-                    {
-                        context.Token = accessToken;
-                    }
+                    context.Token = accessToken;
                 }
-            };
-        }
+            }
+        };
     }
 }

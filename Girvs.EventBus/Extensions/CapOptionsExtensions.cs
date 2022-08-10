@@ -1,20 +1,15 @@
-﻿using DotNetCore.CAP;
-using Girvs.TypeFinder;
-using Microsoft.Extensions.DependencyInjection;
+﻿namespace Girvs.EventBus.Extensions;
 
-namespace Girvs.EventBus.Extensions
+public static class CapOptionsExtensions
 {
-    public static class CapOptionsExtensions
+    public static void AddCapSubscribe(this IServiceCollection services)
     {
-        public static void AddCapSubscribe(this IServiceCollection services)
-        {
-            var typeFinder = new WebAppTypeFinder();
-            var subscribes = typeFinder.FindOfType<ICapSubscribe>();
+        var typeFinder = new WebAppTypeFinder();
+        var subscribes = typeFinder.FindOfType<ICapSubscribe>();
 
-            foreach (var subscribe in subscribes)
-            {
-                services.AddScoped(subscribe);
-            }
+        foreach (var subscribe in subscribes)
+        {
+            services.AddScoped(subscribe);
         }
     }
 }

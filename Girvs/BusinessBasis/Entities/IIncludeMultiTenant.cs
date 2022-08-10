@@ -1,7 +1,6 @@
-﻿namespace Girvs.BusinessBasis.Entities
+﻿namespace Girvs.BusinessBasis.Entities;
+
+public interface IIncludeMultiTenant<TTenantKey>
 {
-    public interface IIncludeMultiTenant<TTenantKey>
-    {
-        public TTenantKey TenantId { get; set; }
-    }
+    TTenantKey TenantId { get; set; }
 }

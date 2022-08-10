@@ -1,26 +1,20 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
-using Quartz;
-using Quartz.Spi;
+﻿namespace Girvs.Quartz;
 
-namespace Girvs.Quartz
+public class SingletonJobFactory : IJobFactory
 {
-    public class SingletonJobFactory : IJobFactory
+    private readonly IServiceProvider _serviceProvider;
+    public SingletonJobFactory(IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider _serviceProvider;
-        public SingletonJobFactory(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
+        _serviceProvider = serviceProvider;
+    }
 
-        public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
-        {
-            return _serviceProvider.CreateScope().ServiceProvider.GetRequiredService(bundle.JobDetail.JobType) as IJob;
-        }
+    public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
+    {
+        return _serviceProvider.CreateScope().ServiceProvider.GetRequiredService(bundle.JobDetail.JobType) as IJob;
+    }
 
-        public void ReturnJob(IJob job)
-        {
-            (job as IDisposable)?.Dispose();
-        }
+    public void ReturnJob(IJob job)
+    {
+        (job as IDisposable)?.Dispose();
     }
 }

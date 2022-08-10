@@ -1,7 +1,6 @@
-﻿namespace Girvs.BusinessBasis
+﻿namespace Girvs.BusinessBasis;
+
+public interface IManager
 {
-    public interface IManager
-    {
         
-    }
 }

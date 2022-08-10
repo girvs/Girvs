@@ -1,34 +1,27 @@
-﻿using System;
-using System.Threading.Tasks;
-using Girvs.BusinessBasis.UoW;
-using Girvs.Driven.Bus;
-using Girvs.Driven.Notifications;
+﻿namespace Girvs.Driven.Commands;
 
-namespace Girvs.Driven.Commands
+public abstract class CommandHandler
 {
-    public abstract class CommandHandler
+    private readonly IUnitOfWork _uow;
+    private readonly IMediatorHandler _bus;
+
+    public CommandHandler(IUnitOfWork uow, IMediatorHandler bus)
     {
-        private readonly IUnitOfWork _uow;
-        private readonly IMediatorHandler _bus;
+        _uow = uow;
+        _bus = bus;
+    }
 
-        public CommandHandler(IUnitOfWork uow, IMediatorHandler bus)
+
+    protected void NotifyValidationErrors(Command message)
+    {
+        foreach (var error in message.ValidationResult.Errors)
         {
-            _uow = uow;
-            _bus = bus;
+            _bus.RaiseEvent(new DomainNotification("", error.ErrorMessage));
         }
+    }
 
-
-        protected void NotifyValidationErrors(Command message)
-        {
-            foreach (var error in message.ValidationResult.Errors)
-            {
-                _bus.RaiseEvent(new DomainNotification("", error.ErrorMessage));
-            }
-        }
-
-        public Task<bool> Commit()
-        {
-            return _uow.Commit();
-        }
+    public Task<bool> Commit()
+    {
+        return _uow.Commit();
     }
 }

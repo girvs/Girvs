@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>5.0.0-preview.1.6.9</Version>
     <PackageVersion>5.0.13-rc5</PackageVersion>
+    <LangVersion>10</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.38.0" />
-    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.38.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.47.0" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.47.0" />
   </ItemGroup>
 
 </Project>

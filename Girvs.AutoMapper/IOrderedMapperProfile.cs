@@ -1,7 +1,6 @@
-﻿namespace Girvs.AutoMapper
+﻿namespace Girvs.AutoMapper;
+
+public interface IOrderedMapperProfile
 {
-    public interface IOrderedMapperProfile
-    {
-        int Order { get; }
-    }
+    int Order { get; }
 }

@@ -1,9 +1,6 @@
-﻿using System;
+﻿namespace Girvs.BusinessBasis.Entities;
 
-namespace Girvs.BusinessBasis.Entities
+public interface IIncludeUpdateTime
 {
-    public interface IIncludeUpdateTime
-    {
-        public DateTime UpdateTime { get; set; }
-    }
+    DateTime UpdateTime { get; set; }
 }

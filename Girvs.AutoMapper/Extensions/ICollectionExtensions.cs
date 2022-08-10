@@ -1,15 +1,10 @@
-﻿using System.Collections;
-using AutoMapper;
-using Girvs.Infrastructure;
+﻿namespace Girvs.AutoMapper.Extensions;
 
-namespace Girvs.AutoMapper.Extensions
+public static class ICollectionExtensions
 {
-    public static class ICollectionExtensions
+    public static T MapTo<T>(this IEnumerable list)
     {
-        public static T MapTo<T>(this IEnumerable list)
-        {
-            var mapper = EngineContext.Current.Resolve<IMapper>();
-            return mapper.Map<T>(list);
-        }
+        var mapper = EngineContext.Current.Resolve<IMapper>();
+        return mapper.Map<T>(list);
     }
 }

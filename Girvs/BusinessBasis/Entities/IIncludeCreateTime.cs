@@ -1,9 +1,6 @@
-﻿using System;
+﻿namespace Girvs.BusinessBasis.Entities;
 
-namespace Girvs.BusinessBasis.Entities
+public interface IIncludeCreateTime
 {
-    public interface IIncludeCreateTime
-    {
-        public DateTime CreateTime { get; set; }
-    }
+    DateTime CreateTime { get; set; }
 }

@@ -1,8 +1,7 @@
-﻿namespace Girvs.EntityFrameworkCore.Enumerations
+﻿namespace Girvs.EntityFrameworkCore.Enumerations;
+
+public enum DataBaseWriteAndRead
 {
-    public enum DataBaseWriteAndRead
-    {
-        Read,
-        Write
-    }
+    Read,
+    Write
 }

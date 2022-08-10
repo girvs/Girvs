@@ -1,15 +1,12 @@
-﻿using System;
+﻿namespace Girvs.BusinessBasis.QueryTypeFields;
 
-namespace Girvs.BusinessBasis.QueryTypeFields
+[AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
+public class QuerySourceMemberAttribute: Attribute
 {
-    [AttributeUsage(AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
-    public class QuerySourceMemberAttribute: Attribute
+    public QuerySourceMemberAttribute(string name)
     {
-        public QuerySourceMemberAttribute(string name)
-        {
-            Name = name;
-        }
-
-        public string Name { get; private set; }
+        Name = name;
     }
+
+    public string Name { get; private set; }
 }

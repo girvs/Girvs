@@ -1,87 +1,80 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using Girvs.BusinessBasis.Entities;
-using Girvs.Extensions;
-using Girvs.Infrastructure;
+﻿namespace Girvs.BusinessBasis.Repositories;
 
-namespace Girvs.BusinessBasis.Repositories
+/// <summary>
+/// 底层数据查询过滤
+/// </summary>
+public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQueryCondition
 {
-    public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQueryCondition
+    private const string TenantFieldName = nameof(IIncludeMultiTenant<object>.TenantId);
+    public virtual bool ContainsPublicData { get; set; } = false;
+
+    protected virtual Expression<Func<TEntity, bool>> BuilderBinaryExpression<TEntity>(
+        string fieldName,
+        string fieldType,
+        ExpressionType expressionType = ExpressionType.Equal,
+        params object[] values
+    )
     {
-        protected readonly string tenantFieldName = nameof(IIncludeMultiTenant<object>.TenantId);
-        public virtual bool ContainsPublicData { get; set; } = false;
-
-        protected virtual Expression<Func<TEntity, bool>> BuilderBinaryExpression<TEntity>(
-            string fieldName,
-            string fieldType,
-            ExpressionType expressionType = ExpressionType.Equal,
-            params object[] values
-        )
-        {
-            Expression<Func<TEntity, bool>> expression = x => true;
+        Expression<Func<TEntity, bool>> expression = x => true;
             
-            if (!values.Any()) return expression;
+        if (!values.Any()) return expression;
             
-            Expression<Func<TEntity, bool>> internalExpression = null;
+        Expression<Func<TEntity, bool>> internalExpression = null;
 
-            foreach (var value in values)
-            {
-                var convertValue = GirvsConvert.ToSpecifiedType(fieldType, value);
-                var param = Expression.Parameter(typeof(TEntity), "entity");
-                var left = Expression.Property(param, fieldName);
-                var right = Expression.Constant(convertValue);
-                var be = Expression.MakeBinary(ExpressionType.Equal, left, right);
-
-                internalExpression = internalExpression == null ? 
-                    Expression.Lambda<Func<TEntity, bool>>(be, param) : 
-                    internalExpression.Or(Expression.Lambda<Func<TEntity, bool>>(be, param));
-            }
-
-            expression = expression.And(internalExpression);
-
-            return expression;
-        }
-
-        protected virtual Expression<Func<TEntity, bool>> BuilderTenantBinaryExpression<TEntity>(object tenantId = null)
-            where TEntity : Entity
+        foreach (var value in values)
         {
-            var propertyInfo = typeof(TEntity).GetProperty(tenantFieldName);
+            var convertValue = GirvsConvert.ToSpecifiedType(fieldType, value);
+            var param = Expression.Parameter(typeof(TEntity), "entity");
+            var left = Expression.Property(param, fieldName);
+            var right = Expression.Constant(convertValue);
+            var be = Expression.MakeBinary(ExpressionType.Equal, left, right);
 
-            Expression<Func<TEntity, bool>> expression = x => true;
-
-            if (propertyInfo != null)
-            {
-                var datas = new List<object>
-                {
-                    tenantId ?? EngineContext.Current.ClaimManager.IdentityClaim.TenantId
-                };
-
-                if (ContainsPublicData)
-                {
-                    datas.Add(Guid.Empty);
-                }
-
-                expression = BuilderBinaryExpression<TEntity>(
-                    tenantFieldName,
-                    propertyInfo.PropertyType.ToString(),
-                    ExpressionType.Equal,
-                    datas.ToArray());
-            }
-
-            return expression;
+            internalExpression = internalExpression == null ? 
+                Expression.Lambda<Func<TEntity, bool>>(be, param) : 
+                internalExpression.Or(Expression.Lambda<Func<TEntity, bool>>(be, param));
         }
 
-        protected virtual bool EnableOnTenant(Type entityType)
+        expression = expression.And(internalExpression);
+
+        return expression;
+    }
+
+    protected virtual Expression<Func<TEntity, bool>> BuilderTenantBinaryExpression<TEntity>(object tenantId = null)
+        where TEntity : Entity
+    {
+        var propertyInfo = typeof(TEntity).GetProperty(TenantFieldName);
+
+        Expression<Func<TEntity, bool>> expression = x => true;
+
+        if (propertyInfo is null) return expression;
+            
+        var data = new List<object>
         {
-            return entityType.GetProperty(tenantFieldName) != null;
+            tenantId ?? EngineContext.Current.ClaimManager.IdentityClaim.TenantId
+        };
+
+        if (ContainsPublicData)
+        {
+            data.Add(Guid.Empty);
         }
 
-        public virtual Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>() where TEntity : Entity
-        {
-            //默认判断如果存
-            return EnableOnTenant(typeof(TEntity)) ? BuilderTenantBinaryExpression<TEntity>() : x => true;
-        }
+        expression = BuilderBinaryExpression<TEntity>(
+            TenantFieldName,
+            propertyInfo.PropertyType.ToString(),
+            ExpressionType.Equal,
+            data.ToArray());
+
+        return expression;
+    }
+
+    protected virtual bool EnableOnTenant(Type entityType)
+    {
+        return entityType.GetProperty(TenantFieldName) != null;
+    }
+
+    public virtual Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>() where TEntity : Entity
+    {
+        //默认判断如果存
+        return EnableOnTenant(typeof(TEntity)) ? BuilderTenantBinaryExpression<TEntity>() : x => true;
     }
 }

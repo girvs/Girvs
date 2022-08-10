@@ -1,54 +1,44 @@
-﻿using System;
-using Girvs.Configuration;
-using Girvs.Consul.Configuration;
-using Girvs.Infrastructure;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Hosting;
-using NConsul;
+﻿namespace Girvs.Consul.Infrastructure.ApplicationExtensions;
 
-namespace Girvs.Consul.Infrastructure.ApplicationExtensions
+public static class WebApiApplicationExtensions
 {
-    public static class WebApiApplicationExtensions
+    public static void UseConsulByWebApi(this IApplicationBuilder app)
     {
-        public static void UseConsulByWebApi(this IApplicationBuilder app)
-        {
-            var appSettings = Singleton<AppSettings>.Instance;
-            var config = appSettings[nameof(ConsulConfig)] as ConsulConfig;
+        var config = Singleton<AppSettings>.Instance.Get<ConsulConfig>();
            
-            if (config.CurrentServerModel == ServerModel.WebApi)
+        if (config.CurrentServerModel == ServerModel.WebApi)
+        {
+            var lifetime = EngineContext.Current.Resolve<IHostApplicationLifetime>();
+            var consulClient =
+                new ConsulClient(configuration => configuration.Address = new Uri(config.ConsulAddress));
+
+            config.ServerName = string.IsNullOrEmpty(config.ServerName)
+                ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "_")
+                : config.ServerName;
+
+            var uri = new Uri(config.HealthAddress);
+
+            var registration = new AgentServiceRegistration
             {
-                var lifetime = EngineContext.Current.Resolve<IHostApplicationLifetime>();
-                var consulClient =
-                    new ConsulClient(configuration => configuration.Address = new Uri(config.ConsulAddress));
-
-                config.ServerName = string.IsNullOrEmpty(config.ServerName)
-                    ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "_")
-                    : config.ServerName;
-
-                var uri = new Uri(config.HealthAddress);
-
-                var registration = new AgentServiceRegistration
+                ID = Guid.NewGuid().ToString(),
+                Tags = new string[] {".net Core WebApiService"},
+                Name = config.ServerName,
+                Address = $"{uri.Host}",
+                Port = uri.Port,
+                Check = new AgentServiceCheck()
                 {
-                    ID = Guid.NewGuid().ToString(),
-                    Tags = new string[] {".net Core WebApiService"},
-                    Name = config.ServerName,
-                    Address = $"{uri.Host}",
-                    Port = uri.Port,
-                    Check = new AgentServiceCheck()
-                    {
-                        DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(config.DeregisterCriticalServiceAfter),
-                        Interval = TimeSpan.FromSeconds(config.Interval),
-                        HTTP = config.HealthAddress,
-                        Timeout = TimeSpan.FromSeconds(config.Timeout)
-                    }
-                };
+                    DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(config.DeregisterCriticalServiceAfter),
+                    Interval = TimeSpan.FromSeconds(config.Interval),
+                    HTTP = config.HealthAddress,
+                    Timeout = TimeSpan.FromSeconds(config.Timeout)
+                }
+            };
 
-                consulClient.Agent.ServiceRegister(registration).Wait();
-                lifetime.ApplicationStopping.Register(() =>
-                {
-                    consulClient.Agent.ServiceDeregister(registration.ID).Wait();
-                });
-            }
+            consulClient.Agent.ServiceRegister(registration).Wait();
+            lifetime.ApplicationStopping.Register(() =>
+            {
+                consulClient.Agent.ServiceDeregister(registration.ID).Wait();
+            });
         }
     }
 }

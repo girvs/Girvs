@@ -1,7 +1,6 @@
-namespace Girvs.BusinessBasis.Entities
+namespace Girvs.BusinessBasis.Entities;
+
+public interface IIncludeMultiTenantName
 {
-    public interface IIncludeMultiTenantName
-    {
-        string TenantName { get; set; }
-    }
+    string TenantName { get; set; }
 }

@@ -1,9 +1,6 @@
-﻿using FluentValidation;
+﻿namespace Girvs.Driven.Validations;
 
-namespace Girvs.Driven.Validations
+public abstract class GirvsCommandValidator<TCommand> : AbstractValidator<TCommand>
 {
-    public abstract class GirvsCommandValidator<TCommand> : AbstractValidator<TCommand>
-    {
-        public virtual bool IsErrorMessageDelay { get; set; } = false;
-    }
+    public virtual bool IsErrorMessageDelay { get; set; } = false;
 }

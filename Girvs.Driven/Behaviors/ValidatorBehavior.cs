@@ -1,22 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Text.Unicode;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentValidation;
-using Girvs.Driven.Bus;
-using Girvs.Driven.Notifications;
-using Girvs.Driven.Validations;
-using Girvs.Infrastructure;
-using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-
-namespace Girvs.Driven.Behaviors
+﻿namespace Girvs.Driven.Behaviors
 {
-    public class ValidatorBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class ValidatorBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
     {
         private readonly IMediatorHandler _mediator;
         private readonly ILogger<ValidatorBehavior<TRequest, TResponse>> _logger;

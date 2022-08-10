@@ -1,7 +1,6 @@
-﻿namespace Girvs.Grpc
+﻿namespace Girvs.Grpc;
+
+public interface IAppGrpcService
 {
-    public interface IAppGrpcService
-    {
         
-    }
 }

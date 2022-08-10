@@ -1,12 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿namespace Girvs.EntityFrameworkCore.Context;
 
-namespace Girvs.EntityFrameworkCore.Context
+public abstract class GirvsDbContext : DbContext
 {
-    public abstract class GirvsDbContext : DbContext
+    public GirvsDbContext(DbContextOptions options) : base(options)
     {
-        public GirvsDbContext(DbContextOptions options) : base(options)
-        {
 
-        }
     }
 }

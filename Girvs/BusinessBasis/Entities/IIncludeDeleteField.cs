@@ -1,7 +1,6 @@
-﻿namespace Girvs.BusinessBasis.Entities
+﻿namespace Girvs.BusinessBasis.Entities;
+
+public interface IIncludeDeleteField
 {
-    public interface IIncludeDeleteField
-    {
-        public bool IsDelete { get; set; }
-    }
+    bool IsDelete { get; set; }
 }

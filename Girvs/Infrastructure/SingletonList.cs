@@ -1,14 +1,18 @@
-﻿using System.Collections.Generic;
+﻿namespace Girvs.Infrastructure;
 
-namespace Girvs.Infrastructure
+/// <summary>
+/// Provides a singleton list for a certain type.
+/// </summary>
+/// <typeparam name="T">The type of list to store.</typeparam>
+public class SingletonList<T> : Singleton<IList<T>>
 {
-    public class SingletonList<T> : Singleton<IList<T>>
+    static SingletonList()
     {
-        static SingletonList()
-        {
-            Singleton<IList<T>>.Instance = new List<T>();
-        }
-
-        public static new IList<T> Instance => Singleton<IList<T>>.Instance;
+        Singleton<IList<T>>.Instance = new List<T>();
     }
+
+    /// <summary>
+    /// The singleton instance for the specified type T. Only one instance (at the time) of this list for each type of T.
+    /// </summary>
+    public new static IList<T> Instance => Singleton<IList<T>>.Instance;
 }

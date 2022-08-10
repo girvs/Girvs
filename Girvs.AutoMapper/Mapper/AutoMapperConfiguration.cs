@@ -1,30 +1,27 @@
-﻿using AutoMapper;
+﻿namespace Girvs.AutoMapper.Mapper;
 
-namespace Girvs.AutoMapper.Mapper
+/// <summary>
+/// AutoMapper configuration
+/// </summary>
+public static class AutoMapperConfiguration
 {
     /// <summary>
-    /// AutoMapper configuration
+    /// Mapper
     /// </summary>
-    public static class AutoMapperConfiguration
+    public static IMapper Mapper { get; private set; }
+
+    /// <summary>
+    /// Mapper configuration
+    /// </summary>
+    public static MapperConfiguration MapperConfiguration { get; private set; }
+
+    /// <summary>
+    /// Initialize mapper
+    /// </summary>
+    /// <param name="config">Mapper configuration</param>
+    public static void Init(MapperConfiguration config)
     {
-        /// <summary>
-        /// Mapper
-        /// </summary>
-        public static IMapper Mapper { get; private set; }
-
-        /// <summary>
-        /// Mapper configuration
-        /// </summary>
-        public static MapperConfiguration MapperConfiguration { get; private set; }
-
-        /// <summary>
-        /// Initialize mapper
-        /// </summary>
-        /// <param name="config">Mapper configuration</param>
-        public static void Init(MapperConfiguration config)
-        {
-            MapperConfiguration = config;
-            Mapper = config.CreateMapper();
-        }
+        MapperConfiguration = config;
+        Mapper = config.CreateMapper();
     }
 }

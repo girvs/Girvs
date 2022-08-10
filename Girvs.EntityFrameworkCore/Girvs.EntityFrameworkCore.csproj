@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Version>5.0.0-preview.1.6.9</Version>
         <PackageVersion>5.0.13-rc5</PackageVersion>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,19 +14,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.13" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.13" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="5.0.13" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.13" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.13" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.13" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.13" />
-        <PackageReference Include="Oracle.EntityFrameworkCore" Version="5.21.4" />
-        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.4" />
-        <PackageReference Include="Zack.EFCore.Batch.MySQL.Pomelo" Version="1.5.8" />
-        <PackageReference Include="Zack.EFCore.Batch.MSSQL" Version="1.5.8" />
-        <PackageReference Include="Zack.EFCore.Batch.Oracle" Version="1.5.8" />
-        <PackageReference Include="Zack.EFCore.Batch.Sqlite" Version="1.5.8" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0-preview.7.22376.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.0-preview.7.22376.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.0-preview.7.22376.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.0-preview.7.22376.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0-preview.7.22376.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0-preview.7.22376.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.0-preview.7.22376.2" />
+        <PackageReference Include="Oracle.EntityFrameworkCore" Version="6.21.61" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
     </ItemGroup>
 
     <ItemGroup>

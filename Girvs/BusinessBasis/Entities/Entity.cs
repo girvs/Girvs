@@ -1,7 +1,5 @@
-﻿namespace Girvs.BusinessBasis.Entities
+﻿namespace Girvs.BusinessBasis.Entities;
+
+public abstract class Entity
 {
-    public abstract class Entity
-    {
-        
-    }
 }

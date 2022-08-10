@@ -1,45 +1,25 @@
-﻿using System;
-using System.Linq;
-using FluentValidation.Results;
-using Girvs.Driven.Events;
-using Girvs.Extensions;
-using Girvs.Infrastructure;
+﻿namespace Girvs.Driven.Commands;
 
-namespace Girvs.Driven.Commands
+public record Command(string CommandDesc, string OperateIpAddress, DateTime Timestamp,
+    ValidationResult ValidationResult) : Message
 {
-    public abstract class Command : Message
+    public Command(string commandDesc) : this(commandDesc, null, DateTime.Now, null)
     {
-        public abstract string CommandDesc { get; set; }
-
-        public virtual string OperateIpAddress
+        if (EngineContext.Current.HttpContext != null)
         {
-            get
-            {
-                if (EngineContext.Current.HttpContext != null)
-                {
-                    return EngineContext.Current.HttpContext.Request.GetApiGateWayRemoteIpAddress();
-                }
-
-                var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
-                var ip = addressList
-                    .FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                    ?.ToString();
-                return ip;
-            }
+            OperateIpAddress = EngineContext.Current.HttpContext.Request.GetApiGateWayRemoteIpAddress();
         }
-
-        public DateTime Timestamp { get; private set; }
-
-        public ValidationResult ValidationResult { get; set; }
-
-        protected Command()
+        else
         {
-            Timestamp = DateTime.Now;
+            var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
+            OperateIpAddress = addressList
+                .FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                ?.ToString();
         }
+    }
 
-        public virtual bool IsValid()
-        {
-            return true;
-        }
+    public virtual bool IsValid()
+    {
+        return true;
     }
 }

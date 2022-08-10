@@ -1,22 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>5.0.0-preview.1.6.9</Version>
     <PackageVersion>5.0.13-rc5</PackageVersion>
+    <LangVersion>10</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetCore.CAP" Version="5.2.0" />
-    <PackageReference Include="DotNetCore.CAP.Dashboard" Version="5.2.0" />
-    <PackageReference Include="DotNetCore.CAP.Kafka" Version="5.2.0" />
-    <PackageReference Include="DotNetCore.CAP.MySql" Version="5.2.0" />
-    <PackageReference Include="DotNetCore.CAP.Oracle" Version="5.0.3.4" />
-    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="5.2.0" />
-    <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="5.2.0" />
-    <PackageReference Include="DotNetCore.CAP.Sqlite" Version="5.2.0" />
-    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="5.2.0" />
+    <PackageReference Include="DotNetCore.CAP" Version="6.1.0" />
+    <PackageReference Include="DotNetCore.CAP.Dashboard" Version="6.1.0" />
+    <PackageReference Include="DotNetCore.CAP.Kafka" Version="6.1.0" />
+    <PackageReference Include="DotNetCore.CAP.MySql" Version="6.1.0" />
+    <PackageReference Include="DotNetCore.CAP.Oracle" Version="6.0.1" />
+    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="6.1.0" />
+    <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="6.1.0" />
+    <PackageReference Include="DotNetCore.CAP.Sqlite" Version="6.1.0" />
+    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="6.1.0" />
   </ItemGroup>
 
   <ItemGroup>

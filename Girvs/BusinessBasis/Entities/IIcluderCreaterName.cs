@@ -1,7 +1,6 @@
-﻿namespace Girvs.BusinessBasis.Entities
+﻿namespace Girvs.BusinessBasis.Entities;
+
+public interface IIncludeCreatorName
 {
-    public interface IIncludeCreatorName
-    {
-        public string CreatorName { get; set; }
-    }
+    string CreatorName { get; set; }
 }

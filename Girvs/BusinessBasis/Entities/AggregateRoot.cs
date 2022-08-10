@@ -1,15 +1,14 @@
-﻿namespace Girvs.BusinessBasis.Entities
+﻿namespace Girvs.BusinessBasis.Entities;
+
+public abstract class AggregateRoot<TPrimaryKey> : BaseEntity<TPrimaryKey>
 {
-    public abstract class AggregateRoot<TPrimaryKey> : BaseEntity<TPrimaryKey>
+    public virtual void Merge(AggregateRoot<TPrimaryKey> obj)
     {
-        public virtual void Merge(AggregateRoot<TPrimaryKey> obj)
+        var ps = this.GetType().GetProperties();
+        foreach (var propertyInfo in ps)
         {
-            var ps = this.GetType().GetProperties();
-            foreach (var propertyInfo in ps)
-            {
-                var oldValue = propertyInfo.GetValue(this);
-                var newValue = propertyInfo.GetValue(obj);
-            }
+            var oldValue = propertyInfo.GetValue(this);
+            var newValue = propertyInfo.GetValue(obj);
         }
     }
 }

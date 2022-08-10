@@ -1,7 +1,6 @@
-﻿namespace Girvs.BusinessBasis.Entities
+﻿namespace Girvs.BusinessBasis.Entities;
+
+public interface IIncludeInitField
 {
-    public interface IIncludeInitField
-    {
-        public bool IsInitData { get; set; }
-    }
+    bool IsInitData { get; set; }
 }

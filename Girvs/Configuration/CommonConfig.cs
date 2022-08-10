@@ -1,7 +1,6 @@
-﻿namespace Girvs.Configuration
+﻿namespace Girvs.Configuration;
+
+public class CommonConfig : IConfig
 {
-    public class CommonConfig : IConfig
-    {
-        public bool DisplayFullErrorStack { get; set; } = false;
-    }
+    public bool DisplayFullErrorStack { get; set; } = false;
 }

@@ -1,15 +1,8 @@
-﻿using System;
-using MediatR;
+﻿namespace Girvs.Driven.Events;
 
-namespace Girvs.Driven.Events
+public record Event(DateTime Timestamp) : Message, INotification
 {
-    public abstract class Event : Message, INotification
+    public Event() : this(DateTime.Now)
     {
-        public DateTime Timestamp { get; private set; }
-
-        protected Event()
-        {
-            Timestamp = DateTime.Now;
-        }
     }
 }

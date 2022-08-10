@@ -1,14 +1,3 @@
-﻿using Girvs.Driven.Events;
+﻿namespace Girvs.Driven.CacheDriven.Commands;
 
-namespace Girvs.Driven.CacheDriven.Commands
-{
-    public class RemoveByPrefixCommand:Message
-    {
-        public RemoveByPrefixCommand(string prefix)
-        {
-            Prefix = prefix;
-        }
-
-        public string Prefix { get;private set; }
-    }
-}
+public record RemoveByPrefixCommand(string Prefix) : Message;

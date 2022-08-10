@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using Girvs.Extensions;
 
 namespace Girvs.BusinessBasis.Queries
 {

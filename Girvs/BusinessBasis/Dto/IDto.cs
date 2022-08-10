@@ -1,7 +1,5 @@
-﻿namespace Girvs.BusinessBasis.Dto
+﻿namespace Girvs.BusinessBasis.Dto;
+
+public interface IDto
 {
-    public interface IDto
-    {
-        
-    }
 }

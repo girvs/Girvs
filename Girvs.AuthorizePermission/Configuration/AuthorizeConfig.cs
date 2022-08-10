@@ -1,4 +1,3 @@
-using System;
 using Girvs.Configuration;
 
 namespace Girvs.AuthorizePermission.Configuration
