@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.Design.Internal;
+
 namespace Girvs.EntityFrameworkCore.Migrations;
 
 public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator

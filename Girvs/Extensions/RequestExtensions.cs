@@ -15,7 +15,7 @@ public static class RequestExtensions
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
         var userAgent = request.UserAgent();
-        if ((b.IsMatch(userAgent) || v.IsMatch(userAgent.AsSpan(0, 4))))
+        if ((b.IsMatch(userAgent) || v.IsMatch(userAgent[..4])))
         {
             return true;
         }

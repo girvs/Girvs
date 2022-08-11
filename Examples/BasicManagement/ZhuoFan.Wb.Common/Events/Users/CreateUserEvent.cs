@@ -1,11 +1,9 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Girvs.AuthorizePermission.Enumerations;
-using Girvs.EventBus;
 
 namespace ZhuoFan.Wb.Common.Events.Users
 {
-    public class CreateUserEvent : IntegrationEvent
+    public record CreateUserEvent : IntegrationEvent
     {
         public string UserAccount { get; set; }
 

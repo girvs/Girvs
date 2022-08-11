@@ -1,11 +1,9 @@
-﻿using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.Examinees
+﻿namespace ZhuoFan.Wb.Common.Events.Examinees
 {
     /// <summary>
     /// 修改报考考生事件
     /// </summary>
-    public class ExamineeUpdateEvent : IntegrationEvent
+    public record ExamineeUpdateEvent : IntegrationEvent
     {
         public ExamineeUpdateEvent()
         {

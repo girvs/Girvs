@@ -1,9 +1,6 @@
-﻿using System;
-using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.Organizations
+﻿namespace ZhuoFan.Wb.Common.Events.Organizations
 {
-    public class EditUnitEvent : IntegrationEvent
+    public record EditUnitEvent : IntegrationEvent
     {
         public EditUnitEvent()
         {

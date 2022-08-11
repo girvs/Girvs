@@ -1,9 +1,6 @@
-﻿using Girvs.EventBus;
-using System;
-
-namespace ZhuoFan.Wb.Common.Events.OrderManagement
+﻿namespace ZhuoFan.Wb.Common.Events.OrderManagement
 {
-    public class CreateOrderEvent : IntegrationEvent
+    public record CreateOrderEvent : IntegrationEvent
     {
         public CreateOrderEvent()
         {

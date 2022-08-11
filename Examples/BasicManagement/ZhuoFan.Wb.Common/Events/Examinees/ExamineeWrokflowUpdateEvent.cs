@@ -1,10 +1,8 @@
-﻿using Girvs.EventBus;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace ZhuoFan.Wb.Common.Events.Examinees
 {
-    public class ExamineeWrokflowUpdateEvent : IntegrationEvent
+    public record ExamineeWrokflowUpdateEvent : IntegrationEvent
     {
         public ExamineeWrokflowUpdateEvent()
         {

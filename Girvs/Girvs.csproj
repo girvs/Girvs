@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>5.0.0-rc1</Version>
     <PackageVersion>5.0.13-rc5</PackageVersion>
@@ -11,12 +11,12 @@
   <ItemGroup>
     <PackageReference Include="LogDashboard" Version="1.4.8" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
-    <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="9.0.0-beta7" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.1-dev-00337" />
+    <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="8.4.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
     <PackageReference Include="Serilog.Sinks.AliyunLog" Version="1.1.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.2-dev-00890" />
-    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.0-beta7" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.1-dev-00947" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,12 +1,9 @@
-﻿using Girvs.EventBus;
-using System;
-
-namespace ZhuoFan.Wb.Common.Events.Organizations
+﻿namespace ZhuoFan.Wb.Common.Events.Organizations
 {
     /// <summary>
     /// 职位修改事件
     /// </summary>
-    public class EditPositionEvent : IntegrationEvent
+    public record EditPositionEvent : IntegrationEvent
     {
         public EditPositionEvent()
         {

@@ -1,9 +1,6 @@
-﻿using System;
-using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.Informations
+﻿namespace ZhuoFan.Wb.Common.Events.Informations
 {
-    public class UpdateInformationItemEvent : IntegrationEvent
+    public record UpdateInformationItemEvent : IntegrationEvent
     {
         public UpdateInformationItemEvent()
         {

@@ -1,13 +1,10 @@
-﻿using System;
-using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.ExamAreas
+﻿namespace ZhuoFan.Wb.Common.Events.ExamAreas
 {
     /// <summary>
     /// 考区修改事件
     /// 暂时没用
     /// </summary>
-    public class EditExamAreaEvent : IntegrationEvent
+    public record EditExamAreaEvent : IntegrationEvent
     {
         /// <summary>
         /// 考区Id

@@ -1,14 +1,11 @@
-﻿using Girvs.EventBus;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ZhuoFan.Wb.Common.Events.Message
 {
-    public class PublishMessageEvent: IntegrationEvent
+    public record PublishMessageEvent: IntegrationEvent
     {
         /// <summary>
         /// 标题

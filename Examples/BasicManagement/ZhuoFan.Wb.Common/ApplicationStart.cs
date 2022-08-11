@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
-using DotNetCore.CAP;
 using Girvs.AuthorizePermission.Services;
-using Girvs.EventBus;
-using Girvs.EventBus.Extensions;
-using Girvs.Infrastructure;
 using Microsoft.AspNetCore.Builder;
-using ZhuoFan.Wb.Common.Events.Authorize;
 
 namespace ZhuoFan.Wb.Common
 {

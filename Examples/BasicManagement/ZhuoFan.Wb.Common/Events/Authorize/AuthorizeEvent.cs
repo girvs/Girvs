@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using Girvs.AuthorizePermission;
-using Girvs.EventBus;
 
 namespace ZhuoFan.Wb.Common.Events.Authorize
 {
-    public class AuthorizeEvent: IntegrationEvent
+    public record AuthorizeEvent: IntegrationEvent
     {
         public AuthorizeEvent()
         {

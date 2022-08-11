@@ -1,13 +1,11 @@
-﻿using Girvs.EventBus;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace ZhuoFan.Wb.Common.Events.Examinees
 {
     /// <summary>
     /// 添加报考考生事件
     /// </summary>
-    public class ExamineeWorkflowCreateEvent : IntegrationEvent
+    public record ExamineeWorkflowCreateEvent : IntegrationEvent
     {
         public ExamineeWorkflowCreateEvent()
         {

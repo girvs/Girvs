@@ -29,14 +29,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.AuthorizePermission",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{D31B803C-F857-4967-A4D0-8DC1F32D3EB2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZhuoFan.Wb.BasicService.WebApi", "Examples\BasicManagement\ZhuoFan.Wb.BasicService.WebApi\ZhuoFan.Wb.BasicService.WebApi.csproj", "{9E35760E-6834-4341-9AF5-BD055D1901FF}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZhuoFan.Wb.BasicService.Infrastructure", "Examples\BasicManagement\ZhuoFan.Wb.BasicService.Infrastructure\ZhuoFan.Wb.BasicService.Infrastructure.csproj", "{56AC9A6B-6E6B-4B56-A9E0-7881C8A5B3A4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZhuoFan.Wb.BasicService.Domain", "Examples\BasicManagement\ZhuoFan.Wb.BasicService.Domain\ZhuoFan.Wb.BasicService.Domain.csproj", "{A584A65C-63CD-4EB4-8B83-74B8436264A0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZhuoFan.Wb.BasicService.Application", "Examples\BasicManagement\ZhuoFan.Wb.BasicService.Application\ZhuoFan.Wb.BasicService.Application.csproj", "{6AE33B19-8DE1-4DB2-BE90-FC276AC92D9C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.EventBus", "Girvs.EventBus\Girvs.EventBus.csproj", "{3D834B05-773E-4172-943F-EB08B7A8857B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Refit", "Girvs.Refit\Girvs.Refit.csproj", "{F7B481C8-6877-4E9E-848B-686F891E469A}"
@@ -97,22 +89,6 @@ Global
 		{4AF3EE93-D489-453E-B13D-7706340A8ADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4AF3EE93-D489-453E-B13D-7706340A8ADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4AF3EE93-D489-453E-B13D-7706340A8ADB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9E35760E-6834-4341-9AF5-BD055D1901FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9E35760E-6834-4341-9AF5-BD055D1901FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9E35760E-6834-4341-9AF5-BD055D1901FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9E35760E-6834-4341-9AF5-BD055D1901FF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{56AC9A6B-6E6B-4B56-A9E0-7881C8A5B3A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{56AC9A6B-6E6B-4B56-A9E0-7881C8A5B3A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{56AC9A6B-6E6B-4B56-A9E0-7881C8A5B3A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{56AC9A6B-6E6B-4B56-A9E0-7881C8A5B3A4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A584A65C-63CD-4EB4-8B83-74B8436264A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A584A65C-63CD-4EB4-8B83-74B8436264A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A584A65C-63CD-4EB4-8B83-74B8436264A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A584A65C-63CD-4EB4-8B83-74B8436264A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6AE33B19-8DE1-4DB2-BE90-FC276AC92D9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6AE33B19-8DE1-4DB2-BE90-FC276AC92D9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6AE33B19-8DE1-4DB2-BE90-FC276AC92D9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6AE33B19-8DE1-4DB2-BE90-FC276AC92D9C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3D834B05-773E-4172-943F-EB08B7A8857B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3D834B05-773E-4172-943F-EB08B7A8857B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D834B05-773E-4172-943F-EB08B7A8857B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -130,10 +106,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{9E35760E-6834-4341-9AF5-BD055D1901FF} = {D31B803C-F857-4967-A4D0-8DC1F32D3EB2}
-		{56AC9A6B-6E6B-4B56-A9E0-7881C8A5B3A4} = {D31B803C-F857-4967-A4D0-8DC1F32D3EB2}
-		{A584A65C-63CD-4EB4-8B83-74B8436264A0} = {D31B803C-F857-4967-A4D0-8DC1F32D3EB2}
-		{6AE33B19-8DE1-4DB2-BE90-FC276AC92D9C} = {D31B803C-F857-4967-A4D0-8DC1F32D3EB2}
 		{3D37E565-328E-4FFF-AB86-009A42FB7B70} = {D31B803C-F857-4967-A4D0-8DC1F32D3EB2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

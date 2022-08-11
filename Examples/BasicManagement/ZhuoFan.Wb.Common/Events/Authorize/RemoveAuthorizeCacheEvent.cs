@@ -1,8 +1,6 @@
-﻿using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.Authorize
+﻿namespace ZhuoFan.Wb.Common.Events.Authorize
 {
-    public class RemoveAuthorizeCacheEvent: IntegrationEvent
+    public record RemoveAuthorizeCacheEvent: IntegrationEvent
     {
         
     }

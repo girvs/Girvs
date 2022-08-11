@@ -1,9 +1,6 @@
-﻿using Girvs.EventBus;
-using System;
-
-namespace ZhuoFan.Wb.Common.Events.Examinees
+﻿namespace ZhuoFan.Wb.Common.Events.Examinees
 {
-    public class ExamineeWrokflowDiscardEvent : IntegrationEvent
+    public record ExamineeWrokflowDiscardEvent : IntegrationEvent
     {
         public ExamineeWrokflowDiscardEvent()
         {

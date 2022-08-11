@@ -1,8 +1,6 @@
-﻿using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.Workflows
+﻿namespace ZhuoFan.Wb.Common.Events.Workflows
 {
-    public class UpdatePaymentStatusEvent : IntegrationEvent
+    public record UpdatePaymentStatusEvent : IntegrationEvent
     {
         public UpdatePaymentStatusEvent()
         {

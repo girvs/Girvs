@@ -27,30 +27,15 @@ public class GirvsAuthorizePermissionService : IGirvsAuthorizePermissionService
                     methodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute)) as
                         ServiceMethodPermissionDescriptorAttribute;
 
-                if (operationPermissionModels.Any(x=>x.OperationName == smpd.MethodName))
+                if (operationPermissionModels.Any(x => x.OperationName == smpd.MethodName))
                     continue;
-                    
-                operationPermissionModels.Add(new OperationPermissionModel()
-                {
-                    OperationName = smpd.MethodName,
-                    Permission = smpd.Permission,
-                    UserType = smpd.UserType,
-                    SystemModule = smpd.SystemModule,
-                    OtherParams = smpd.OtherParams
-                });
+
+                operationPermissionModels.Add(new OperationPermissionModel(smpd.MethodName, smpd.Permission,
+                    smpd.UserType, spd.SystemModule, smpd.OtherParams));
             }
 
-            return new AuthorizePermissionModel
-            {
-                Tag = spd.Tag,
-                Order = spd.Order,
-                ServiceName = spd.ServiceName,
-                ServiceId = spd.ServiceId,
-                SystemModule = spd.SystemModule,
-                OtherParams = spd.OtherParams,
-                OperationPermissionModels = operationPermissionModels
-                // Permissions = permissions
-            };
+            return new AuthorizePermissionModel(spd.ServiceName, spd.ServiceId, spd.Tag, 0, spd.SystemModule,
+                spd.OtherParams, operationPermissionModels, null);
         }).ToList();
 
         return Task.FromResult(list);
@@ -70,13 +55,13 @@ public class GirvsAuthorizePermissionService : IGirvsAuthorizePermissionService
 
             if (entityDataRuleAttribute == null) continue;
 
-            var model = new AuthorizeDataRuleModel
-            {
-                Tag = entityDataRuleAttribute.Tag,
-                Order = entityDataRuleAttribute.Order,
-                EntityTypeName = entity.FullName,
-                EntityDesc = entityDataRuleAttribute.AttributeDesc
-            };
+            var model = new AuthorizeDataRuleModel(
+                entityDataRuleAttribute.AttributeDesc,
+                entity.FullName,
+                entityDataRuleAttribute.Tag,
+                entityDataRuleAttribute.Order,
+                new List<AuthorizeDataRuleFieldModel>()
+            );
 
             var properties = entity.GetProperties();
 
@@ -85,13 +70,15 @@ public class GirvsAuthorizePermissionService : IGirvsAuthorizePermissionService
                 var propertyDataRuleAttribute = property.GetCustomAttribute<DataRuleAttribute>();
                 if (propertyDataRuleAttribute == null) continue;
 
-                model.AuthorizeDataRuleFieldModels.Add(new AuthorizeDataRuleFieldModel()
-                {
-                    FieldName = property.Name,
-                    FieldType = property.PropertyType.ToString(),
-                    FieldDesc = propertyDataRuleAttribute.AttributeDesc,
-                    UserType = propertyDataRuleAttribute.UserType
-                });
+                model.AuthorizeDataRuleFieldModels.Add(
+                    new AuthorizeDataRuleFieldModel(
+                        propertyDataRuleAttribute.UserType,
+                        property.Name,
+                        propertyDataRuleAttribute.AttributeDesc,
+                        property.PropertyType.ToString(),
+                        string.Empty,
+                        ExpressionType.And
+                    ));
             }
 
             authorizeDataRuleList.Add(model);

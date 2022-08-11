@@ -24,7 +24,7 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
     {
         //return (EngineContext.Current.ClaimManager?.CurrentClaims ?? Array.Empty<Claim>()).Any();
         var httpContext = EngineContext.Current.HttpContext;
-        return httpContext?.User.Identity != null 
+        return httpContext?.User.Identity != null
                && httpContext.User.Identity.IsAuthenticated;
     }
 
@@ -59,7 +59,10 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
             return expression;
         }
 
-        var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel();
+        var currentUserAuthorize = GetCurrnetUserAuthorize() ??
+                                   new AuthorizeModel(new List<AuthorizeDataRuleModel>(),
+                                       new List<AuthorizePermissionModel>());
+        
         var dataRuleModels = currentUserAuthorize.AuthorizeDataRules;
 
         if (dataRuleModels == null)
@@ -165,7 +168,8 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
 
     public virtual bool PermissionCompare(Guid functionId, Permission permission)
     {
-        var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel();
+        var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel(new List<AuthorizeDataRuleModel>(),
+            new List<AuthorizePermissionModel>());
 
         var ps = currentUserAuthorize.AuthorizePermissions;
 

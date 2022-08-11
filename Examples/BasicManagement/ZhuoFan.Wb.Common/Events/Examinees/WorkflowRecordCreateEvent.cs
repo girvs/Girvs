@@ -1,7 +1,4 @@
-﻿using Girvs.EventBus;
-using System;
-
-namespace ZhuoFan.Wb.Common.Events.Examinees
+﻿namespace ZhuoFan.Wb.Common.Events.Examinees
 {
     public class WorkflowRecordEvent
     {

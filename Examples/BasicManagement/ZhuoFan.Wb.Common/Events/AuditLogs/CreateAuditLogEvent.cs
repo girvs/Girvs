@@ -1,9 +1,6 @@
-﻿using System;
-using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.AuditLogs
+﻿namespace ZhuoFan.Wb.Common.Events.AuditLogs
 {
-    public class CreateAuditLogEvent : IntegrationEvent
+    public record CreateAuditLogEvent : IntegrationEvent
     {
         /// <summary>
         /// 服务模块名称

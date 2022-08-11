@@ -1,11 +1,9 @@
-﻿using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.RegisteredUsers
+﻿namespace ZhuoFan.Wb.Common.Events.RegisteredUsers
 {
     /// <summary>
     /// 创建注册用户事件
     /// </summary>
-    public class CreateRegisteredUserEvent : IntegrationEvent
+    public record CreateRegisteredUserEvent : IntegrationEvent
     {
         public CreateRegisteredUserEvent()
         {

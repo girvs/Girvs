@@ -1,12 +1,9 @@
-﻿using System;
-using Girvs.EventBus;
-
-namespace ZhuoFan.Wb.Common.Events.Subjects
+﻿namespace ZhuoFan.Wb.Common.Events.Subjects
 {
     /// <summary>
     /// 科目修改名称事件
     /// </summary>
-    public class EditSubjectEvent : IntegrationEvent
+    public record EditSubjectEvent : IntegrationEvent
     {
         public EditSubjectEvent()
         {

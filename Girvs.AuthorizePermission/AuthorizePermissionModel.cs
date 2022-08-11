@@ -1,55 +1,27 @@
 namespace Girvs.AuthorizePermission;
 
-public class AuthorizePermissionModel : IDto
-{
-    public AuthorizePermissionModel()
-    {
-        Permissions = new Dictionary<string, string>();
-        OperationPermissionModels = new List<OperationPermissionModel>();
-    }
+/// <summary>
+/// 功能模块授权模型
+/// </summary>
+/// <param name="ServiceName">服务名称</param>
+/// <param name="ServiceId">服务功能模块Id</param>
+/// <param name="Tag">所属标签</param>
+/// <param name="Order">排序</param>
+/// <param name="SystemModule">所属的子系统模块</param>
+/// <param name="OtherParams">其它相关参数</param>
+/// <param name="OperationPermissionModels"></param>
+/// <param name="Permissions"></param>
+public record AuthorizePermissionModel(string ServiceName, Guid ServiceId, string Tag, int Order,
+    SystemModule SystemModule, string[] OtherParams, List<OperationPermissionModel> OperationPermissionModels,
+    Dictionary<string, string> Permissions) : IDto;
 
-    public string ServiceName { get; set; }
-    public Guid ServiceId { get; set; }
-
-    public List<OperationPermissionModel> OperationPermissionModels { get; set; }
-    public Dictionary<string, string> Permissions { get; set; }
-        
-    /// <summary>
-    /// 所属标签
-    /// </summary>
-    public string Tag { get; set; }
-
-    /// <summary>
-    /// 排序
-    /// </summary>
-    public int Order { get; set; }
-
-
-    /// <summary>
-    /// 所属的子系统模块
-    /// </summary>
-    public SystemModule SystemModule { get; set; }
-
-    /// <summary>
-    /// 其它相关参数
-    /// </summary>
-    public string[] OtherParams { get; set; }
-}
-
-
-public class OperationPermissionModel : IDto
-{
-    public string OperationName { get; set; }
-    public Permission Permission { get; set; }
-    public UserType UserType { get; set; }
-
-    /// <summary>
-    /// 所属的子系统模块
-    /// </summary>
-    public SystemModule SystemModule { get; set; }
-
-    /// <summary>
-    /// 其它相关参数
-    /// </summary>
-    public string[] OtherParams { get; set; }
-}
+/// <summary>
+/// 操作权限模型
+/// </summary>
+/// <param name="OperationName">操作名称</param>
+/// <param name="Permission">权限值</param>
+/// <param name="UserType">用户类型</param>
+/// <param name="SystemModule">所属的子系统模块</param>
+/// <param name="OtherParams">其它相关参数</param>
+public record OperationPermissionModel(string OperationName, Permission Permission, UserType UserType,
+    SystemModule SystemModule, string[] OtherParams) : IDto;

@@ -1,13 +1,10 @@
-﻿using Girvs.EventBus;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ZhuoFan.Wb.Common.Events.Sms
 {
-    public class SendSmsEvent : IntegrationEvent
+    public record SendSmsEvent : IntegrationEvent
     {
         public SendSmsEvent()
         {
