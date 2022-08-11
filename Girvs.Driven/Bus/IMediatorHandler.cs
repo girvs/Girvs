@@ -14,7 +14,7 @@ public interface IMediatorHandler : IManager
     /// <param name="command"> 命令模型，比如RegisterStudentCommand </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
+    Task<object> SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
         where T : Message;
 
 

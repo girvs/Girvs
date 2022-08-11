@@ -1,6 +1,7 @@
 ﻿namespace Girvs.Driven.Events;
 
-public record Message(string MessageType, Guid AggregateId, MessageSource MessageSource) : IRequest<bool>
+public record Message(string MessageType, Guid AggregateId, MessageSource MessageSource) : IRequest<bool>,
+    IRequest<Guid?>
 {
     public Message() : this(string.Empty, Guid.Empty, null)
     {

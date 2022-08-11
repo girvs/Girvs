@@ -1,3 +1,3 @@
 ﻿namespace Girvs.Driven.CacheDriven.Events;
 
-public record SetCacheEvent(CacheKey Key, int CacheTime, dynamic Object) : Event;
+public record SetCacheEvent(dynamic Object, CacheKey Key, int CacheTime = 30) : Event;

@@ -10,7 +10,7 @@ public interface IQueryDto
     string OrderBy { get; set; }
 }
 
-public abstract record QueryDtoBase<TDto> : IQueryDto where TDto : IDto, new()
+public abstract class QueryDtoBase<TDto> : IQueryDto where TDto : IDto, new()
 {
     [Required] [Range(0, int.MaxValue)] public int PageIndex { get; set; } = 0;
 
