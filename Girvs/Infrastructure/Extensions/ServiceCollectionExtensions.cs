@@ -62,7 +62,7 @@ public static class ServiceCollectionExtensions
             {
                 appModelConfig?.Init();
             }
-            appSettings.ModuleConfigurations.Add(appModelConfig.GetType(), appModelConfig);
+            appSettings.ModuleConfigurations.Add(appModelConfig.GetType().Name, appModelConfig);
         }
 
         services.AddSingleton(appSettings);

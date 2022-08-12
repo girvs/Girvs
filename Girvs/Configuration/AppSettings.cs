@@ -6,17 +6,17 @@ public class AppSettings
 
     public HostingConfig HostingConfig { get; set; } = new HostingConfig();
 
-    public IConfig this[Type index]
+    public IConfig this[string index]
     {
         get => ModuleConfigurations[index];
         set => ModuleConfigurations[index] = value;
     }
 
-    public IDictionary<Type, IConfig> ModuleConfigurations { get; private set; } = null;
+    public IDictionary<string, IConfig> ModuleConfigurations { get; private set; } = null;
 
     public void PreLoadModelConfig()
     {
-        ModuleConfigurations = new Dictionary<Type, IConfig>();
+        ModuleConfigurations = new Dictionary<string, IConfig>();
     }
 
     /// <summary>
@@ -26,7 +26,7 @@ public class AppSettings
     /// <returns>Configuration parameters</returns>
     public TConfig Get<TConfig>() where TConfig : class, IConfig
     {
-        if (ModuleConfigurations[typeof(TConfig)] is not TConfig config)
+        if (ModuleConfigurations[typeof(TConfig).Name] is not TConfig config)
             throw new GirvsException($"No configuration with type '{typeof(TConfig)}' found");
 
         return config;
@@ -38,6 +38,6 @@ public class AppSettings
     /// <returns>Configuration parameters</returns>
     public dynamic Get(string moduleConfigName)
     {
-        return ModuleConfigurations.FirstOrDefault(x=>x.Key.Name == moduleConfigName).Value;
+        return ModuleConfigurations[moduleConfigName];
     }
 }
