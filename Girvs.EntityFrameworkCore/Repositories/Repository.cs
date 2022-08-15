@@ -103,7 +103,7 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
         {
             obj.Set(keyValuePair.Key, keyValuePair.Value);
         }
-        
+
         return obj.ExecuteAsync();
     }
 
@@ -131,9 +131,8 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
 
     public virtual Task DeleteRangeAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        throw new GirvsException("未实现");
-        // var where = predicate.And(OtherQueryCondition);
-        // return DbContext.DeleteRangeAsync(where);
+        var where = predicate.And(OtherQueryCondition);
+        return DbContext.DeleteRangeAsync(where);
     }
 
     public virtual Task<TEntity> GetByIdAsync(Tkey id)
