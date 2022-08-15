@@ -23,6 +23,10 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.8" />
         <PackageReference Include="Oracle.EntityFrameworkCore" Version="6.21.61" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
+        <PackageReference Include="Zack.EFCore.Batch.MySQL.Pomelo_NET6" Version="6.1.2" />
+        <PackageReference Include="Zack.EFCore.Batch.MSSQL_NET6" Version="6.1.2" />
+        <PackageReference Include="Zack.EFCore.Batch.Oracle_NET6" Version="6.1.2" />
+        <PackageReference Include="Zack.EFCore.Batch.Sqlite_NET6" Version="6.1.2" />
     </ItemGroup>
 
     <ItemGroup>

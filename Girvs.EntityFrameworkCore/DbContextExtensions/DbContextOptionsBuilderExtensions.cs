@@ -1,4 +1,6 @@
-﻿namespace Girvs.EntityFrameworkCore.DbContextExtensions;
+﻿using Zack.EFCore.Batch.Oracle;
+
+namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 public static class DbContextOptionsBuilderExtensions
 {
@@ -14,6 +16,8 @@ public static class DbContextOptionsBuilderExtensions
                         $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
                 }
             });
+        
+        optionsBuilder.UseBatchEF_MSSQL();
     }
 
     public static void UseMySqlWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
@@ -31,6 +35,7 @@ public static class DbContextOptionsBuilderExtensions
                         $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
                 }
             });
+        optionsBuilder.UseBatchEF_MySQLPomelo();
     }
 
     public static void UseSqlLiteWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
@@ -48,6 +53,8 @@ public static class DbContextOptionsBuilderExtensions
                             $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
                     }
                 });
+
+            optionsBuilder.UseBatchEF_Sqlite();
         }
         else
         {
@@ -61,6 +68,8 @@ public static class DbContextOptionsBuilderExtensions
                             $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
                     }
                 });
+
+            optionsBuilder.UseBatchEF_MSSQL();
         }
     }
 
@@ -78,7 +87,7 @@ public static class DbContextOptionsBuilderExtensions
                         $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
                 }
             });
-        optionsBuilder.UseOracle();
+        optionsBuilder.UseBatchEF_Oracle();
     }
 
     public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,

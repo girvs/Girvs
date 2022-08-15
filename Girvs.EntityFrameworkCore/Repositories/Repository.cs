@@ -96,16 +96,15 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
         params KeyValuePair<string, object>[] fieldValue
     )
     {
-        throw new GirvsException("未实现");
-        // if (!fieldValue.Any()) return Task.CompletedTask;
-        // var where = predicate.And(OtherQueryCondition);
-        // var obj = DbContext.BatchUpdate<TEntity>().Where(where);
-        // foreach (var keyValuePair in fieldValue)
-        // {
-        //     obj.Set(keyValuePair.Key, keyValuePair.Value);
-        // }
-        //
-        // return obj.ExecuteAsync();
+        if (!fieldValue.Any()) return Task.CompletedTask;
+        var where = predicate.And(OtherQueryCondition);
+        var obj = DbContext.BatchUpdate<TEntity>().Where(where);
+        foreach (var keyValuePair in fieldValue)
+        {
+            obj.Set(keyValuePair.Key, keyValuePair.Value);
+        }
+        
+        return obj.ExecuteAsync();
     }
 
     public virtual Task DeleteAsync(TEntity t)
