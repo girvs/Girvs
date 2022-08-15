@@ -15,7 +15,7 @@ public interface IMediatorHandler : IManager
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<object> SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
-        where T : Message;
+        where T : IBaseRequest;
 
 
     /// <summary>

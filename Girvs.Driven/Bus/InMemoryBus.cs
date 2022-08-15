@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Girvs.Driven.Bus;
+﻿namespace Girvs.Driven.Bus;
 
 /// <summary>
 /// 一个密封类，实现我们的中介内存总线
@@ -32,7 +30,7 @@ public sealed class InMemoryBus : IMediatorHandler
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public Task<object> SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
-        where T : Message
+        where T : IBaseRequest
     {
         //这个是正确的
         return _mediator.Send(command, cancellationToken); //请注意 入参 的类型

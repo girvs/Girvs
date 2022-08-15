@@ -1,7 +1,7 @@
 ﻿namespace Girvs.Driven.Commands;
 
-public record Command(string CommandDesc, string OperateIpAddress, DateTime Timestamp,
-    ValidationResult ValidationResult) : Message
+public record Command<TResponse>(string CommandDesc, string OperateIpAddress, DateTime Timestamp,
+    ValidationResult ValidationResult) : Message<TResponse>
 {
     public Command(string commandDesc) : this(commandDesc, null, DateTime.Now, null)
     {
@@ -21,5 +21,13 @@ public record Command(string CommandDesc, string OperateIpAddress, DateTime Time
     public virtual bool IsValid()
     {
         return true;
+    }
+}
+
+public record Command(string CommandDesc, string OperateIpAddress, DateTime Timestamp,
+    ValidationResult ValidationResult) : Command<bool>(CommandDesc, OperateIpAddress, Timestamp, ValidationResult)
+{
+    public Command(string commandDesc) : this(commandDesc, null, DateTime.Now, null)
+    {
     }
 }
