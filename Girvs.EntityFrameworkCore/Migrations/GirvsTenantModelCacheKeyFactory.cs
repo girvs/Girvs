@@ -3,11 +3,15 @@ namespace Girvs.EntityFrameworkCore.Migrations;
 public class GirvsTenantModelCacheKeyFactory<TContext> : ModelCacheKeyFactory
     where TContext : DbContext
 {
-
-    public override object Create(DbContext context)
+    public override object Create(DbContext context, bool designTime)
     {
         var dbContext = context as TContext;
         return new TenantModelCacheKey<TContext>(dbContext, EngineContext.Current.GetSafeShardingTableSuffix());
+    }
+
+    public override object Create(DbContext context)
+    {
+        return Create(context, false);
     }
 
     public GirvsTenantModelCacheKeyFactory(ModelCacheKeyFactoryDependencies dependencies) : base(dependencies)
