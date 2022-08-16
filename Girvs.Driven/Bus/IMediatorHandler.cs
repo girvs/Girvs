@@ -10,12 +10,24 @@ public interface IMediatorHandler : IManager
     /// <summary>
     /// 发送命令，将我们的命令模型发布到中介者模块
     /// </summary>
-    /// <typeparam name="T"> 泛型 </typeparam>
+    /// <typeparam name="TCommand"> 泛型 </typeparam>
     /// <param name="command"> 命令模型，比如RegisterStudentCommand </param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<object> SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
-        where T : IBaseRequest;
+    Task<object> SendCommand<TCommand>(TCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        where TCommand : IBaseRequest;
+    
+    
+    /// <summary>
+    /// 发送命令，将我们的命令模型发布到中介者模块
+    /// </summary>
+    /// <param name="command">泛型</param>
+    /// <param name="cancellationToken"></param>
+    /// <typeparam name="TCommand"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
+    /// <returns></returns>
+    Task<TResponse> SendCommand<TCommand,TResponse>(TCommand command, CancellationToken cancellationToken = default(CancellationToken))
+        where TCommand : IBaseRequest;
 
 
     /// <summary>

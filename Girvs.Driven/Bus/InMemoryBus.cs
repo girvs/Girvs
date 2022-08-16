@@ -39,6 +39,13 @@ public sealed class InMemoryBus : IMediatorHandler
         //return Send(command);//请注意 入参 的类型
     }
 
+    public async Task<TResponse> SendCommand<TCommand, TResponse>(TCommand command,
+        CancellationToken cancellationToken = default(CancellationToken)) where TCommand : IBaseRequest
+    {
+        var obj = await SendCommand(command, cancellationToken);
+        return (TResponse)obj ;
+    }
+
     /// <summary>
     /// 引发事件的实现方法
     /// </summary>
