@@ -9,10 +9,7 @@ public class GirvsTenantModelCacheKeyFactory<TContext> : ModelCacheKeyFactory
         return new TenantModelCacheKey<TContext>(dbContext, EngineContext.Current.GetSafeShardingTableSuffix());
     }
 
-    public override object Create(DbContext context)
-    {
-        return Create(context, false);
-    }
+    public override object Create(DbContext context) => Create(context, false);
 
     public GirvsTenantModelCacheKeyFactory(ModelCacheKeyFactoryDependencies dependencies) : base(dependencies)
     {
