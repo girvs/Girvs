@@ -143,7 +143,7 @@ public static class DbContextOptionsBuilderExtensions
 
         if (dataConnectionConfig.IsTenantShardingTable)
         {
-            optionsBuilder.ReplaceService<IModelCacheKeyFactory, DynamicModelCacheKeyFactory>();
+            optionsBuilder.ReplaceService<IModelCacheKeyFactory, GirvsTenantModelCacheKeyFactory<TDbContext>>();
             optionsBuilder.ReplaceService<IMigrationsAssembly, GirvsMigrationByTenantAssembly>();
         }
     }
