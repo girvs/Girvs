@@ -62,7 +62,7 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
         var currentUserAuthorize = GetCurrnetUserAuthorize() ??
                                    new AuthorizeModel(new List<AuthorizeDataRuleModel>(),
                                        new List<AuthorizePermissionModel>());
-        
+
         var dataRuleModels = currentUserAuthorize.AuthorizeDataRules;
 
         if (dataRuleModels == null)
@@ -82,8 +82,7 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
                 throw new GirvsException("未配置当前用户对该模块的数据权限，请先获取权限", 568);
             }
         }
-
-        if (currentEntityDataRule != null)
+        else
         {
             //临时解决方案 查找出所有为Or的字段条件
             var orFields = GetEntityDataRuleOrFields(typeof(TEntity));
