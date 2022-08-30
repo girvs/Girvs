@@ -113,7 +113,7 @@ public enum SystemModule : long
     /// <summary>
     /// 扩展1
     /// </summary>
-    ExtendModule1 = 32,
+    SystemModule = 32,
 
     /// <summary>
     /// 扩展2
@@ -163,7 +163,7 @@ public enum SystemModule : long
     /// <summary>
     /// 所有
     /// </summary>
-    All = BaseModule | RegisterModule | ArrangeModule | IdentityModule | ScoreQueryModule | ExtendModule1 |
+    All = BaseModule | RegisterModule | ArrangeModule | IdentityModule | ScoreQueryModule | SystemModule |
           ExtendModule2 | ExtendModule3 | ExtendModule4 | ExtendModule5 | ExtendModule6 |
           ExtendModule7 | ExtendModule8 | ExtendModule9 | ExtendModule10
 }
