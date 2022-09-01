@@ -65,9 +65,9 @@ public class EventBusModule : IAppModuleStartup
                 case DbType.MySql:
                     x.UseMySql(connStr);
                     break;
-                case DbType.Oracle:
-                    x.UseOracle(connStr);
-                    break;
+                // case DbType.Oracle:
+                //     x.UseOracle(connStr);
+                //     break;
                 case DbType.SqlLite:
                     x.UseSqlite(connStr);
                     break;
