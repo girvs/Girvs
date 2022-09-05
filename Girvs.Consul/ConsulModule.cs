@@ -10,7 +10,7 @@ public class ConsulModule : IAppModuleStartup
         if (consulConfig.CurrentServerModel == ServerModel.GrpcService)
         {
             consulConfig.ServerName = string.IsNullOrEmpty(consulConfig.ServerName)
-                ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "_")
+                ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "-").ToLower()
                 : consulConfig.ServerName;
 
             var uri = new Uri(consulConfig.HealthAddress);

@@ -13,7 +13,7 @@ public static class WebApiApplicationExtensions
                 new ConsulClient(configuration => configuration.Address = new Uri(config.ConsulAddress));
 
             config.ServerName = string.IsNullOrEmpty(config.ServerName)
-                ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "_")
+                ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "-").ToLower()
                 : config.ServerName;
 
             var uri = new Uri(config.HealthAddress);
