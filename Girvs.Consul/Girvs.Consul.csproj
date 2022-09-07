@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Version>5.0.0-preview.1.6.9</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageVersion>5.0.13-rc5</PackageVersion>
+    <PackageVersion>6.0.0-preview.1.0</PackageVersion>
     <LangVersion>10</LangVersion>
   </PropertyGroup>
 
