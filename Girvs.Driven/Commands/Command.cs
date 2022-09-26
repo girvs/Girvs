@@ -1,6 +1,6 @@
 ﻿namespace Girvs.Driven.Commands;
 
-public record Command<TResponse>(string CommandDesc, string OperateIpAddress, DateTime Timestamp,
+public abstract record Command<TResponse>(string CommandDesc, string OperateIpAddress, DateTime Timestamp,
     ValidationResult ValidationResult) : Message<TResponse>
 {
     public Command(string commandDesc) : this(commandDesc, null, DateTime.Now, null)
@@ -18,13 +18,17 @@ public record Command<TResponse>(string CommandDesc, string OperateIpAddress, Da
         }
     }
 
+    public virtual void AddFluentValidationRule<TCommand>(AbstractValidator<TCommand> validator)
+    {
+    }
+
     public virtual bool IsValid()
     {
         return true;
     }
 }
 
-public record Command(string CommandDesc, string OperateIpAddress, DateTime Timestamp,
+public abstract record Command(string CommandDesc, string OperateIpAddress, DateTime Timestamp,
     ValidationResult ValidationResult) : Command<bool>(CommandDesc, OperateIpAddress, Timestamp, ValidationResult)
 {
     public Command(string commandDesc) : this(commandDesc, null, DateTime.Now, null)

@@ -40,6 +40,10 @@ public static class ServiceCollectionExtension
 
         foreach (var validatorType in validatorTypes)
         {
+            if (validatorType.FullName == typeof(GirvsDefaultCommandValidator<>).FullName)
+            {
+                continue;
+            }
             var implementedInterface = validatorType.GetInterface("IValidator`1");
             if (implementedInterface != null)
             {
