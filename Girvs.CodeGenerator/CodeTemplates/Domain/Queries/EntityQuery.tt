@@ -1,0 +1,10 @@
+namespace {{NamespaceName}}.Domain.Queries;
+
+public class {{EntityName}}Query : QueryBase<{{EntityName}}>
+{   
+    public override Expression<Func<{{EntityName}}, bool>> GetQueryWhere()
+    {
+        Expression<Func<{{EntityName}}, bool>> expression = x => true;
+        return expression;
+    }
+}

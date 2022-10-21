@@ -1,0 +1,6 @@
+namespace {{NamespaceName}}.Infrastructure.Repositories;
+
+public class {{EntityName}}Repository : Repository<{{EntityName}}>, I{{EntityName}}Repository
+{
+    
+}

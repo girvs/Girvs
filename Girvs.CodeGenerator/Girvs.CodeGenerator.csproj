@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>5.0.0-preview.1.6.9</Version>
+        <PackageVersion>6.0.0-preview.1.0</PackageVersion>
+        <LangVersion>10</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+      <Folder Include="CodeTemplates\Application\AppService" />
+      <Folder Include="CodeTemplates\Application\ViewModels" />
+      <Folder Include="Generator\CodeGenerators\Application\AppService" />
+      <Folder Include="Generator\CodeGenerators\Application\ViewModels" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="DotLiquid" Version="2.2.656" />
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="CodeTemplates\Domain\CommandHandlers\CommandHandler.tt" />
+      <EmbeddedResource Include="CodeTemplates\Domain\Commands\CreateCommand.tt" />
+      <EmbeddedResource Include="CodeTemplates\Domain\Commands\RemoveCommand.tt" />
+      <EmbeddedResource Include="CodeTemplates\Domain\Commands\UpdateCommand.tt" />
+      <EmbeddedResource Include="CodeTemplates\Domain\Queries\EntityQuery.tt" />
+      <EmbeddedResource Include="CodeTemplates\Domain\Repositories\IEntityRepository.tt" />
+      <EmbeddedResource Include="CodeTemplates\Infrastructure\EntityConfigurations\EntityTypeConfiguation.tt" />
+      <EmbeddedResource Include="CodeTemplates\Infrastructure\Repositories\EntityRepository.tt" />
+    </ItemGroup>
+</Project>

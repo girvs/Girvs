@@ -1,0 +1,91 @@
+namespace {{NamespaceName}}.Domain.CommandHandlers;
+
+public class AdmitCardCommandHandler : CommandHandler,
+    IRequestHandler<Create{{EntityName}}Command, bool>,
+    IRequestHandler<Update{{EntityName}}Command, bool>,
+    IRequestHandler<Remove{{EntityName}}Command, bool>
+{
+    private readonly I{{EntityName}}Repository _repository;
+    private readonly IMediatorHandler _bus;
+
+    public AdmitCardCommandHandler(
+        IUnitOfWork<{{EntityName}}> uow,
+        [NotNull] I{{EntityName}}Repository repository,
+        [NotNull] IMediatorHandler bus
+    ) : base(uow, bus)
+    {
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+    }
+
+    public async Task<bool> Handle(Create{{EntityName}}Command request, CancellationToken cancellationToken)
+    {
+        var entity = request.MapToEntity<{{EntityName}}>();
+        await _repository.AddAsync(entity);
+
+        if (await Commit())
+        {
+            // 创建缓存Key
+            var key = GirvsEntityCacheDefaults<{{EntityName}}>.ByIdCacheKey.Create(entity.Id.ToString());
+            // 将新增的纪录放到缓存中
+            await _bus.RaiseEvent(new SetCacheEvent(entity, key, key.CacheTime), cancellationToken);
+            // 删除查询相关的缓存
+            await _bus.RaiseEvent(new RemoveCacheListEvent(GirvsEntityCacheDefaults<{{EntityName}}>.ListCacheKey.Create()),
+                cancellationToken);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> Handle(Update{{EntityName}}Command request, CancellationToken cancellationToken)
+    {
+        var entity = await _repository.GetAsync(w => w.Id.Equals(request.Id));
+        if (entity == null)
+        {
+            await _bus.RaiseEvent(new DomainNotification(request.Name, "未找到对应文书的数据", StatusCodes.Status404NotFound),
+                cancellationToken);
+            return false;
+        }
+        // 考试管理员不能修改系统管理员数据
+
+        //article.Type = request.Type;
+        //article.Name = request.Name;
+        //article.Content = request.Content;
+
+        if (await Commit())
+        {
+            // 创建缓存Key
+            var key = GirvsEntityCacheDefaults<{{EntityName}}>.ByIdCacheKey.Create(entity.Id.ToString());
+            // 将新增的纪录放到缓存中
+            await _bus.RaiseEvent(new SetCacheEvent(entity, key, key.CacheTime), cancellationToken);
+            // 删除查询相关的缓存
+            await _bus.RaiseEvent(new RemoveCacheListEvent(GirvsEntityCacheDefaults<{{EntityName}}>.ListCacheKey.Create()),
+                cancellationToken);
+        }
+
+        return true;
+    }
+
+    public async Task<bool> Handle(Remove{{EntityName}}Command request, CancellationToken cancellationToken)
+    {
+        var entity = await _repository.GetAsync(w => w.Id.Equals(request.Id));
+        if (entity == null)
+        {
+            await _bus.RaiseEvent(
+                new DomainNotification(request.Id.ToString(), "未找到对应文书的数据", StatusCodes.Status404NotFound),
+                cancellationToken);
+            return false;
+        }
+
+        await _repository.DeleteAsync(article);
+
+        if (await Commit())
+        {
+            // 删除查询相关的缓存
+            await _bus.RaiseEvent(new RemoveCacheListEvent(GirvsEntityCacheDefaults<{{EntityName}}>.ListCacheKey.Create()),
+                cancellationToken);
+        }
+
+        return true;
+    }
+}

@@ -1,0 +1,9 @@
+namespace {{NamespaceName}}.Infrastructure.EntityConfigurations;
+
+public class {{EntityName}}EntityTypeConfiguation : GirvsAbstractEntityTypeConfiguration<{{EntityName}}>
+{
+    public override void Configure(EntityTypeBuilder<{{EntityName}}> builder)
+    {
+        OnModelCreatingBaseEntityAndTableKey<{{EntityName}}, Guid>(builder);
+    }
+}

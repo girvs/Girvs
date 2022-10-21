@@ -1,0 +1,10 @@
+namespace {{NamespaceName}}.Domain.Commands.{{EntityName}};
+/// <summary>
+/// 创建文书
+/// </summary>
+/// <param name="Name">文书名称</param>
+/// <param name="Type">文书类型</param>
+/// <param name="Content">文书内容</param>
+public record Update{{EntityName}}Command(
+    
+) : Command("创建文书");
