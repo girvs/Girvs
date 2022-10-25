@@ -4,5 +4,7 @@ public interface IGenerator
 {
     string OutputFileName { get; }
     string GeneratorName { get; }
-    GenerateResult Generate(Type entityType);
+    string TemplateResourceName { get; }
+    
+    string Generate(Type entityType,TemplateParameter templateParameter);
 }

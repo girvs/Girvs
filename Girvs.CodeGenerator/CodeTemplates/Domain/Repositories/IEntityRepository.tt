@@ -1,4 +1,4 @@
-namespace {{NamespaceName}}.Domain.Repositories;
+namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.Repositories;
 
 public interface I{{EntityName}}Repository : IRepository<{{EntityName}}>
 {

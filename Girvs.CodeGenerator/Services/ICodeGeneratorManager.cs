@@ -6,5 +6,5 @@ namespace Girvs.CodeGenerator.Services;
 public interface ICodeGeneratorManager : IAppWebApiService
 {
     IEnumerable<string> GetEntityTypes();
-    dynamic GeneratorCode(IEnumerable<string> entityTypes);
+    void GeneratorCode(IEnumerable<string> entityTypes);
 }

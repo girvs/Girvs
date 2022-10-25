@@ -21,7 +21,7 @@
     <ItemGroup>
       <EmbeddedResource Include="CodeTemplates\Domain\CommandHandlers\CommandHandler.tt" />
       <EmbeddedResource Include="CodeTemplates\Domain\Commands\CreateCommand.tt" />
-      <EmbeddedResource Include="CodeTemplates\Domain\Commands\RemoveCommand.tt" />
+      <EmbeddedResource Include="CodeTemplates\Domain\Commands\DeleteCommand.tt" />
       <EmbeddedResource Include="CodeTemplates\Domain\Commands\UpdateCommand.tt" />
       <EmbeddedResource Include="CodeTemplates\Domain\Queries\EntityQuery.tt" />
       <EmbeddedResource Include="CodeTemplates\Domain\Repositories\IEntityRepository.tt" />

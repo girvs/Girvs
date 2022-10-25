@@ -1,9 +1,17 @@
-namespace {{NamespaceName}}.Infrastructure.EntityConfigurations;
+namespace {{Namespace.CurrentNamespacePrefixName}}.Infrastructure.EntityConfigurations;
 
 public class {{EntityName}}EntityTypeConfiguation : GirvsAbstractEntityTypeConfiguration<{{EntityName}}>
 {
     public override void Configure(EntityTypeBuilder<{{EntityName}}> builder)
     {
-        OnModelCreatingBaseEntityAndTableKey<{{EntityName}}, Guid>(builder);
+        OnModelCreatingBaseEntityAndTableKey<{{EntityName}}, {{PrimarykeyTypeName}}>(builder);
+        {% for field in Fields %}
+        {% if  field.DbType != "" %}
+        builder.Property(x => x.{{field.FieldName}})
+            .HasColumnType("{{field.DbType}}")
+            {% if  field.MaxLength > 0  %}.HasMaxLength({{field.MaxLength}}){% endif %}
+            .HasComment("{{field.Comment}}");
+        {% endif %}
+        {% endfor %}
     }
 }

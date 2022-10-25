@@ -4,5 +4,5 @@ public class CommandHandlerGenerator : GirvsAbstractGenerator
 {
     public override string OutputFileName { get; } = "{EntityName}CommandHandler.cs";
     public override string GeneratorName { get; } = "CommandHandler";
-    protected override string TemplateResourceName { get; } = "Girvs.CodeGenerator.CodeTemplates.Domain.CommandHandlers.CommandHandler.tt";
+    public override string TemplateResourceName { get; } = "Girvs.CodeGenerator.CodeTemplates.Domain.CommandHandlers.CommandHandler.tt";
 }

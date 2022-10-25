@@ -1,4 +1,4 @@
-namespace {{NamespaceName}}.Domain.Queries;
+namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.Queries;
 
 public class {{EntityName}}Query : QueryBase<{{EntityName}}>
 {   

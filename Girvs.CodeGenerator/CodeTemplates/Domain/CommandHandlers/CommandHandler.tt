@@ -1,9 +1,9 @@
-namespace {{NamespaceName}}.Domain.CommandHandlers;
+namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.CommandHandlers;
 
 public class AdmitCardCommandHandler : CommandHandler,
     IRequestHandler<Create{{EntityName}}Command, bool>,
     IRequestHandler<Update{{EntityName}}Command, bool>,
-    IRequestHandler<Remove{{EntityName}}Command, bool>
+    IRequestHandler<Delete{{EntityName}}Command, bool>
 {
     private readonly I{{EntityName}}Repository _repository;
     private readonly IMediatorHandler _bus;
@@ -20,7 +20,20 @@ public class AdmitCardCommandHandler : CommandHandler,
 
     public async Task<bool> Handle(Create{{EntityName}}Command request, CancellationToken cancellationToken)
     {
-        var entity = request.MapToEntity<{{EntityName}}>();
+        var entity = new {{EntityName}}
+        {
+            {% assign lastField = Fields | last %}
+            {% for field in Fields %}
+            {% if  field.IsPrimarykey == false %}
+            {% if field.FieldName != lastField.FieldName %}
+            {{field.FieldName}} = request.{{field.FieldName}},
+            {% else%}
+            {{field.FieldName}} = request.{{field.FieldName}}
+            {% endif %}
+            {% endif %}
+            {% endfor %} 
+        }
+
         await _repository.AddAsync(entity);
 
         if (await Commit())
@@ -39,18 +52,19 @@ public class AdmitCardCommandHandler : CommandHandler,
 
     public async Task<bool> Handle(Update{{EntityName}}Command request, CancellationToken cancellationToken)
     {
-        var entity = await _repository.GetAsync(w => w.Id.Equals(request.Id));
+        var entity = await _repository.GetAsync(w => w.{{PrimarykeyName}}.Equals(request.{{PrimarykeyName}}));
         if (entity == null)
         {
             await _bus.RaiseEvent(new DomainNotification(request.Name, "未找到对应文书的数据", StatusCodes.Status404NotFound),
                 cancellationToken);
             return false;
         }
-        // 考试管理员不能修改系统管理员数据
 
-        //article.Type = request.Type;
-        //article.Name = request.Name;
-        //article.Content = request.Content;
+        {% for field in Fields %}
+        {% if  field.IsPrimarykey == false %}
+        entity.{{field.FieldName}} = request.{{field.FieldName}};
+        {% endif %}
+        {% endfor %}
 
         if (await Commit())
         {
@@ -66,7 +80,7 @@ public class AdmitCardCommandHandler : CommandHandler,
         return true;
     }
 
-    public async Task<bool> Handle(Remove{{EntityName}}Command request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(Delete{{EntityName}}Command request, CancellationToken cancellationToken)
     {
         var entity = await _repository.GetAsync(w => w.Id.Equals(request.Id));
         if (entity == null)
