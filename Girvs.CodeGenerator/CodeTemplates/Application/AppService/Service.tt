@@ -1,5 +1,8 @@
 namespace {{Namespace.CurrentNamespacePrefixName}}.Application.AppService;
 
+/// <summary>
+/// {{Comment}}接口服务
+/// </summary>
 [DynamicWebApi]
 public class {{EntityName}}Service : I{{EntityName}}Service
 {

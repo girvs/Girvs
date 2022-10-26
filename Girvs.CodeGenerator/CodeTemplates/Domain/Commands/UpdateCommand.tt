@@ -18,4 +18,18 @@ public record Update{{EntityName}}Command(
    {{field.FieldTypeName}} {{field.FieldName}}
    {%- endif -%}
    {%- endfor -%} 
-) : Command("更新{{Comment}}");
+) : Command("更新{{Comment}}")
+{
+    public override void AddFluentValidationRule<TCommand>(AbstractValidator<TCommand> validator)
+    {
+        {%- for field in Fields -%}
+
+        {%- if field.FieldTypeName == "string" -%}
+        validator.RuleFor(x => {{field.FieldName}})
+            .NotEmpty().WithMessage("{{field.Comment}}不能为空")
+            .MaximumLength(50).WithMessage("{{field.Comment}}长度不能大于50")
+            .MinimumLength(2).WithMessage("{{field.Comment}}长度不能小于2");
+        {%- endif -%}
+        {%- endfor -%} 
+    }
+}

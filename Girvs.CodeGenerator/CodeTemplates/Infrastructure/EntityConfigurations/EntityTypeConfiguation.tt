@@ -5,9 +5,10 @@ public class {{EntityName}}EntityTypeConfiguation : GirvsAbstractEntityTypeConfi
     public override void Configure(EntityTypeBuilder<{{EntityName}}> builder)
     {
         OnModelCreatingBaseEntityAndTableKey<{{EntityName}}, {{PrimarykeyTypeName}}>(builder);
+
         {%- for field in Fields -%}
         {%- if  field.DbType != "" -%}
-        {%- if  field.IsGenericType -%}
+        {%- if  field.IsGenericType == true -%}
         var {{field.FieldNameTitleCaseName}}Converter = new ValueConverter<{{field.FieldTypeName}}, string>(
             v => JsonConvert.SerializeObject(v),
             v => v.IsNullOrEmpty() ? new {{field.FieldTypeName}}() : JsonConvert.DeserializeObject<{{field.FieldTypeName}}>(v)

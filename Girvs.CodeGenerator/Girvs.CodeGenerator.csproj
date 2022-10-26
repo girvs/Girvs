@@ -13,6 +13,10 @@
       <PackageReference Include="DotLiquid" Version="2.2.656" />
     </ItemGroup>
     <ItemGroup>
+      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\BrowseViewModel.tt" />
+      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\CreateViewModel.tt" />
+      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\QueryViewModel.tt" />
+      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\UpdateViewModel.tt" />
       <EmbeddedResource Include="CodeTemplates\Domain\CommandHandlers\CommandHandler.tt" />
       <EmbeddedResource Include="CodeTemplates\Domain\Commands\CreateCommand.tt" />
       <EmbeddedResource Include="CodeTemplates\Domain\Commands\DeleteCommand.tt" />
@@ -23,9 +27,5 @@
       <EmbeddedResource Include="CodeTemplates\Infrastructure\Repositories\EntityRepository.tt" />
       <EmbeddedResource Include="CodeTemplates\Application\AppService\IService.tt" />
       <EmbeddedResource Include="CodeTemplates\Application\AppService\Service.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\BrowseViewModel.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\CreateViewModel.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\QueryViewModel.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\UpdateViewModel.tt" />
     </ItemGroup>
 </Project>

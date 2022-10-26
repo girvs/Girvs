@@ -8,8 +8,22 @@ namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.Commands.{{EntityName}
 {% endif -%}
 {% endfor -%}
 public record Create{{EntityName}}Command(
-   {%- assign lastField = Fields | last -%}
-   {%- for field in Fields -%}
-   {{field.FieldTypeName}} {{field.FieldName}}{%- if field.FieldName != lastField.FieldName -%},{%- endif %}
-   {%- endfor -%}
-) : Command("创建{{Comment}}");
+    {%- assign lastField = Fields | last -%}
+    {%- for field in Fields -%}
+    {{field.FieldTypeName}} {{field.FieldName}}{%- if field.FieldName != lastField.FieldName -%},{%- endif %}
+    {%- endfor -%}
+) : Command("创建{{Comment}}")
+{
+    public override void AddFluentValidationRule<TCommand>(AbstractValidator<TCommand> validator)
+    {
+        {%- for field in Fields -%}
+
+        {%- if field.FieldTypeName == "string" -%}
+        validator.RuleFor(x => {{field.FieldName}})
+            .NotEmpty().WithMessage("{{field.Comment}}不能为空")
+            .MaximumLength(50).WithMessage("{{field.Comment}}长度不能大于50")
+            .MinimumLength(2).WithMessage("{{field.Comment}}长度不能小于2");
+        {%- endif -%}
+        {%- endfor -%} 
+    }
+}

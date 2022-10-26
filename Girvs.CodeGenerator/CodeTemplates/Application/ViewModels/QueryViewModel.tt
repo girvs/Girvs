@@ -12,13 +12,11 @@ public class {{EntityName}}QueryViewModel: QueryDtoBase<{{EntityName}}QueryListV
 [AutoMapTo(typeof(Domain.Models.{{EntityName}}))]
 public class {{EntityName}}QueryListViewModel : IDto
 {
-
     {%- for field in Fields -%}
+
     /// <summary>
     /// {{field.Comment}}
     /// </summary>
     public {{field.FieldTypeName}} {{field.FieldName}}{ get; set; }
-
     {%- endfor -%}
-
 }

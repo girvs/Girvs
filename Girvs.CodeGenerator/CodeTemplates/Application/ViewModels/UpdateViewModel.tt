@@ -4,13 +4,17 @@ namespace {{Namespace.CurrentNamespacePrefixName}}.Application.ViewModels;
 [AutoMapTo(typeof(Domain.Models.{{EntityName}}))]
 public class Update{{EntityName}}ViewModel : IDto
 {
-
     {%- for field in Fields -%}
+
     /// <summary>
     /// {{field.Comment}}
     /// </summary>
+    [DisplayName("{{field.Comment}}")]
+    [Required(ErrorMessage = "{0}不能为空")]
+    {%- if field.FieldTypeName == "string" -%}
+    [MinLength(2, ErrorMessage = "{0}长度不能小于{1}")]
+    [MaxLength(50, ErrorMessage = "{0}长度不能大于{1}")]
+    {%- endif -%}
     public {{field.FieldTypeName}} {{field.FieldName}}{ get; set; }
-
     {%- endfor -%}
-
 }

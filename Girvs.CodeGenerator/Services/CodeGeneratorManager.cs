@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using Girvs.BusinessBasis.Entities;
@@ -13,7 +12,7 @@ namespace Girvs.CodeGenerator.Services;
 public class CodeGeneratorManager : ICodeGeneratorManager
 {
     private const string MimeType = "application/octet-stream";
-    private string zipTempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "zipTempDir");
+    private readonly string _zipTempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "zipTempDir");
 
     public IEnumerable<string> GetEntityTypes()
     {
@@ -27,29 +26,33 @@ public class CodeGeneratorManager : ICodeGeneratorManager
     {
         var typeFinder = new WebAppTypeFinder();
         var types = typeFinder.FindOfType<Entity>();
-        var entityTypes = types.Where(x => entityTypeNames.Contains(x.FullName)).FirstOrDefault();
+        var entityTypes = types.Where(x => entityTypeNames.Contains(x.FullName));
 
         var fileProvider = CommonHelper.DefaultFileProvider;
-        if (fileProvider.DirectoryExists(zipTempDir))
+        if (fileProvider.DirectoryExists(_zipTempDir))
         {
-            fileProvider.DeleteDirectory(zipTempDir);
+            fileProvider.DeleteDirectory(_zipTempDir);
         }
 
-        fileProvider.CreateDirectory(zipTempDir);
-        
-        var generateTypes = typeFinder.FindOfType<IGenerator>();
-        foreach (var generateType in generateTypes)
+        fileProvider.CreateDirectory(_zipTempDir);
+
+        foreach (var entityType in entityTypes)
         {
-            var g = Activator.CreateInstance(generateType) as IGenerator;
-            var parameterManager = new ParameterManager(g, entityTypes);
-            var parseContent = g.Generate(entityTypes,parameterManager.GetBuildeTemplateParameter());
-            var csFilePath = fileProvider.Combine(zipTempDir, parameterManager.GetFileSavePath());
-            var filePath = fileProvider.GetDirectoryName(csFilePath);
-            if (!fileProvider.DirectoryExists(filePath))
+            var generateTypes = typeFinder.FindOfType<IGenerator>();
+            foreach (var generateType in generateTypes)
             {
-                fileProvider.CreateDirectory(filePath);
+                var g = Activator.CreateInstance(generateType) as IGenerator;
+                var parameterManager = new ParameterManager(g, entityType);
+                var parseContent = g.Generate(entityType, parameterManager.GetBuildeTemplateParameter());
+                var csFilePath = fileProvider.Combine(_zipTempDir, parameterManager.GetFileSavePath());
+                var filePath = fileProvider.GetDirectoryName(csFilePath);
+                if (!fileProvider.DirectoryExists(filePath))
+                {
+                    fileProvider.CreateDirectory(filePath);
+                }
+
+                fileProvider.WriteAllTextAsync(csFilePath, parseContent, Encoding.UTF8);
             }
-            fileProvider.WriteAllTextAsync(csFilePath, parseContent, Encoding.UTF8);
         }
     }
 }

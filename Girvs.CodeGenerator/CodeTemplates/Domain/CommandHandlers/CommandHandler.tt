@@ -20,7 +20,7 @@ public class AdmitCardCommandHandler : CommandHandler,
 
     public async Task<bool> Handle(Create{{EntityName}}Command request, CancellationToken cancellationToken)
     {
-        var entity = new {{EntityName}}
+        var {{EntityNameTitleCaseName}} = new {{EntityName}}
         {
             {%- assign lastField = Fields | last -%}
             {%- for field in Fields -%}
@@ -28,7 +28,7 @@ public class AdmitCardCommandHandler : CommandHandler,
             {%- endfor -%}
         };
 
-        await _repository.AddAsync(entity);
+        await _repository.AddAsync({{EntityNameTitleCaseName}});
 
         if (await Commit())
         {
@@ -46,8 +46,8 @@ public class AdmitCardCommandHandler : CommandHandler,
 
     public async Task<bool> Handle(Update{{EntityName}}Command request, CancellationToken cancellationToken)
     {
-        var entity = await _repository.GetAsync(w => w.{{PrimarykeyName}}.Equals(request.{{PrimarykeyName}}));
-        if (entity == null)
+        var {{EntityNameTitleCaseName}} = await _repository.GetAsync(w => w.{{PrimarykeyName}}.Equals(request.{{PrimarykeyName}}));
+        if ({{EntityNameTitleCaseName}} == null)
         {
             await _bus.RaiseEvent(new DomainNotification(request.Name, "未找到对应文书的数据", StatusCodes.Status404NotFound),
                 cancellationToken);
@@ -55,7 +55,7 @@ public class AdmitCardCommandHandler : CommandHandler,
         }
 
         {%- for field in Fields -%}
-        entity.{{field.FieldName}} = request.{{field.FieldName}};
+        {{EntityNameTitleCaseName}}.{{field.FieldName}} = request.{{field.FieldName}};
         {%- endfor -%}
 
         if (await Commit())
@@ -74,8 +74,8 @@ public class AdmitCardCommandHandler : CommandHandler,
 
     public async Task<bool> Handle(Delete{{EntityName}}Command request, CancellationToken cancellationToken)
     {
-        var entity = await _repository.GetAsync(w => w.Id.Equals(request.Id));
-        if (entity == null)
+        var {{EntityNameTitleCaseName}} = await _repository.GetAsync(w => w.Id.Equals(request.Id));
+        if ({{EntityNameTitleCaseName}} == null)
         {
             await _bus.RaiseEvent(
                 new DomainNotification(request.Id.ToString(), "未找到对应文书的数据", StatusCodes.Status404NotFound),
@@ -83,7 +83,7 @@ public class AdmitCardCommandHandler : CommandHandler,
             return false;
         }
 
-        await _repository.DeleteAsync(article);
+        await _repository.DeleteAsync({{EntityNameTitleCaseName}});
 
         if (await Commit())
         {

@@ -143,7 +143,7 @@ public class ParameterManager
     protected virtual IEnumerable<TemplateFieldParameter> CreateTemplateFieldParameter()
     {
         var fields = EntityType.GetProperties().Where(x => x.CanWrite && !_needFilterFileds.Contains(x.Name));
-        return fields.Select(x =>
+        var result = fields.Select(x =>
         {
             var (dbType, dbFieldMaxLength) = GetDbTypeName(x.PropertyType);
             return new TemplateFieldParameter()
@@ -157,6 +157,8 @@ public class ParameterManager
                 IsGenericType = x.PropertyType.IsGenericType
             };
         });
+
+        return result;
     }
 
     protected virtual string GetFieldTypeAlias(Type fieldType)

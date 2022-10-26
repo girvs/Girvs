@@ -38,7 +38,9 @@ public class TemplateFieldParameter: ILiquidizable
             IsPrimarykey = this.IsPrimarykey,
             DbType = this.DbType,
             MaxLength = this.MaxLength,
-            Comment = this.Comment
+            Comment = this.Comment,
+            IsGenericType = this.IsGenericType,
+            FieldNameTitleCaseName = this.FieldNameTitleCaseName
         };
     }
 }
