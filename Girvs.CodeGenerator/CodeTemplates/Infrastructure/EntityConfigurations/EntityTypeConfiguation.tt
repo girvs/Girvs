@@ -5,13 +5,27 @@ public class {{EntityName}}EntityTypeConfiguation : GirvsAbstractEntityTypeConfi
     public override void Configure(EntityTypeBuilder<{{EntityName}}> builder)
     {
         OnModelCreatingBaseEntityAndTableKey<{{EntityName}}, {{PrimarykeyTypeName}}>(builder);
-        {% for field in Fields %}
-        {% if  field.DbType != "" %}
+        {%- for field in Fields -%}
+        {%- if  field.DbType != "" -%}
+        {%- if  field.IsGenericType -%}
+        var {{field.FieldNameTitleCaseName}}Converter = new ValueConverter<{{field.FieldTypeName}}, string>(
+            v => JsonConvert.SerializeObject(v),
+            v => v.IsNullOrEmpty() ? new {{field.FieldTypeName}}() : JsonConvert.DeserializeObject<{{field.FieldTypeName}}>(v)
+        );
+
         builder.Property(x => x.{{field.FieldName}})
             .HasColumnType("{{field.DbType}}")
-            {% if  field.MaxLength > 0  %}.HasMaxLength({{field.MaxLength}}){% endif %}
+            .HasConversion({{field.FieldNameTitleCaseName}}Converter)
             .HasComment("{{field.Comment}}");
-        {% endif %}
-        {% endfor %}
+        {%- else -%}
+        builder.Property(x => x.{{field.FieldName}})
+            .HasColumnType("{{field.DbType}}")
+            {%- if  field.MaxLength > 0  -%}
+            .HasMaxLength({{field.MaxLength}})
+            {%- endif -%}
+            .HasComment("{{field.Comment}}");
+        {%- endif -%}        
+        {%- endif -%}
+        {%- endfor -%}
     }
 }

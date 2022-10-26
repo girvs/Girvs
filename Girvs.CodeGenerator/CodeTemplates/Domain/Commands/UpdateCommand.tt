@@ -2,16 +2,20 @@ namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.Commands.{{EntityName}
 /// <summary>
 /// 更新{{Comment}}命令
 /// </summary>
-/// <param name="Name">文书名称</param>
-/// <param name="Type">文书类型</param>
-/// <param name="Content">文书内容</param>
+/// <param name="{{PrimarykeyName}}">主键</param>
+{% for field in Fields -%}
+{% if  field.IsPrimarykey == false -%}
+/// <param name="{{field.FieldName}}">{{field.Comment}}</param>
+{% endif -%}
+{% endfor -%}
 public record Update{{EntityName}}Command(
-   {% assign lastField = Fields | last %}
-   {% for field in Fields %}
-   {% if field.FieldName != lastField.FieldName %}
-   field.FieldTypeName field.FieldName,
-   {% else%}
-   field.FieldTypeName field.FieldName
-   {% endif %}
-   {% endfor %} 
+   {{PrimarykeyTypeName}} {{PrimarykeyName}}
+   {%- assign lastField = Fields | last -%}
+   {%- for field in Fields -%}
+   {%- if field.FieldName != lastField.FieldName -%}
+   {{field.FieldTypeName}} {{field.FieldName}},
+   {%- else -%}
+   {{field.FieldTypeName}} {{field.FieldName}}
+   {%- endif -%}
+   {%- endfor -%} 
 ) : Command("更新{{Comment}}");

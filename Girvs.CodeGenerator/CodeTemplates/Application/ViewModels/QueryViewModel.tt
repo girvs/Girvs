@@ -1,0 +1,24 @@
+namespace {{Namespace.CurrentNamespacePrefixName}}.Application.ViewModels;
+
+
+[AutoMapFrom(typeof({{EntityName}}Query))]
+[AutoMapTo(typeof({{EntityName}}Query))]
+public class {{EntityName}}QueryViewModel: QueryDtoBase<{{EntityName}}QueryListViewModel>
+{
+
+}
+
+[AutoMapFrom(typeof(Domain.Models.{{EntityName}}))]
+[AutoMapTo(typeof(Domain.Models.{{EntityName}}))]
+public class {{EntityName}}QueryListViewModel : IDto
+{
+
+    {%- for field in Fields -%}
+    /// <summary>
+    /// {{field.Comment}}
+    /// </summary>
+    public {{field.FieldTypeName}} {{field.FieldName}}{ get; set; }
+
+    {%- endfor -%}
+
+}

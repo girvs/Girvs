@@ -2,6 +2,7 @@ namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.Commands.{{EntityName}
 /// <summary>
 /// 删除{{Comment}}命令
 /// </summary>
+/// <param name="{{PrimarykeyName}}">主键</param>
 public record Delete{{EntityName}}Command(
     {{PrimarykeyTypeName}} {{PrimarykeyName}}
 ) : Command("删除{{Comment}}");

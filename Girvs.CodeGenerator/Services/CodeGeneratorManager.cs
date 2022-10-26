@@ -22,23 +22,6 @@ public class CodeGeneratorManager : ICodeGeneratorManager
         return types.Select(x => x.FullName);
     }
 
-    // [HttpGet("{entityTypeNames}")]
-    // [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
-    // public Task<FileResult> GeneratorCode(IEnumerable<string> entityTypeNames)
-    // {
-    //     return Task.Run(() =>
-    //     {
-    //         var content = GeneratorCodeContent(entityTypeNames);
-    //         var zipFileStream = new MemoryStream(content);
-    //         var actionresult =
-    //             new FileStreamResult(zipFileStream, new Microsoft.Net.Http.Headers.MediaTypeHeaderValue(MimeType))
-    //             {
-    //                 FileDownloadName = "entities.zip",
-    //             };
-    //         return (FileResult) actionresult;
-    //     });
-    // }
-
     [HttpPost]
     public void GeneratorCode(IEnumerable<string> entityTypeNames)
     {
@@ -68,26 +51,5 @@ public class CodeGeneratorManager : ICodeGeneratorManager
             }
             fileProvider.WriteAllTextAsync(csFilePath, parseContent, Encoding.UTF8);
         }
-
-
-        // var generateTypes = typeFinder.FindOfType<IGenerator>();
-        // using var ms = new MemoryStream();
-        // using var zip = new ZipArchive(ms, ZipArchiveMode.Create, true);
-        //
-        // foreach (var generateType in generateTypes)
-        // {
-        //     var g = Activator.CreateInstance(generateType) as IGenerator;
-        //     var parseContent = g.Generate(entityTypes);
-        //     var entry1 = zip.CreateEntry(parseContent.OutputPathFile);
-        //     using var entryStream = new StreamWriter(entry1.Open());
-        //     entryStream.Write(parseContent.Content);
-        //     
-        //     break;
-        // }
-
-
     }
-    
-    
-    
 }

@@ -2,20 +2,14 @@ namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.Commands.{{EntityName}
 /// <summary>
 /// 创建{{Comment}}命令
 /// </summary>
-{% for field in Fields %}
-{% if  field.IsPrimarykey == false %}
+{% for field in Fields -%}
+{% if  field.IsPrimarykey == false -%}
 /// <param name="{{field.FieldName}}">{{field.Comment}}</param>
-{% endif %}
-{% endfor %}
+{% endif -%}
+{% endfor -%}
 public record Create{{EntityName}}Command(
-   {% assign lastField = Fields | last %}
-   {% for field in Fields %}
-   {% if  field.IsPrimarykey == false %}
-   {% if field.FieldName != lastField.FieldName %}
-   field.FieldTypeName field.FieldName,
-   {% else%}
-   field.FieldTypeName field.FieldName
-   {% endif %}
-   {% endif %}
-   {% endfor %} 
+   {%- assign lastField = Fields | last -%}
+   {%- for field in Fields -%}
+   {{field.FieldTypeName}} {{field.FieldName}}{%- if field.FieldName != lastField.FieldName -%},{%- endif %}
+   {%- endfor -%}
 ) : Command("创建{{Comment}}");

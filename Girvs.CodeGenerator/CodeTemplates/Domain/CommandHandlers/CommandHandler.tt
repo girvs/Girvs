@@ -22,17 +22,11 @@ public class AdmitCardCommandHandler : CommandHandler,
     {
         var entity = new {{EntityName}}
         {
-            {% assign lastField = Fields | last %}
-            {% for field in Fields %}
-            {% if  field.IsPrimarykey == false %}
-            {% if field.FieldName != lastField.FieldName %}
-            {{field.FieldName}} = request.{{field.FieldName}},
-            {% else%}
-            {{field.FieldName}} = request.{{field.FieldName}}
-            {% endif %}
-            {% endif %}
-            {% endfor %} 
-        }
+            {%- assign lastField = Fields | last -%}
+            {%- for field in Fields -%}
+            {{field.FieldName}} = request.{{field.FieldName}}{%- if field.FieldName != lastField.FieldName -%},{%- endif %}
+            {%- endfor -%}
+        };
 
         await _repository.AddAsync(entity);
 
@@ -60,11 +54,9 @@ public class AdmitCardCommandHandler : CommandHandler,
             return false;
         }
 
-        {% for field in Fields %}
-        {% if  field.IsPrimarykey == false %}
+        {%- for field in Fields -%}
         entity.{{field.FieldName}} = request.{{field.FieldName}};
-        {% endif %}
-        {% endfor %}
+        {%- endfor -%}
 
         if (await Commit())
         {

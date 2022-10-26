@@ -1,0 +1,16 @@
+namespace {{Namespace.CurrentNamespacePrefixName}}.Application.ViewModels;
+
+
+[AutoMapFrom(typeof(Domain.Models.{{EntityName}}))]
+public class Browse{{EntityName}}ViewModel : IDto
+{
+
+    {%- for field in Fields -%}
+    /// <summary>
+    /// {{field.Comment}}
+    /// </summary>
+    public {{field.FieldTypeName}} {{field.FieldName}}{ get; set; }
+
+    {%- endfor -%}
+
+}

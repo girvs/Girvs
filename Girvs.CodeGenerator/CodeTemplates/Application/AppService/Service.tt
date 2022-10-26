@@ -1,0 +1,146 @@
+namespace {{Namespace.CurrentNamespacePrefixName}}.Application.AppService;
+
+[DynamicWebApi]
+public class {{EntityName}}Service : I{{EntityName}}Service
+{
+    #region 初始参数值
+
+    private readonly IStaticCacheManager _cacheManager;
+    private readonly IMediatorHandler _bus;
+    private readonly DomainNotificationHandler _notifications;
+    private readonly I{{EntityName}}Repository _repository;
+
+    #endregion
+
+    #region 构造函数
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public {{EntityName}}Service(
+        IStaticCacheManager cacheManager,
+        IMediatorHandler bus,
+        INotificationHandler<DomainNotification> notifications,
+        I{{EntityName}}Repository repository
+    )
+    {
+        _cacheManager = cacheManager ?? throw new ArgumentNullException(nameof(cacheManager));
+        _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        _notifications = (DomainNotificationHandler) notifications;
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    }
+
+    #endregion
+
+    #region 服务方法
+
+    /// <summary>
+    /// 根据主键获取指定
+    /// </summary>
+    /// <param name="{{PrimarykeyName}}">主键</param>
+    [HttpGet("{{{PrimarykeyTitleCaseName}}}")]
+    public async Task<Browse{{EntityName}}ViewModel> Get({{PrimarykeyTypeName}} {{PrimarykeyTitleCaseName}})
+    {
+        var {{EntityNameTitleCaseName}} = await _cacheManager.GetAsync(
+              GirvsEntityCacheDefaults<{{EntityName}}>.ByIdCacheKey.Create({{PrimarykeyTitleCaseName}}.ToString()),
+              async () => await _repository.GetByIdAsync({{PrimarykeyTitleCaseName}})
+            );
+
+        if (entity == null)
+           throw new GirvsException("对应的{{Comment}}不存在", StatusCodes.Status404NotFound);
+
+        return entity.MapToDto<Browse{{EntityName}}ViewModel>();
+    }
+
+    /// <summary>
+    /// 根据查询获取列表，用于分页
+    /// </summary>
+    /// <param name="queryViewModel">查询对象</param>
+    [HttpGet]
+    public async Task<{{EntityName}}QueryViewModel> Get([FromQuery]{{EntityName}}QueryViewModel queryViewModel)
+    {
+        var query = queryViewModel.MapToQuery<{{EntityName}}Query>();
+        var tempQuery = await _cacheManager.GetAsync(
+            GirvsEntityCacheDefaults<{{EntityName}}>.QueryCacheKey.Create(query.GetCacheKey()), async () =>
+            {
+                await _repository.GetByQueryAsync(query);
+                return query;
+            });
+
+        if (!query.Equals(tempQuery))
+        {
+            query.RecordCount = tempQuery.RecordCount;
+            query.Result = tempQuery.Result;
+        }
+
+        return query.MapToQueryDto<{{EntityName}}QueryViewModel, {{EntityName}}>();
+    }
+            
+    /// <summary>
+    /// 创建{{Comment}}
+    /// </summary>
+    /// <param name="model">新增模型</param>
+    [HttpPost]
+    public async Task Create([FromBody]Create{{EntityName}}ViewModel model)
+    {
+        var command = new Create{{EntityName}}Command(
+            {%- assign lastField = Fields | last -%}
+            {%- for field in Fields -%}
+            model.{{field.FieldName}}{%- if field.FieldName != lastField.FieldName -%},{%- endif %}
+            {%- endfor -%}
+        );
+        
+        await _bus.SendCommand(command);
+        
+        if (_notifications.HasNotifications())
+        {
+            var errorMessage = _notifications.GetNotificationMessage();
+            throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
+        }
+    }
+
+    /// <summary>
+    /// 根据主键删除指定{{Comment}}
+    /// </summary>
+    /// <param name="{{PrimarykeyTitleCaseName}}">主键</param>
+    [HttpDelete("{{{PrimarykeyTitleCaseName}}}")]
+    public async Task Delete({{PrimarykeyTypeName}} {{PrimarykeyTitleCaseName}})
+    {
+        var command = new Delete{{EntityName}}Command({{PrimarykeyTitleCaseName}});
+
+        await _bus.SendCommand(command);
+
+        if (_notifications.HasNotifications())
+        {
+            var errorMessage = _notifications.GetNotificationMessage();
+            throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
+        }
+    }
+
+    /// <summary>
+    /// 根据主键更新指定{{Comment}}
+    /// </summary>
+    /// <param name="{{PrimarykeyTitleCaseName}}">主键</param>
+    /// <param name="model">新增模型</param>
+    [HttpPut("{{{PrimarykeyTitleCaseName}}}")]
+    public async Task Update({{PrimarykeyTypeName}} {{PrimarykeyTitleCaseName}},[FromBody] Update{{EntityName}}ViewModel model)
+    {
+        var command = new Create{{EntityName}}Command(
+            {{PrimarykeyTitleCaseName}},
+            {%- assign lastField = Fields | last -%}
+            {%- for field in Fields -%}
+            model.{{field.FieldName}}{%- if field.FieldName != lastField.FieldName -%},{%- endif %}
+            {%- endfor -%}
+        );
+        
+        await _bus.SendCommand(command);
+        
+        if (_notifications.HasNotifications())
+        {
+            var errorMessage = _notifications.GetNotificationMessage();
+            throw new GirvsException(StatusCodes.Status400BadRequest, errorMessage);
+        }
+    }
+
+    #endregion
+}

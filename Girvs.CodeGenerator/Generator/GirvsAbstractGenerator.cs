@@ -23,6 +23,6 @@ public abstract class GirvsAbstractGenerator : IGenerator
         var templateContent = GetResourceContent();
         var templateEngine = Template.Parse(templateContent);
         var parseContent = templateEngine.Render(Hash.FromAnonymousObject(templateParameter));
-        return parseContent.Replace("\n        ", "");
+        return parseContent;
     }
 }
