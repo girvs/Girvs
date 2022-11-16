@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>5.0.0-preview.1.6.9</Version>
+        <Version>6.0.0-preview.1.0</Version>
         <PackageVersion>6.0.0-preview.1.0</PackageVersion>
         <LangVersion>10</LangVersion>
     </PropertyGroup>
