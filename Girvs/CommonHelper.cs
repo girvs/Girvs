@@ -17,6 +17,20 @@ public class CommonHelper
         EmailRegex = new Regex(EmailExpression, RegexOptions.IgnoreCase);
     }
 
+    /// <summary>
+    /// 字符串复杂度校验（必须包含数字、小写或大写字母、特殊字符、字符数在8-30之间）
+    /// </summary>
+    /// <param name="str"></param>
+    /// <returns></returns>
+    public static bool Complexity(string str)
+    {
+        var regex = new Regex(@"
+                                     (?=.*[0-9])                     
+                                     (?=.*[a-zA-Z])                  
+                                     ", RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
+
+        return regex.IsMatch(str);
+    }
 
     /// <summary>
     /// 确保用户的电子邮件或抛出。
@@ -175,12 +189,12 @@ public class CommonHelper
             value = To(value, pi.PropertyType);
         pi.SetValue(instance, value, Array.Empty<object>());
     }
-        
+
     //public static Expression<Func<TEntity, bool>> BuildeExpression<TEntity>(string propertyName, object value,OperatorType operatorType)
     //{
-            
+
     //}
-        
+
     /// <summary>
     /// 获取对象的属性值。
     /// </summary>
@@ -270,7 +284,7 @@ public class CommonHelper
             age--;
         return age;
     }
-        
+
     /// <summary>
     /// 获取或设置默认文件提供程序
     /// </summary>
