@@ -33,6 +33,17 @@ public static class Sm4Helper
     /// SM4加密方式
     /// </summary>
     /// <param name="plainText">需要加密的文本</param>
+    /// <returns></returns>
+    public static string Sm4Encrypt_ECB(this string plainText)
+    {
+        var secretKey = Singleton<AppSettings>.Instance.CommonConfig.Sm4SecretKey;
+        return Sm4Encrypt_ECB(plainText, secretKey);
+    }
+    
+    /// <summary>
+    /// SM4加密方式
+    /// </summary>
+    /// <param name="plainText">需要加密的文本</param>
     /// <param name="secretKey">安全码</param>
     /// <param name="secretKeyHexString">是否为十六进制</param>
     /// <returns></returns>
@@ -54,6 +65,16 @@ public static class Sm4Helper
         var cipherText = Base64.ToBase64String(Hex.Encode(encrypted));
 
         return cipherText;
+    }
+    
+    /// <summary>
+    /// SM4解密
+    /// </summary>
+    /// <param name="cipherText">需要解密的文本</param>
+    public static string Sm4Decrypt_ECB(this string cipherText)
+    {
+        var secretKey = Singleton<AppSettings>.Instance.CommonConfig.Sm4SecretKey;
+        return Sm4Decrypt_ECB(cipherText, secretKey);
     }
 
     /// <summary>
