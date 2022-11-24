@@ -24,12 +24,11 @@ public class CommonHelper
     /// <returns></returns>
     public static bool Complexity(string str)
     {
-        var regex = new Regex(@"
-                                     (?=.*[0-9])                     
-                                     (?=.*[a-zA-Z])                  
-                                     ", RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
-
-        return regex.IsMatch(str);
+        var regex = new Regex(@"(?=.*[0-9])
+                                (?=.*[a-zA-Z])
+                                (?=.*[\W_])", RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
+        var result=regex.IsMatch(str);
+        return result;
     }
 
     /// <summary>
