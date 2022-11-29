@@ -49,6 +49,11 @@ public static class Sm4Helper
     /// <returns></returns>
     public static string Sm4Encrypt_ECB(this string plainText, string secretKey, bool secretKeyHexString = true)
     {
+        if (plainText.IsNullOrWhiteSpace())
+        {
+            return string.Empty;
+        }
+        
         var ctx = new Sm4Context
         {
             isPadding = true,
@@ -86,6 +91,10 @@ public static class Sm4Helper
     /// <returns></returns>
     public static string Sm4Decrypt_ECB(this string cipherText, string secretKey, bool secretKeyHexString = true)
     {
+        if (cipherText.IsNullOrWhiteSpace())
+        {
+            return string.Empty;
+        }
         var ctx = new Sm4Context
         {
             isPadding = true,
