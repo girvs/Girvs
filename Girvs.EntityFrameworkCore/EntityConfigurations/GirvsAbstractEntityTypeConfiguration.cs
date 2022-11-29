@@ -3,10 +3,28 @@ namespace Girvs.EntityFrameworkCore.EntityConfigurations;
 public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTypeConfiguration<TEntity>
     where TEntity : Entity
 {
-    public virtual void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
+    protected virtual void OnModelCreatingTable<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
         where TEntity : BaseEntity<TKey>, new()
     {
-        builder.ToTable(EngineContext.Current.GetMigrationEntityTableName<TEntity>()).HasKey(x => x.Id);
+        builder.ToTable(EngineContext.Current.GetMigrationEntityTableName<TEntity>());
+    }
+
+    protected virtual void OnModelCreatingKey<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
+        where TEntity : BaseEntity<TKey>, new()
+    {
+        builder.HasKey(x => x.Id);
+    }
+
+    protected virtual void OnModelCreatingTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
+        where TEntity : BaseEntity<TKey>, new()
+    {
+        OnModelCreatingTable<TEntity, TKey>(builder);
+        OnModelCreatingKey<TEntity, TKey>(builder);
+    }
+
+    protected virtual void OnModelCreatingBaseEntity<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
+        where TEntity : BaseEntity<TKey>, new()
+    {
         foreach (var propertyInfo in typeof(TEntity).GetProperties())
         {
             if (propertyInfo.Name == nameof(IIncludeCreateTime.CreateTime))
@@ -70,6 +88,13 @@ public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTyp
                 builder.Property(nameof(IIncludeCreatorName.CreatorName)).HasColumnType("nvarchar(40)");
             }
         }
+    }
+
+    public virtual void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
+        where TEntity : BaseEntity<TKey>, new()
+    {
+        OnModelCreatingTableKey<TEntity, TKey>(builder);
+        OnModelCreatingBaseEntity<TEntity, TKey>(builder);
     }
 
     public abstract void Configure(EntityTypeBuilder<TEntity> builder);
