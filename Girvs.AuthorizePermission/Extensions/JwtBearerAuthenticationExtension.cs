@@ -9,7 +9,8 @@ public static class JwtBearerAuthenticationExtension
         string tenantName = null,
         UserType userType = UserType.All,
         IdentityType identityType = IdentityType.ManagerUser,
-        SystemModule claimSystemModule = SystemModule.All)
+        SystemModule claimSystemModule = SystemModule.All
+        )
     {
         var girvsIdentityClaim = new GirvsIdentityClaim()
         {

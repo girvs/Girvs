@@ -7,7 +7,9 @@ public static class StringExtensions
 {
     public static string Base64Encode(this string content)
     {
-        byte[] bytes = Encoding.UTF8.GetBytes(content);
+        if (content.IsNullOrWhiteSpace())
+            return content;
+        var bytes = Encoding.UTF8.GetBytes(content);
         return Convert.ToBase64String(bytes);
     }
 
@@ -18,7 +20,9 @@ public static class StringExtensions
     /// <returns></returns>
     public static string Base64Decode(this string content)
     {
-        byte[] bytes = Convert.FromBase64String(content);
+        if (content.IsNullOrWhiteSpace())
+            return content;
+        var bytes = Convert.FromBase64String(content);
         return Encoding.UTF8.GetString(bytes);
     }
 
