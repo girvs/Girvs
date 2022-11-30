@@ -9,7 +9,7 @@ namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.Commands.{{EntityName}
 {% endif -%}
 {% endfor -%}
 public record Update{{EntityName}}Command(
-   {{PrimarykeyTypeName}} {{PrimarykeyName}}
+   {{PrimarykeyTypeName}} {{PrimarykeyName}},
    {%- assign lastField = Fields | last -%}
    {%- for field in Fields -%}
    {%- if field.FieldName != lastField.FieldName -%}

@@ -49,10 +49,10 @@ public class {{EntityName}}Service : I{{EntityName}}Service
               async () => await _repository.GetByIdAsync({{PrimarykeyTitleCaseName}})
             );
 
-        if (entity == null)
+        if ({{EntityNameTitleCaseName}} == null)
            throw new GirvsException("对应的{{Comment}}不存在", StatusCodes.Status404NotFound);
 
-        return entity.MapToDto<Browse{{EntityName}}ViewModel>();
+        return {{EntityNameTitleCaseName}}.MapToDto<Browse{{EntityName}}ViewModel>();
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public class {{EntityName}}Service : I{{EntityName}}Service
     [HttpPut("{{{PrimarykeyTitleCaseName}}}")]
     public async Task Update({{PrimarykeyTypeName}} {{PrimarykeyTitleCaseName}},[FromBody] Update{{EntityName}}ViewModel model)
     {
-        var command = new Create{{EntityName}}Command(
+        var command = new Update{{EntityName}}Command(
             {{PrimarykeyTitleCaseName}},
             {%- assign lastField = Fields | last -%}
             {%- for field in Fields -%}
