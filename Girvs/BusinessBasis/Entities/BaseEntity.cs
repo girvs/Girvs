@@ -39,7 +39,6 @@ public abstract class BaseEntity<TPrimaryKey> : Entity
             initFieldObj.IsInitData = false;
         }
 
-
         var identityClaim = EngineContext.Current.ClaimManager?.IdentityClaim;
 
         if (identityClaim != null)

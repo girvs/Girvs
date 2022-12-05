@@ -32,6 +32,11 @@ public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTyp
                 builder.Property(nameof(IIncludeCreateTime.CreateTime)).HasColumnType("datetime");
             }
 
+            if (propertyInfo.Name == nameof(IIcludeTamperProof.DataCheckCode))
+            {
+                builder.Property(nameof(IIcludeTamperProof.DataCheckCode)).HasColumnType("varchar(36)");
+            }
+
             if (propertyInfo.Name == nameof(IIncludeUpdateTime.UpdateTime))
             {
                 builder.Property(nameof(IIncludeUpdateTime.UpdateTime)).HasColumnType("datetime");
