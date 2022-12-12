@@ -81,7 +81,7 @@ public class ParameterManager
     protected virtual string GetCurrentNamespacePrefixName(string entityNamespaceName)
     {
         var fixedTagLocation = entityNamespaceName.IndexOf(FixedTag, StringComparison.Ordinal);
-        return entityNamespaceName[..fixedTagLocation];
+        return fixedTagLocation > 0 ? entityNamespaceName[..fixedTagLocation] : string.Empty;
     }
 
     protected virtual string GetCurrentNamespaceSuffixName()
