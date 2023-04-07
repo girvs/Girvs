@@ -22,7 +22,10 @@ public class IdentityClaimManager : IGirvsClaimManager
         var httpContext = EngineContext.Current.HttpContext;
         if (httpContext?.User.Identity?.IsAuthenticated == true)
         {
-            var claims = httpContext.User.Claims.ToDictionary(x => x.Type, v => v.Value);
+            //过滤掉重复的Bug
+            var claims = httpContext.User.Claims
+                .DistinctBy(x=>x.Type)
+                .ToDictionary(x => x.Type, v => v.Value);
             var identityType = claims.GetDictionaryValueByKey(GirvsIdentityClaimTypes.IdentityType)
                 .ToEnum<IdentityType>();
 
