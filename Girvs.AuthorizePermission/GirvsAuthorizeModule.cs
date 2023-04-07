@@ -1,4 +1,6 @@
-﻿namespace Girvs.AuthorizePermission;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+namespace Girvs.AuthorizePermission;
 
 public class GirvsAuthorizeModule : IAppModuleStartup
 {
@@ -7,7 +9,7 @@ public class GirvsAuthorizeModule : IAppModuleStartup
         var authorizeConfig = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
 
         var authenticationBuilder =
-            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme);
+            services.AddAuthentication("Bearer");
 
         if ((authorizeConfig.AuthorizationModel & AuthorizationModel.Jwt) == AuthorizationModel.Jwt)
         {
@@ -36,46 +38,15 @@ public class GirvsAuthorizeModule : IAppModuleStartup
                 .AddJwtBearer(GirvsAuthenticationScheme.GirvsIdentityServer4, options =>
                 {
                     options.Authority = authorizeConfig.IdentityServer4Config.ServerHost;
-                    options.RequireHttpsMetadata = authorizeConfig.IdentityServer4Config.UseHttps;
-                    options.SaveToken = false;
                     options.Audience = authorizeConfig.IdentityServer4Config.ApiResourceName;
-
+                    options.TokenValidationParameters.ValidTypes = new[] {"at+jwt"};
+                    options.TokenValidationParameters.ValidateIssuer = false;
+                    options.RequireHttpsMetadata = authorizeConfig.IdentityServer4Config.UseHttps;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateAudience = false
                     };
                 });
-
-            // services.AddAuthorization(options =>
-            // {
-            //     options.AddPolicy(config.Service.PolicyName, policy =>
-            //     {
-            //         policy.RequireAuthenticatedUser();
-            //         policy.RequireClaim("scope", config.Service.ServiceName);
-            //     });
-            // });
-
-            // services.AddAuthentication("token")
-            //
-            //     // JWT tokens
-            //     .AddJwtBearer("token", options =>
-            //     {
-            //         options.Authority = authorizeConfig.IdentityServer4Config.ServerHost;
-            //         options.Audience = authorizeConfig.IdentityServer4Config.ApiResourceName;
-            //         options.RequireHttpsMetadata = authorizeConfig.IdentityServer4Config.UseHttps;
-            //         //options.TokenValidationParameters.ValidTypes = new[] { "at+jwt" };
-            //
-            //         // if token does not contain a dot, it is a reference token
-            //         //options.ForwardDefaultSelector = Selector.ForwardReferenceToken("introspection");
-            //     })
-            //
-            //     // reference tokens
-            //     .AddOAuth2Introspection("introspection", options =>
-            //     {
-            //         options.Authority = authorizeConfig.IdentityServer4Config.ServerHost;
-            //         options.ClientId = authorizeConfig.IdentityServer4Config.ApiResourceName;
-            //         options.ClientSecret = authorizeConfig.IdentityServer4Config.ApiSecret;
-            //     });
         }
     }
 

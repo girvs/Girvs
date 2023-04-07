@@ -24,8 +24,6 @@ global using Girvs.Extensions;
 global using Girvs.Infrastructure;
 global using Girvs.JsonConverters;
 global using Girvs.TypeFinder;
-global using IdentityServer4.AccessTokenValidation;
-global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Http;
