@@ -5,7 +5,7 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 public static class DbContextOptionsBuilderExtensions
 {
     public static void UseSqlServerWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr)
+        DbContext dbContext, DataConnectionConfig config, string connStr)
     {
         optionsBuilder.UseSqlServer(connStr,
             builder =>
@@ -13,7 +13,7 @@ public static class DbContextOptionsBuilderExtensions
                 if (config.IsTenantShardingTable)
                 {
                     builder.MigrationsHistoryTable(
-                        $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                        $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
                 }
             });
         
@@ -21,7 +21,7 @@ public static class DbContextOptionsBuilderExtensions
     }
 
     public static void UseMySqlWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr)
+        DbContext dbContext, DataConnectionConfig config, string connStr)
     {
         var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
 
@@ -32,14 +32,14 @@ public static class DbContextOptionsBuilderExtensions
                 if (config.IsTenantShardingTable)
                 {
                     builder.MigrationsHistoryTable(
-                        $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                        $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
                 }
             });
         optionsBuilder.UseBatchEF_MySQLPomelo();
     }
 
     public static void UseSqlLiteWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr)
+        DbContext dbContext, DataConnectionConfig config, string connStr)
     {
         if (config.UseRowNumberForPaging)
         {
@@ -50,7 +50,7 @@ public static class DbContextOptionsBuilderExtensions
                     if (config.IsTenantShardingTable)
                     {
                         builder.MigrationsHistoryTable(
-                            $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                            $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
                     }
                 });
 
@@ -65,7 +65,7 @@ public static class DbContextOptionsBuilderExtensions
                     if (config.IsTenantShardingTable)
                     {
                         builder.MigrationsHistoryTable(
-                            $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                            $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
                     }
                 });
 
@@ -74,7 +74,7 @@ public static class DbContextOptionsBuilderExtensions
     }
 
     public static void UseOracleWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr)
+        DbContext dbContext, DataConnectionConfig config, string connStr)
     {
         optionsBuilder.UseOracle(connStr,
             builder =>
@@ -84,14 +84,14 @@ public static class DbContextOptionsBuilderExtensions
                 if (config.IsTenantShardingTable)
                 {
                     builder.MigrationsHistoryTable(
-                        $"__EFMigrationsHistory{EngineContext.Current.GetSafeShardingTableSuffix()}");
+                        $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
                 }
             });
         optionsBuilder.UseBatchEF_Oracle();
     }
 
     public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr)
+        DbContext dbContext,  DataConnectionConfig config, string connStr)
     {
         optionsBuilder.UseInMemoryDatabase(connStr, builder =>
         {
@@ -106,22 +106,24 @@ public static class DbContextOptionsBuilderExtensions
         var dataConnectionConfig = config;
         connStr ??= config.MasterDataConnectionString;
 
+        var dbContext = EngineContext.Current.Resolve<TDbContext>() as DbContext;
+        
         switch (dataConnectionConfig.UseDataType)
         {
             case UseDataType.MsSql:
-                optionsBuilder.UseSqlServerWithLazyLoading(dataConnectionConfig, connStr);
+                optionsBuilder.UseSqlServerWithLazyLoading(dbContext,dataConnectionConfig, connStr);
                 break;
 
             case UseDataType.MySql:
-                optionsBuilder.UseMySqlWithLazyLoading(dataConnectionConfig, connStr);
+                optionsBuilder.UseMySqlWithLazyLoading(dbContext,dataConnectionConfig, connStr);
                 break;
 
             case UseDataType.SqlLite:
-                optionsBuilder.UseSqlLiteWithLazyLoading(dataConnectionConfig, connStr);
+                optionsBuilder.UseSqlLiteWithLazyLoading(dbContext,dataConnectionConfig, connStr);
                 break;
 
             case UseDataType.Oracle:
-                optionsBuilder.UseOracleWithLazyLoading(dataConnectionConfig, connStr);
+                optionsBuilder.UseOracleWithLazyLoading(dbContext,dataConnectionConfig, connStr);
                 break;
         }
 

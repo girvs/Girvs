@@ -6,7 +6,7 @@ public class GirvsTenantModelCacheKeyFactory<TContext> : ModelCacheKeyFactory
     public override object Create(DbContext context, bool designTime)
     {
         var dbContext = context as TContext;
-        return new TenantModelCacheKey<TContext>(dbContext, EngineContext.Current.GetSafeShardingTableSuffix(),
+        return new TenantModelCacheKey<TContext>(dbContext, EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext),
             designTime);
     }
 

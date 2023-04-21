@@ -21,7 +21,7 @@ public class GirvsMigrationByTenantAssembly: MigrationsAssembly
         if (hasCtorWithSchema)
         {
             var migration =
-                (Migration) Activator.CreateInstance(migrationClass.AsType(), EngineContext.Current.GetSafeShardingTableSuffix());
+                (Migration) Activator.CreateInstance(migrationClass.AsType(), EngineContext.Current.GetSafeShardingTableSuffix(migrationClass.AsType()));
             migration.ActiveProvider = activeProvider;
             return migration;
         }

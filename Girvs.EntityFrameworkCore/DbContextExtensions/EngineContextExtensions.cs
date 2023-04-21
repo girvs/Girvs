@@ -2,46 +2,99 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 public static class EngineContextExtensions
 {
-    private static readonly IDictionary<Type, Type> _relatedDbContextCache = new Dictionary<Type, Type>();
+    private static readonly IDictionary<Type, Type> RelatedDbContextCache = new Dictionary<Type, Type>();
     private static object _async = new object();
 
+    /// <summary>
+    /// 获取实体相关联的DbContext
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <param name="entityType"></param>
+    /// <returns></returns>
+    /// <exception cref="GirvsException"></exception>
     public static DbContext GetEntityRelatedDbContext<TEntity>(this IEngine engine) where TEntity : Entity
+    {
+        return GetEntityRelatedDbContext(engine, typeof(TEntity));
+    }
+
+    /// <summary>
+    /// 获取实体相关联的DbContext
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <param name="entityType"></param>
+    /// <returns></returns>
+    /// <exception cref="GirvsException"></exception>
+    public static DbContext GetEntityRelatedDbContext(this IEngine engine, Type entityType)
     {
         lock (_async)
         {
-            var entityType = typeof(TEntity);
-            if (!_relatedDbContextCache.ContainsKey(entityType))
+            if (!RelatedDbContextCache.ContainsKey(entityType))
             {
                 var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
                 var ts = typeFinder?.FindOfType(typeof(GirvsDbContext));
 
-                var dbContextType = ts?
-                    .FirstOrDefault(x =>
-                        x.GetProperties().Any(propertyInfo => propertyInfo.PropertyType == typeof(DbSet<TEntity>)));
+                Type relatedDbContextType = null;
+                if (ts != null)
+                    foreach (var dbContextType in ts)
+                    {
+                        if (EngineContext.Current.Resolve(dbContextType) is GirvsDbContext dbContext)
+                        {
+                            var modelTypes = dbContext.Model.GetEntityTypes().Select(x => x.ClrType);
+                            if (modelTypes.Any(x => x.Name == entityType.Name))
+                            {
+                                relatedDbContextType = dbContextType;
+                                break;
+                            }
+                        }
+                    }
 
-                if (dbContextType == null)
+                if (relatedDbContextType == null)
                 {
-                    throw new GirvsException($"未找到对应的DbContext   {typeof(TEntity).Name}");
+                    throw new GirvsException($"未找到对应的DbContext   {entityType.Name}");
                 }
 
-                _relatedDbContextCache.Add(entityType, dbContextType);
+                RelatedDbContextCache.Add(entityType, relatedDbContextType);
             }
 
-            return EngineContext.Current.Resolve(_relatedDbContextCache[entityType]) as DbContext;
+            return EngineContext.Current.Resolve(RelatedDbContextCache[entityType]) as DbContext;
         }
     }
 
-    public static string GetSafeShardingTableSuffix(this IEngine engine)
+    /// <summary>
+    /// 获取Migrations时   Migration的表名
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <param name="dbContext"></param>
+    /// <returns></returns>
+    public static string GetMigrationsShardingTableSuffix(this IEngine engine, DbContext dbContext)
     {
         try
         {
-            var shardingTag = engine.ClaimManager.IdentityClaim.TenantId;
-            if (Guid.Parse(shardingTag) == Guid.Empty)
+            var shardingTableSuffix = string.Empty;
+            var entityTypes = dbContext.Model.GetEntityTypes().Select(x=>x.ClrType);
+
+            //是否存在实体包含
+            var existTenantShardingTable = entityTypes.Any(x => x.IsAssignableTo(typeof(ITenantShardingTable)));
+
+            //当前如果包含租户分表标识
+
+            if (existTenantShardingTable)
             {
-                return string.Empty;
+                var tenantId = engine.ClaimManager.IdentityClaim.GetTenantId<Guid>();
+                if (tenantId != Guid.Empty)
+                {
+                    shardingTableSuffix = $"_{tenantId.ToString().Replace("-", "")}";
+                }
             }
 
-            return shardingTag.IsNullOrEmpty() ? string.Empty : $"_{shardingTag.Replace("-", "")}";
+            //当前如果包含按年份分表标识
+            var existYearShardingTable = entityTypes.Any(x => x.IsAssignableTo(typeof(IYearShardingTable)));
+            if (existYearShardingTable)
+            {
+                shardingTableSuffix = $"{shardingTableSuffix}_{DateTime.Now.Year}";
+            }
+
+            return shardingTableSuffix;
         }
         catch (Exception e)
         {
@@ -49,22 +102,95 @@ public static class EngineContextExtensions
         }
     }
 
-    public static bool IsNeedShardingTable<TEntity>(this IEngine engine) where TEntity : Entity
+    /// <summary>
+    /// 获取实体表名对应的后缀名称
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public static string GetSafeShardingTableSuffix<TEntity>(this IEngine engine) where TEntity : Entity
+    {
+        return GetSafeShardingTableSuffix(engine, typeof(TEntity));
+    }
+
+    /// <summary>
+    /// 获取实体表名对应的后缀名称
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public static string GetSafeShardingTableSuffix(this IEngine engine, Type entityType)
     {
         try
         {
-            var suffix = GetSafeShardingTableSuffix(engine);
-            if (suffix.IsNullOrEmpty()) //默认为超级管理员，则直接进行还原
+            var shardingTableSuffix = string.Empty;
+            //判断当前实体是否需要进行分表
+            var currentEntityIsNeedShardingTable = IsNeedShardingTable(engine, entityType);
+            if (!currentEntityIsNeedShardingTable)
+                return shardingTableSuffix;
+
+            //当前如果包含租户分表标识
+            var isIncludeTenantShardingTable = entityType.IsAssignableTo(typeof(ITenantShardingTable));
+            if (isIncludeTenantShardingTable)
             {
-                return true;
+                var tenantId = engine.ClaimManager.IdentityClaim.GetTenantId<Guid>();
+                if (tenantId != Guid.Empty)
+                {
+                    shardingTableSuffix = $"_{tenantId.ToString().Replace("-", "")}";
+                }
             }
-            var entityType = typeof(TEntity);
-            var dbContext = engine.GetEntityRelatedDbContext<TEntity>();
+
+            //当前如果包含按年份分表标识
+            var isIncludeYearShardingTable = entityType.IsAssignableTo(typeof(IYearShardingTable));
+            if (isIncludeYearShardingTable)
+            {
+                shardingTableSuffix = $"{shardingTableSuffix}_{DateTime.Now.Year}";
+            }
+
+            return shardingTableSuffix;
+        }
+        catch (Exception e)
+        {
+            return string.Empty;
+        }
+    }
+
+
+    /// <summary>
+    /// 判断当前实体是否需要进行分表
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public static bool IsNeedShardingTable<TEntity>(this IEngine engine) where TEntity : Entity
+    {
+        return IsNeedShardingTable(engine, typeof(TEntity));
+    }
+
+    /// <summary>
+    /// 判断当前实体是否需要进行分表
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public static bool IsNeedShardingTable(this IEngine engine, Type entityType)
+    {
+        try
+        {
+            var currentTenant = engine.ClaimManager.IdentityClaim.GetTenantId<Guid>();
+            if (currentTenant == Guid.Empty)
+                return false;
+
+            //当前实体是否包含分表的标识
+            var isIncludeShardTag = entityType.IsAssignableTo(typeof(ITenantShardingTable)) ||
+                                    entityType.IsAssignableTo(typeof(IYearShardingTable));
+
+            //当前配置文件是否打开了分表的标识
+            var dbContext = engine.GetEntityRelatedDbContext(entityType);
             var dataProviderConfig =
                 engine.GetAppModuleConfig<DbConfig>().GetDataConnectionConfig(dbContext.GetType());
 
-            return dataProviderConfig.IsTenantShardingTable && !suffix.IsNullOrEmpty() &&
-                   entityType.IsAssignableTo(typeof(ITenantShardingTable));
+            return dataProviderConfig.IsTenantShardingTable && isIncludeShardTag;
         }
         catch
         {
@@ -72,11 +198,27 @@ public static class EngineContextExtensions
         }
     }
 
+    /// <summary>
+    /// 获取指定实体的表名
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <param name="entityType"></param>
+    /// <returns></returns>
     public static string GetMigrationEntityTableName<TEntity>(this IEngine engine) where TEntity : Entity
     {
-        var entityType = typeof(TEntity);
-        if (!IsNeedShardingTable<TEntity>(engine)) return entityType.Name;
-        var suffix = GetSafeShardingTableSuffix(engine);
+        return GetMigrationEntityTableName(engine, typeof(TEntity));
+    }
+
+    /// <summary>
+    /// 获取指定实体的表名
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <param name="entityType"></param>
+    /// <returns></returns>
+    public static string GetMigrationEntityTableName(this IEngine engine, Type entityType)
+    {
+        if (!IsNeedShardingTable(engine, entityType)) return entityType.Name;
+        var suffix = GetSafeShardingTableSuffix(engine, entityType);
         return $"{entityType.Name}{suffix}";
     }
 }

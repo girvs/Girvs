@@ -7,14 +7,20 @@ public abstract class GirvsMigration : Migration
         return EngineContext.Current.GetMigrationEntityTableName<T>();
     }
 
-    public virtual bool IsCreateShardingTable<T>() where T :Entity
+    public virtual bool IsCreateShardingTable<T>() where T : Entity
     {
         return EngineContext.Current.IsNeedShardingTable<T>();
     }
 
     public virtual string GetShardingForeignKey<T>(string OriginalKeyName) where T : Entity
     {
-        var suffix = EngineContext.Current.GetSafeShardingTableSuffix();
-        return $"{OriginalKeyName}{suffix}";
+        var suffix = EngineContext.Current.GetSafeShardingTableSuffix<T>();
+        var result = $"{OriginalKeyName}{suffix}";
+        if (result.Length > 64)
+        {
+            return $"PK_{result.ToMd5()}";
+        }
+
+        return result;
     }
 }
