@@ -4,24 +4,24 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 public static class DbContextOptionsBuilderExtensions
 {
-    public static void UseSqlServerWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DbContext dbContext, DataConnectionConfig config, string connStr)
+    public static void UseSqlServerWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
+        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
     {
         optionsBuilder.UseSqlServer(connStr,
             builder =>
             {
-                if (config.IsTenantShardingTable)
+                if (config.EnableShardingTable)
                 {
-                    builder.MigrationsHistoryTable(
-                        $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
+                    var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+                    builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
                 }
             });
-        
+
         optionsBuilder.UseBatchEF_MSSQL();
     }
 
-    public static void UseMySqlWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DbContext dbContext, DataConnectionConfig config, string connStr)
+    public static void UseMySqlWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
+        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
     {
         var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
 
@@ -29,17 +29,17 @@ public static class DbContextOptionsBuilderExtensions
             builder =>
             {
                 builder.EnableRetryOnFailure(maxRetryCount: 5);
-                if (config.IsTenantShardingTable)
+                if (config.EnableShardingTable)
                 {
-                    builder.MigrationsHistoryTable(
-                        $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
+                    var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+                    builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
                 }
             });
         optionsBuilder.UseBatchEF_MySQLPomelo();
     }
 
-    public static void UseSqlLiteWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DbContext dbContext, DataConnectionConfig config, string connStr)
+    public static void UseSqlLiteWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
+        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
     {
         if (config.UseRowNumberForPaging)
         {
@@ -47,10 +47,10 @@ public static class DbContextOptionsBuilderExtensions
                 builder =>
                 {
                     builder.CommandTimeout(config.SQLCommandTimeout);
-                    if (config.IsTenantShardingTable)
+                    if (config.EnableShardingTable)
                     {
-                        builder.MigrationsHistoryTable(
-                            $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
+                        var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+                        builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
                     }
                 });
 
@@ -62,10 +62,10 @@ public static class DbContextOptionsBuilderExtensions
                 builder =>
                 {
                     builder.CommandTimeout(config.SQLCommandTimeout);
-                    if (config.IsTenantShardingTable)
+                    if (config.EnableShardingTable)
                     {
-                        builder.MigrationsHistoryTable(
-                            $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
+                        var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+                        builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
                     }
                 });
 
@@ -73,25 +73,25 @@ public static class DbContextOptionsBuilderExtensions
         }
     }
 
-    public static void UseOracleWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DbContext dbContext, DataConnectionConfig config, string connStr)
+    public static void UseOracleWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
+        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
     {
         optionsBuilder.UseOracle(connStr,
             builder =>
             {
                 builder.CommandTimeout(config.SQLCommandTimeout);
                 builder.UseOracleSQLCompatibility(config.VersionNumber);
-                if (config.IsTenantShardingTable)
+                if (config.EnableShardingTable)
                 {
-                    builder.MigrationsHistoryTable(
-                        $"__EFMigrationsHistory{EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext)}");
+                    var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+                    builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
                 }
             });
         optionsBuilder.UseBatchEF_Oracle();
     }
 
-    public static void UseInMemoryWithLazyLoading(this DbContextOptionsBuilder optionsBuilder,
-        DbContext dbContext,  DataConnectionConfig config, string connStr)
+    public static void UseInMemoryWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
+        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
     {
         optionsBuilder.UseInMemoryDatabase(connStr, builder =>
         {
@@ -106,24 +106,22 @@ public static class DbContextOptionsBuilderExtensions
         var dataConnectionConfig = config;
         connStr ??= config.MasterDataConnectionString;
 
-        var dbContext = EngineContext.Current.Resolve<TDbContext>() as DbContext;
-        
         switch (dataConnectionConfig.UseDataType)
         {
             case UseDataType.MsSql:
-                optionsBuilder.UseSqlServerWithLazyLoading(dbContext,dataConnectionConfig, connStr);
+                optionsBuilder.UseSqlServerWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
                 break;
 
             case UseDataType.MySql:
-                optionsBuilder.UseMySqlWithLazyLoading(dbContext,dataConnectionConfig, connStr);
+                optionsBuilder.UseMySqlWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
                 break;
 
             case UseDataType.SqlLite:
-                optionsBuilder.UseSqlLiteWithLazyLoading(dbContext,dataConnectionConfig, connStr);
+                optionsBuilder.UseSqlLiteWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
                 break;
 
             case UseDataType.Oracle:
-                optionsBuilder.UseOracleWithLazyLoading(dbContext,dataConnectionConfig, connStr);
+                optionsBuilder.UseOracleWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
                 break;
         }
 
@@ -143,7 +141,7 @@ public static class DbContextOptionsBuilderExtensions
             optionsBuilder.UseLoggerFactory(loggerFactory).EnableSensitiveDataLogging();
         }
 
-        if (dataConnectionConfig.IsTenantShardingTable)
+        if (dataConnectionConfig.EnableShardingTable)
         {
             optionsBuilder.ReplaceService<IModelCacheKeyFactory, GirvsTenantModelCacheKeyFactory<TDbContext>>();
             optionsBuilder.ReplaceService<IMigrationsAssembly, GirvsMigrationByTenantAssembly>();

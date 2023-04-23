@@ -8,7 +8,8 @@ public class UnitOfWork<TEntity> : IUnitOfWork<TEntity> where TEntity : Entity
     //构造函数注入
     public UnitOfWork()
     {
-        _context = EngineContext.Current.GetEntityRelatedDbContext<TEntity>() ??
+        var related = EngineContext.Current.GetShardingTableRelatedByEntity<TEntity>();
+        _context = related.GetInstant() ??
                    throw new ArgumentNullException(nameof(DbContext));
         _context.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
         _logger = EngineContext.Current.Resolve<ILogger<UnitOfWork<TEntity>>>();

@@ -17,8 +17,8 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
     protected Repository()
     {
         _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
-
-        DbContext = EngineContext.Current.GetEntityRelatedDbContext<TEntity>() ??
+        var related = EngineContext.Current.GetShardingTableRelatedByEntity<TEntity>();
+        DbContext = related.GetInstant() ??
                     throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
         DbContext.ShardingAutoMigration();
         DbSet = DbContext.Set<TEntity>();

@@ -4,17 +4,20 @@ public abstract class GirvsMigration : Migration
 {
     public virtual string GetShardingTableName<T>() where T : Entity
     {
-        return EngineContext.Current.GetMigrationEntityTableName<T>();
+        var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
+        return entityShardingSet.GetCurrentShardingTableName();
     }
 
     public virtual bool IsCreateShardingTable<T>() where T : Entity
     {
-        return EngineContext.Current.IsNeedShardingTable<T>();
+        var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
+        return entityShardingSet.IsNeedShardingTable;
     }
 
     public virtual string GetShardingForeignKey<T>(string OriginalKeyName) where T : Entity
     {
-        var suffix = EngineContext.Current.GetSafeShardingTableSuffix<T>();
+        var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
+        var suffix = entityShardingSet.GetCurrentShrdingTableSuffix();
         var result = $"{OriginalKeyName}{suffix}";
         if (result.Length > 64)
         {

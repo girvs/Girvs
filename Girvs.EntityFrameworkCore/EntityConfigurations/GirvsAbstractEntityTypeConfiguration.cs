@@ -6,7 +6,8 @@ public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTyp
     protected virtual void OnModelCreatingTable<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
         where TEntity : BaseEntity<TKey>, new()
     {
-        builder.ToTable(EngineContext.Current.GetMigrationEntityTableName<TEntity>());
+        var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<TEntity>();
+        builder.ToTable(entityShardingSet.GetCurrentShardingTableName());
     }
 
     protected virtual void OnModelCreatingKey<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)

@@ -19,16 +19,16 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
         {
             logger.LogInformation("开始执行数据库还原");
             var typeFinder = new WebAppTypeFinder();
-            var dbContexts = typeFinder.FindOfType(typeof
+            var dbContextTypes = typeFinder.FindOfType(typeof
                 (GirvsDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
-            if (!dbContexts.Any()) return;
+            if (!dbContextTypes.Any()) return;
 
 
-            foreach (var dbContext in dbContexts.Select(dbContextType =>
-                         EngineContext.Current.Resolve(dbContextType) as GirvsDbContext))
+            foreach (var dbContextType in dbContextTypes)
             {
+                var dbContext = EngineContext.Current.Resolve(dbContextType) as GirvsDbContext;
                 var dbConfig = EngineContext.Current.GetAppModuleConfig<DbConfig>()
-                    .GetDataConnectionConfig(dbContext.GetType());
+                    .GetDataConnectionConfig(dbContextType);
 
                 if (dbConfig is {EnableAutoMigrate: true})
                 {

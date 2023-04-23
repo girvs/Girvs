@@ -35,7 +35,11 @@ public static class DbContextExtension
     /// <param name="dbContext"></param>
     public static void ShardingAutoMigration(this DbContext dbContext)
     {
-        var suffix = EngineContext.Current.GetMigrationsShardingTableSuffix(dbContext);
+        
+        var dbContextEntityShardingTableRelated =
+            EngineContext.Current.GetShardingTableRelatedByDbContext(dbContext.GetType());
+        var suffix = dbContextEntityShardingTableRelated.GetCurrentMigrationsHistoryShardingTableSuffix();
+        
         if (suffix.IsNullOrEmpty())
             return;
 

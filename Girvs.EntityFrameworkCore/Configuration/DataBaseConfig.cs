@@ -92,8 +92,8 @@ public class DataConnectionConfig
     public bool UseRowNumberForPaging { get; set; } = true;
 
     public bool EnableSensitiveDataLogging { get; set; } = false;
-
-    public bool IsTenantShardingTable { get; set; } = false;
+    
+    public bool EnableShardingTable { get; set; } = true;
 
     /// <summary>
     /// 主数据库连接字符串
