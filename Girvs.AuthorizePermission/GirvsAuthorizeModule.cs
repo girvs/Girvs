@@ -30,6 +30,26 @@ public class GirvsAuthorizeModule : IAppModuleStartup
                     x.Events = new JwtBearerEvents();
                 });
         }
+        
+        if ((authorizeConfig.AuthorizationModel & AuthorizationModel.JwtWebFront) == AuthorizationModel.JwtWebFront)
+        {
+            authenticationBuilder
+                .AddJwtBearer(GirvsAuthenticationScheme.GirvsJwtWebFront, x =>
+                {
+                    //使用应用密钥得到一个加密密钥字节数组
+                    var key = Encoding.ASCII.GetBytes(authorizeConfig.JwtWebFrontConfig.Secret);
+                    x.RequireHttpsMetadata = true;
+                    x.SaveToken = true;
+                    x.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                    x.Events = new JwtBearerEvents();
+                });
+        }
 
         if ((authorizeConfig.AuthorizationModel & AuthorizationModel.IdentityServer4) ==
             AuthorizationModel.IdentityServer4)
