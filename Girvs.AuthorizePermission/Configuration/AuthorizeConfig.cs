@@ -39,6 +39,10 @@ namespace Girvs.AuthorizePermission.Configuration
             .Replace(".", "_");
         public bool UseHttps { get; set; } = false;
         public string ApiSecret { get; set; } = "zhuofan@ids4";
+
+        public bool ValidateIssuerSigningKey { get; set; } = false;
+        public bool ValidateIssuer { get; set; } = false;
+        public bool ValidateAudience { get; set; } = true;
     }
 
     [Flags()]

@@ -59,12 +59,12 @@ public class GirvsAuthorizeModule : IAppModuleStartup
                 {
                     options.Authority = authorizeConfig.IdentityServer4Config.ServerHost;
                     options.Audience = authorizeConfig.IdentityServer4Config.ApiResourceName;
-                    options.TokenValidationParameters.ValidTypes = new[] {"at+jwt"};
-                    options.TokenValidationParameters.ValidateIssuer = false;
                     options.RequireHttpsMetadata = authorizeConfig.IdentityServer4Config.UseHttps;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateAudience = false
+                        ValidateIssuerSigningKey = authorizeConfig.IdentityServer4Config.ValidateIssuerSigningKey,
+                        ValidateIssuer = authorizeConfig.IdentityServer4Config.ValidateIssuer,
+                        ValidateAudience = authorizeConfig.IdentityServer4Config.ValidateAudience
                     };
                 });
         }
