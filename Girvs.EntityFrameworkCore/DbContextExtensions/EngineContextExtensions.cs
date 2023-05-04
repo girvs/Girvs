@@ -1,3 +1,6 @@
+using Girvs.EntityFrameworkCore.TableManager;
+using Humanizer;
+
 namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 public static class EngineContextExtensions
@@ -60,6 +63,71 @@ public static class EngineContextExtensions
         GetShardingTableRelatedByEntity<TEntity>(this IEngine engine) where TEntity : Entity
     {
         return GetShardingTableRelatedByEntity(engine, typeof(TEntity));
+    }
+
+    /// <summary>
+    /// 获取当前实体对应的数据Schema名称
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public static string GetDbContextSchemaName<TEntity>(this IEngine engine) where TEntity : Entity
+    {
+        var related = GetShardingTableRelatedByEntity<TEntity>(engine);
+        var dbContext = engine.Resolve(related.DbContextType) as DbContext;
+        var connectionString = dbContext.Database.GetConnectionString();
+        var beginStr1 = "database=";
+        var beginStr2 = "DataBase=";
+        var endStr = ";";
+        string result;
+        try
+        {
+            result = System.Text.RegularExpressions.Regex.Match(connectionString, $"{beginStr1}(.*?){endStr}")
+                .Result("$1");
+        }
+        catch
+        {
+            result = System.Text.RegularExpressions.Regex.Match(connectionString, $"{beginStr2}(.*?){endStr}")
+                .Result("$1");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 获取当前实体所有
+    /// </summary>
+    /// <param name="engine"></param>
+    /// <param name="isIncludeCurrentTenantId"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    /// <exception cref="GirvsException"></exception>
+    public static async Task<List<string>> GetShardingTableNamesByEntity<TEntity>(this IEngine engine,
+        bool isIncludeCurrentTenantId = false) where TEntity : Entity
+    {
+        var tableManager = engine.Resolve<ITableManager>();
+        if (tableManager == null)
+        {
+            throw new GirvsException("ITableManager 接口未实现，需要此功能需要在Infrastructure中实现此接口");
+        }
+
+        var related = GetShardingTableRelatedByEntity<TEntity>(engine);
+        var dbContext = engine.Resolve(related.DbContextType) as DbContext;
+        var schema = GetDbContextSchemaName<TEntity>(engine);
+        var entityTableName = typeof(TEntity).Name;
+        var tableNames = await tableManager.GetEntityAllTableNames(dbContext, schema, entityTableName);
+
+        if (isIncludeCurrentTenantId)
+        {
+            var tenantId = engine.ClaimManager.IdentityClaim.GetTenantId<Guid>();
+            if (tenantId != Guid.Empty)
+            {
+                var tenantIdStr = $"_{tenantId.ToString().Replace("-", "")}";
+                return tableNames.Where(x => x.Contains(tenantIdStr)).ToList();
+            }
+        }
+
+        return tableNames;
     }
 
     /// <summary>
