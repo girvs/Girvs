@@ -26,4 +26,11 @@ public abstract class GirvsMigration : Migration
 
         return result;
     }
+    
+    public virtual string GetOldShardingForeignKey<T>(string OriginalKeyName) where T : Entity
+    {
+        var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
+        var suffix = entityShardingSet.GetCurrentShrdingTableSuffix();
+        return $"{OriginalKeyName}{suffix}";
+    }
 }
