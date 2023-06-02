@@ -10,6 +10,10 @@ public abstract class GirvsMigration : Migration
 
     public virtual bool IsCreateShardingTable<T>() where T : Entity
     {
+        //如果是进行首次迁移则，而直接还原所有的表
+        if (EngineContext.Current.GetTenantShardingTableSuffix().IsNullOrEmpty())
+            return true;
+
         var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
         return entityShardingSet.IsNeedShardingTable;
     }
@@ -26,7 +30,7 @@ public abstract class GirvsMigration : Migration
 
         return result;
     }
-    
+
     public virtual string GetOldShardingForeignKey<T>(string OriginalKeyName) where T : Entity
     {
         var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
