@@ -4,7 +4,10 @@ public class DynamicWebApiModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDynamicWebApi();
+        services.AddDynamicWebApi(options =>
+        {
+            options.RemoveControllerPostfixes.Clear();
+        });
     }
 
     public void Configure(IApplicationBuilder application)
