@@ -1,4 +1,7 @@
-﻿namespace Girvs.DynamicWebApi;
+﻿using System;
+using Girvs.TypeFinder;
+
+namespace Girvs.DynamicWebApi;
 
 public class DynamicWebApiModule : IAppModuleStartup
 {
@@ -6,8 +9,15 @@ public class DynamicWebApiModule : IAppModuleStartup
     {
         services.AddDynamicWebApi(options =>
         {
-            var optionsAction = EngineContext.Current.Resolve<IDynamicWebApiModuleOptionsAction>();
-            optionsAction?.OptionsAction(options);
+            var typeFinder = new WebAppTypeFinder();
+            var optionsActionTypes = typeFinder.FindOfType<IDynamicWebApiModuleOptionsAction>();
+            foreach (var optionsActionType in optionsActionTypes)
+            {
+                if (Activator.CreateInstance(optionsActionType) is IDynamicWebApiModuleOptionsAction optionsAction)
+                {
+                    optionsAction.OptionsAction(options);
+                }
+            }
         });
     }
 
@@ -17,7 +27,6 @@ public class DynamicWebApiModule : IAppModuleStartup
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
     {
-            
     }
 
     public int Order { get; } = 4;
