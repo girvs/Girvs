@@ -6,7 +6,8 @@ public class DynamicWebApiModule : IAppModuleStartup
     {
         services.AddDynamicWebApi(options =>
         {
-            options.RemoveControllerPostfixes.Clear();
+            var optionsAction = EngineContext.Current.Resolve<IDynamicWebApiModuleOptionsAction>();
+            optionsAction?.OptionsAction(options);
         });
     }
 
