@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Girvs.BusinessBasis.Queries
 {
-    public abstract class QueryBase<TEntity> : IQuery<TEntity>
+    public abstract class QueryBase<TEntity> : IQuery<TEntity> where TEntity : Entity
     {
         protected QueryBase()
         {

@@ -7,7 +7,7 @@ public abstract class BaseEntity : BaseEntity<Guid>
 /// <summary>
 /// 所有实体基类
 /// </summary>
-public abstract class BaseEntity<TPrimaryKey> : Entity
+public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
 {
     protected BaseEntity()
     {

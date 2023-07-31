@@ -1,5 +1,10 @@
 ﻿namespace Girvs.BusinessBasis.Entities;
 
-public abstract class Entity
+public interface Entity
 {
+}
+
+public interface Entity<TKey> : Entity
+{
+    TKey Id { get; }
 }

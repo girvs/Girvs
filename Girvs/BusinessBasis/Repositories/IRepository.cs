@@ -1,10 +1,10 @@
 ﻿namespace Girvs.BusinessBasis.Repositories;
 
-public interface IRepository<TEntity> : IRepository<TEntity, Guid> where TEntity : BaseEntity<Guid>
+public interface IRepository<TEntity> : IRepository<TEntity, Guid> where TEntity : Entity
 {
 }
 
-public interface IRepository<TEntity, in TPrimaryKey> where TEntity : BaseEntity<TPrimaryKey>
+public interface IRepository<TEntity, in TPrimaryKey> where TEntity : Entity
 {
     Expression<Func<TEntity, bool>> OtherQueryCondition { get; }
 

@@ -28,13 +28,13 @@ public static class DbContextDetachAllExtension
     }
 
     public static bool IsWasTrack<TEntity, TKey>(this DbContext dbContext, TEntity t)
-        where TEntity : BaseEntity<TKey>
+        where TEntity : class, Entity<TKey>
     {
         return dbContext.ChangeTracker.Entries<TEntity>().Any(x => x.Entity.Id.Equals(t.Id));
     }
 
     public static void DetachById<TEntity, TKey>(this DbContext dbContext, params TKey[] idStrings)
-        where TEntity : BaseEntity<TKey>
+        where TEntity : class, Entity<TKey>
     {
         if (!idStrings.Any()) return;
 

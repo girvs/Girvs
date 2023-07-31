@@ -1,7 +1,7 @@
 namespace Girvs.EntityFrameworkCore.EntityConfigurations;
 
 public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTypeConfiguration<TEntity>
-    where TEntity : Entity
+    where TEntity : class, Entity
 {
     protected virtual void OnModelCreatingTable<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
         where TEntity : BaseEntity<TKey>, new()

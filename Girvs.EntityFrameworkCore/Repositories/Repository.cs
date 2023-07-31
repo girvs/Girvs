@@ -1,10 +1,10 @@
 ﻿namespace Girvs.EntityFrameworkCore.Repositories;
 
-public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : BaseEntity<Guid>
+public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : class, Entity<Guid>
 {
 }
 
-public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : BaseEntity<Tkey>
+public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : class, Entity<Tkey>
 {
     private readonly string ShareDataOperateErrorMessage = "当前租户与数据不一致，无法操作";
     internal DbContext DbContext { get; }
