@@ -40,6 +40,19 @@ public class IdentityClaimManager : IGirvsClaimManager
 
             SetFromDictionary(claims);
         }
+        else  //处理前端没有登陆的情况
+        {
+            var claims = new Dictionary<string, string>();
+            var requestHeaders = httpContext?.Request.Headers ?? new HeaderDictionary();
+            if (requestHeaders.TryGetValue(nameof(GirvsIdentityClaim.TenantId), out var tenantId))
+            {
+                var tenantName = requestHeaders[nameof(GirvsIdentityClaim.TenantName)];
+                claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantId, tenantId);
+                claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
+            }
+            
+            SetFromDictionary(claims);
+        }
     }
 
     public void SetFromDictionary(Dictionary<string, string> dictionary)
