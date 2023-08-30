@@ -2,7 +2,7 @@ namespace Girvs.AuthorizePermission.Extensions;
 
 public static class GirvsClaimManagerExtensions
 {
-    public static string GirvsIdentityUserTypeClaimTypes = ClaimTypes.NameIdentifier;
+    public static string GirvsIdentityUserTypeClaimTypes = "zf_utype";
         
     public static UserType GetUserType(this IGirvsClaimManager claimManager)
     {

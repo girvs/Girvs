@@ -23,12 +23,12 @@ public interface IGirvsClaimManager : IManager
 
 public static class GirvsIdentityClaimTypes
 {
-    public static readonly string UserId = ClaimTypes.Sid;
-    public static readonly string UserName = ClaimTypes.Name;
-    public static readonly string TenantId = ClaimTypes.GroupSid;
-    public static readonly string TenantName = ClaimTypes.GivenName;
-    public static readonly string IdentityType = ClaimTypes.Locality;
-    public static readonly string ClaimSystemModule = ClaimTypes.System;
+    public static readonly string UserId = "zf_sib";
+    public static readonly string UserName = "zf_sname";
+    public static readonly string TenantId = "zf_tid";
+    public static readonly string TenantName ="zf_tname";
+    public static readonly string IdentityType = "zf_itype";
+    public static readonly string ClaimSystemModule = "zf_csm";
 }
 
 public class GirvsIdentityClaim
