@@ -20,11 +20,12 @@ public class IdentityClaimManager : IGirvsClaimManager
     public void SetFromHttpRequestToken()
     {
         var httpContext = EngineContext.Current.HttpContext;
+
         if (httpContext?.User.Identity?.IsAuthenticated == true)
         {
             //过滤掉重复的Bug
             var claims = httpContext.User.Claims
-                .DistinctBy(x=>x.Type)
+                .DistinctBy(x => x.Type)
                 .ToDictionary(x => x.Type, v => v.Value);
             var identityType = claims.GetDictionaryValueByKey(GirvsIdentityClaimTypes.IdentityType)
                 .ToEnum<IdentityType>();
@@ -40,7 +41,7 @@ public class IdentityClaimManager : IGirvsClaimManager
 
             SetFromDictionary(claims);
         }
-        else  //处理前端没有登陆的情况
+        else //处理前端没有登陆的情况
         {
             var claims = new Dictionary<string, string>();
             var requestHeaders = httpContext?.Request.Headers ?? new HeaderDictionary();
@@ -49,9 +50,14 @@ public class IdentityClaimManager : IGirvsClaimManager
                 var tenantName = requestHeaders[nameof(GirvsIdentityClaim.TenantName)];
                 claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantId, tenantId);
                 claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
+                claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.IdentityType,
+                    IdentityType.RegisterUser.ToString());
             }
-            
-            SetFromDictionary(claims);
+
+            if (claims.Any())
+            {
+                SetFromDictionary(claims);
+            }
         }
     }
 
