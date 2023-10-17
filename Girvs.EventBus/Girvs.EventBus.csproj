@@ -1,22 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>6.0.2</Version>
     <PackageVersion>6.0.2</PackageVersion>
-    <LangVersion>10</LangVersion>
+    <LangVersion>12</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetCore.CAP" Version="6.0.0" />
-    <PackageReference Include="DotNetCore.CAP.Dashboard" Version="6.0.0" />
-    <PackageReference Include="DotNetCore.CAP.Kafka" Version="6.0.0" />
-    <PackageReference Include="DotNetCore.CAP.MySql" Version="6.0.0" />
-    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="6.0.0" />
-    <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="6.0.0" />
-    <PackageReference Include="DotNetCore.CAP.Sqlite" Version="6.0.0" />
-    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="6.0.0" />
+    <PackageReference Include="DotNetCore.CAP" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP.Dashboard" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP.Kafka" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP.MySql" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP.Sqlite" Version="7.2.0" />
+    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="7.2.1" />
   </ItemGroup>
 
   <ItemGroup>

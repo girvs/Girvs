@@ -113,7 +113,7 @@ public class EventBusModule : IAppModuleStartup
 #endif
             });
             x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
-            x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
+            // x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
         }).AddSubscribeFilter<GirvsCapFilter>();
     }
 

@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Version>6.0.2</Version>
         <PackageVersion>6.0.2</PackageVersion>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
     <ItemGroup>
       <ProjectReference Include="..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="DotLiquid" Version="2.2.656" />
+      <PackageReference Include="DotLiquid" Version="2.2.692" />
     </ItemGroup>
     <ItemGroup>
       <EmbeddedResource Include="CodeTemplates\Application\ViewModels\BrowseViewModel.tt" />

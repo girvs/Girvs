@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Version>6.0.2</Version>
         <PackageVersion>6.0.2</PackageVersion>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,8 +14,8 @@
 
     <ItemGroup>
       <PackageReference Include="NConsul.AspNetCore" Version="0.8.1" />
-      <PackageReference Include="Refit" Version="6.3.2" />
-      <PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
+      <PackageReference Include="Refit" Version="7.0.0" />
+      <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
     </ItemGroup>
 
 </Project>

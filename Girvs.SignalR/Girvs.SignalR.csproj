@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Version>6.0.2</Version>
         <PackageVersion>6.0.2</PackageVersion>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,11 +15,11 @@
 
     <ItemGroup>
 
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.8" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0-rc.2.23480.2" />
 
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Redis" Version="1.1.5" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="6.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="6.0.8" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.0-rc.2.23480.2" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="8.0.0-rc.2.23480.2" />
         <!--此处MessagePack StackExchangeRedis版本使用5.0 版本会出现版本错误，所以目前只能使用3.0+版本-->
     </ItemGroup>
 

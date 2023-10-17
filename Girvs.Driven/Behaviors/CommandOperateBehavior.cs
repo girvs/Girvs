@@ -18,7 +18,7 @@ public class CommandOperateBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-    public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         var result = await next(); //后至处理
         if (!result.Equals(default(TResponse)))

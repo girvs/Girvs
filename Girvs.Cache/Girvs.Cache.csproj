@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>6.0.2</Version>
     <PackageVersion>6.0.2</PackageVersion>
-    <LangVersion>10</LangVersion>
+    <LangVersion>12</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EasyCaching.InMemory" Version="1.6.0" />
+    <PackageReference Include="EasyCaching.InMemory" Version="1.9.1" />
     <PackageReference Include="RedLock.net" Version="2.3.2" />
   </ItemGroup>
 

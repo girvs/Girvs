@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>6.0.2</Version>
     <PackageVersion>6.0.2</PackageVersion>
-    <LangVersion>10</LangVersion>
+    <LangVersion>12</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,8 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.47.0" />
-    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.47.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.57.0" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.57.0" />
   </ItemGroup>
 
 </Project>

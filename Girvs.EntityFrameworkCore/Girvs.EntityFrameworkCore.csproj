@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Version>6.0.2</Version>
         <PackageVersion>6.0.2</PackageVersion>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,15 +14,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="6.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.8" />
-        <PackageReference Include="Oracle.EntityFrameworkCore" Version="6.21.61" />
-        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0-rc.2.23480.1" />
+        <PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.12" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0-beta.1" />
         <PackageReference Include="Zack.EFCore.Batch.MySQL.Pomelo_NET6" Version="6.1.2" />
         <PackageReference Include="Zack.EFCore.Batch.MSSQL_NET6" Version="6.1.2" />
         <PackageReference Include="Zack.EFCore.Batch.Oracle_NET6" Version="6.1.2" />

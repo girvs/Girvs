@@ -27,13 +27,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.AutoMapper", "Girvs.A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Girvs.AuthorizePermission", "Girvs.AuthorizePermission\Girvs.AuthorizePermission.csproj", "{4AF3EE93-D489-453E-B13D-7706340A8ADB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{D31B803C-F857-4967-A4D0-8DC1F32D3EB2}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.EventBus", "Girvs.EventBus\Girvs.EventBus.csproj", "{3D834B05-773E-4172-943F-EB08B7A8857B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.Refit", "Girvs.Refit\Girvs.Refit.csproj", "{F7B481C8-6877-4E9E-848B-686F891E469A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZhuoFan.Wb.Common", "Examples\BasicManagement\ZhuoFan.Wb.Common\ZhuoFan.Wb.Common.csproj", "{3D37E565-328E-4FFF-AB86-009A42FB7B70}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.CodeGenerator", "Girvs.CodeGenerator\Girvs.CodeGenerator.csproj", "{F36E4048-B29A-420B-A654-31175E3AEC80}"
 EndProject
@@ -99,10 +95,6 @@ Global
 		{F7B481C8-6877-4E9E-848B-686F891E469A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7B481C8-6877-4E9E-848B-686F891E469A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7B481C8-6877-4E9E-848B-686F891E469A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3D37E565-328E-4FFF-AB86-009A42FB7B70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3D37E565-328E-4FFF-AB86-009A42FB7B70}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3D37E565-328E-4FFF-AB86-009A42FB7B70}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3D37E565-328E-4FFF-AB86-009A42FB7B70}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F36E4048-B29A-420B-A654-31175E3AEC80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F36E4048-B29A-420B-A654-31175E3AEC80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F36E4048-B29A-420B-A654-31175E3AEC80}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -112,7 +104,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{3D37E565-328E-4FFF-AB86-009A42FB7B70} = {D31B803C-F857-4967-A4D0-8DC1F32D3EB2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0FC056B2-C607-4E27-9A17-B0932AA19F5E}

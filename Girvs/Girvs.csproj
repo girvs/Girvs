@@ -1,35 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.0.2</Version>
-    <PackageVersion>6.0.2</PackageVersion>
-    <LangVersion>10</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>6.0.2</Version>
+        <PackageVersion>6.0.2</PackageVersion>
+        <LangVersion>12</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="LogDashboard" Version="1.4.8" />
-    <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
-    <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="8.4.1" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
-    <PackageReference Include="Serilog.Sinks.AliyunLog" Version="1.1.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
-    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="LogDashboard" Version="1.4.8"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="7.0.0"/>
+        <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="9.0.3"/>
+        <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.1"/>
+        <PackageReference Include="Serilog.Sinks.AliyunLog" Version="1.1.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0"/>
+        <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="9.0.3"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
+        <PackageReference Include="Portable.BouncyCastle" Version="1.9.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Infrastructure\GirvsServiceContext\**" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="Infrastructure\GirvsServiceContext\**"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Remove="Infrastructure\GirvsServiceContext\**" />
-  </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Remove="Infrastructure\GirvsServiceContext\**"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="Infrastructure\GirvsServiceContext\**" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Remove="Infrastructure\GirvsServiceContext\**"/>
+    </ItemGroup>
 
 </Project>
