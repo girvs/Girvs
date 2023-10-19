@@ -14,7 +14,7 @@ public class SwaggerModule: IAppModuleStartup
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
     {
-            
+        builder.MapSwagger("{documentName}/api-docs");
     }
 
     public int Order { get; } = 99902;

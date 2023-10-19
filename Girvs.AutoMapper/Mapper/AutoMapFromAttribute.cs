@@ -1,11 +1,14 @@
 ﻿namespace Girvs.AutoMapper.Mapper;
 
-public class AutoMapFromAttribute : Attribute
+public class AutoMapFromAttribute(Type entityType) : Attribute
 {
-    public Type EntityType { get; }
+    public Type EntityType { get; } = entityType;
+}
 
-    public AutoMapFromAttribute(Type entityType)
+
+public class AutoMapFromAttribute<TFromType> : AutoMapFromAttribute
+{
+    public AutoMapFromAttribute(Type entityType):base(typeof(TFromType))
     {
-        EntityType = entityType;
     }
 }
