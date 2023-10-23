@@ -1,4 +1,6 @@
-﻿namespace Girvs.Swagger;
+﻿using Microsoft.AspNetCore.Mvc.Controllers;
+
+namespace Girvs.Swagger;
 
 public static class SwaggerServicesExtensions
 {
@@ -33,6 +35,15 @@ public static class SwaggerServicesExtensions
             var serviceName = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
             c.AddServer(new OpenApiServer() {Url = "/", Description = "默认访问"});
             c.AddServer(new OpenApiServer() {Url = "/" + serviceName, Description = "网关访问"});
+
+
+            c.CustomOperationIds(apiDesc =>
+                {
+                    if (apiDesc.ActionDescriptor is ControllerActionDescriptor controllerAction)
+                        return controllerAction.ControllerName + "-" + controllerAction.ActionName;
+                    return string.Empty;
+                }
+            );
         });
     }
 }
