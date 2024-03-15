@@ -3,20 +3,20 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>6.0.2</Version>
-    <PackageVersion>6.0.2</PackageVersion>
+    <Version>8.0.0-beta1</Version>
+    <PackageVersion>8.0.0-beta1</PackageVersion>
     <LangVersion>12</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetCore.CAP" Version="7.2.1" />
-    <PackageReference Include="DotNetCore.CAP.Dashboard" Version="7.2.1" />
-    <PackageReference Include="DotNetCore.CAP.Kafka" Version="7.2.1" />
-    <PackageReference Include="DotNetCore.CAP.MySql" Version="7.2.1" />
-    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="7.2.1" />
-    <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="7.2.1" />
-    <PackageReference Include="DotNetCore.CAP.Sqlite" Version="7.2.0" />
-    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="7.2.1" />
+    <PackageReference Include="DotNetCore.CAP" Version="8.0.1" />
+    <PackageReference Include="DotNetCore.CAP.Dashboard" Version="8.0.1" />
+    <PackageReference Include="DotNetCore.CAP.Kafka" Version="8.0.1" />
+    <PackageReference Include="DotNetCore.CAP.MySql" Version="8.0.1" />
+    <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.0.1" />
+    <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="8.0.1" />
+    <PackageReference Include="DotNetCore.CAP.Sqlite" Version="8.0.1.1" />
+    <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>

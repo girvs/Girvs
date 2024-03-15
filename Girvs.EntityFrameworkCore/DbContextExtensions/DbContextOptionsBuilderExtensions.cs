@@ -80,7 +80,7 @@ public static class DbContextOptionsBuilderExtensions
             builder =>
             {
                 builder.CommandTimeout(config.SQLCommandTimeout);
-                builder.UseOracleSQLCompatibility(config.VersionNumber);
+                // builder.UseOracleSQLCompatibility(OracleSQLCompatibility.DatabaseVersion21);
                 if (config.EnableShardingTable)
                 {
                     var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
