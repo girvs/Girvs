@@ -38,40 +38,40 @@ public static class DbContextOptionsBuilderExtensions
         optionsBuilder.UseBatchEF_MySQLPomelo();
     }
 
-    public static void UseSqlLiteWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
-    {
-        if (config.UseRowNumberForPaging)
-        {
-            optionsBuilder.UseSqlite(connStr,
-                builder =>
-                {
-                    builder.CommandTimeout(config.SQLCommandTimeout);
-                    if (config.EnableShardingTable)
-                    {
-                        var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-                        builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
-                    }
-                });
-
-            optionsBuilder.UseBatchEF_Sqlite();
-        }
-        else
-        {
-            optionsBuilder.UseSqlServer(connStr,
-                builder =>
-                {
-                    builder.CommandTimeout(config.SQLCommandTimeout);
-                    if (config.EnableShardingTable)
-                    {
-                        var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-                        builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
-                    }
-                });
-
-            optionsBuilder.UseBatchEF_MSSQL();
-        }
-    }
+    // public static void UseSqlLiteWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
+    //     DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
+    // {
+    //     if (config.UseRowNumberForPaging)
+    //     {
+    //         optionsBuilder.UseSqlite(connStr,
+    //             builder =>
+    //             {
+    //                 builder.CommandTimeout(config.SQLCommandTimeout);
+    //                 if (config.EnableShardingTable)
+    //                 {
+    //                     var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+    //                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
+    //                 }
+    //             });
+    //
+    //         optionsBuilder.UseBatchEF_Sqlite();
+    //     }
+    //     else
+    //     {
+    //         optionsBuilder.UseSqlServer(connStr,
+    //             builder =>
+    //             {
+    //                 builder.CommandTimeout(config.SQLCommandTimeout);
+    //                 if (config.EnableShardingTable)
+    //                 {
+    //                     var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+    //                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
+    //                 }
+    //             });
+    //
+    //         optionsBuilder.UseBatchEF_MSSQL();
+    //     }
+    // }
 
     public static void UseOracleWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
         DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
@@ -116,9 +116,9 @@ public static class DbContextOptionsBuilderExtensions
                 optionsBuilder.UseMySqlWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
                 break;
 
-            case UseDataType.SqlLite:
-                optionsBuilder.UseSqlLiteWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
-                break;
+            // case UseDataType.SqlLite:
+            //     optionsBuilder.UseSqlLiteWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
+            //     break;
 
             case UseDataType.Oracle:
                 optionsBuilder.UseOracleWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
