@@ -1,4 +1,6 @@
-﻿namespace Girvs.EntityFrameworkCore.Repositories;
+﻿using Microsoft.EntityFrameworkCore.Query;
+
+namespace Girvs.EntityFrameworkCore.Repositories;
 
 public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : class, Entity<Guid>
 {
@@ -97,14 +99,16 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
     )
     {
         if (!fieldValue.Any()) return Task.CompletedTask;
-        var where = predicate.And(OtherQueryCondition);
-        var obj = DbContext.BatchUpdate<TEntity>().Where(where);
+
+        Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setPropertyCalls = b => b;
+
         foreach (var keyValuePair in fieldValue)
         {
-            obj.Set(keyValuePair.Key, keyValuePair.Value);
+            setPropertyCalls =
+                setPropertyCalls.Append(b => b.SetProperty(b => keyValuePair.Key, b => keyValuePair.Value));
         }
 
-        return obj.ExecuteAsync();
+        return Queryable.Where(predicate).ExecuteUpdateAsync(setPropertyCalls);
     }
 
     public virtual Task DeleteAsync(TEntity t)
@@ -131,8 +135,7 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
 
     public virtual Task DeleteRangeAsync(Expression<Func<TEntity, bool>> predicate)
     {
-        var where = predicate.And(OtherQueryCondition);
-        return DbContext.DeleteRangeAsync(where);
+        return Queryable.Where(predicate).ExecuteDeleteAsync();
     }
 
     public virtual Task<TEntity> GetByIdAsync(Tkey id)

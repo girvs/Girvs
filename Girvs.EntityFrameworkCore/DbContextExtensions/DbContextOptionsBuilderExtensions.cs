@@ -1,6 +1,4 @@
-﻿using Zack.EFCore.Batch.Oracle;
-
-namespace Girvs.EntityFrameworkCore.DbContextExtensions;
+﻿namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 public static class DbContextOptionsBuilderExtensions
 {
@@ -17,7 +15,7 @@ public static class DbContextOptionsBuilderExtensions
                 }
             });
 
-        optionsBuilder.UseBatchEF_MSSQL();
+        // optionsBuilder.UseBatchEF_MSSQL();
     }
 
     public static void UseMySqlWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
@@ -35,7 +33,7 @@ public static class DbContextOptionsBuilderExtensions
                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
                 }
             });
-        optionsBuilder.UseBatchEF_MySQLPomelo();
+        // optionsBuilder.UseBatchEF_MySQLPomelo();
     }
 
     // public static void UseSqlLiteWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
@@ -87,7 +85,7 @@ public static class DbContextOptionsBuilderExtensions
                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
                 }
             });
-        optionsBuilder.UseBatchEF_Oracle();
+        // optionsBuilder.UseBatchEF_Oracle();
     }
 
     public static void UseInMemoryWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
