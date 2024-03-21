@@ -1,6 +1,5 @@
 ﻿namespace Girvs.AuthorizePermission;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
 public class DataRuleAttribute : Attribute
 {
     public DataRuleAttribute(
