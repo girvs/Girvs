@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Girvs.SignalR;
 
 public class ConfigureJwtBearerOptions: IPostConfigureOptions<JwtBearerOptions>
@@ -5,19 +7,24 @@ public class ConfigureJwtBearerOptions: IPostConfigureOptions<JwtBearerOptions>
     public void PostConfigure(string name, JwtBearerOptions options)
     {
         var originalOnMessageReceived = options.Events.OnMessageReceived;
-        options.Events.OnMessageReceived = async context =>
+        options.Events = new JwtBearerEvents
         {
-            await originalOnMessageReceived(context);
-
-            if (string.IsNullOrEmpty(context.Token))
+            OnMessageReceived = context =>
             {
-                var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    path.StartsWithSegments("/hubs"))
+                // await originalOnMessageReceived(context);
+
+                if (string.IsNullOrEmpty(context.Token))
                 {
-                    context.Token = accessToken;
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        path.StartsWithSegments("/hubs"))
+                    {
+                        context.Token = accessToken;
+                    }
                 }
+
+                return Task.CompletedTask;
             }
         };
     }
