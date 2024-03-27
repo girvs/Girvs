@@ -21,7 +21,7 @@ public class SignalRModule : IAppModuleStartup
         var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
         if (cacheConfig.EnableCaching && cacheConfig.DistributedCacheType == CacheType.Redis)
         {
-            signalServiceBuilder.AddRedis(cacheConfig.RedisCacheConfig.ConnectionString);
+            signalServiceBuilder.AddStackExchangeRedis(cacheConfig.RedisCacheConfig.ConnectionString);
         }
 
         services.TryAddEnumerable(ServiceDescriptor
