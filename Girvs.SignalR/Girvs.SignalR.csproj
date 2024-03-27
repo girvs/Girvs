@@ -16,7 +16,6 @@
     <ItemGroup>
 
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Redis" Version="1.1.5" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="8.0.3" />
         <!--此处MessagePack StackExchangeRedis版本使用5.0 版本会出现版本错误，所以目前只能使用3.0+版本-->
