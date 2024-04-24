@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Girvs.AuthorizePermission;
 
@@ -64,7 +65,8 @@ public class GirvsAuthorizeModule : IAppModuleStartup
                     {
                         ValidateIssuerSigningKey = authorizeConfig.IdentityServer4Config.ValidateIssuerSigningKey,
                         ValidateIssuer = authorizeConfig.IdentityServer4Config.ValidateIssuer,
-                        ValidateAudience = authorizeConfig.IdentityServer4Config.ValidateAudience
+                        ValidateAudience = authorizeConfig.IdentityServer4Config.ValidateAudience,
+                        SignatureValidator = (token, _) => new JsonWebToken(token),
                     };
                 });
         }
