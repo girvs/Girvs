@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>8.0.0-beta1</Version>
-    <PackageVersion>8.0.0-beta1</PackageVersion>
+    <Version>8.0.0-beta1.1</Version>
+    <PackageVersion>8.0.0-beta1.1</PackageVersion>
     <LangVersion>12</LangVersion>
   </PropertyGroup>
 
@@ -13,8 +13,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.27.0" />
     <PackageReference Include="Grpc.AspNetCore.Server" Version="2.61.0" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.61.0" />
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
+    <PackageReference Include="Grpc.Tools" Version="2.64.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
