@@ -33,69 +33,6 @@ public static class DbContextOptionsBuilderExtensions
                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
                 }
             });
-        // optionsBuilder.UseBatchEF_MySQLPomelo();
-    }
-
-    // public static void UseSqlLiteWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
-    //     DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
-    // {
-    //     if (config.UseRowNumberForPaging)
-    //     {
-    //         optionsBuilder.UseSqlite(connStr,
-    //             builder =>
-    //             {
-    //                 builder.CommandTimeout(config.SQLCommandTimeout);
-    //                 if (config.EnableShardingTable)
-    //                 {
-    //                     var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-    //                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
-    //                 }
-    //             });
-    //
-    //         optionsBuilder.UseBatchEF_Sqlite();
-    //     }
-    //     else
-    //     {
-    //         optionsBuilder.UseSqlServer(connStr,
-    //             builder =>
-    //             {
-    //                 builder.CommandTimeout(config.SQLCommandTimeout);
-    //                 if (config.EnableShardingTable)
-    //                 {
-    //                     var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-    //                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
-    //                 }
-    //             });
-    //
-    //         optionsBuilder.UseBatchEF_MSSQL();
-    //     }
-    // }
-
-    public static void UseOracleWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
-    {
-        optionsBuilder.UseOracle(connStr,
-            builder =>
-            {
-                builder.CommandTimeout(config.SQLCommandTimeout);
-                // builder.UseOracleSQLCompatibility(OracleSQLCompatibility.DatabaseVersion21);
-                if (config.EnableShardingTable)
-                {
-                    var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-                    builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
-                }
-            });
-        // optionsBuilder.UseBatchEF_Oracle();
-    }
-
-    public static void UseInMemoryWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
-    {
-        optionsBuilder.UseInMemoryDatabase(connStr, builder =>
-        {
-            // builder.MigrationsHistoryTable(
-            //     $"__EFMigrationsHistory_{EngineContext.Current.GetSafeShardingTableSuffix()}");
-        });
     }
 
     public static void ConfigDbContextOptionsBuilder<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
@@ -112,14 +49,6 @@ public static class DbContextOptionsBuilderExtensions
 
             case UseDataType.MySql:
                 optionsBuilder.UseMySqlWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
-                break;
-
-            // case UseDataType.SqlLite:
-            //     optionsBuilder.UseSqlLiteWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
-            //     break;
-
-            case UseDataType.Oracle:
-                optionsBuilder.UseOracleWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
                 break;
         }
 

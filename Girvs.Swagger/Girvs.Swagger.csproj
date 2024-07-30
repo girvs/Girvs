@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>8.0.0-beta1</Version>
     <PackageVersion>8.0.0-beta1</PackageVersion>
@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="IGeekFan.AspNetCore.Knife4jUI" Version="0.0.16" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
 </Project>

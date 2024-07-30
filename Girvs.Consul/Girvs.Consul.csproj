@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>8.0.0-beta1</Version>
     <PackageVersion>8.0.0-beta1</PackageVersion>
@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.HealthCheck" Version="2.57.0" />
+    <PackageReference Include="Grpc.HealthCheck" Version="2.64.0" />
     <PackageReference Include="NConsul.AspNetCore" Version="0.8.1" />
   </ItemGroup>
 

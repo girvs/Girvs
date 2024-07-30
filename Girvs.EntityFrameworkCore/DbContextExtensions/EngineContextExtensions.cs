@@ -1,5 +1,4 @@
 using Girvs.EntityFrameworkCore.TableManager;
-using Humanizer;
 
 namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 

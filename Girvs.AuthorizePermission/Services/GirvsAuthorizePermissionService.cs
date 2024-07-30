@@ -1,7 +1,5 @@
 ﻿namespace Girvs.AuthorizePermission.Services;
 
-[DynamicWebApi]
-[AllowAnonymous]
 public class GirvsAuthorizePermissionService : IGirvsAuthorizePermissionService
 {
     public Task<List<AuthorizePermissionModel>> GetAuthorizePermissionList()
@@ -9,35 +7,35 @@ public class GirvsAuthorizePermissionService : IGirvsAuthorizePermissionService
         var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
         var services = typeFinder.FindOfType<IAppWebApiService>()
             .Where(x => x.IsDefined(typeof(ServicePermissionDescriptorAttribute), false));
-
+        
         var list = services.Select(service =>
         {
             var spd =
                 service.GetCustomAttribute(typeof(ServicePermissionDescriptorAttribute)) as
                     ServicePermissionDescriptorAttribute;
-
+        
             var methodInfos = service.GetMethods().Where(x =>
                 x.IsPublic && x.IsDefined(typeof(ServiceMethodPermissionDescriptorAttribute), false));
-
-
+        
+        
             var operationPermissionModels = new List<OperationPermissionModel>();
             foreach (var methodInfo in methodInfos)
             {
                 var smpd =
                     methodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute)) as
                         ServiceMethodPermissionDescriptorAttribute;
-
+        
                 if (operationPermissionModels.Any(x => x.OperationName == smpd.MethodName))
                     continue;
-
+        
                 operationPermissionModels.Add(new OperationPermissionModel(smpd.MethodName, smpd.Permission,
                     smpd.UserType, spd.SystemModule, smpd.OtherParams));
             }
-
+        
             return new AuthorizePermissionModel(spd.ServiceName, spd.ServiceId, spd.Tag, 0, spd.SystemModule,
                 spd.OtherParams, operationPermissionModels, null);
         }).ToList();
-
+        
         return Task.FromResult(list);
     }
 
