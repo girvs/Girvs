@@ -7,7 +7,8 @@ public static class ServiceCollectionExtension
         var typeFinder = new WebAppTypeFinder();
 
         //获取所有继承IRepository<>的接口
-        var repositoryTypes = typeFinder.FindOfType(typeof(IRepository<,>), FindType.Interface)
+        var repositoryTypes = typeFinder
+            .FindOfType(typeof(IRepository<,>), FindType.Interface)
             .Where(x => !x.Name.Contains("IRepository`"));
         foreach (var repositoryType in repositoryTypes)
         {
@@ -36,13 +37,14 @@ public static class ServiceCollectionExtension
     public static void RegisterManager(this IServiceCollection services)
     {
         var typeFinder = new WebAppTypeFinder();
-        var managerInterfaceTypes = typeFinder.FindOfType<IManager>(FindType.Interface)
+        var managerInterfaceTypes = typeFinder
+            .FindOfType<IManager>(FindType.Interface)
             .Where(x => x.Name != nameof(IManager));
 
         foreach (var managerInterfaceType in managerInterfaceTypes)
         {
             var imp = typeFinder.FindOfType(managerInterfaceType).FirstOrDefault();
-            if (imp is {IsClass: true})
+            if (imp is { IsClass: true })
             {
                 services.AddScoped(managerInterfaceType, imp);
             }

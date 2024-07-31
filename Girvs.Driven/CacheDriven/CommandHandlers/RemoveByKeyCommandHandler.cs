@@ -4,9 +4,11 @@ public class RemoveByKeyCommandHandler : CommandHandler, IRequestHandler<RemoveB
 {
     private readonly IStaticCacheManager _staticCacheManager;
 
-    public RemoveByKeyCommandHandler(IStaticCacheManager staticCacheManager, IMediatorHandler bus) : base(null, bus)
+    public RemoveByKeyCommandHandler(IStaticCacheManager staticCacheManager, IMediatorHandler bus)
+        : base(null, bus)
     {
-        _staticCacheManager = staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
+        _staticCacheManager =
+            staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
     }
 
     public Task<bool> Handle(RemoveByKeyCommand request, CancellationToken cancellationToken)
@@ -14,5 +16,4 @@ public class RemoveByKeyCommandHandler : CommandHandler, IRequestHandler<RemoveB
         _staticCacheManager.Remove(new CacheKey(request.Key));
         return Task.FromResult(true);
     }
-
 }

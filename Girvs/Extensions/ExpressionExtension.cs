@@ -65,10 +65,14 @@ public static class ExpressionExtension
     /// <param name="second">要组合的Expression表达式</param>
     /// <param name="merge">组合条件运算方式</param>
     /// <returns>组合后的表达式</returns>
-    public static Expression<T> Compose<T>(this Expression<T> first, Expression<T> second,
-        Func<Expression, Expression, Expression> merge)
+    public static Expression<T> Compose<T>(
+        this Expression<T> first,
+        Expression<T> second,
+        Func<Expression, Expression, Expression> merge
+    )
     {
-        var map = first.Parameters.Select((f, i) => new {f, s = second.Parameters[i]})
+        var map = first
+            .Parameters.Select((f, i) => new { f, s = second.Parameters[i] })
             .ToDictionary(p => p.s, p => p.f);
         var secondBody = ParameterRebinder.ReplaceParameters(map, second.Body);
         return Expression.Lambda<T>(merge(first.Body, secondBody), first.Parameters);
@@ -81,11 +85,10 @@ public static class ExpressionExtension
     /// <param name="first">第一个Expression表达式</param>
     /// <param name="second">要组合的Expression表达式</param>
     /// <returns>组合后的表达式</returns>
-    public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> first,
-        Expression<Func<T, bool>> second)
-    {
-        return first.Compose(second, Expression.AndAlso);
-    }
+    public static Expression<Func<T, bool>> And<T>(
+        this Expression<Func<T, bool>> first,
+        Expression<Func<T, bool>> second
+    ) => first.Compose(second, Expression.AndAlso);
 
     /// <summary>
     ///     以 Expression.OrElse 组合两个Expression表达式
@@ -94,11 +97,10 @@ public static class ExpressionExtension
     /// <param name="first">第一个Expression表达式</param>
     /// <param name="second">要组合的Expression表达式</param>
     /// <returns>组合后的表达式</returns>
-    public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> first,
-        Expression<Func<T, bool>> second)
-    {
-        return first.Compose(second, Expression.OrElse);
-    }
+    public static Expression<Func<T, bool>> Or<T>(
+        this Expression<Func<T, bool>> first,
+        Expression<Func<T, bool>> second
+    ) => first.Compose(second, Expression.OrElse);
 
     private class ParameterRebinder : ExpressionVisitor
     {
@@ -109,8 +111,10 @@ public static class ExpressionExtension
             _map = map ?? new Dictionary<ParameterExpression, ParameterExpression>();
         }
 
-        public static Expression ReplaceParameters(Dictionary<ParameterExpression, ParameterExpression> map,
-            Expression exp)
+        public static Expression ReplaceParameters(
+            Dictionary<ParameterExpression, ParameterExpression> map,
+            Expression exp
+        )
         {
             return new ParameterRebinder(map).Visit(exp);
         }

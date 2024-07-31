@@ -1,6 +1,6 @@
 ﻿namespace Girvs.Swagger;
 
-public class SwaggerModule: IAppModuleStartup
+public class SwaggerModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {

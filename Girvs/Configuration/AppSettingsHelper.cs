@@ -4,9 +4,13 @@ namespace Girvs.Configuration;
 
 public class AppSettingsHelper
 {
-    public static async Task SaveAppSettingsAsync(AppSettings appSettings, IGirvsFileProvider fileProvider = null)
+    public static async Task SaveAppSettingsAsync(
+        AppSettings appSettings,
+        IGirvsFileProvider fileProvider = null
+    )
     {
-        Singleton<AppSettings>.Instance = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
+        Singleton<AppSettings>.Instance =
+            appSettings ?? throw new ArgumentNullException(nameof(appSettings));
 
         fileProvider ??= CommonHelper.DefaultFileProvider;
 
@@ -23,7 +27,10 @@ public class AppSettingsHelper
         await fileProvider.WriteAllTextAsync(filePath, text, Encoding.UTF8);
     }
 
-    public static void CreateSerilogConfig(string configJson, IGirvsFileProvider fileProvider = null)
+    public static void CreateSerilogConfig(
+        string configJson,
+        IGirvsFileProvider fileProvider = null
+    )
     {
         fileProvider ??= CommonHelper.DefaultFileProvider;
         //create file if not exists
@@ -44,15 +51,19 @@ public class AppSettingsHelper
         var filePath = fileProvider.MapPath(ConfigurationDefaults.SerilogSettingFilePath);
         return File.Exists(filePath);
     }
-        
+
     /// <summary>
     /// Save app settings to the file
     /// </summary>
     /// <param name="appSettings">App settings</param>
     /// <param name="fileProvider">File provider</param>
-    public static void SaveAppSettings(AppSettings appSettings, IGirvsFileProvider fileProvider = null)
+    public static void SaveAppSettings(
+        AppSettings appSettings,
+        IGirvsFileProvider fileProvider = null
+    )
     {
-        Singleton<AppSettings>.Instance = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
+        Singleton<AppSettings>.Instance =
+            appSettings ?? throw new ArgumentNullException(nameof(appSettings));
 
         fileProvider ??= CommonHelper.DefaultFileProvider;
 
@@ -75,14 +86,20 @@ public class AppSettingsHelper
         var filePath = fileProvider.MapPath(ConfigurationDefaults.AppSettingsFilePath);
         return File.Exists(filePath);
     }
-        
-    public static void SaveAppModelConfigAsync(IAppModuleConfig appModelConfig, IGirvsFileProvider fileProvider = null)
+
+    public static void SaveAppModelConfigAsync(
+        IAppModuleConfig appModelConfig,
+        IGirvsFileProvider fileProvider = null
+    )
     {
         fileProvider ??= CommonHelper.DefaultFileProvider;
 
         //create file if not exists
         var filePath = fileProvider.MapPath(ConfigurationDefaults.AppModelSettingsFilePath);
-        filePath = fileProvider.Combine(filePath, string.Format("{0}.json", appModelConfig.GetType().Name));
+        filePath = fileProvider.Combine(
+            filePath,
+            string.Format("{0}.json", appModelConfig.GetType().Name)
+        );
         fileProvider.CreateFile(filePath);
 
         //save app settings to the file
@@ -90,13 +107,19 @@ public class AppSettingsHelper
         fileProvider.WriteAllTextAsync(filePath, text, Encoding.UTF8);
     }
 
-    public static void SaveAppModelConfig(IAppModuleConfig appModelConfig, IGirvsFileProvider fileProvider = null)
+    public static void SaveAppModelConfig(
+        IAppModuleConfig appModelConfig,
+        IGirvsFileProvider fileProvider = null
+    )
     {
         fileProvider ??= CommonHelper.DefaultFileProvider;
 
         //create file if not exists
         var filePath = fileProvider.MapPath(ConfigurationDefaults.AppModelSettingsFilePath);
-        filePath = fileProvider.Combine(filePath, string.Format("{0}.json", appModelConfig.GetType().Name));
+        filePath = fileProvider.Combine(
+            filePath,
+            string.Format("{0}.json", appModelConfig.GetType().Name)
+        );
         fileProvider.CreateFile(filePath);
 
         //save app settings to the file

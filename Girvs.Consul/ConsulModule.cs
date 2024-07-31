@@ -5,7 +5,7 @@ public class ConsulModule : IAppModuleStartup
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var consulConfig = Singleton<AppSettings>.Instance.Get<ConsulConfig>();
-            
+
         //需要添加判断是否存在GRPC服务
         if (consulConfig.CurrentServerModel == ServerModel.GrpcService)
         {
@@ -14,12 +14,15 @@ public class ConsulModule : IAppModuleStartup
                 : consulConfig.ServerName;
 
             var uri = new Uri(consulConfig.HealthAddress);
-            services.AddConsul(new NConsulOptions
-                {
-                    Address = consulConfig.ConsulAddress,
-                })
+            services
+                .AddConsul(new NConsulOptions { Address = consulConfig.ConsulAddress, })
                 .AddGRPCHealthCheck(consulConfig.HealthAddress.Replace($"{uri.Scheme}://", ""))
-                .RegisterService(consulConfig.ServerName, uri.Host, uri.Port, new[] {".net Core GrpcService"});
+                .RegisterService(
+                    consulConfig.ServerName,
+                    uri.Host,
+                    uri.Port,
+                    new[] { ".net Core GrpcService" }
+                );
         }
     }
 
@@ -29,10 +32,7 @@ public class ConsulModule : IAppModuleStartup
         application.UseConsulByWebApi();
     }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 99999;
 }

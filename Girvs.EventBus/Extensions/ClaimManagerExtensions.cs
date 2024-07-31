@@ -7,7 +7,10 @@ public static class ClaimManagerExtensions
     /// </summary>
     /// <param name="claimManager"></param>
     /// <param name="capHeader"></param>
-    public static void CapEventBusReSetClaim(this IGirvsClaimManager claimManager, CapHeader capHeader)
+    public static void CapEventBusReSetClaim(
+        this IGirvsClaimManager claimManager,
+        CapHeader capHeader
+    )
     {
         var claimdic = capHeader.ToDictionary(x => x.Key, v => v.Value);
         claimdic.Remove(Headers.MessageId);
@@ -19,8 +22,10 @@ public static class ClaimManagerExtensions
         claimdic.Remove(Headers.CallbackName);
         claimdic.Remove(Headers.SentTime);
         claimdic.Remove(Headers.Exception);
-        claimdic.SetDictionaryKeyValue(GirvsIdentityClaimTypes.IdentityType,
-            IdentityType.EventMessageUser.ToString());
+        claimdic.SetDictionaryKeyValue(
+            GirvsIdentityClaimTypes.IdentityType,
+            IdentityType.EventMessageUser.ToString()
+        );
         claimManager.SetFromDictionary(claimdic);
     }
 }

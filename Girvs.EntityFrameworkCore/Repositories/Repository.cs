@@ -2,11 +2,11 @@
 
 namespace Girvs.EntityFrameworkCore.Repositories;
 
-public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : class, Entity<Guid>
-{
-}
+public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity>
+    where TEntity : class, Entity<Guid> { }
 
-public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : class, Entity<Tkey>
+public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey>
+    where TEntity : class, Entity<Tkey>
 {
     private readonly string ShareDataOperateErrorMessage = "当前租户与数据不一致，无法操作";
     internal DbContext DbContext { get; }
@@ -20,8 +20,9 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
     {
         _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
         var related = EngineContext.Current.GetShardingTableRelatedByEntity<TEntity>();
-        DbContext = related.GetInstant() ??
-                    throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
+        DbContext =
+            related.GetInstant()
+            ?? throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
         DbContext.ShardingAutoMigration();
         DbSet = DbContext.Set<TEntity>();
     }
@@ -31,13 +32,15 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
         return DbSet;
     }
 
-    public Expression<Func<TEntity, bool>> OtherQueryCondition => _repositoryQueryCondition != null
-        ? _repositoryQueryCondition.GetOtherQueryCondition<TEntity>()
-        : x => true;
+    public Expression<Func<TEntity, bool>> OtherQueryCondition =>
+        _repositoryQueryCondition != null
+            ? _repositoryQueryCondition.GetOtherQueryCondition<TEntity>()
+            : x => true;
 
     public bool CompareTenantId(TEntity entity)
     {
-        if (entity is not IIncludeMultiTenant<Tkey>) return true;
+        if (entity is not IIncludeMultiTenant<Tkey>)
+            return true;
         var tenantId = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
         var identityType = EngineContext.Current.ClaimManager.IdentityClaim.IdentityType;
         if (string.IsNullOrEmpty(tenantId) && identityType == IdentityType.EventMessageUser)
@@ -45,7 +48,10 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
             tenantId = Guid.Empty.ToString();
         }
 
-        var propertyValue = CommonHelper.GetProperty(entity, nameof(IIncludeMultiTenant<Tkey>.TenantId));
+        var propertyValue = CommonHelper.GetProperty(
+            entity,
+            nameof(IIncludeMultiTenant<Tkey>.TenantId)
+        );
         return propertyValue != null && propertyValue.ToString() == tenantId;
     }
 
@@ -98,14 +104,17 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
         params KeyValuePair<string, object>[] fieldValue
     )
     {
-        if (!fieldValue.Any()) return Task.CompletedTask;
+        if (!fieldValue.Any())
+            return Task.CompletedTask;
 
-        Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setPropertyCalls = b => b;
+        Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setPropertyCalls =
+            b => b;
 
         foreach (var keyValuePair in fieldValue)
         {
-            setPropertyCalls =
-                setPropertyCalls.Append(b => b.SetProperty(b => keyValuePair.Key, b => keyValuePair.Value));
+            setPropertyCalls = setPropertyCalls.Append(b =>
+                b.SetProperty(b => keyValuePair.Key, b => keyValuePair.Value)
+            );
         }
 
         return Queryable.Where(predicate).ExecuteUpdateAsync(setPropertyCalls);
@@ -150,8 +159,10 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
             : Queryable.ToListAsync();
     }
 
-    public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate,
-        params string[] fields)
+    public virtual Task<List<TEntity>> GetWhereAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        params string[] fields
+    )
     {
         return fields.Any()
             ? Queryable.Where(predicate).SelectProperties(fields).ToListAsync()
@@ -169,13 +180,13 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
         }
         else
         {
-            query.Result =
-                await DbSet
-                    .Where(queryCondition)
-                    .SelectProperties(query.QueryFields)
-                    .OrderByDescending(query.OrderBy)
-                    .Skip(query.PageStart)
-                    .Take(query.PageSize).ToListAsync();
+            query.Result = await DbSet
+                .Where(queryCondition)
+                .SelectProperties(query.QueryFields)
+                .OrderByDescending(query.OrderBy)
+                .Skip(query.PageStart)
+                .Take(query.PageSize)
+                .ToListAsync();
         }
 
         return query.Result;

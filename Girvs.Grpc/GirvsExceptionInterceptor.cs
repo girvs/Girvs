@@ -9,9 +9,11 @@ public class GirvsExceptionInterceptor : Interceptor
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request,
+    public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(
+        TRequest request,
         ServerCallContext context,
-        UnaryServerMethod<TRequest, TResponse> continuation)
+        UnaryServerMethod<TRequest, TResponse> continuation
+    )
     {
         LogCall(context);
         try

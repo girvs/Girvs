@@ -1,9 +1,9 @@
 namespace Girvs.CodeGenerator.Generator;
 
-public class TemplateFieldParameter: ILiquidizable
+public class TemplateFieldParameter : ILiquidizable
 {
     public string FieldName { get; set; }
-    
+
     public string FieldNameTitleCaseName
     {
         get
@@ -28,7 +28,7 @@ public class TemplateFieldParameter: ILiquidizable
     public string Comment { get; set; }
 
     public bool IsGenericType { get; set; }
-    
+
     public object ToLiquid()
     {
         return new

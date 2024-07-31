@@ -8,14 +8,18 @@ public static class GirvsSignalREndpointRouteBuilderExtensions
         var signalRServices = typeFinder.FindOfType<Hub>();
         foreach (var signalRService in signalRServices)
         {
-            if (signalRService.IsAbstract) continue;
-            var method = typeof(GirvsSignalREndpointRouteBuilderExtensions).GetMethod("GirvsMapHub")
+            if (signalRService.IsAbstract)
+                continue;
+            var method = typeof(GirvsSignalREndpointRouteBuilderExtensions)
+                .GetMethod("GirvsMapHub")
                 ?.MakeGenericMethod(signalRService);
-            if (method != null) method.Invoke(null, new object[] {builder});
+            if (method != null)
+                method.Invoke(null, new object[] { builder });
         }
     }
 
-    public static void GirvsMapHub<THub>(this IEndpointRouteBuilder builder) where THub : Hub
+    public static void GirvsMapHub<THub>(this IEndpointRouteBuilder builder)
+        where THub : Hub
     {
         builder.MapHub<THub>($"/hubs/{typeof(THub).Name}");
     }

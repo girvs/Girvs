@@ -2,7 +2,8 @@
 
 public interface IConfig
 {
-    [JsonIgnore] string Name => GetType().Name;
+    [JsonIgnore]
+    string Name => GetType().Name;
 }
 
 public interface IAppModuleConfig : IConfig

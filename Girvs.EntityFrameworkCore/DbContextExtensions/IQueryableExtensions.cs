@@ -5,11 +5,10 @@ public static class IQueryableExtensions
     public static IQueryable<T> Where<T>(
         this IQueryable<T> query,
         bool condition,
-        Expression<Func<T, bool>> predicate)
+        Expression<Func<T, bool>> predicate
+    )
     {
-        return condition
-            ? query.Where(predicate)
-            : query;
+        return condition ? query.Where(predicate) : query;
     }
 
     public static IQueryable<T> WhereEqual<T>(this IQueryable<T> q, string Field, string Value)

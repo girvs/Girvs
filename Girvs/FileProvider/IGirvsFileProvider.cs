@@ -13,7 +13,11 @@ public interface IGirvsFileProvider : IFileProvider
     bool DirectoryExists(string path);
 
     void DirectoryMove(string sourceDirName, string destDirName);
-    IEnumerable<string> EnumerateFiles(string directoryPath, string searchPattern, bool topDirectoryOnly = true);
+    IEnumerable<string> EnumerateFiles(
+        string directoryPath,
+        string searchPattern,
+        bool topDirectoryOnly = true
+    );
 
     void FileCopy(string sourceFileName, string destFileName, bool overwrite = false);
 
@@ -40,7 +44,11 @@ public interface IGirvsFileProvider : IFileProvider
     string GetFileName(string path);
 
     string GetFileNameWithoutExtension(string filePath);
-    string[] GetFiles(string directoryPath, string searchPattern = "", bool topDirectoryOnly = true);
+    string[] GetFiles(
+        string directoryPath,
+        string searchPattern = "",
+        bool topDirectoryOnly = true
+    );
 
     DateTime GetLastAccessTime(string path);
 

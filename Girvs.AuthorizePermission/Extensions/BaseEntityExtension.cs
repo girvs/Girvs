@@ -12,9 +12,10 @@ namespace Girvs.AuthorizePermission.Extensions
         {
             var appSettings = EngineContext.Current.Resolve<AppSettings>();
 
-            var claimConfig = appSettings.ModuleConfigurations[nameof(ClaimValueConfig)] as ClaimValueConfig ??
-                              throw new ArgumentNullException(nameof(ClaimValueConfig));
-            
+            var claimConfig =
+                appSettings.ModuleConfigurations[nameof(ClaimValueConfig)] as ClaimValueConfig
+                ?? throw new ArgumentNullException(nameof(ClaimValueConfig));
+
             if (entity is IIncludeCreateTime createTimeObj)
             {
                 createTimeObj.CreateTime = DateTime.Now;
@@ -44,19 +45,25 @@ namespace Girvs.AuthorizePermission.Extensions
                 }
             }
 
-
             var multiTenantPrperty = entity.GetType().GetProperty("IIncludeMultiTenant");
             if (multiTenantPrperty != null)
             {
-                var tenantIdStr = EngineContext.Current.GetCurrentClaimByName(claimConfig.ClaimTenantId)
+                var tenantIdStr = EngineContext
+                    .Current.GetCurrentClaimByName(claimConfig.ClaimTenantId)
                     ?.Value;
 
-                if (!string.IsNullOrEmpty(tenantIdStr) && multiTenantPrperty.PropertyType == typeof(Guid))
+                if (
+                    !string.IsNullOrEmpty(tenantIdStr)
+                    && multiTenantPrperty.PropertyType == typeof(Guid)
+                )
                 {
                     multiTenantPrperty.SetValue(entity, Guid.Parse(tenantIdStr));
                 }
 
-                if (!string.IsNullOrEmpty(tenantIdStr) && multiTenantPrperty.PropertyType == typeof(Int32))
+                if (
+                    !string.IsNullOrEmpty(tenantIdStr)
+                    && multiTenantPrperty.PropertyType == typeof(Int32)
+                )
                 {
                     multiTenantPrperty.SetValue(entity, int.Parse(tenantIdStr));
                 }
@@ -70,14 +77,19 @@ namespace Girvs.AuthorizePermission.Extensions
             var creatorPrperty = entity.GetType().GetProperty("CreatorId");
             if (creatorPrperty != null)
             {
-                var userIdStr = EngineContext.Current.GetCurrentClaimByName(claimConfig.ClaimSid)?.Value;
+                var userIdStr = EngineContext
+                    .Current.GetCurrentClaimByName(claimConfig.ClaimSid)
+                    ?.Value;
 
                 if (!string.IsNullOrEmpty(userIdStr) && creatorPrperty.PropertyType == typeof(Guid))
                 {
                     creatorPrperty.SetValue(entity, Guid.Parse(userIdStr));
                 }
 
-                if (!string.IsNullOrEmpty(userIdStr) && creatorPrperty.PropertyType == typeof(Int32))
+                if (
+                    !string.IsNullOrEmpty(userIdStr)
+                    && creatorPrperty.PropertyType == typeof(Int32)
+                )
                 {
                     creatorPrperty.SetValue(entity, int.Parse(userIdStr));
                 }

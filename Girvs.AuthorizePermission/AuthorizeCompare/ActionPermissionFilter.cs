@@ -29,8 +29,8 @@ public class ActionPermissionFilter : ActionFilterAttribute
 
         var service = context.Controller;
         var spd =
-            service.GetType().GetCustomAttribute(typeof(ServicePermissionDescriptorAttribute)) as
-                ServicePermissionDescriptorAttribute;
+            service.GetType().GetCustomAttribute(typeof(ServicePermissionDescriptorAttribute))
+            as ServicePermissionDescriptorAttribute;
 
         if (spd == null)
         {
@@ -38,8 +38,10 @@ public class ActionPermissionFilter : ActionFilterAttribute
             return;
         }
 
-        var isActionMethodPermission =
-            ad.MethodInfo.IsDefined(typeof(ServiceMethodPermissionDescriptorAttribute), false);
+        var isActionMethodPermission = ad.MethodInfo.IsDefined(
+            typeof(ServiceMethodPermissionDescriptorAttribute),
+            false
+        );
 
         if (!isActionMethodPermission)
         {
@@ -48,19 +50,29 @@ public class ActionPermissionFilter : ActionFilterAttribute
         }
 
         var swamped =
-            ad.MethodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute), false) as
-                ServiceMethodPermissionDescriptorAttribute;
+            ad.MethodInfo.GetCustomAttribute(
+                typeof(ServiceMethodPermissionDescriptorAttribute),
+                false
+            ) as ServiceMethodPermissionDescriptorAttribute;
 
-        _logger.LogInformation($"ServiceName:{spd.ServiceName}  ActionMethodName:{swamped.MethodName}");
+        _logger.LogInformation(
+            $"ServiceName:{spd.ServiceName}  ActionMethodName:{swamped.MethodName}"
+        );
 
-        var serviceMethodPermissionCompare = EngineContext.Current.Resolve<IServiceMethodPermissionCompare>();
+        var serviceMethodPermissionCompare =
+            EngineContext.Current.Resolve<IServiceMethodPermissionCompare>();
         if (serviceMethodPermissionCompare != null)
         {
-            var result = serviceMethodPermissionCompare.PermissionCompare(spd.ServiceId, swamped.Permission);
+            var result = serviceMethodPermissionCompare.PermissionCompare(
+                spd.ServiceId,
+                swamped.Permission
+            );
             if (!result)
             {
-                throw new GirvsException($"当前没有‘{spd.ServiceName}’的‘{swamped.MethodName}’权限",
-                    StatusCodes.Status403Forbidden);
+                throw new GirvsException(
+                    $"当前没有‘{spd.ServiceName}’的‘{swamped.MethodName}’权限",
+                    StatusCodes.Status403Forbidden
+                );
             }
         }
         else

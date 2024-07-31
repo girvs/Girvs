@@ -2,14 +2,12 @@ namespace Girvs.EntityFrameworkCore.Migrations;
 
 public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGenerator
 {
-    private ICSharpHelper Code
-        => Dependencies.CSharpHelper;
-
+    private ICSharpHelper Code => Dependencies.CSharpHelper;
 
     public GirvsCSharpMigrationOperationGenerator(
-        [NotNull] CSharpMigrationOperationGeneratorDependencies dependencies) : base(dependencies)
-    {
-    }
+        [NotNull] CSharpMigrationOperationGeneratorDependencies dependencies
+    )
+        : base(dependencies) { }
 
     /// <summary>
     ///     Generates code for creating <see cref="MigrationOperation" /> objects.
@@ -20,7 +18,8 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     public override void Generate(
         string builderName,
         IReadOnlyList<MigrationOperation> operations,
-        IndentedStringBuilder builder)
+        IndentedStringBuilder builder
+    )
     {
         Check.NotEmpty(builderName, nameof(builderName));
         Check.NotNull(operations, nameof(operations));
@@ -35,9 +34,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
             }
             else
             {
-                builder
-                    .AppendLine()
-                    .AppendLine();
+                builder.AppendLine().AppendLine();
             }
 
             var tableName = GetTableName(operation);
@@ -48,7 +45,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                 using (builder.Indent())
                 {
                     builder.Append(builderName);
-                    Generate((dynamic) operation, builder);
+                    Generate((dynamic)operation, builder);
                     builder.Append(";");
                     builder.AppendLine();
                 }
@@ -58,7 +55,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
             else
             {
                 builder.Append(builderName);
-                Generate((dynamic) operation, builder);
+                Generate((dynamic)operation, builder);
                 builder.Append(";");
                 builder.AppendLine();
             }
@@ -67,35 +64,40 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
     private string GetTableName(object operation)
     {
-        if (operation is AddColumnOperation
-            or UpdateDataOperation
-            or DeleteDataOperation
-            or InsertDataOperation
-            or RenameIndexOperation
-            or RenameColumnOperation
-            or DropCheckConstraintOperation
-            or DropUniqueConstraintOperation
-            or DropIndexOperation
-            or DropForeignKeyOperation
-            or DropColumnOperation
-            or CreateIndexOperation
-            or AlterColumnOperation
-            or AddCheckConstraintOperation
-            or AddUniqueConstraintOperation
-            or AddPrimaryKeyOperation
-            or AddForeignKeyOperation
-            or AddColumnOperation
-           )
+        if (
+            operation
+            is AddColumnOperation
+                or UpdateDataOperation
+                or DeleteDataOperation
+                or InsertDataOperation
+                or RenameIndexOperation
+                or RenameColumnOperation
+                or DropCheckConstraintOperation
+                or DropUniqueConstraintOperation
+                or DropIndexOperation
+                or DropForeignKeyOperation
+                or DropColumnOperation
+                or CreateIndexOperation
+                or AlterColumnOperation
+                or AddCheckConstraintOperation
+                or AddUniqueConstraintOperation
+                or AddPrimaryKeyOperation
+                or AddForeignKeyOperation
+                or AddColumnOperation
+        )
         {
-            return ((dynamic) operation).Table;
+            return ((dynamic)operation).Table;
         }
 
-        if (operation is CreateTableOperation
-            or RenameTableOperation
-            or DropTableOperation
-            or AlterTableOperation)
+        if (
+            operation
+            is CreateTableOperation
+                or RenameTableOperation
+                or DropTableOperation
+                or AlterTableOperation
+        )
         {
-            return ((dynamic) operation).Name;
+            return ((dynamic)operation).Name;
         }
 
         return String.Empty;
@@ -106,29 +108,23 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] AddColumnOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] AddColumnOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
 
-        builder
-            .Append(".AddColumn<")
-            .Append(Code.Reference(operation.ClrType))
-            .AppendLine(">(");
+        builder.Append(".AddColumn<").Append(Code.Reference(operation.ClrType)).AppendLine(">(");
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -138,24 +134,17 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.ColumnType != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("type: ")
-                    .Append(Code.Literal(operation.ColumnType));
+                builder.AppendLine(",").Append("type: ").Append(Code.Literal(operation.ColumnType));
             }
 
             if (operation.IsUnicode == false)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("unicode: false");
+                builder.AppendLine(",").Append("unicode: false");
             }
 
             if (operation.IsFixedLength == true)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("fixedLength: true");
+                builder.AppendLine(",").Append("fixedLength: true");
             }
 
             if (operation.MaxLength.HasValue)
@@ -168,28 +157,26 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Precision.HasValue)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("precision: ")
                     .Append(Code.Literal(operation.Precision.Value));
             }
 
             if (operation.Scale.HasValue)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("scale: ")
                     .Append(Code.Literal(operation.Scale.Value));
             }
 
             if (operation.IsRowVersion)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("rowVersion: true");
+                builder.AppendLine(",").Append("rowVersion: true");
             }
 
-            builder.AppendLine(",")
-                .Append("nullable: ")
-                .Append(Code.Literal(operation.IsNullable));
+            builder.AppendLine(",").Append("nullable: ").Append(Code.Literal(operation.IsNullable));
 
             if (operation.DefaultValueSql != null)
             {
@@ -223,10 +210,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Comment != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("comment: ")
-                    .Append(Code.Literal(operation.Comment));
+                builder.AppendLine(",").Append("comment: ").Append(Code.Literal(operation.Comment));
             }
 
             if (operation.Collation != null)
@@ -248,8 +232,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] AddForeignKeyOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] AddForeignKeyOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -258,16 +244,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -278,15 +259,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Columns.Length == 1)
             {
-                builder
-                    .Append("column: ")
-                    .Append(Code.Literal(operation.Columns[0]));
+                builder.Append("column: ").Append(Code.Literal(operation.Columns[0]));
             }
             else
             {
-                builder
-                    .Append("columns: ")
-                    .Append(Code.Literal(operation.Columns));
+                builder.Append("columns: ").Append(Code.Literal(operation.Columns));
             }
 
             if (operation.PrincipalSchema != null)
@@ -343,8 +320,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] AddPrimaryKeyOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] AddPrimaryKeyOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -353,16 +332,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -373,15 +347,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Columns.Length == 1)
             {
-                builder
-                    .Append("column: ")
-                    .Append(Code.Literal(operation.Columns[0]));
+                builder.Append("column: ").Append(Code.Literal(operation.Columns[0]));
             }
             else
             {
-                builder
-                    .Append("columns: ")
-                    .Append(Code.Literal(operation.Columns));
+                builder.Append("columns: ").Append(Code.Literal(operation.Columns));
             }
 
             builder.Append(")");
@@ -395,8 +365,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] AddUniqueConstraintOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] AddUniqueConstraintOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -405,16 +377,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -425,15 +392,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Columns.Length == 1)
             {
-                builder
-                    .Append("column: ")
-                    .Append(Code.Literal(operation.Columns[0]));
+                builder.Append("column: ").Append(Code.Literal(operation.Columns[0]));
             }
             else
             {
-                builder
-                    .Append("columns: ")
-                    .Append(Code.Literal(operation.Columns));
+                builder.Append("columns: ").Append(Code.Literal(operation.Columns));
             }
 
             builder.Append(")");
@@ -447,8 +410,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] AddCheckConstraintOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] AddCheckConstraintOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -457,16 +422,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -487,29 +447,23 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] AlterColumnOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] AlterColumnOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
 
-        builder
-            .Append(".AlterColumn<")
-            .Append(Code.Reference(operation.ClrType))
-            .AppendLine(">(");
+        builder.Append(".AlterColumn<").Append(Code.Reference(operation.ClrType)).AppendLine(">(");
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -519,56 +473,49 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.ColumnType != null)
             {
-                builder.AppendLine(",")
-                    .Append("type: ")
-                    .Append(Code.Literal(operation.ColumnType));
+                builder.AppendLine(",").Append("type: ").Append(Code.Literal(operation.ColumnType));
             }
 
             if (operation.IsUnicode == false)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("unicode: false");
+                builder.AppendLine(",").Append("unicode: false");
             }
 
             if (operation.IsFixedLength == true)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("fixedLength: true");
+                builder.AppendLine(",").Append("fixedLength: true");
             }
 
             if (operation.MaxLength.HasValue)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("maxLength: ")
                     .Append(Code.Literal(operation.MaxLength.Value));
             }
 
             if (operation.Precision.HasValue)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("precision: ")
                     .Append(Code.Literal(operation.Precision.Value));
             }
 
             if (operation.Scale.HasValue)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("scale: ")
                     .Append(Code.Literal(operation.Scale.Value));
             }
 
             if (operation.IsRowVersion)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("rowVersion: true");
+                builder.AppendLine(",").Append("rowVersion: true");
             }
 
-            builder.AppendLine(",")
-                .Append("nullable: ")
-                .Append(Code.Literal(operation.IsNullable));
+            builder.AppendLine(",").Append("nullable: ").Append(Code.Literal(operation.IsNullable));
 
             if (operation.DefaultValueSql != null)
             {
@@ -602,10 +549,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Comment != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("comment: ")
-                    .Append(Code.Literal(operation.Comment));
+                builder.AppendLine(",").Append("comment: ").Append(Code.Literal(operation.Comment));
             }
 
             if (operation.Collation != null)
@@ -618,7 +562,8 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.OldColumn.ClrType != null)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("oldClrType: typeof(")
                     .Append(Code.Reference(operation.OldColumn.ClrType))
                     .Append(")");
@@ -626,57 +571,54 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.OldColumn.ColumnType != null)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("oldType: ")
                     .Append(Code.Literal(operation.OldColumn.ColumnType));
             }
 
             if (operation.OldColumn.IsUnicode == false)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("oldUnicode: false");
+                builder.AppendLine(",").Append("oldUnicode: false");
             }
 
             if (operation.OldColumn.IsFixedLength == true)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("oldFixedLength: true");
+                builder.AppendLine(",").Append("oldFixedLength: true");
             }
 
             if (operation.OldColumn.MaxLength.HasValue)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("oldMaxLength: ")
                     .Append(Code.Literal(operation.OldColumn.MaxLength.Value));
             }
 
             if (operation.OldColumn.Precision.HasValue)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("oldPrecision: ")
                     .Append(Code.Literal(operation.OldColumn.Precision.Value));
             }
 
             if (operation.OldColumn.Scale.HasValue)
             {
-                builder.AppendLine(",")
+                builder
+                    .AppendLine(",")
                     .Append("oldScale: ")
                     .Append(Code.Literal(operation.OldColumn.Scale.Value));
             }
 
             if (operation.OldColumn.IsRowVersion)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("oldRowVersion: true");
+                builder.AppendLine(",").Append("oldRowVersion: true");
             }
 
             if (operation.OldColumn.IsNullable)
             {
-                builder.AppendLine(",")
-                    .Append("oldNullable: true");
+                builder.AppendLine(",").Append("oldNullable: true");
             }
 
             if (operation.OldColumn.DefaultValueSql != null)
@@ -732,14 +674,15 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
         }
     }
 
-
     /// <summary>
     ///     Generates code for an <see cref="AlterTableOperation" />.
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] AlterTableOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] AlterTableOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -748,24 +691,16 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append($"GetShardingTableName<{operation.Name}>()");
+            builder.Append("name: ").Append($"GetShardingTableName<{operation.Name}>()");
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             if (operation.Comment != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("comment: ")
-                    .Append(Code.Literal(operation.Comment));
+                builder.AppendLine(",").Append("comment: ").Append(Code.Literal(operation.Comment));
             }
 
             if (operation.OldTable.Comment != null)
@@ -788,8 +723,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] CreateIndexOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] CreateIndexOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -798,16 +735,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -818,30 +750,21 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Columns.Length == 1)
             {
-                builder
-                    .Append("column: ")
-                    .Append(Code.Literal(operation.Columns[0]));
+                builder.Append("column: ").Append(Code.Literal(operation.Columns[0]));
             }
             else
             {
-                builder
-                    .Append("columns: ")
-                    .Append(Code.Literal(operation.Columns));
+                builder.Append("columns: ").Append(Code.Literal(operation.Columns));
             }
 
             if (operation.IsUnique)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("unique: true");
+                builder.AppendLine(",").Append("unique: true");
             }
 
             if (operation.Filter != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("filter: ")
-                    .Append(Code.Literal(operation.Filter));
+                builder.AppendLine(",").Append("filter: ").Append(Code.Literal(operation.Filter));
             }
 
             builder.Append(")");
@@ -850,14 +773,15 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
         }
     }
 
-
     /// <summary>
     ///     Generates code for a <see cref="CreateTableOperation" />.
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] CreateTableOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] CreateTableOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -866,22 +790,14 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append($"GetShardingTableName<{operation.Name}>()");
+            builder.Append("name: ").Append($"GetShardingTableName<{operation.Name}>()");
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
-            builder
-                .AppendLine(",")
-                .AppendLine("columns: table => new")
-                .AppendLine("{");
+            builder.AppendLine(",").AppendLine("columns: table => new").AppendLine("{");
 
             var map = new Dictionary<string, string>();
             using (builder.Indent())
@@ -901,10 +817,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
                     if (propertyName != column.Name)
                     {
-                        builder
-                            .Append("name: ")
-                            .Append(Code.Literal(column.Name))
-                            .Append(", ");
+                        builder.Append("name: ").Append(Code.Literal(column.Name)).Append(", ");
                     }
 
                     if (column.ColumnType != null)
@@ -954,8 +867,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                         builder.Append("rowVersion: true, ");
                     }
 
-                    builder.Append("nullable: ")
-                        .Append(Code.Literal(column.IsNullable));
+                    builder.Append("nullable: ").Append(Code.Literal(column.IsNullable));
 
                     if (column.DefaultValueSql != null)
                     {
@@ -971,9 +883,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
                         if (column.IsStored != null)
                         {
-                            builder
-                                .Append(", stored: ")
-                                .Append(Code.Literal(column.IsStored));
+                            builder.Append(", stored: ").Append(Code.Literal(column.IsStored));
                         }
                     }
                     else if (column.DefaultValue != null)
@@ -985,16 +895,12 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
                     if (column.Comment != null)
                     {
-                        builder
-                            .Append(", comment: ")
-                            .Append(Code.Literal(column.Comment));
+                        builder.Append(", comment: ").Append(Code.Literal(column.Comment));
                     }
 
                     if (column.Collation != null)
                     {
-                        builder
-                            .Append(", collation: ")
-                            .Append(Code.Literal(column.Collation));
+                        builder.Append(", collation: ").Append(Code.Literal(column.Collation));
                     }
 
                     builder.Append(")");
@@ -1013,10 +919,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                 }
             }
 
-            builder
-                .AppendLine("},")
-                .AppendLine("constraints: table =>")
-                .AppendLine("{");
+            builder.AppendLine("},").AppendLine("constraints: table =>").AppendLine("{");
 
             using (builder.Indent())
             {
@@ -1026,7 +929,9 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                         .Append("table.PrimaryKey(")
                         .Append(Code.Literal(operation.PrimaryKey.Name))
                         .Append(", ")
-                        .Append(Code.Lambda(operation.PrimaryKey.Columns.Select(c => map[c]).ToList()))
+                        .Append(
+                            Code.Lambda(operation.PrimaryKey.Columns.Select(c => map[c]).ToList())
+                        )
                         .Append(")");
 
                     using (builder.Indent())
@@ -1079,12 +984,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                     {
                         builder
                             .Append("name: ")
-                            .Append($"GetShardingForeignKey<{operation.Name}>({Code.Literal(foreignKey.Name)})")
-                            .AppendLine(",")
                             .Append(
-                                foreignKey.Columns.Length == 1
-                                    ? "column: "
-                                    : "columns: ")
+                                $"GetShardingForeignKey<{operation.Name}>({Code.Literal(foreignKey.Name)})"
+                            )
+                            .AppendLine(",")
+                            .Append(foreignKey.Columns.Length == 1 ? "column: " : "columns: ")
                             .Append(Code.Lambda(foreignKey.Columns.Select(c => map[c]).ToList()));
 
                         if (foreignKey.PrincipalSchema != null)
@@ -1143,10 +1047,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Comment != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("comment: ")
-                    .Append(Code.Literal(operation.Comment));
+                builder.AppendLine(",").Append("comment: ").Append(Code.Literal(operation.Comment));
             }
 
             builder.Append(")");
@@ -1160,8 +1061,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] DropColumnOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] DropColumnOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1170,16 +1073,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -1197,8 +1095,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] DropForeignKeyOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] DropForeignKeyOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1207,16 +1107,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -1234,8 +1129,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] DropIndexOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] DropIndexOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1244,16 +1141,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -1271,8 +1163,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] DropPrimaryKeyOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] DropPrimaryKeyOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1281,16 +1175,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -1308,8 +1197,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] DropTableOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] DropTableOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1318,16 +1209,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append($"GetShardingTableName<{operation.Name}>()");
+            builder.Append("name: ").Append($"GetShardingTableName<{operation.Name}>()");
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder.Append(")");
@@ -1341,8 +1227,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] DropUniqueConstraintOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] DropUniqueConstraintOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1351,16 +1239,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -1378,8 +1261,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] DropCheckConstraintOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] DropCheckConstraintOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1388,16 +1273,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -1415,8 +1295,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] RenameColumnOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] RenameColumnOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1425,16 +1307,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -1455,8 +1332,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] RenameIndexOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] RenameIndexOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1465,16 +1344,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append(Code.Literal(operation.Name));
+            builder.Append("name: ").Append(Code.Literal(operation.Name));
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             builder
@@ -1495,8 +1369,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// </summary>
     /// <param name="operation"> The operation. </param>
     /// <param name="builder"> The builder code is added to. </param>
-    protected override void Generate([NotNull] RenameTableOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+    protected override void Generate(
+        [NotNull] RenameTableOperation operation,
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1505,16 +1381,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
         using (builder.Indent())
         {
-            builder
-                .Append("name: ")
-                .Append($"GetShardingTableName<{operation.Name}>()");
+            builder.Append("name: ").Append($"GetShardingTableName<{operation.Name}>()");
 
             if (operation.Schema != null)
             {
-                builder
-                    .AppendLine(",")
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema));
+                builder.AppendLine(",").Append("schema: ").Append(Code.Literal(operation.Schema));
             }
 
             if (operation.NewName != null)
@@ -1546,7 +1417,8 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// <param name="builder"> The builder code is added to. </param>
     protected override void Generate(
         [NotNull] InsertDataOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1557,10 +1429,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
         {
             if (operation.Schema != null)
             {
-                builder
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema))
-                    .AppendLine(",");
+                builder.Append("schema: ").Append(Code.Literal(operation.Schema)).AppendLine(",");
             }
 
             builder
@@ -1570,25 +1439,18 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Columns.Length == 1)
             {
-                builder
-                    .Append("column: ")
-                    .Append(Code.Literal(operation.Columns[0]));
+                builder.Append("column: ").Append(Code.Literal(operation.Columns[0]));
             }
             else
             {
-                builder
-                    .Append("columns: ")
-                    .Append(Code.Literal(operation.Columns));
+                builder.Append("columns: ").Append(Code.Literal(operation.Columns));
             }
 
             builder.AppendLine(",");
 
-            if (operation.Values.GetLength(0) == 1
-                && operation.Values.GetLength(1) == 1)
+            if (operation.Values.GetLength(0) == 1 && operation.Values.GetLength(1) == 1)
             {
-                builder
-                    .Append("value: ")
-                    .Append(Code.UnknownLiteral(operation.Values[0, 0]));
+                builder.Append("value: ").Append(Code.UnknownLiteral(operation.Values[0, 0]));
             }
             else if (operation.Values.GetLength(0) == 1)
             {
@@ -1603,8 +1465,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                     .AppendLines(
                         Code.Literal(
                             ToOnedimensionalArray(operation.Values, firstDimension: true),
-                            vertical: true),
-                        skipFinalNewline: true);
+                            vertical: true
+                        ),
+                        skipFinalNewline: true
+                    );
             }
             else
             {
@@ -1624,7 +1488,8 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// <param name="builder"> The builder code is added to. </param>
     protected override void Generate(
         [NotNull] DeleteDataOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1635,10 +1500,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
         {
             if (operation.Schema != null)
             {
-                builder
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema))
-                    .AppendLine(",");
+                builder.Append("schema: ").Append(Code.Literal(operation.Schema)).AppendLine(",");
             }
 
             builder
@@ -1648,15 +1510,11 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.KeyColumns.Length == 1)
             {
-                builder
-                    .Append("keyColumn: ")
-                    .Append(Code.Literal(operation.KeyColumns[0]));
+                builder.Append("keyColumn: ").Append(Code.Literal(operation.KeyColumns[0]));
             }
             else
             {
-                builder
-                    .Append("keyColumns: ")
-                    .Append(Code.Literal(operation.KeyColumns));
+                builder.Append("keyColumns: ").Append(Code.Literal(operation.KeyColumns));
             }
 
             builder.AppendLine(",");
@@ -1679,12 +1537,9 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                 builder.AppendLine(",");
             }
 
-            if (operation.KeyValues.GetLength(0) == 1
-                && operation.KeyValues.GetLength(1) == 1)
+            if (operation.KeyValues.GetLength(0) == 1 && operation.KeyValues.GetLength(1) == 1)
             {
-                builder
-                    .Append("keyValue: ")
-                    .Append(Code.UnknownLiteral(operation.KeyValues[0, 0]));
+                builder.Append("keyValue: ").Append(Code.UnknownLiteral(operation.KeyValues[0, 0]));
             }
             else if (operation.KeyValues.GetLength(0) == 1)
             {
@@ -1699,8 +1554,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                     .AppendLines(
                         Code.Literal(
                             ToOnedimensionalArray(operation.KeyValues, firstDimension: true),
-                            vertical: true),
-                        skipFinalNewline: true);
+                            vertical: true
+                        ),
+                        skipFinalNewline: true
+                    );
             }
             else
             {
@@ -1720,7 +1577,8 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     /// <param name="builder"> The builder code is added to. </param>
     protected override void Generate(
         [NotNull] UpdateDataOperation operation,
-        [NotNull] IndentedStringBuilder builder)
+        [NotNull] IndentedStringBuilder builder
+    )
     {
         Check.NotNull(operation, nameof(operation));
         Check.NotNull(builder, nameof(builder));
@@ -1731,10 +1589,7 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
         {
             if (operation.Schema != null)
             {
-                builder
-                    .Append("schema: ")
-                    .Append(Code.Literal(operation.Schema))
-                    .AppendLine(",");
+                builder.Append("schema: ").Append(Code.Literal(operation.Schema)).AppendLine(",");
             }
 
             builder
@@ -1744,25 +1599,18 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.KeyColumns.Length == 1)
             {
-                builder
-                    .Append("keyColumn: ")
-                    .Append(Code.Literal(operation.KeyColumns[0]));
+                builder.Append("keyColumn: ").Append(Code.Literal(operation.KeyColumns[0]));
             }
             else
             {
-                builder
-                    .Append("keyColumns: ")
-                    .Append(Code.Literal(operation.KeyColumns));
+                builder.Append("keyColumns: ").Append(Code.Literal(operation.KeyColumns));
             }
 
             builder.AppendLine(",");
 
-            if (operation.KeyValues.GetLength(0) == 1
-                && operation.KeyValues.GetLength(1) == 1)
+            if (operation.KeyValues.GetLength(0) == 1 && operation.KeyValues.GetLength(1) == 1)
             {
-                builder
-                    .Append("keyValue: ")
-                    .Append(Code.UnknownLiteral(operation.KeyValues[0, 0]));
+                builder.Append("keyValue: ").Append(Code.UnknownLiteral(operation.KeyValues[0, 0]));
             }
             else if (operation.KeyValues.GetLength(0) == 1)
             {
@@ -1777,8 +1625,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                     .AppendLines(
                         Code.Literal(
                             ToOnedimensionalArray(operation.KeyValues, firstDimension: true),
-                            vertical: true),
-                        skipFinalNewline: true);
+                            vertical: true
+                        ),
+                        skipFinalNewline: true
+                    );
             }
             else
             {
@@ -1791,25 +1641,18 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
 
             if (operation.Columns.Length == 1)
             {
-                builder
-                    .Append("column: ")
-                    .Append(Code.Literal(operation.Columns[0]));
+                builder.Append("column: ").Append(Code.Literal(operation.Columns[0]));
             }
             else
             {
-                builder
-                    .Append("columns: ")
-                    .Append(Code.Literal(operation.Columns));
+                builder.Append("columns: ").Append(Code.Literal(operation.Columns));
             }
 
             builder.AppendLine(",");
 
-            if (operation.Values.GetLength(0) == 1
-                && operation.Values.GetLength(1) == 1)
+            if (operation.Values.GetLength(0) == 1 && operation.Values.GetLength(1) == 1)
             {
-                builder
-                    .Append("value: ")
-                    .Append(Code.UnknownLiteral(operation.Values[0, 0]));
+                builder.Append("value: ").Append(Code.UnknownLiteral(operation.Values[0, 0]));
             }
             else if (operation.Values.GetLength(0) == 1)
             {
@@ -1824,8 +1667,10 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
                     .AppendLines(
                         Code.Literal(
                             ToOnedimensionalArray(operation.Values, firstDimension: true),
-                            vertical: true),
-                        skipFinalNewline: true);
+                            vertical: true
+                        ),
+                        skipFinalNewline: true
+                    );
             }
             else
             {
@@ -1842,14 +1687,13 @@ public class GirvsCSharpMigrationOperationGenerator : CSharpMigrationOperationGe
     {
         Check.DebugAssert(
             values.GetLength(firstDimension ? 1 : 0) == 1,
-            $"Length of dimension {(firstDimension ? 1 : 0)} is not 1.");
+            $"Length of dimension {(firstDimension ? 1 : 0)} is not 1."
+        );
 
         var result = new object[values.Length];
         for (var i = 0; i < values.Length; i++)
         {
-            result[i] = firstDimension
-                ? values[i, 0]
-                : values[0, i];
+            result[i] = firstDimension ? values[i, 0] : values[0, i];
         }
 
         return result;

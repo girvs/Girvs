@@ -1,7 +1,7 @@
 ﻿namespace Girvs.Cache.ComponentModel;
 
 /// <summary>
-/// Provides a convenience methodology for implementing locked access to resources. 
+/// Provides a convenience methodology for implementing locked access to resources.
 /// </summary>
 /// <remarks>
 /// Intended as an infrastructure class.
@@ -17,7 +17,10 @@ public class ReaderWriteLockDisposable : IDisposable
     /// </summary>
     /// <param name="rwLock">The readers–writer lock</param>
     /// <param name="readerWriteLockType">Lock type</param>
-    public ReaderWriteLockDisposable(ReaderWriterLockSlim rwLock, ReaderWriteLockType readerWriteLockType = ReaderWriteLockType.Write)
+    public ReaderWriteLockDisposable(
+        ReaderWriterLockSlim rwLock,
+        ReaderWriteLockType readerWriteLockType = ReaderWriteLockType.Write
+    )
     {
         _rwLock = rwLock;
         _readerWriteLockType = readerWriteLockType;

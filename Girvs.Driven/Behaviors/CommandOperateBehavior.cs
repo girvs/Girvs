@@ -5,7 +5,8 @@
 /// </summary>
 /// <typeparam name="TRequest"></typeparam>
 /// <typeparam name="TResponse"></typeparam>
-public class CommandOperateBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+public class CommandOperateBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
 {
     private readonly IMediatorHandler _mediator;
     private readonly ILogger<CommandOperateBehavior<TRequest, TResponse>> _logger;
@@ -18,7 +19,12 @@ public class CommandOperateBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken
+    )
     {
         var result = await next(); //后至处理
         if (!result.Equals(default(TResponse)))

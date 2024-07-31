@@ -2,41 +2,64 @@
 
 public static class DbContextOptionsBuilderExtensions
 {
-    public static void UseSqlServerWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
+    public static void UseSqlServerWithLazyLoading<TDbContext>(
+        this DbContextOptionsBuilder optionsBuilder,
+        DataConnectionConfig config,
+        string connStr
+    )
+        where TDbContext : GirvsDbContext
     {
-        optionsBuilder.UseSqlServer(connStr,
+        optionsBuilder.UseSqlServer(
+            connStr,
             builder =>
             {
                 if (config.EnableShardingTable)
                 {
-                    var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-                    builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
+                    var related =
+                        EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+                    builder.MigrationsHistoryTable(
+                        related.GetCurrentMigrationsHistoryShardingTableName()
+                    );
                 }
-            });
+            }
+        );
 
         // optionsBuilder.UseBatchEF_MSSQL();
     }
 
-    public static void UseMySqlWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
+    public static void UseMySqlWithLazyLoading<TDbContext>(
+        this DbContextOptionsBuilder optionsBuilder,
+        DataConnectionConfig config,
+        string connStr
+    )
+        where TDbContext : GirvsDbContext
     {
         var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
 
-        optionsBuilder.UseMySql(connStr, serverVersion,
+        optionsBuilder.UseMySql(
+            connStr,
+            serverVersion,
             builder =>
             {
                 builder.EnableRetryOnFailure(maxRetryCount: 5);
                 if (config.EnableShardingTable)
                 {
-                    var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-                    builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
+                    var related =
+                        EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
+                    builder.MigrationsHistoryTable(
+                        related.GetCurrentMigrationsHistoryShardingTableName()
+                    );
                 }
-            });
+            }
+        );
     }
 
-    public static void ConfigDbContextOptionsBuilder<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
-        DataConnectionConfig config, string connStr = null) where TDbContext : GirvsDbContext
+    public static void ConfigDbContextOptionsBuilder<TDbContext>(
+        this DbContextOptionsBuilder optionsBuilder,
+        DataConnectionConfig config,
+        string connStr = null
+    )
+        where TDbContext : GirvsDbContext
     {
         var dataConnectionConfig = config;
         connStr ??= config.MasterDataConnectionString;
@@ -44,7 +67,10 @@ public static class DbContextOptionsBuilderExtensions
         switch (dataConnectionConfig.UseDataType)
         {
             case UseDataType.MsSql:
-                optionsBuilder.UseSqlServerWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
+                optionsBuilder.UseSqlServerWithLazyLoading<TDbContext>(
+                    dataConnectionConfig,
+                    connStr
+                );
                 break;
 
             case UseDataType.MySql:
@@ -70,7 +96,10 @@ public static class DbContextOptionsBuilderExtensions
 
         if (dataConnectionConfig.EnableShardingTable)
         {
-            optionsBuilder.ReplaceService<IModelCacheKeyFactory, GirvsTenantModelCacheKeyFactory<TDbContext>>();
+            optionsBuilder.ReplaceService<
+                IModelCacheKeyFactory,
+                GirvsTenantModelCacheKeyFactory<TDbContext>
+            >();
             optionsBuilder.ReplaceService<IMigrationsAssembly, GirvsMigrationByTenantAssembly>();
         }
     }

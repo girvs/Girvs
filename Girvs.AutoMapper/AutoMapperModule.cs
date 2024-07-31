@@ -1,6 +1,6 @@
 ﻿namespace Girvs.AutoMapper;
 
-public class AutoMapperModule:IAppModuleStartup
+public class AutoMapperModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
@@ -8,7 +8,9 @@ public class AutoMapperModule:IAppModuleStartup
         var mapperConfigurations = typeFinder.FindOfType<IOrderedMapperProfile>();
 
         var instances = mapperConfigurations
-            .Select(mapperConfiguration => (IOrderedMapperProfile)Activator.CreateInstance(mapperConfiguration))
+            .Select(mapperConfiguration =>
+                (IOrderedMapperProfile)Activator.CreateInstance(mapperConfiguration)
+            )
             .OrderBy(mapperConfiguration => mapperConfiguration.Order);
 
         var config = new MapperConfiguration(cfg =>
@@ -23,15 +25,9 @@ public class AutoMapperModule:IAppModuleStartup
         services.AddSingleton(typeof(IMapper), config.CreateMapper());
     }
 
-    public void Configure(IApplicationBuilder application)
-    {
-            
-    }
+    public void Configure(IApplicationBuilder application) { }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-            
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; }
 }

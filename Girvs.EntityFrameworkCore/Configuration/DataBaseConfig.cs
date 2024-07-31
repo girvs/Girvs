@@ -2,10 +2,17 @@
 
 public enum UseDataType
 {
-    [EnumMember(Value = "mssql")] MsSql,
-    [EnumMember(Value = "mysql")] MySql,
-    [EnumMember(Value = "sqllite")] SqlLite,
-    [EnumMember(Value = "oracle")] Oracle
+    [EnumMember(Value = "mssql")]
+    MsSql,
+
+    [EnumMember(Value = "mysql")]
+    MySql,
+
+    [EnumMember(Value = "sqllite")]
+    SqlLite,
+
+    [EnumMember(Value = "oracle")]
+    Oracle
 }
 
 public class DbConfig : IAppModuleConfig
@@ -22,7 +29,8 @@ public class DbConfig : IAppModuleConfig
         DataConnectionConfigs.Add(new DataConnectionConfig());
     }
 
-    public DataConnectionConfig GetDataConnectionConfig<TDbContext>() where TDbContext : GirvsDbContext
+    public DataConnectionConfig GetDataConnectionConfig<TDbContext>()
+        where TDbContext : GirvsDbContext
     {
         return GetDataConnectionConfig(typeof(TDbContext));
     }
@@ -36,11 +44,15 @@ public class DbConfig : IAppModuleConfig
             throw new GirvsException($"{dbContextType.Name} 未绑定指定的数据库配置");
         }
 
-        var dataBaseConfig = DataConnectionConfigs.FirstOrDefault(x => x.Name == dbConfigAttribute.DbName);
+        var dataBaseConfig = DataConnectionConfigs.FirstOrDefault(x =>
+            x.Name == dbConfigAttribute.DbName
+        );
 
         if (dataBaseConfig == null)
         {
-            throw new GirvsException($"{dbContextType.Name} 绑定指定的数据库配置不正确 {dbConfigAttribute.DbName}");
+            throw new GirvsException(
+                $"{dbContextType.Name} 绑定指定的数据库配置不正确 {dbConfigAttribute.DbName}"
+            );
         }
 
         return dataBaseConfig;
@@ -92,7 +104,7 @@ public class DataConnectionConfig
     public bool UseRowNumberForPaging { get; set; } = true;
 
     public bool EnableSensitiveDataLogging { get; set; } = false;
-    
+
     public bool EnableShardingTable { get; set; } = true;
 
     /// <summary>
@@ -111,8 +123,7 @@ public class DataConnectionConfig
 
     public string GetSecureRandomReadDataConnectionString()
     {
-        if (ReadDataConnectionString == null ||
-            !ReadDataConnectionString.Any())
+        if (ReadDataConnectionString == null || !ReadDataConnectionString.Any())
         {
             return MasterDataConnectionString;
         }
@@ -124,14 +135,12 @@ public class DataConnectionConfig
             }
             else
             {
-                var index = SecureRandomNumberGenerator.GetInt32(0,
-                    ReadDataConnectionString.Count);
+                var index = SecureRandomNumberGenerator.GetInt32(0, ReadDataConnectionString.Count);
                 return ReadDataConnectionString[index];
             }
         }
     }
 }
-
 
 public class DbHostServerPort
 {

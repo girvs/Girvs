@@ -19,7 +19,8 @@ public static class ServiceCollectionExtension
     public static void RegisterCommandHandlerType(this IServiceCollection services)
     {
         var typeFinder = new WebAppTypeFinder();
-        var commandHandlerTypes = typeFinder.FindOfType<CommandHandler>()
+        var commandHandlerTypes = typeFinder
+            .FindOfType<CommandHandler>()
             .Where(x => x.Name != nameof(CommandHandler));
 
         foreach (var commandHandlerType in commandHandlerTypes)
@@ -30,7 +31,6 @@ public static class ServiceCollectionExtension
             }
         }
     }
-
 
     public static void RegisterIValidatorType(this IServiceCollection services)
     {

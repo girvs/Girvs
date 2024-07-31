@@ -9,7 +9,6 @@ namespace Girvs.CodeGenerator;
 
 public class CodeGeneratorModule : IAppModuleStartup
 {
-        
     // private void RegisterSafeTypeWithAllProperties(Type type)
     // {
     //     Template.RegisterSafeType(type,
@@ -18,7 +17,7 @@ public class CodeGeneratorModule : IAppModuleStartup
     //             .Select(p => p.Name)
     //             .ToArray(), o => o.ToString());
     // }
-    
+
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         // RegisterSafeTypeWithAllProperties(typeof(TemplateParameter));
@@ -26,13 +25,9 @@ public class CodeGeneratorModule : IAppModuleStartup
         // RegisterSafeTypeWithAllProperties(typeof(TemplateNamespaceParameter));
     }
 
-    public void Configure(IApplicationBuilder application)
-    {
-    }
+    public void Configure(IApplicationBuilder application) { }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = int.MaxValue;
 }

@@ -2,8 +2,6 @@
 
 public abstract class GirvsDbContext : DbContext
 {
-    public GirvsDbContext(DbContextOptions options) : base(options)
-    {
-
-    }
+    public GirvsDbContext(DbContextOptions options)
+        : base(options) { }
 }

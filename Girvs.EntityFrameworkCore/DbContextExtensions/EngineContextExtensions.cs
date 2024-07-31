@@ -23,7 +23,9 @@ public static class EngineContextExtensions
         {
             var related = new DbContextEntityShardingTableRelated(dbContextType);
 
-            var dbSetProperties = dbContextType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            var dbSetProperties = dbContextType.GetProperties(
+                BindingFlags.Instance | BindingFlags.Public
+            );
             foreach (var dbSetProperty in dbSetProperties)
             {
                 var gas = dbSetProperty.PropertyType.GetGenericArguments();
@@ -40,14 +42,18 @@ public static class EngineContextExtensions
         }
     }
 
-    public static DbContextEntityShardingTableRelated
-        GetShardingTableRelatedByDbContext<TDbContext>(this IEngine engine) where TDbContext : GirvsDbContext
+    public static DbContextEntityShardingTableRelated GetShardingTableRelatedByDbContext<TDbContext>(
+        this IEngine engine
+    )
+        where TDbContext : GirvsDbContext
     {
         return GetShardingTableRelatedByDbContext(engine, typeof(TDbContext));
     }
 
-    public static DbContextEntityShardingTableRelated GetShardingTableRelatedByDbContext(this IEngine engine,
-        Type dbContextType)
+    public static DbContextEntityShardingTableRelated GetShardingTableRelatedByDbContext(
+        this IEngine engine,
+        Type dbContextType
+    )
     {
         return DbContextEntityRelateds.First(x => x.DbContextType == dbContextType);
     }
@@ -58,8 +64,10 @@ public static class EngineContextExtensions
     /// <param name="engine"></param>
     /// <returns></returns>
     /// <exception cref="GirvsException"></exception>
-    public static DbContextEntityShardingTableRelated
-        GetShardingTableRelatedByEntity<TEntity>(this IEngine engine) where TEntity : Entity
+    public static DbContextEntityShardingTableRelated GetShardingTableRelatedByEntity<TEntity>(
+        this IEngine engine
+    )
+        where TEntity : Entity
     {
         return GetShardingTableRelatedByEntity(engine, typeof(TEntity));
     }
@@ -70,7 +78,8 @@ public static class EngineContextExtensions
     /// <param name="engine"></param>
     /// <typeparam name="TEntity"></typeparam>
     /// <returns></returns>
-    public static string GetDbContextSchemaName<TEntity>(this IEngine engine) where TEntity : Entity
+    public static string GetDbContextSchemaName<TEntity>(this IEngine engine)
+        where TEntity : Entity
     {
         var related = GetShardingTableRelatedByEntity<TEntity>(engine);
         var dbContext = engine.Resolve(related.DbContextType) as DbContext;
@@ -81,12 +90,14 @@ public static class EngineContextExtensions
         string result;
         try
         {
-            result = System.Text.RegularExpressions.Regex.Match(connectionString, $"{beginStr1}(.*?){endStr}")
+            result = System
+                .Text.RegularExpressions.Regex.Match(connectionString, $"{beginStr1}(.*?){endStr}")
                 .Result("$1");
         }
         catch
         {
-            result = System.Text.RegularExpressions.Regex.Match(connectionString, $"{beginStr2}(.*?){endStr}")
+            result = System
+                .Text.RegularExpressions.Regex.Match(connectionString, $"{beginStr2}(.*?){endStr}")
                 .Result("$1");
         }
 
@@ -101,8 +112,11 @@ public static class EngineContextExtensions
     /// <typeparam name="TEntity"></typeparam>
     /// <returns></returns>
     /// <exception cref="GirvsException"></exception>
-    public static async Task<List<string>> GetShardingTableNamesByEntity<TEntity>(this IEngine engine,
-        bool isIncludeCurrentTenantId = false) where TEntity : Entity
+    public static async Task<List<string>> GetShardingTableNamesByEntity<TEntity>(
+        this IEngine engine,
+        bool isIncludeCurrentTenantId = false
+    )
+        where TEntity : Entity
     {
         var tableManager = engine.Resolve<ITableManager>();
         if (tableManager == null)
@@ -114,7 +128,11 @@ public static class EngineContextExtensions
         var dbContext = engine.Resolve(related.DbContextType) as DbContext;
         var schema = GetDbContextSchemaName<TEntity>(engine);
         var entityTableName = typeof(TEntity).Name;
-        var tableNames = await tableManager.GetEntityAllTableNames(dbContext, schema, entityTableName);
+        var tableNames = await tableManager.GetEntityAllTableNames(
+            dbContext,
+            schema,
+            entityTableName
+        );
 
         if (isIncludeCurrentTenantId)
         {
@@ -136,8 +154,10 @@ public static class EngineContextExtensions
     /// <param name="entityType"></param>
     /// <returns></returns>
     /// <exception cref="GirvsException"></exception>
-    public static DbContextEntityShardingTableRelated GetShardingTableRelatedByEntity(this IEngine engine,
-        Type entityType)
+    public static DbContextEntityShardingTableRelated GetShardingTableRelatedByEntity(
+        this IEngine engine,
+        Type entityType
+    )
     {
         return DbContextEntityRelateds.First(x => x.ExistEntity(entityType));
     }
@@ -148,7 +168,9 @@ public static class EngineContextExtensions
     /// <param name="engine"></param>
     /// <typeparam name="TEntity"></typeparam>
     /// <returns></returns>
-    public static EntityShardingTableParameter GetEntityShardingTableParameter<TEntity>(this IEngine engine)
+    public static EntityShardingTableParameter GetEntityShardingTableParameter<TEntity>(
+        this IEngine engine
+    )
         where TEntity : Entity
     {
         return GetEntityShardingTableParameter(engine, typeof(TEntity));
@@ -160,7 +182,10 @@ public static class EngineContextExtensions
     /// <param name="engine"></param>
     /// <param name="entityType"></param>
     /// <returns></returns>
-    public static EntityShardingTableParameter GetEntityShardingTableParameter(this IEngine engine, Type entityType)
+    public static EntityShardingTableParameter GetEntityShardingTableParameter(
+        this IEngine engine,
+        Type entityType
+    )
     {
         var related = GetShardingTableRelatedByEntity(engine, entityType);
         return related.GetEntity(entityType);

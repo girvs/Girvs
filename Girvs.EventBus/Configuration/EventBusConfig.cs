@@ -17,14 +17,13 @@ public class EventBusConfig : IAppModuleConfig
     public KafkaConfig KafkaConfig { get; set; } = new KafkaConfig();
     public RedisConfig RedisConfig { get; set; } = new RedisConfig();
 
-    public void Init()
-    {
-    }
+    public void Init() { }
 }
 
 public class RabbitMQConfig
 {
-    public string HostName { get; set; } = "amqp-cn-zvp2aqiah00e.mq-amqp.cn-shenzhen-429403-a.aliyuncs.com";
+    public string HostName { get; set; } =
+        "amqp-cn-zvp2aqiah00e.mq-amqp.cn-shenzhen-429403-a.aliyuncs.com";
 
     public string Password { get; set; } =
         "NDFDRTEzNzIyNDYxNjY0Nzc4M0RFODZBNERCMDBDNDdBQjczMzdEMjoxNjI4NDcyOTEwMjE1";
@@ -37,7 +36,8 @@ public class RabbitMQConfig
 
 public class KafkaConfig
 {
-    public string KafKaConnectionString = "120.79.199.188:9093,120.24.175.230:9093,120.79.90.169:9093";
+    public string KafKaConnectionString =
+        "120.79.199.188:9093,120.24.175.230:9093,120.79.90.169:9093";
     public string SslCaLocation { get; set; } = "./aliyunkafka.pem";
     public string SaslMechanism { get; set; } = "PLAIN";
     public string SecurityProtocol { get; set; } = "SASL_SSL";
@@ -49,7 +49,6 @@ public class RedisConfig
 {
     public string RedisConnectionString { get; set; }
 }
-
 
 public enum EventBusType
 {

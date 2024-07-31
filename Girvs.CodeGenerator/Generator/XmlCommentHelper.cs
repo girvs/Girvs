@@ -11,9 +11,14 @@ namespace Girvs.CodeGenerator.Generator;
 /// </summary>
 public class XmlCommentHelper
 {
-    private static Regex RefTagPattern = new Regex(@"<(see|paramref) (name|cref)=""([TPF]{1}:)?(?<display>.+?)"" ?/>");
+    private static Regex RefTagPattern = new Regex(
+        @"<(see|paramref) (name|cref)=""([TPF]{1}:)?(?<display>.+?)"" ?/>"
+    );
     private static Regex CodeTagPattern = new Regex(@"<c>(?<display>.+?)</c>");
-    private static Regex ParaTagPattern = new Regex(@"<para>(?<display>.+?)</para>", RegexOptions.Singleline);
+    private static Regex ParaTagPattern = new Regex(
+        @"<para>(?<display>.+?)</para>",
+        RegexOptions.Singleline
+    );
 
     List<XPathNavigator> navigators = new List<XPathNavigator>();
 
@@ -90,8 +95,11 @@ public class XmlCommentHelper
     /// <param name="xPath">注释路径</param>
     /// <param name="humanize">可读性优化(比如：去掉xml标记)</param>
     /// <returns></returns>
-    public string GetFieldOrPropertyComment(MemberInfo fieldOrPropertyInfo, string xPath = "summary",
-        bool humanize = true)
+    public string GetFieldOrPropertyComment(
+        MemberInfo fieldOrPropertyInfo,
+        string xPath = "summary",
+        bool humanize = true
+    )
     {
         var fieldOrPropertyMemberName = GetMemberNameForFieldOrProperty(fieldOrPropertyInfo);
         return GetComment(fieldOrPropertyMemberName, xPath, humanize);
@@ -104,7 +112,11 @@ public class XmlCommentHelper
     /// <param name="xPath">注释路径</param>
     /// <param name="humanize">可读性优化(比如：去掉xml标记)</param>
     /// <returns></returns>
-    public string GetMethodComment(MethodInfo methodInfo, string xPath = "summary", bool humanize = true)
+    public string GetMethodComment(
+        MethodInfo methodInfo,
+        string xPath = "summary",
+        bool humanize = true
+    )
     {
         var methodMemberName = GetMemberNameForMethod(methodInfo);
         return GetComment(methodMemberName, xPath, humanize);
@@ -129,7 +141,8 @@ public class XmlCommentHelper
     /// <returns></returns>
     public string GetParameterComment(ParameterInfo parameterInfo, bool humanize = true)
     {
-        if (!(parameterInfo.Member is MethodInfo methodInfo)) return string.Empty;
+        if (!(parameterInfo.Member is MethodInfo methodInfo))
+            return string.Empty;
 
         var methodMemberName = GetMemberNameForMethod(methodInfo);
         return GetComment(methodMemberName, $"param[@name='{parameterInfo.Name}']", humanize);
@@ -141,7 +154,10 @@ public class XmlCommentHelper
     /// <param name="methodInfo">方法</param>
     /// <param name="humanize">可读性优化(比如：去掉xml标记)</param>
     /// <returns></returns>
-    public Dictionary<string, string> GetParameterComments(MethodInfo methodInfo, bool humanize = true)
+    public Dictionary<string, string> GetParameterComments(
+        MethodInfo methodInfo,
+        bool humanize = true
+    )
     {
         var parameterInfos = methodInfo.GetParameters();
         Dictionary<string, string> dict = new Dictionary<string, string>();
@@ -164,8 +180,9 @@ public class XmlCommentHelper
     {
         foreach (var _xmlNavigator in navigators)
         {
-            var typeSummaryNode =
-                _xmlNavigator.SelectSingleNode($"/doc/members/member[@name='{name}']/{xPath.Trim('/', '\\')}");
+            var typeSummaryNode = _xmlNavigator.SelectSingleNode(
+                $"/doc/members/member[@name='{name}']/{xPath.Trim('/', '\\')}"
+            );
 
             if (typeSummaryNode != null)
             {
@@ -245,7 +262,9 @@ public class XmlCommentHelper
     /// <returns></returns>
     public string GetMemberNameForFieldOrProperty(MemberInfo fieldOrPropertyInfo)
     {
-        var builder = new StringBuilder(((fieldOrPropertyInfo.MemberType & MemberTypes.Field) != 0) ? "F:" : "P:");
+        var builder = new StringBuilder(
+            ((fieldOrPropertyInfo.MemberType & MemberTypes.Field) != 0) ? "F:" : "P:"
+        );
         builder.Append(QualifiedNameFor(fieldOrPropertyInfo.DeclaringType));
         builder.Append($".{fieldOrPropertyInfo.Name}");
 
@@ -272,12 +291,13 @@ public class XmlCommentHelper
             var nameSansGenericArgs = type.Name.Split('`').First();
             builder.Append(nameSansGenericArgs);
 
-            var genericArgsNames = type.GetGenericArguments().Select(t =>
-            {
-                return t.IsGenericParameter
-                    ? $"`{t.GenericParameterPosition}"
-                    : QualifiedNameFor(t, true);
-            });
+            var genericArgsNames = type.GetGenericArguments()
+                .Select(t =>
+                {
+                    return t.IsGenericParameter
+                        ? $"`{t.GenericParameterPosition}"
+                        : QualifiedNameFor(t, true);
+                });
 
             builder.Append($"{{{string.Join(",", genericArgsNames)}}}");
         }
@@ -291,7 +311,8 @@ public class XmlCommentHelper
 
     private IEnumerable<string> GetNestedTypeNames(Type type)
     {
-        if (!type.IsNested || type.DeclaringType == null) yield break;
+        if (!type.IsNested || type.DeclaringType == null)
+            yield break;
 
         foreach (var nestedTypeName in GetNestedTypeNames(type.DeclaringType))
         {
@@ -306,7 +327,7 @@ public class XmlCommentHelper
         if (text == null)
             throw new ArgumentNullException("text");
 
-        //Call DecodeXml at last to avoid entities like &lt and &gt to break valid xml       
+        //Call DecodeXml at last to avoid entities like &lt and &gt to break valid xml
         text = NormalizeIndentation(text);
         text = HumanizeRefTags(text);
         text = HumanizeCodeTags(text);
@@ -346,9 +367,7 @@ public class XmlCommentHelper
         if (lines.Length == 0)
             return null;
 
-        string[] nonEmptyLines = lines
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .ToArray();
+        string[] nonEmptyLines = lines.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 
         if (nonEmptyLines.Length < 1)
             return null;

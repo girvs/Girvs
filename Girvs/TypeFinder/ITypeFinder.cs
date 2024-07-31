@@ -12,19 +12,18 @@ public interface ITypeFinder
     IList<Assembly> GetAssemblies();
 }
 
-
 public enum FindType
 {
     /// <summary>
     /// 实现的类
     /// </summary>
     ConcreteClasses,
-        
+
     /// <summary>
     /// 接口
     /// </summary>
     Interface,
-        
+
     /// <summary>
     /// 抽象类
     /// </summary>

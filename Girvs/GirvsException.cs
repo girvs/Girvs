@@ -38,7 +38,12 @@ public class GirvsException : Exception
     /// <param name="error"></param>
     /// <param name="args">The exception message arguments.</param>
     /// <param name="statusCode"></param>
-    public GirvsException(string messageFormat, int statusCode = 568, dynamic error = null, params object[] args)
+    public GirvsException(
+        string messageFormat,
+        int statusCode = 568,
+        dynamic error = null,
+        params object[] args
+    )
         : base(string.Format(messageFormat, args))
     {
         StatusCode = statusCode;
@@ -64,7 +69,12 @@ public class GirvsException : Exception
     /// <param name="innerException">The exception that is the cause of the current exception, or a null reference if no inner exception is specified.</param>
     /// <param name="statusCode"></param>
     /// <param name="error"></param>
-    public GirvsException(string message, Exception innerException, int statusCode = 568, dynamic error = null)
+    public GirvsException(
+        string message,
+        Exception innerException,
+        int statusCode = 568,
+        dynamic error = null
+    )
         : base(message, innerException)
     {
         StatusCode = statusCode;

@@ -36,16 +36,20 @@ public static class DbContextDetachAllExtension
     public static void DetachById<TEntity, TKey>(this DbContext dbContext, params TKey[] idStrings)
         where TEntity : class, Entity<TKey>
     {
-        if (!idStrings.Any()) return;
+        if (!idStrings.Any())
+            return;
 
-        var currentEntries = dbContext.ChangeTracker.Entries<TEntity>().Where(x => idStrings.Contains(x.Entity.Id));
+        var currentEntries = dbContext
+            .ChangeTracker.Entries<TEntity>()
+            .Where(x => idStrings.Contains(x.Entity.Id));
         foreach (var currentEntry in currentEntries)
         {
             currentEntry.State = EntityState.Detached;
         }
     }
 
-    public static void Detach<TEntity, TKey>(this DbContext dbContext) where TEntity : BaseEntity<TKey>
+    public static void Detach<TEntity, TKey>(this DbContext dbContext)
+        where TEntity : BaseEntity<TKey>
     {
         //循环遍历DbContext中所有被跟踪的实体
         while (true)
@@ -77,7 +81,9 @@ public static class DbContextDetachAllExtension
         where TEntity : BaseEntity<TKey>
     {
         //每次循环获取DbContext中一个被跟踪的实体
-        var currentEntry = dbContext.ChangeTracker.Entries<TEntity>().FirstOrDefault(x => x.Entity == entity);
+        var currentEntry = dbContext
+            .ChangeTracker.Entries<TEntity>()
+            .FirstOrDefault(x => x.Entity == entity);
 
         //currentEntry不为null，就将其State设置为EntityState.Detached，即取消跟踪该实体
         if (currentEntry != null)
@@ -93,7 +99,10 @@ public static class DbContextDetachAllExtension
     /// <param name="dbContext"></param>
     /// <param name="entities"></param>
     /// <typeparam name="T"></typeparam>
-    public static void DetachSpecifyEntities<TEntity, TKey>(this DbContext dbContext, List<TEntity> entities)
+    public static void DetachSpecifyEntities<TEntity, TKey>(
+        this DbContext dbContext,
+        List<TEntity> entities
+    )
         where TEntity : BaseEntity<TKey>
     {
         foreach (var entity in entities)

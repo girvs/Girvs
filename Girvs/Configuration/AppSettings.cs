@@ -24,20 +24,18 @@ public class AppSettings
     /// </summary>
     /// <typeparam name="TConfig">Configuration type</typeparam>
     /// <returns>Configuration parameters</returns>
-    public TConfig Get<TConfig>() where TConfig : class, IConfig
+    public TConfig Get<TConfig>()
+        where TConfig : class, IConfig
     {
         if (ModuleConfigurations[typeof(TConfig).Name] is not TConfig config)
             throw new GirvsException($"No configuration with type '{typeof(TConfig)}' found");
 
         return config;
     }
-    
+
     /// <summary>
     /// Get configuration parameters by type
     /// </summary>
     /// <returns>Configuration parameters</returns>
-    public dynamic Get(string moduleConfigName)
-    {
-        return ModuleConfigurations[moduleConfigName];
-    }
+    public dynamic Get(string moduleConfigName) => ModuleConfigurations[moduleConfigName];
 }

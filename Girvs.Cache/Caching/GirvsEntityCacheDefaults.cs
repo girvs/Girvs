@@ -3,7 +3,8 @@
 /// <summary>
 /// 表示与缓存实体相关的默认值
 /// </summary>
-public static partial class GirvsEntityCacheDefaults<TEntity> where TEntity : Entity
+public static partial class GirvsEntityCacheDefaults<TEntity>
+    where TEntity : Entity
 {
     /// <summary>
     /// 获取缓存键中使用的实体类型名称
@@ -25,7 +26,8 @@ public static partial class GirvsEntityCacheDefaults<TEntity> where TEntity : En
     {
         get
         {
-            var repositoryOtherQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
+            var repositoryOtherQueryCondition =
+                EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
             if (repositoryOtherQueryCondition == null)
             {
                 return string.Empty;
@@ -33,20 +35,18 @@ public static partial class GirvsEntityCacheDefaults<TEntity> where TEntity : En
             else
             {
                 var expression = repositoryOtherQueryCondition.GetOtherQueryCondition<TEntity>();
-                return
-                    $":OtherQueryConditionKey_{expression.ToString().ToMd5()}";
+                return $":OtherQueryConditionKey_{expression.ToString().ToMd5()}";
             }
         }
     }
-        
+
     /// <summary>
     /// 通过租户标识符获取缓存实体的键
     /// </summary>
     /// <remarks>
     /// {0} : entity id
     /// </remarks>
-    public static CacheKey ByTenantKey =>
-        new CacheKey($"{EntityTypeName}{TenantKey}");
+    public static CacheKey ByTenantKey => new CacheKey($"{EntityTypeName}{TenantKey}");
 
     /// <summary>
     /// 通过标识符获取缓存实体的键
@@ -54,8 +54,7 @@ public static partial class GirvsEntityCacheDefaults<TEntity> where TEntity : En
     /// <remarks>
     /// {0} : entity id
     /// </remarks>
-    public static CacheKey ByIdCacheKey =>
-        new CacheKey($"{EntityTypeName}{TenantKey}:byid:{{0}}");
+    public static CacheKey ByIdCacheKey => new CacheKey($"{EntityTypeName}{TenantKey}:byid:{{0}}");
 
     /// <summary>
     /// 获取通过标识符缓存实体的键
@@ -81,8 +80,7 @@ public static partial class GirvsEntityCacheDefaults<TEntity> where TEntity : En
     /// <summary>
     /// 以租户为单位列表页面的缓存
     /// </summary>
-    public static CacheKey TenantListCacheKey =>
-        new CacheKey($"{EntityTypeName}{TenantKey}:list");
+    public static CacheKey TenantListCacheKey => new CacheKey($"{EntityTypeName}{TenantKey}:list");
 
     /// <summary>
     /// 获取查询列表缓存键
@@ -96,7 +94,7 @@ public static partial class GirvsEntityCacheDefaults<TEntity> where TEntity : En
     /// <param name="key">自定义缓存键</param>
     /// <returns></returns>
     public static CacheKey BuideCustomize(string key) => new CacheKey(key);
-        
+
     /// <summary>
     /// 通过租户标识符获取缓存实体的键
     /// </summary>

@@ -7,9 +7,11 @@ internal static class RuntimeTypeBuilder
 
     static RuntimeTypeBuilder()
     {
-        var assemblyName = new AssemblyName {Name = "DynamicLinqTypes"};
+        var assemblyName = new AssemblyName { Name = "DynamicLinqTypes" };
 
-        ModuleBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run).DefineDynamicModule(assemblyName.Name);
+        ModuleBuilder = AssemblyBuilder
+            .DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
+            .DefineDynamicModule(assemblyName.Name);
         //moduleBuilder = Thread.GetDomain()
         //        .DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
         //        .DefineDynamicModule(assemblyName.Name);
@@ -30,12 +32,22 @@ internal static class RuntimeTypeBuilder
         return BuiltTypes[typeKey];
     }
 
-    private static Type GetRuntimeType(string typeName, IEnumerable<KeyValuePair<string, PropertyInfo>> properties)
+    private static Type GetRuntimeType(
+        string typeName,
+        IEnumerable<KeyValuePair<string, PropertyInfo>> properties
+    )
     {
-        var typeBuilder = ModuleBuilder.DefineType(typeName, TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Serializable);
+        var typeBuilder = ModuleBuilder.DefineType(
+            typeName,
+            TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Serializable
+        );
         foreach (var property in properties)
         {
-            typeBuilder.DefineField(property.Key, property.Value.PropertyType, FieldAttributes.Public);
+            typeBuilder.DefineField(
+                property.Key,
+                property.Value.PropertyType,
+                FieldAttributes.Public
+            );
         }
 
         return typeBuilder.CreateType();
@@ -43,6 +55,9 @@ internal static class RuntimeTypeBuilder
 
     private static string GetTypeKey(IEnumerable<KeyValuePair<string, PropertyInfo>> fields)
     {
-        return fields.Aggregate(string.Empty, (current, field) => current + (field.Key + ";" + field.Value.Name + ";"));
+        return fields.Aggregate(
+            string.Empty,
+            (current, field) => current + (field.Key + ";" + field.Value.Name + ";")
+        );
     }
 }

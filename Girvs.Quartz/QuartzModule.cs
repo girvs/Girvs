@@ -8,13 +8,9 @@ public class QuartzModule : IAppModuleStartup
         services.AddQuartzHosted(quartzConfig);
     }
 
-    public void Configure(IApplicationBuilder application)
-    {
-    }
+    public void Configure(IApplicationBuilder application) { }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 6;
 }

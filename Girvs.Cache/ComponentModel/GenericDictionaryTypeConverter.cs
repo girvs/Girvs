@@ -21,14 +21,18 @@ public class GenericDictionaryTypeConverter<TK, TV> : TypeConverter
     {
         TypeConverterKey = TypeDescriptor.GetConverter(typeof(TK));
         if (TypeConverterKey == null)
-            throw new InvalidOperationException("No type converter exists for type " + typeof(TK).FullName);
+            throw new InvalidOperationException(
+                "No type converter exists for type " + typeof(TK).FullName
+            );
         TypeConverterValue = TypeDescriptor.GetConverter(typeof(TV));
         if (TypeConverterValue == null)
-            throw new InvalidOperationException("No type converter exists for type " + typeof(TV).FullName);
+            throw new InvalidOperationException(
+                "No type converter exists for type " + typeof(TV).FullName
+            );
     }
 
     /// <summary>
-    /// Gets a value indicating whether this converter can        
+    /// Gets a value indicating whether this converter can
     /// convert an object in the given source type to the native type of the converter
     /// using the context.
     /// </summary>
@@ -50,29 +54,42 @@ public class GenericDictionaryTypeConverter<TK, TV> : TypeConverter
     /// <param name="culture">Culture</param>
     /// <param name="value">Value</param>
     /// <returns>Result</returns>
-    public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+    public override object ConvertFrom(
+        ITypeDescriptorContext context,
+        CultureInfo culture,
+        object value
+    )
     {
         if (!(value is string))
             return base.ConvertFrom(context, culture, value);
 
         var input = (string)value;
-        var items = string.IsNullOrEmpty(input) ? Array.Empty<string>() : input.Split(';').Select(x => x.Trim()).ToArray();
+        var items = string.IsNullOrEmpty(input)
+            ? Array.Empty<string>()
+            : input.Split(';').Select(x => x.Trim()).ToArray();
 
         var result = new Dictionary<TK, TV>();
-        Array.ForEach(items, s =>
-        {
-            var keyValueStr = string.IsNullOrEmpty(s) ? Array.Empty<string>() : s.Split(',').Select(x => x.Trim()).ToArray();
-            if (keyValueStr.Length != 2)
-                return;
+        Array.ForEach(
+            items,
+            s =>
+            {
+                var keyValueStr = string.IsNullOrEmpty(s)
+                    ? Array.Empty<string>()
+                    : s.Split(',').Select(x => x.Trim()).ToArray();
+                if (keyValueStr.Length != 2)
+                    return;
 
-            object dictionaryKey = (TK)TypeConverterKey.ConvertFromInvariantString(keyValueStr[0]);
-            object dictionaryValue = (TV)TypeConverterValue.ConvertFromInvariantString(keyValueStr[1]);
-            if (dictionaryKey == null || dictionaryValue == null)
-                return;
+                object dictionaryKey = (TK)
+                    TypeConverterKey.ConvertFromInvariantString(keyValueStr[0]);
+                object dictionaryValue = (TV)
+                    TypeConverterValue.ConvertFromInvariantString(keyValueStr[1]);
+                if (dictionaryKey == null || dictionaryValue == null)
+                    return;
 
-            if (!result.ContainsKey((TK)dictionaryKey))
-                result.Add((TK)dictionaryKey, (TV)dictionaryValue);
-        });
+                if (!result.ContainsKey((TK)dictionaryKey))
+                    result.Add((TK)dictionaryKey, (TV)dictionaryValue);
+            }
+        );
 
         return result;
     }
@@ -85,7 +102,12 @@ public class GenericDictionaryTypeConverter<TK, TV> : TypeConverter
     /// <param name="value">Value</param>
     /// <param name="destinationType">Destination type</param>
     /// <returns>Result</returns>
-    public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+    public override object ConvertTo(
+        ITypeDescriptorContext context,
+        CultureInfo culture,
+        object value,
+        Type destinationType
+    )
     {
         if (destinationType != typeof(string))
             return base.ConvertTo(context, culture, value, destinationType);
@@ -99,7 +121,8 @@ public class GenericDictionaryTypeConverter<TK, TV> : TypeConverter
         var dictionary = (IDictionary<TK, TV>)value;
         foreach (var keyValue in dictionary)
         {
-            result += $"{Convert.ToString(keyValue.Key, CultureInfo.InvariantCulture)}, {Convert.ToString(keyValue.Value, CultureInfo.InvariantCulture)}";
+            result +=
+                $"{Convert.ToString(keyValue.Key, CultureInfo.InvariantCulture)}, {Convert.ToString(keyValue.Value, CultureInfo.InvariantCulture)}";
             //don't add ; after the last element
             if (counter != dictionary.Count - 1)
                 result += ";";

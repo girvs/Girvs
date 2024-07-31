@@ -11,9 +11,16 @@ namespace Girvs.AuthorizePermission;
 /// <param name="OtherParams">其它相关参数</param>
 /// <param name="OperationPermissionModels"></param>
 /// <param name="Permissions"></param>
-public record AuthorizePermissionModel(string ServiceName, Guid ServiceId, string Tag, int Order,
-    SystemModule SystemModule, string[] OtherParams, List<OperationPermissionModel> OperationPermissionModels,
-    Dictionary<string, string> Permissions) : IDto;
+public record AuthorizePermissionModel(
+    string ServiceName,
+    Guid ServiceId,
+    string Tag,
+    int Order,
+    SystemModule SystemModule,
+    string[] OtherParams,
+    List<OperationPermissionModel> OperationPermissionModels,
+    Dictionary<string, string> Permissions
+) : IDto;
 
 /// <summary>
 /// 操作权限模型
@@ -23,5 +30,10 @@ public record AuthorizePermissionModel(string ServiceName, Guid ServiceId, strin
 /// <param name="UserType">用户类型</param>
 /// <param name="SystemModule">所属的子系统模块</param>
 /// <param name="OtherParams">其它相关参数</param>
-public record OperationPermissionModel(string OperationName, Permission Permission, UserType UserType,
-    SystemModule SystemModule, string[] OtherParams) : IDto;
+public record OperationPermissionModel(
+    string OperationName,
+    Permission Permission,
+    UserType UserType,
+    SystemModule SystemModule,
+    string[] OtherParams
+) : IDto;

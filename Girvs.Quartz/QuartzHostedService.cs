@@ -17,7 +17,8 @@ public class QuartzHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (!_quartzConfig.Tasks.Any(x => x.Enabled)) return;
+        if (!_quartzConfig.Tasks.Any(x => x.Enabled))
+            return;
         _logger.LogInformation(@"★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★系统任务调度管理中心");
         _logger.LogInformation("开始装载任务");
         _logger.LogInformation($"任务个数：{_quartzConfig.Tasks.Count}");

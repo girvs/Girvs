@@ -26,7 +26,6 @@ namespace Girvs.AuthorizePermission.Extensions
             return Guid.Parse(userId);
         }
 
-
         public static string GetUserName(this IEngine engine)
         {
             var claimConfig = GetClaimValueConfig(engine);

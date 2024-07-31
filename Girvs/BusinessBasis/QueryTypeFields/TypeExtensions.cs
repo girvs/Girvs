@@ -16,7 +16,6 @@ public static class TypeExtensions
         return (fields.ToArray(), string.Empty);
     }
 
-
     public static string GetTypeQueryFieldByPropertyName(this Type type, string propertyName)
     {
         var propertyInfo = type.GetProperty(propertyName);
@@ -25,26 +24,31 @@ public static class TypeExtensions
 
     public static string GetTypeQueryFieldByProperty(this Type type, PropertyInfo propertyInfo)
     {
-        if (propertyInfo != null)
-        {
-            var ignore =
-                Attribute.GetCustomAttribute(propertyInfo, typeof(QueryIgnoreAttribute)) as QueryIgnoreAttribute;
-            if (ignore is not null || !CheckPropertyInfoValidity(propertyInfo)) return string.Empty;
-            return Attribute.GetCustomAttribute(propertyInfo, typeof(QuerySourceMemberAttribute)) is not QuerySourceMemberAttribute sourceMember ? propertyInfo.Name : sourceMember.Name;
-        }
+        if (propertyInfo == null)
+            return string.Empty;
 
-        return string.Empty;
+        var ignore =
+            Attribute.GetCustomAttribute(propertyInfo, typeof(QueryIgnoreAttribute))
+            as QueryIgnoreAttribute;
+        if (ignore is not null || !CheckPropertyInfoValidity(propertyInfo))
+            return string.Empty;
+        return
+            Attribute.GetCustomAttribute(propertyInfo, typeof(QuerySourceMemberAttribute))
+                is not QuerySourceMemberAttribute sourceMember
+            ? propertyInfo.Name
+            : sourceMember.Name;
     }
 
     public static string[] GetTypeQueryFields(this Type type)
     {
         var propertyInfos = type.GetProperties();
-        var fields = propertyInfos.Select(propertyInfo => GetTypeQueryFieldByProperty(type, propertyInfo))
-            .Where(fieldName => !string.IsNullOrEmpty(fieldName)).ToList();
+        var fields = propertyInfos
+            .Select(propertyInfo => GetTypeQueryFieldByProperty(type, propertyInfo))
+            .Where(fieldName => !string.IsNullOrEmpty(fieldName))
+            .ToList();
 
         return fields.ToArray();
     }
-
 
     private static bool CheckPropertyInfoValidity(PropertyInfo propertyInfo)
     {

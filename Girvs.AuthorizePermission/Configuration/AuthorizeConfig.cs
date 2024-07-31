@@ -5,18 +5,17 @@ namespace Girvs.AuthorizePermission.Configuration
     public class AuthorizeConfig : IAppModuleConfig
     {
         public AuthorizationModel AuthorizationModel { get; set; } = AuthorizationModel.Jwt;
-        public IdentityServer4Config IdentityServer4Config { get; set; } = new IdentityServer4Config();
+        public IdentityServer4Config IdentityServer4Config { get; set; } =
+            new IdentityServer4Config();
         public JwtConfig JwtConfig { get; set; } = new JwtConfig();
-        
+
         public JwtConfig JwtWebFrontConfig { get; set; } = new JwtConfig();
 
         public bool UserDataRuleDefaultAll { get; set; } = true;
 
         public bool UseServiceMethodPermissionCompare { get; set; } = true;
 
-        public void Init()
-        {
-        }
+        public void Init() { }
     }
 
     public class JwtConfig
@@ -35,8 +34,8 @@ namespace Girvs.AuthorizePermission.Configuration
     public class IdentityServer4Config
     {
         public string ServerHost { get; set; } = "http://localhost:5001";
-        public string ApiResourceName { get; set; } = AppDomain.CurrentDomain.FriendlyName
-            .Replace(".", "_");
+        public string ApiResourceName { get; set; } =
+            AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
         public bool UseHttps { get; set; } = false;
         public string ApiSecret { get; set; } = "zhuofan@ids4";
 

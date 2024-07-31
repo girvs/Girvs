@@ -2,5 +2,5 @@
 
 public interface ICommandOperateHandler : IManager
 {
-    Task Handle(Command command,CancellationToken cancellationToken = default(CancellationToken));
+    Task Handle(Command command, CancellationToken cancellationToken = default(CancellationToken));
 }

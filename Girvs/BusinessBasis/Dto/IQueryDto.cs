@@ -6,15 +6,20 @@ public interface IQueryDto
     int PageSize { get; set; }
     int RecordCount { get; set; }
     string[] QueryFields { get; set; }
-    int PageCount => (int) Math.Ceiling(RecordCount / (decimal) PageSize);
+    int PageCount => (int)Math.Ceiling(RecordCount / (decimal)PageSize);
     string OrderBy { get; set; }
 }
 
-public abstract class QueryDtoBase<TDto> : IQueryDto where TDto : IDto, new()
+public abstract class QueryDtoBase<TDto> : IQueryDto
+    where TDto : IDto, new()
 {
-    [Required] [Range(0, int.MaxValue)] public int PageIndex { get; set; } = 0;
+    [Required]
+    [Range(0, int.MaxValue)]
+    public int PageIndex { get; set; } = 0;
 
-    [Required] [Range(1, int.MaxValue)] public int PageSize { get; set; } = 20;
+    [Required]
+    [Range(1, int.MaxValue)]
+    public int PageSize { get; set; } = 20;
     public int RecordCount { get; set; }
     public string[] QueryFields { get; set; } = { };
     public List<TDto> Result { get; set; }

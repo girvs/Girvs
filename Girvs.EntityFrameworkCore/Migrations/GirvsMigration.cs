@@ -2,13 +2,15 @@ namespace Girvs.EntityFrameworkCore.Migrations;
 
 public abstract class GirvsMigration : Migration
 {
-    public virtual string GetShardingTableName<T>() where T : Entity
+    public virtual string GetShardingTableName<T>()
+        where T : Entity
     {
         var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
         return entityShardingSet.GetCurrentShardingTableName();
     }
 
-    public virtual bool IsCreateShardingTable<T>() where T : Entity
+    public virtual bool IsCreateShardingTable<T>()
+        where T : Entity
     {
         //如果是进行首次迁移则，而直接还原所有的表
         if (EngineContext.Current.GetTenantShardingTableSuffix().IsNullOrEmpty())
@@ -18,7 +20,8 @@ public abstract class GirvsMigration : Migration
         return entityShardingSet.IsNeedShardingTable;
     }
 
-    public virtual string GetShardingForeignKey<T>(string OriginalKeyName) where T : Entity
+    public virtual string GetShardingForeignKey<T>(string OriginalKeyName)
+        where T : Entity
     {
         var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
         var suffix = entityShardingSet.GetCurrentShrdingTableSuffix();
@@ -31,7 +34,8 @@ public abstract class GirvsMigration : Migration
         return result;
     }
 
-    public virtual string GetOldShardingForeignKey<T>(string OriginalKeyName) where T : Entity
+    public virtual string GetOldShardingForeignKey<T>(string OriginalKeyName)
+        where T : Entity
     {
         var entityShardingSet = EngineContext.Current.GetEntityShardingTableParameter<T>();
         var suffix = entityShardingSet.GetCurrentShrdingTableSuffix();

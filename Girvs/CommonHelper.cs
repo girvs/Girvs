@@ -11,7 +11,6 @@ public class CommonHelper
 
     private static readonly Regex EmailRegex;
 
-
     static CommonHelper()
     {
         EmailRegex = new Regex(EmailExpression, RegexOptions.IgnoreCase);
@@ -24,10 +23,13 @@ public class CommonHelper
     /// <returns></returns>
     public static bool Complexity(string str)
     {
-        var regex = new Regex(@"(?=.*[0-9])
+        var regex = new Regex(
+            @"(?=.*[0-9])
                                 (?=.*[a-zA-Z])
-                                (?=.*[\W_])", RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
-        var result=regex.IsMatch(str);
+                                (?=.*[\W_])",
+            RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace
+        );
+        var result = regex.IsMatch(str);
         return result;
     }
 
@@ -130,7 +132,9 @@ public class CommonHelper
     /// </summary>
     public static string EnsureNumericOnly(string str)
     {
-        return string.IsNullOrEmpty(str) ? string.Empty : new string(str.Where(char.IsDigit).ToArray());
+        return string.IsNullOrEmpty(str)
+            ? string.Empty
+            : new string(str.Where(char.IsDigit).ToArray());
     }
 
     /// <summary>
@@ -173,17 +177,27 @@ public class CommonHelper
     /// </summary>
     public static void SetProperty(object instance, string propertyName, object value)
     {
-        if (instance == null) throw new ArgumentNullException(nameof(instance));
-        if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
+        if (instance == null)
+            throw new ArgumentNullException(nameof(instance));
+        if (propertyName == null)
+            throw new ArgumentNullException(nameof(propertyName));
 
         var instanceType = instance.GetType();
         var pi = instanceType.GetProperty(propertyName);
         if (pi == null)
-            throw new GirvsException("No property '{0}' found on the instance of type '{1}'.", 568, propertyName,
-                instanceType);
+            throw new GirvsException(
+                "No property '{0}' found on the instance of type '{1}'.",
+                568,
+                propertyName,
+                instanceType
+            );
         if (!pi.CanWrite)
-            throw new GirvsException("The property '{0}' on the instance of type '{1}' does not have a setter.",
-                568, propertyName, instanceType);
+            throw new GirvsException(
+                "The property '{0}' on the instance of type '{1}' does not have a setter.",
+                568,
+                propertyName,
+                instanceType
+            );
         if (value != null && !value.GetType().IsAssignableFrom(pi.PropertyType))
             value = To(value, pi.PropertyType);
         pi.SetValue(instance, value, Array.Empty<object>());
@@ -200,14 +214,20 @@ public class CommonHelper
     [CanBeNull]
     public static object GetProperty(object instance, string propertyName)
     {
-        if (instance == null) throw new ArgumentNullException(nameof(instance));
-        if (propertyName == null) throw new ArgumentNullException(nameof(propertyName));
+        if (instance == null)
+            throw new ArgumentNullException(nameof(instance));
+        if (propertyName == null)
+            throw new ArgumentNullException(nameof(propertyName));
 
         var instanceType = instance.GetType();
         var pi = instanceType.GetProperty(propertyName);
         if (pi == null)
-            throw new GirvsException("No property '{0}' found on the instance of type '{1}'.", 568, propertyName,
-                instanceType);
+            throw new GirvsException(
+                "No property '{0}' found on the instance of type '{1}'.",
+                568,
+                propertyName,
+                instanceType
+            );
         return pi.GetValue(instance);
     }
 
@@ -252,7 +272,7 @@ public class CommonHelper
     public static T To<T>(object value)
     {
         //return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
-        return (T) To(value, typeof(T));
+        return (T)To(value, typeof(T));
     }
 
     /// <summary>
@@ -260,7 +280,8 @@ public class CommonHelper
     /// </summary>
     public static string ConvertEnum(string str)
     {
-        if (string.IsNullOrEmpty(str)) return string.Empty;
+        if (string.IsNullOrEmpty(str))
+            return string.Empty;
         var result = string.Empty;
         foreach (var c in str)
             if (c.ToString() != c.ToString().ToLower())

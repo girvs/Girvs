@@ -13,7 +13,10 @@ public class DynamicWebApiModule : IAppModuleStartup
             var optionsActionTypes = typeFinder.FindOfType<IDynamicWebApiModuleOptionsAction>();
             foreach (var optionsActionType in optionsActionTypes)
             {
-                if (Activator.CreateInstance(optionsActionType) is IDynamicWebApiModuleOptionsAction optionsAction)
+                if (
+                    Activator.CreateInstance(optionsActionType)
+                    is IDynamicWebApiModuleOptionsAction optionsAction
+                )
                 {
                     optionsAction.OptionsAction(options);
                 }
@@ -21,9 +24,7 @@ public class DynamicWebApiModule : IAppModuleStartup
         });
     }
 
-    public void Configure(IApplicationBuilder application)
-    {
-    }
+    public void Configure(IApplicationBuilder application) { }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
     {

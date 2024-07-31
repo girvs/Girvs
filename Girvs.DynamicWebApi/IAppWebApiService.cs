@@ -1,6 +1,3 @@
 ﻿namespace Girvs.DynamicWebApi;
 
-public interface IAppWebApiService : IDynamicWebApi
-{
-
-}
+public interface IAppWebApiService : IDynamicWebApi { }

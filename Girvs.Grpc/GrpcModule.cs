@@ -1,6 +1,6 @@
 ﻿namespace Girvs.Grpc;
 
-public class GrpcModule: IAppModuleStartup
+public class GrpcModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
@@ -12,7 +12,7 @@ public class GrpcModule: IAppModuleStartup
 
     public void Configure(IApplicationBuilder application)
     {
-        application.UseGrpcWeb(new GrpcWebOptions() {DefaultEnabled = true});
+        application.UseGrpcWeb(new GrpcWebOptions() { DefaultEnabled = true });
     }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)

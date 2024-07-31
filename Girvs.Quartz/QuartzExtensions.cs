@@ -2,7 +2,10 @@
 
 public static class QuartzExtensions
 {
-    public static void AddQuartzHosted(this IServiceCollection services, QuartzConfiguration configuration)
+    public static void AddQuartzHosted(
+        this IServiceCollection services,
+        QuartzConfiguration configuration
+    )
     {
         services.AddTransient<ISchedulerFactory, StdSchedulerFactory>();
         services.AddTransient<IJobFactory, SingletonJobFactory>();
@@ -10,7 +13,8 @@ public static class QuartzExtensions
         foreach (var task in configuration.Tasks.Where(x => x.Enabled).ToList())
         {
             var jobType = Type.GetType(task.Type);
-            if (jobType != null) services.AddTransient(jobType);
+            if (jobType != null)
+                services.AddTransient(jobType);
         }
 
         if (tasks.Any())

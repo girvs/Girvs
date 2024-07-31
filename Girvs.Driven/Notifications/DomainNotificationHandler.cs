@@ -32,7 +32,8 @@ public class DomainNotificationHandler : INotificationHandler<DomainNotification
     {
         var error = new Dictionary<string, IList<string>>();
 
-        if (!_notifications.Any()) return error;
+        if (!_notifications.Any())
+            return error;
 
         _notifications.ForEach(x =>
         {

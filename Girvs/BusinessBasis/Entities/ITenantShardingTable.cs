@@ -1,6 +1,3 @@
 namespace Girvs.BusinessBasis.Entities;
 
-public interface ITenantShardingTable
-{
-
-}
+public interface ITenantShardingTable { }

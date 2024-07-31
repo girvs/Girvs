@@ -6,15 +6,11 @@ public class SerilogInitConfig
     {
         var config = new
         {
-            Using = new List<string> {"Serilog.Settings.Configuration", "Serilog.Sinks.File"},
+            Using = new List<string> { "Serilog.Settings.Configuration", "Serilog.Sinks.File" },
             MinimumLevel = new
             {
                 Default = "Debug",
-                Override = new
-                {
-                    Microsoft = "Debug",
-                    System = "Debug"
-                }
+                Override = new { Microsoft = "Debug", System = "Debug" }
             },
             WriteTo = new List<dynamic>()
             {
@@ -23,8 +19,7 @@ public class SerilogInitConfig
                     Name = "Console",
                     Args = new
                     {
-                        outputTemplate =
-                            "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}",
+                        outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}",
                         restrictedToMinimumLevel = "Debug"
                     }
                 },
@@ -36,8 +31,7 @@ public class SerilogInitConfig
                         restrictedToMinimumLevel = "Debug",
                         RollingInterval = "Hour",
                         path = "./logs/Warning/log-Debug-.log",
-                        outputTemplate =
-                            "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+                        outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                     }
                 },
                 new
@@ -48,8 +42,7 @@ public class SerilogInitConfig
                         restrictedToMinimumLevel = "Warning",
                         RollingInterval = "Hour",
                         path = "./logs/Warning/log-Warning-.log",
-                        outputTemplate =
-                            "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+                        outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                     }
                 },
                 new
@@ -60,8 +53,7 @@ public class SerilogInitConfig
                         restrictedToMinimumLevel = "Information",
                         RollingInterval = "Hour",
                         path = "./logs/Information/log-Information-.log",
-                        outputTemplate =
-                            "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+                        outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                     }
                 },
                 new
@@ -72,8 +64,7 @@ public class SerilogInitConfig
                         restrictedToMinimumLevel = "Error",
                         RollingInterval = "Hour",
                         path = "./logs/Error/log-Error-.log",
-                        outputTemplate =
-                            "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+                        outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                     }
                 },
                 new
@@ -84,16 +75,12 @@ public class SerilogInitConfig
                         restrictedToMinimumLevel = "Fatal",
                         RollingInterval = "Hour",
                         path = "./logs/Fatal/log-Fatal-.log",
-                        outputTemplate =
-                            "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+                        outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
                     }
                 },
             }
         };
 
-        return JsonSerializer.Serialize(new
-        {
-            Serilog = config
-        });
+        return JsonSerializer.Serialize(new { Serilog = config });
     }
 }

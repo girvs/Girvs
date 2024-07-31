@@ -5,7 +5,7 @@ public interface IAppModuleStartup
     void ConfigureServices(IServiceCollection services, IConfiguration configuration);
 
     void Configure(IApplicationBuilder application);
-        
+
     /// <summary>
     /// 端点路由生成器配置
     /// </summary>

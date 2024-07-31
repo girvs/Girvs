@@ -18,8 +18,10 @@ public partial class RedisCacheManager : IStaticCacheManager
 
     #region Ctor
 
-    public RedisCacheManager(IHttpContextAccessor httpContextAccessor,
-        IRedisConnectionWrapper connectionWrapper)
+    public RedisCacheManager(
+        IHttpContextAccessor httpContextAccessor,
+        IRedisConnectionWrapper connectionWrapper
+    )
     {
         _config = Singleton<AppSettings>.Instance.Get<CacheConfig>();
 
@@ -28,8 +30,9 @@ public partial class RedisCacheManager : IStaticCacheManager
         // ConnectionMultiplexer.Connect should only be called once and shared between callers
         _connectionWrapper = connectionWrapper;
 
-        _db = _connectionWrapper.GetDatabase(_config?.RedisCacheConfig.RedisDatabaseId ??
-                                             (int) RedisDatabaseNumber.Cache);
+        _db = _connectionWrapper.GetDatabase(
+            _config?.RedisCacheConfig.RedisDatabaseId ?? (int)RedisDatabaseNumber.Cache
+        );
 
         _perRequestCache = new PerRequestCache(httpContextAccessor);
     }
@@ -429,7 +432,7 @@ public partial class RedisCacheManager : IStaticCacheManager
 
                 //item already is in cache, so return it
                 if (items[key] != null)
-                    return (T) items[key];
+                    return (T)items[key];
             }
 
             //or create it using passed function
@@ -502,9 +505,14 @@ public partial class RedisCacheManager : IStaticCacheManager
                     return;
 
                 //get cache keys that matches pattern
-                var regex = new Regex(prefix,
-                    RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                var matchesKeys = items.Keys.Select(p => p.ToString()).Where(key => regex.IsMatch(key)).ToList();
+                var regex = new Regex(
+                    prefix,
+                    RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.IgnoreCase
+                );
+                var matchesKeys = items
+                    .Keys.Select(p => p.ToString())
+                    .Where(key => regex.IsMatch(key))
+                    .ToList();
 
                 if (!matchesKeys.Any())
                     return;

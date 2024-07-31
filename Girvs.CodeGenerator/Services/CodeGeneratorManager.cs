@@ -12,7 +12,10 @@ namespace Girvs.CodeGenerator.Services;
 public class CodeGeneratorManager : ICodeGeneratorManager
 {
     private const string MimeType = "application/octet-stream";
-    private readonly string _zipTempDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "zipTempDir");
+    private readonly string _zipTempDir = Path.Combine(
+        AppDomain.CurrentDomain.BaseDirectory,
+        "zipTempDir"
+    );
 
     public IEnumerable<string> GetEntityTypes()
     {
@@ -43,8 +46,14 @@ public class CodeGeneratorManager : ICodeGeneratorManager
             {
                 var g = Activator.CreateInstance(generateType) as IGenerator;
                 var parameterManager = new ParameterManager(g, entityType);
-                var parseContent = g.Generate(entityType, parameterManager.GetBuildeTemplateParameter());
-                var csFilePath = fileProvider.Combine(_zipTempDir, parameterManager.GetFileSavePath());
+                var parseContent = g.Generate(
+                    entityType,
+                    parameterManager.GetBuildeTemplateParameter()
+                );
+                var csFilePath = fileProvider.Combine(
+                    _zipTempDir,
+                    parameterManager.GetFileSavePath()
+                );
                 var filePath = fileProvider.GetDirectoryName(csFilePath);
                 if (!fileProvider.DirectoryExists(filePath))
                 {

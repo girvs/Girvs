@@ -7,7 +7,8 @@ public static class StringExtensions
 {
     public static string Base64Encode(this string content)
     {
-        if (content.IsNullOrWhiteSpace()) return content;
+        if (content.IsNullOrWhiteSpace())
+            return content;
         var bytes = Encoding.UTF8.GetBytes(content);
         return Convert.ToBase64String(bytes);
     }
@@ -19,7 +20,8 @@ public static class StringExtensions
     /// <returns></returns>
     public static string Base64Decode(this string content)
     {
-        if (content.IsNullOrWhiteSpace()) return content;
+        if (content.IsNullOrWhiteSpace())
+            return content;
         var bytes = Convert.FromBase64String(content);
         return Encoding.UTF8.GetString(bytes);
     }
@@ -27,10 +29,8 @@ public static class StringExtensions
     /// <summary>
     /// Adds a char to end of given string if it does not ends with the char.
     /// </summary>
-    public static string EnsureEndsWith(this string str, char c)
-    {
-        return EnsureEndsWith(str, c, StringComparison.Ordinal);
-    }
+    public static string EnsureEndsWith(this string str, char c) =>
+        EnsureEndsWith(str, c, StringComparison.Ordinal);
 
     /// <summary>
     /// Adds a char to end of given string if it does not ends with the char.
@@ -53,7 +53,12 @@ public static class StringExtensions
     /// <summary>
     /// Adds a char to end of given string if it does not ends with the char.
     /// </summary>
-    public static string EnsureEndsWith(this string str, char c, bool ignoreCase, CultureInfo culture)
+    public static string EnsureEndsWith(
+        this string str,
+        char c,
+        bool ignoreCase,
+        CultureInfo culture
+    )
     {
         if (str == null)
         {
@@ -71,8 +76,11 @@ public static class StringExtensions
     /// <summary>
     /// Adds a char to beginning of given string if it does not starts with the char.
     /// </summary>
-    public static string EnsureStartsWith(this string str, char c,
-        StringComparison comparisonType = StringComparison.Ordinal)
+    public static string EnsureStartsWith(
+        this string str,
+        char c,
+        StringComparison comparisonType = StringComparison.Ordinal
+    )
     {
         if (str == null)
         {
@@ -90,7 +98,12 @@ public static class StringExtensions
     /// <summary>
     /// Adds a char to beginning of given string if it does not starts with the char.
     /// </summary>
-    public static string EnsureStartsWith(this string str, char c, bool ignoreCase, CultureInfo culture)
+    public static string EnsureStartsWith(
+        this string str,
+        char c,
+        bool ignoreCase,
+        CultureInfo culture
+    )
     {
         if (str == null)
         {
@@ -108,18 +121,12 @@ public static class StringExtensions
     /// <summary>
     /// Indicates whether this string is null or an System.String.Empty string.
     /// </summary>
-    public static bool IsNullOrEmpty(this string str)
-    {
-        return string.IsNullOrEmpty(str);
-    }
+    public static bool IsNullOrEmpty(this string str) => string.IsNullOrEmpty(str);
 
     /// <summary>
     /// indicates whether this string is null, empty, or consists only of white-space characters.
     /// </summary>
-    public static bool IsNullOrWhiteSpace(this string str)
-    {
-        return string.IsNullOrWhiteSpace(str);
-    }
+    public static bool IsNullOrWhiteSpace(this string str) => string.IsNullOrWhiteSpace(str);
 
     /// <summary>
     /// Gets a substring of a string from beginning of the string.
@@ -135,7 +142,9 @@ public static class StringExtensions
 
         if (str.Length < len)
         {
-            throw new ArgumentException("len argument can not be bigger than given string's length!");
+            throw new ArgumentException(
+                "len argument can not be bigger than given string's length!"
+            );
         }
 
         return str.Substring(0, len);
@@ -144,10 +153,8 @@ public static class StringExtensions
     /// <summary>
     /// Converts line endings in the string to <see cref="Environment.NewLine"/>.
     /// </summary>
-    public static string NormalizeLineEndings(this string str)
-    {
-        return str.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", Environment.NewLine);
-    }
+    public static string NormalizeLineEndings(this string str) =>
+        str.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", Environment.NewLine);
 
     /// <summary>
     /// Gets index of nth occurence of a char in a string.
@@ -263,7 +270,9 @@ public static class StringExtensions
 
         if (str.Length < len)
         {
-            throw new ArgumentException("len argument can not be bigger than given string's length!");
+            throw new ArgumentException(
+                "len argument can not be bigger than given string's length!"
+            );
         }
 
         return str.Substring(str.Length - len, len);
@@ -272,34 +281,25 @@ public static class StringExtensions
     /// <summary>
     /// Uses string.Split method to split given string by given separator.
     /// </summary>
-    public static string[] Split(this string str, string separator)
-    {
-        return str.Split(new[] {separator}, StringSplitOptions.None);
-    }
+    public static string[] Split(this string str, string separator) =>
+        str.Split(new[] { separator }, StringSplitOptions.None);
 
     /// <summary>
     /// Uses string.Split method to split given string by given separator.
     /// </summary>
-    public static string[] Split(this string str, string separator, StringSplitOptions options)
-    {
-        return str.Split(new[] {separator}, options);
-    }
+    public static string[] Split(this string str, string separator, StringSplitOptions options) =>
+        str.Split(new[] { separator }, options);
 
     /// <summary>
     /// Uses string.Split method to split given string by <see cref="Environment.NewLine"/>.
     /// </summary>
-    public static string[] SplitToLines(this string str)
-    {
-        return str.Split(Environment.NewLine);
-    }
+    public static string[] SplitToLines(this string str) => str.Split(Environment.NewLine);
 
     /// <summary>
     /// Uses string.Split method to split given string by <see cref="Environment.NewLine"/>.
     /// </summary>
-    public static string[] SplitToLines(this string str, StringSplitOptions options)
-    {
-        return str.Split(Environment.NewLine, options);
-    }
+    public static string[] SplitToLines(this string str, StringSplitOptions options) =>
+        str.Split(Environment.NewLine, options);
 
     /// <summary>
     /// Converts PascalCase string to camelCase string.
@@ -319,7 +319,8 @@ public static class StringExtensions
             return invariantCulture ? str.ToLowerInvariant() : str.ToLower();
         }
 
-        return (invariantCulture ? char.ToLowerInvariant(str[0]) : char.ToLower(str[0])) + str.Substring(1);
+        return (invariantCulture ? char.ToLowerInvariant(str[0]) : char.ToLower(str[0]))
+            + str.Substring(1);
     }
 
     /// <summary>
@@ -359,8 +360,10 @@ public static class StringExtensions
         return Regex.Replace(
             str,
             "[a-z][A-Z]",
-            m => m.Value[0] + " " +
-                 (invariantCulture ? char.ToLowerInvariant(m.Value[1]) : char.ToLower(m.Value[1]))
+            m =>
+                m.Value[0]
+                + " "
+                + (invariantCulture ? char.ToLowerInvariant(m.Value[1]) : char.ToLower(m.Value[1]))
         );
     }
 
@@ -377,7 +380,11 @@ public static class StringExtensions
             return str;
         }
 
-        return Regex.Replace(str, "[a-z][A-Z]", m => m.Value[0] + " " + char.ToLower(m.Value[1], culture));
+        return Regex.Replace(
+            str,
+            "[a-z][A-Z]",
+            m => m.Value[0] + " " + char.ToLower(m.Value[1], culture)
+        );
     }
 
     /// <summary>
@@ -394,7 +401,7 @@ public static class StringExtensions
             throw new ArgumentNullException(nameof(value));
         }
 
-        return (T) Enum.Parse(typeof(T), value);
+        return (T)Enum.Parse(typeof(T), value);
     }
 
     /// <summary>
@@ -412,7 +419,7 @@ public static class StringExtensions
             throw new ArgumentNullException(nameof(value));
         }
 
-        return (T) Enum.Parse(typeof(T), value, ignoreCase);
+        return (T)Enum.Parse(typeof(T), value, ignoreCase);
     }
 
     public static string ToShortMd5(this string str)
@@ -428,7 +435,8 @@ public static class StringExtensions
 
     public static string ToMd5(this string str)
     {
-        if (string.IsNullOrEmpty(str)) return string.Empty;
+        if (string.IsNullOrEmpty(str))
+            return string.Empty;
 
         using var md5 = MD5.Create();
         var inputBytes = Encoding.UTF8.GetBytes(str);
@@ -447,7 +455,7 @@ public static class StringExtensions
     {
         if (string.IsNullOrEmpty(str))
         {
-            return (Guid?) null;
+            return (Guid?)null;
         }
 
         return Guid.Parse(str);
@@ -464,10 +472,8 @@ public static class StringExtensions
     //     return (T) Enum.Parse(typeof(T), str);
     // }
 
-    public static Guid ToGuid(this string str)
-    {
-        return string.IsNullOrEmpty(str) ? Guid.Empty : Guid.Parse(str);
-    }
+    public static Guid ToGuid(this string str) =>
+        string.IsNullOrEmpty(str) ? Guid.Empty : Guid.Parse(str);
 
     /// <summary>
     /// Converts camelCase string to PascalCase string.
@@ -487,7 +493,8 @@ public static class StringExtensions
             return invariantCulture ? str.ToUpperInvariant() : str.ToUpper();
         }
 
-        return (invariantCulture ? char.ToUpperInvariant(str[0]) : char.ToUpper(str[0])) + str.Substring(1);
+        return (invariantCulture ? char.ToUpperInvariant(str[0]) : char.ToUpper(str[0]))
+            + str.Substring(1);
     }
 
     /// <summary>
@@ -561,10 +568,10 @@ public static class StringExtensions
         return str.Left(maxLength - postfix.Length) + postfix;
     }
 
-
     public static string ConverterInitialsLowerCase(this string str)
     {
-        if (str == null) throw new ArgumentNullException(nameof(str));
+        if (str == null)
+            throw new ArgumentNullException(nameof(str));
 
         var initialStr = str.Substring(0, 1);
         var leftOver = str.Substring(1);

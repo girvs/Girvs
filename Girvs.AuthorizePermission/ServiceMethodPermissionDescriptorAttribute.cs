@@ -10,8 +10,13 @@ public class ServiceMethodPermissionDescriptorAttribute : Attribute
     public SystemModule SystemModule { get; }
     public string[] OtherParams { get; }
 
-    public ServiceMethodPermissionDescriptorAttribute(string metohodName, Permission permission,
-        UserType userType = UserType.All, SystemModule systemModule = SystemModule.All, params string[] otherParams)
+    public ServiceMethodPermissionDescriptorAttribute(
+        string metohodName,
+        Permission permission,
+        UserType userType = UserType.All,
+        SystemModule systemModule = SystemModule.All,
+        params string[] otherParams
+    )
     {
         MethodName = metohodName;
         Permission = permission;

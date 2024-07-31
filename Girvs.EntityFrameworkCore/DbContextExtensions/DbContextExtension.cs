@@ -7,24 +7,29 @@ public static class DbContextExtension
     /// </summary>
     /// <param name="dbContext"></param>
     /// <param name="dataBaseWriteAndRead"></param>
-    public static void SwitchReadWriteDataBase(this DbContext dbContext, DataBaseWriteAndRead dataBaseWriteAndRead)
+    public static void SwitchReadWriteDataBase(
+        this DbContext dbContext,
+        DataBaseWriteAndRead dataBaseWriteAndRead
+    )
     {
-        var currentDbContextConfig = EngineContext.Current.GetAppModuleConfig<DbConfig>()
+        var currentDbContextConfig = EngineContext
+            .Current.GetAppModuleConfig<DbConfig>()
             ?.GetDataConnectionConfig(dbContext.GetType());
 
         var logger = EngineContext.Current.Resolve<ILogger<object>>();
-        var connStr = dataBaseWriteAndRead == DataBaseWriteAndRead.Write
-            ? currentDbContextConfig?.MasterDataConnectionString
-            : currentDbContextConfig?.GetSecureRandomReadDataConnectionString();
+        var connStr =
+            dataBaseWriteAndRead == DataBaseWriteAndRead.Write
+                ? currentDbContextConfig?.MasterDataConnectionString
+                : currentDbContextConfig?.GetSecureRandomReadDataConnectionString();
 
         var conn = dbContext.Database.GetDbConnection();
 
         logger?.LogInformation(
-            $"当前DbContextId为：{dbContext.ContextId.InstanceId.ToString()}，当前数据的状态为：{conn.State}，切换数据库模式为：{dataBaseWriteAndRead}，数据库字符串为：{connStr}");
+            $"当前DbContextId为：{dbContext.ContextId.InstanceId.ToString()}，当前数据的状态为：{conn.State}，切换数据库模式为：{dataBaseWriteAndRead}，数据库字符串为：{connStr}"
+        );
 
         conn.ConnectionString = connStr;
     }
-
 
     private static readonly IList<string> MigrationSuffixs = new List<string>();
     private static object _async = new object();
@@ -35,17 +40,18 @@ public static class DbContextExtension
     /// <param name="dbContext"></param>
     public static void ShardingAutoMigration(this DbContext dbContext)
     {
-        
         var dbContextEntityShardingTableRelated =
             EngineContext.Current.GetShardingTableRelatedByDbContext(dbContext.GetType());
-        var suffix = dbContextEntityShardingTableRelated.GetCurrentMigrationsHistoryShardingTableSuffix();
-        
+        var suffix =
+            dbContextEntityShardingTableRelated.GetCurrentMigrationsHistoryShardingTableSuffix();
+
         if (suffix.IsNullOrEmpty())
             return;
 
         lock (_async)
         {
-            if (MigrationSuffixs.Contains(suffix)) return;
+            if (MigrationSuffixs.Contains(suffix))
+                return;
             if (GetNeedMigrationEntities().Count > 0)
             {
                 //切换到写的数据库
@@ -70,7 +76,6 @@ public static class DbContextExtension
             return new List<Type>();
         }
     }
-
 
     // /// <summary>
     // /// 移除不需分表的实体

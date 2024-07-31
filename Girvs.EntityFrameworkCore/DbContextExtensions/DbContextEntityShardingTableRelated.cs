@@ -41,14 +41,17 @@ public class DbContextEntityShardingTableRelated
 
         return shardingTableSuffix;
     }
-    
+
     /// <summary>
     /// 获取当前迁移文件
     /// </summary>
     /// <returns></returns>
     public string GetCurrentMigrationsHistoryShardingTableName()
     {
-        return string.Format(MigrationsHistoryTableName, GetCurrentMigrationsHistoryShardingTableSuffix());
+        return string.Format(
+            MigrationsHistoryTableName,
+            GetCurrentMigrationsHistoryShardingTableSuffix()
+        );
     }
 
     /// <summary>
@@ -56,7 +59,8 @@ public class DbContextEntityShardingTableRelated
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <returns></returns>
-    public bool ExistEntity<TEntity>() where TEntity : Entity
+    public bool ExistEntity<TEntity>()
+        where TEntity : Entity
     {
         return ExistEntity(typeof(TEntity));
     }
@@ -76,7 +80,8 @@ public class DbContextEntityShardingTableRelated
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     /// <returns></returns>
-    public EntityShardingTableParameter GetEntity<TEntity>() where TEntity : Entity
+    public EntityShardingTableParameter GetEntity<TEntity>()
+        where TEntity : Entity
     {
         return GetEntity(typeof(TEntity));
     }

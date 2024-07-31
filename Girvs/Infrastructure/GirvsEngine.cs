@@ -24,7 +24,9 @@ public class GirvsEngine : IEngine
     private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
     {
         //check for assembly already loaded
-        var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.FullName == args.Name);
+        var assembly = AppDomain
+            .CurrentDomain.GetAssemblies()
+            .FirstOrDefault(a => a.FullName == args.Name);
         if (assembly != null)
             return assembly;
 
@@ -55,7 +57,7 @@ public class GirvsEngine : IEngine
 
         //create and sort instances of startup configurations
         var instances = startupConfigurations
-            .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
+            .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
             .OrderBy(startup => startup?.Order);
 
         //configure services
@@ -80,14 +82,13 @@ public class GirvsEngine : IEngine
 
         //create and sort instances of startup configurations
         var instances = startupConfigurations
-            .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
+            .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
             .OrderBy(startup => startup?.Order);
 
         //configure request pipeline
         foreach (var instance in instances)
             instance?.Configure(application);
     }
-
 
     /// <summary>
     /// Configure pipeline endpoint
@@ -99,7 +100,7 @@ public class GirvsEngine : IEngine
         var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
         var instances = startupConfigurations
-            .Select(startup => (IAppModuleStartup) Activator.CreateInstance(startup))
+            .Select(startup => (IAppModuleStartup)Activator.CreateInstance(startup))
             .OrderBy(startup => startup.Order);
 
         var logger = Resolve<ILogger<object>>();
@@ -116,10 +117,8 @@ public class GirvsEngine : IEngine
     /// <param name="scope">Scope</param>
     /// <typeparam name="T">Type of resolved service</typeparam>
     /// <returns>Resolved service</returns>
-    public T Resolve<T>(IServiceScope scope = null) where T : class
-    {
-        return (T) Resolve(typeof(T), scope);
-    }
+    public T Resolve<T>(IServiceScope scope = null)
+        where T : class => (T)Resolve(typeof(T), scope);
 
     /// <summary>
     /// Resolve dependency
@@ -127,20 +126,16 @@ public class GirvsEngine : IEngine
     /// <param name="type">Type of resolved service</param>
     /// <param name="scope">Scope</param>
     /// <returns>Resolved service</returns>
-    public object Resolve(Type type, IServiceScope scope = null)
-    {
-        return GetServiceProvider(scope)?.GetService(type);
-    }
+    public object Resolve(Type type, IServiceScope scope = null) =>
+        GetServiceProvider(scope)?.GetService(type);
 
     /// <summary>
     /// Resolve dependencies
     /// </summary>
     /// <typeparam name="T">Type of resolved services</typeparam>
     /// <returns>Collection of resolved services</returns>
-    public virtual IEnumerable<T> ResolveAll<T>()
-    {
-        return (IEnumerable<T>) GetServiceProvider().GetServices(typeof(T));
-    }
+    public virtual IEnumerable<T> ResolveAll<T>() =>
+        (IEnumerable<T>)GetServiceProvider().GetServices(typeof(T));
 
     /// <summary>
     /// Resolve unregistered service
@@ -155,13 +150,15 @@ public class GirvsEngine : IEngine
             try
             {
                 //try to resolve constructor parameters
-                var parameters = constructor.GetParameters().Select(parameter =>
-                {
-                    var service = Resolve(parameter.ParameterType);
-                    if (service == null)
-                        throw new GirvsException("Unknown dependency");
-                    return service;
-                });
+                var parameters = constructor
+                    .GetParameters()
+                    .Select(parameter =>
+                    {
+                        var service = Resolve(parameter.ParameterType);
+                        if (service == null)
+                            throw new GirvsException("Unknown dependency");
+                        return service;
+                    });
 
                 //all is ok, so create instance
                 return Activator.CreateInstance(type, parameters.ToArray());
@@ -172,10 +169,11 @@ public class GirvsEngine : IEngine
             }
         }
 
-        throw new GirvsException("No constructor was found that had all the dependencies satisfied.",
-            innerException);
+        throw new GirvsException(
+            "No constructor was found that had all the dependencies satisfied.",
+            innerException
+        );
     }
-
 
     /// <summary>
     /// Register dependencies
@@ -197,7 +195,9 @@ public class GirvsEngine : IEngine
 
         //create and sort instances of dependency registrars
         var instances = dependencyRegistrars
-            .Select(dependencyRegistrar => (IDependencyRegistrar) Activator.CreateInstance(dependencyRegistrar))
+            .Select(dependencyRegistrar =>
+                (IDependencyRegistrar)Activator.CreateInstance(dependencyRegistrar)
+            )
             .OrderBy(dependencyRegistrar => dependencyRegistrar?.Order);
 
         //register all provided dependencies
@@ -237,20 +237,19 @@ public class GirvsEngine : IEngine
         }
     }
 
-    public TConfig GetAppModuleConfig<TConfig>() where TConfig : class, IAppModuleConfig
-    {
-        return Singleton<AppSettings>.Instance.Get<TConfig>();
-    }
+    public TConfig GetAppModuleConfig<TConfig>()
+        where TConfig : class, IAppModuleConfig => Singleton<AppSettings>.Instance.Get<TConfig>();
 
     public void SetCurrentThreadServiceProvider(IServiceProvider serviceProvider)
     {
         AsyncLocalServiceProvider.Value = serviceProvider;
     }
 
-    public bool IsAuthenticated => HttpContext?.User.Identity != null && HttpContext.User.Identity.IsAuthenticated;
+    public bool IsAuthenticated =>
+        HttpContext?.User.Identity != null && HttpContext.User.Identity.IsAuthenticated;
 
-    private static readonly AsyncLocal<IServiceProvider> AsyncLocalServiceProvider = new AsyncLocal<IServiceProvider>();
-
+    private static readonly AsyncLocal<IServiceProvider> AsyncLocalServiceProvider =
+        new AsyncLocal<IServiceProvider>();
 
     public virtual IServiceProvider ServiceProvider { get; protected set; }
 }

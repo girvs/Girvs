@@ -7,7 +7,6 @@ public class GirvsConvert
         return (T)ToSpecifiedType(typeof(T).FullName, value);
     }
 
-
     public static object ToSpecifiedType(string typeStr, object value)
     {
         if (value is null)
@@ -68,9 +67,9 @@ public class GirvsConvert
         if (typeStr == "System.Guid")
         {
             var guidStr = value.ToString();
-            if (guidStr != null) return Guid.Parse(guidStr);
+            if (guidStr != null)
+                return Guid.Parse(guidStr);
         }
-
 
         throw new GirvsException(568, $"未找到指定类型：{typeStr}的转换器");
     }

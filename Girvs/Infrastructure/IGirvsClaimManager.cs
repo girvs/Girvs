@@ -26,7 +26,7 @@ public static class GirvsIdentityClaimTypes
     public static readonly string UserId = "zf_sib";
     public static readonly string UserName = "zf_sname";
     public static readonly string TenantId = "zf_tid";
-    public static readonly string TenantName ="zf_tname";
+    public static readonly string TenantName = "zf_tname";
     public static readonly string IdentityType = "zf_itype";
     public static readonly string ClaimSystemModule = "zf_csm";
 }
@@ -49,12 +49,12 @@ public class GirvsIdentityClaim
 
     public T GetUserId<T>()
     {
-        return (T) GirvsConvert.ToSpecifiedType(typeof(T).FullName, UserId);
+        return (T)GirvsConvert.ToSpecifiedType(typeof(T).FullName, UserId);
     }
 
     public T GetTenantId<T>()
     {
-        return (T) GirvsConvert.ToSpecifiedType(typeof(T).FullName, TenantId);
+        return (T)GirvsConvert.ToSpecifiedType(typeof(T).FullName, TenantId);
     }
 }
 
@@ -163,7 +163,20 @@ public enum SystemModule : long
     /// <summary>
     /// 所有
     /// </summary>
-    All = BaseModule | RegisterModule | ArrangeModule | IdentityModule | ScoreQueryModule | SystemModule |
-          ExtendModule2 | ExtendModule3 | ExtendModule4 | ExtendModule5 | ExtendModule6 |
-          ExtendModule7 | ExtendModule8 | ExtendModule9 | ExtendModule10
+    All =
+        BaseModule
+        | RegisterModule
+        | ArrangeModule
+        | IdentityModule
+        | ScoreQueryModule
+        | SystemModule
+        | ExtendModule2
+        | ExtendModule3
+        | ExtendModule4
+        | ExtendModule5
+        | ExtendModule6
+        | ExtendModule7
+        | ExtendModule8
+        | ExtendModule9
+        | ExtendModule10
 }

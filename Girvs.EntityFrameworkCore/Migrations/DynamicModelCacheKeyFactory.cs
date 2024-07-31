@@ -7,9 +7,13 @@ public class DynamicModelCacheKeyFactory : IModelCacheKeyFactory
     public object Create(DbContext context, bool designTime)
     {
         var related = EngineContext.Current.GetShardingTableRelatedByDbContext(context.GetType());
-        
+
         return context is GirvsDbContext
-            ? (context.GetType(), related.GetCurrentMigrationsHistoryShardingTableSuffix(), designTime)
-            : (object) context.GetType();
+            ? (
+                context.GetType(),
+                related.GetCurrentMigrationsHistoryShardingTableSuffix(),
+                designTime
+            )
+            : (object)context.GetType();
     }
 }

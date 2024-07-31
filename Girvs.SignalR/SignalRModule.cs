@@ -21,11 +21,17 @@ public class SignalRModule : IAppModuleStartup
         var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
         if (cacheConfig.EnableCaching && cacheConfig.DistributedCacheType == CacheType.Redis)
         {
-            signalServiceBuilder.AddStackExchangeRedis(cacheConfig.RedisCacheConfig.ConnectionString);
+            signalServiceBuilder.AddStackExchangeRedis(
+                cacheConfig.RedisCacheConfig.ConnectionString
+            );
         }
 
-        services.TryAddEnumerable(ServiceDescriptor
-            .Singleton<IPostConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>());
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<
+                IPostConfigureOptions<JwtBearerOptions>,
+                ConfigureJwtBearerOptions
+            >()
+        );
     }
 
     public void Configure(IApplicationBuilder application)

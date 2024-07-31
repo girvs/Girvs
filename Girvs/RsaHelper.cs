@@ -18,7 +18,12 @@ public class GirvsRsaHelper
     /// <param name="encoding">编码类型</param>
     /// <param name="privateKey">私钥</param>
     /// <param name="publicKey">公钥</param>
-    public GirvsRsaHelper(RSAType rsaType, Encoding encoding, string privateKey, string publicKey = null)
+    public GirvsRsaHelper(
+        RsaType rsaType,
+        Encoding encoding,
+        string privateKey,
+        string publicKey = null
+    )
     {
         _encoding = encoding;
         if (!string.IsNullOrEmpty(privateKey))
@@ -31,7 +36,8 @@ public class GirvsRsaHelper
             _publicKeyRsaProvider = CreateRsaProviderFromPublicKey(publicKey);
         }
 
-        _hashAlgorithmName = rsaType == RSAType.RSA ? HashAlgorithmName.SHA1 : HashAlgorithmName.SHA256;
+        _hashAlgorithmName =
+            rsaType == RsaType.Rsa ? HashAlgorithmName.SHA1 : HashAlgorithmName.SHA256;
     }
 
     #region 使用私钥签名
@@ -45,8 +51,11 @@ public class GirvsRsaHelper
     {
         byte[] dataBytes = _encoding.GetBytes(data);
 
-        var signatureBytes =
-            _privateKeyRsaProvider.SignData(dataBytes, _hashAlgorithmName, RSASignaturePadding.Pkcs1);
+        var signatureBytes = _privateKeyRsaProvider.SignData(
+            dataBytes,
+            _hashAlgorithmName,
+            RSASignaturePadding.Pkcs1
+        );
 
         return Convert.ToBase64String(signatureBytes);
     }
@@ -66,8 +75,12 @@ public class GirvsRsaHelper
         byte[] dataBytes = _encoding.GetBytes(data);
         byte[] signBytes = Convert.FromBase64String(sign);
 
-        var verify =
-            _publicKeyRsaProvider.VerifyData(dataBytes, signBytes, _hashAlgorithmName, RSASignaturePadding.Pkcs1);
+        var verify = _publicKeyRsaProvider.VerifyData(
+            dataBytes,
+            signBytes,
+            _hashAlgorithmName,
+            RSASignaturePadding.Pkcs1
+        );
 
         return verify;
     }
@@ -83,8 +96,12 @@ public class GirvsRsaHelper
             throw new Exception("_privateKeyRsaProvider is null");
         }
 
-        return Encoding.UTF8.GetString(_privateKeyRsaProvider.Decrypt(Convert.FromBase64String(cipherText),
-            RSAEncryptionPadding.Pkcs1));
+        return Encoding.UTF8.GetString(
+            _privateKeyRsaProvider.Decrypt(
+                Convert.FromBase64String(cipherText),
+                RSAEncryptionPadding.Pkcs1
+            )
+        );
     }
 
     #endregion
@@ -98,8 +115,9 @@ public class GirvsRsaHelper
             throw new Exception("_publicKeyRsaProvider is null");
         }
 
-        return Convert.ToBase64String(_publicKeyRsaProvider.Encrypt(Encoding.UTF8.GetBytes(text),
-            RSAEncryptionPadding.Pkcs1));
+        return Convert.ToBase64String(
+            _publicKeyRsaProvider.Encrypt(Encoding.UTF8.GetBytes(text), RSAEncryptionPadding.Pkcs1)
+        );
     }
 
     #endregion
@@ -154,7 +172,24 @@ public class GirvsRsaHelper
     public RSA CreateRsaProviderFromPublicKey(string publicKeyString)
     {
         // encoded OID sequence for  PKCS #1 rsaEncryption szOID_RSA_RSA = "1.2.840.113549.1.1.1"
-        byte[] seqOid = {0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00};
+        byte[] seqOid =
+        {
+            0x30,
+            0x0D,
+            0x06,
+            0x09,
+            0x2A,
+            0x86,
+            0x48,
+            0x86,
+            0xF7,
+            0x0D,
+            0x01,
+            0x01,
+            0x01,
+            0x05,
+            0x00
+        };
         byte[] seq = new byte[15];
 
         var x509Key = Convert.FromBase64String(publicKeyString);
@@ -178,9 +213,7 @@ public class GirvsRsaHelper
             return null;
 
         twobytes = binr.ReadUInt16();
-        if (
-            twobytes ==
-            0x8103) //data read as little endian order (actual data order for Bit String is 03 81)
+        if (twobytes == 0x8103) //data read as little endian order (actual data order for Bit String is 03 81)
             binr.ReadByte(); //advance 1 byte
         else if (twobytes == 0x8203)
             binr.ReadInt16(); //advance 2 bytes
@@ -213,8 +246,7 @@ public class GirvsRsaHelper
         else
             return null;
 
-        byte[] modint =
-            {lowbyte, highbyte, 0x00, 0x00}; //reverse byte order since asn.1 key uses big endian order
+        byte[] modint = { lowbyte, highbyte, 0x00, 0x00 }; //reverse byte order since asn.1 key uses big endian order
         int modsize = BitConverter.ToInt32(modint, 0);
 
         int firstbyte = binr.PeekChar();
@@ -229,18 +261,12 @@ public class GirvsRsaHelper
 
         if (binr.ReadByte() != 0x02) //expect an Integer for the exponent data
             return null;
-        int expbytes =
-            (int) binr
-                .ReadByte(); // should only need one byte for actual exponent data (for all useful values)
+        int expbytes = (int)binr.ReadByte(); // should only need one byte for actual exponent data (for all useful values)
         byte[] exponent = binr.ReadBytes(expbytes);
 
         // ------- create RSACryptoServiceProvider instance and initialize with public key -----
         var rsa = RSA.Create();
-        var rsaKeyInfo = new RSAParameters
-        {
-            Modulus = modulus,
-            Exponent = exponent
-        };
+        var rsaKeyInfo = new RSAParameters { Modulus = modulus, Exponent = exponent };
         rsa.ImportParameters(rsaKeyInfo);
 
         return rsa;
@@ -265,7 +291,7 @@ public class GirvsRsaHelper
         {
             var highbyte = binr.ReadByte();
             var lowbyte = binr.ReadByte();
-            byte[] modint = {lowbyte, highbyte, 0x00, 0x00};
+            byte[] modint = { lowbyte, highbyte, 0x00, 0x00 };
             count = BitConverter.ToInt32(modint, 0);
         }
         else
@@ -303,16 +329,16 @@ public class GirvsRsaHelper
 /// <summary>
 /// RSA算法类型
 /// </summary>
-public enum RSAType
+public enum RsaType
 {
     /// <summary>
     /// SHA1
     /// </summary>
-    RSA = 0,
+    Rsa = 0,
 
     /// <summary>
     /// RSA2 密钥长度至少为2048
     /// SHA256
     /// </summary>
-    RSA2
+    Rsa2
 }

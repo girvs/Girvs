@@ -10,7 +10,8 @@ public class GirvsModuleStartup : IAppModuleStartup
         services.AddLogDashboard();
         services.Configure<ForwardedHeadersOptions>(options =>
         {
-            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
@@ -18,17 +19,16 @@ public class GirvsModuleStartup : IAppModuleStartup
 
     public void Configure(IApplicationBuilder application)
     {
-        application.UseForwardedHeaders(new ForwardedHeadersOptions
-        {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-        });
+        application.UseForwardedHeaders(
+            new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            }
+        );
         application.UseLogDashboard();
     }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-            
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 0;
 }

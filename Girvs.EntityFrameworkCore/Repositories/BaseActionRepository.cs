@@ -8,18 +8,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Girvs.EntityFrameworkCore.Repositories
 {
-    public abstract class BaseActionRepository<T> : IBaseActionRepository<T> where T : BaseEntity, new()
+    public abstract class BaseActionRepository<T> : IBaseActionRepository<T>
+        where T : BaseEntity, new()
     {
         private readonly DbContext _dbContext;
         private readonly GirvsConfig _spConfig;
         protected DbSet<T> DbSet { get; set; }
 
-
         public BaseActionRepository(DbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _spConfig = EngineContext.Current.Resolve<GirvsConfig>();
-            if (_spConfig == null) throw new ArgumentException(nameof(_spConfig));
+            if (_spConfig == null)
+                throw new ArgumentException(nameof(_spConfig));
         }
 
         public virtual async Task<bool> AddAsync(T t)
@@ -79,8 +80,9 @@ namespace Girvs.EntityFrameworkCore.Repositories
             if (fields.Any())
             {
                 //临时方法，待改进,不科学的方法
-                return await Task.Run(() =>
-                    DbSet.SelectProperties(fields).Where(TenantCondition).ToList());
+                return await Task.Run(
+                    () => DbSet.SelectProperties(fields).Where(TenantCondition).ToList()
+                );
             }
             else
             {
@@ -101,15 +103,16 @@ namespace Girvs.EntityFrameworkCore.Repositories
                 if (query.QueryFields.Any())
                 {
                     //临时方法，待改进,不科学的方法
-                    query.Result =
-                        await Task.Run(() =>
+                    query.Result = await Task.Run(
+                        () =>
                             DbSet
                                 .Where(condition)
                                 .SelectProperties(query.QueryFields)
                                 .OrderByDescending(query.OrderBy) //暂时取消排序
                                 .Skip(query.PageStart)
                                 .Take(query.PageSize)
-                                .ToList());
+                                .ToList()
+                    );
                 }
                 else
                 {
@@ -140,7 +143,6 @@ namespace Girvs.EntityFrameworkCore.Repositories
             }
         }
 
-
         /// <summary>
         /// 此方法暂时方法，不科学
         /// </summary>
@@ -158,8 +160,12 @@ namespace Girvs.EntityFrameworkCore.Repositories
 
                 foreach (var property in fields)
                 {
-                    if (property == nameof(BaseEntity.Id) || property == nameof(BaseEntity.CreateTime) ||
-                        property == nameof(BaseEntity.Creator) || property == nameof(BaseEntity.TenantId))
+                    if (
+                        property == nameof(BaseEntity.Id)
+                        || property == nameof(BaseEntity.CreateTime)
+                        || property == nameof(BaseEntity.Creator)
+                        || property == nameof(BaseEntity.TenantId)
+                    )
                     {
                         dbEntityEntry.Property(property).IsModified = false;
                     }

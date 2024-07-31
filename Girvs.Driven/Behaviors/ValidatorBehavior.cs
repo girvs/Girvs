@@ -1,71 +1,65 @@
-﻿namespace Girvs.Driven.Behaviors
+﻿namespace Girvs.Driven.Behaviors;
+
+public class ValidatorBehavior<TRequest, TResponse>(
+    IMediatorHandler mediator,
+    ILogger<ValidatorBehavior<TRequest, TResponse>> logger
+) : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
 {
-    public class ValidatorBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken
+    )
     {
-        private readonly IMediatorHandler _mediator;
-        private readonly ILogger<ValidatorBehavior<TRequest, TResponse>> _logger;
+        logger.LogInformation($"Command Validator Behavior : {typeof(TRequest).FullName}");
 
-        public ValidatorBehavior(IMediatorHandler mediator, ILogger<ValidatorBehavior<TRequest, TResponse>> logger)
+        //此处不能使用注入，针对不存在的较验会报错。
+        var validator =
+            EngineContext.Current.Resolve<IValidator<TRequest>>() as GirvsCommandValidator<TRequest>
+            ?? new GirvsDefaultCommandValidator<TRequest>();
+
+        if (request is Command<TResponse> command)
         {
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            command.AddFluentValidationRule(validator);
         }
 
-        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        var failures = (await validator.ValidateAsync(request, cancellationToken)).Errors;
+        if (failures.Count != 0)
         {
-            _logger.LogInformation($"Command Validator Behavior : {typeof(TRequest).FullName}");
-
-            //此处不能使用注入，针对不存在的较验会报错。
-            var validator =
-                EngineContext.Current.Resolve<IValidator<TRequest>>() as GirvsCommandValidator<TRequest> ??
-                new GirvsDefaultCommandValidator<TRequest>();
-
-            if (request is Command<TResponse> command)
+            //较验错误信息通过通知的方式传递至前台,如果不启用延迟处理，而直接抛出异常
+            if (validator.IsErrorMessageDelay)
             {
-                command.AddFluentValidationRule(validator);
-            }
+                foreach (var error in failures)
+                {
+                    await mediator.RaiseEvent(
+                        new DomainNotification(error.PropertyName, error.ErrorMessage),
+                        cancellationToken
+                    );
+                }
 
-            var failures = (await validator.ValidateAsync(request, cancellationToken)).Errors;
-            if (failures.Any())
+                return default(TResponse);
+            }
+            else
             {
-                //较验错误信息通过通知的方式传递至前台,如果不启用延迟处理，而直接抛出异常
-                if (validator.IsErrorMessageDelay)
+                var errorDictionary = new Dictionary<string, IList<string>>();
+
+                failures.ForEach(x =>
                 {
-                    foreach (var error in failures)
-                    {
-                        await _mediator.RaiseEvent(new DomainNotification(error.PropertyName, error.ErrorMessage),
-                            cancellationToken);
-                    }
+                    if (!errorDictionary.ContainsKey(x.PropertyName))
+                        errorDictionary.Add(x.PropertyName, new List<string>());
 
-                    return default(TResponse);
-                }
-                else
-                {
-                    var errorDictionary = new Dictionary<string, IList<string>>();
+                    errorDictionary[x.PropertyName].Add(x.ErrorMessage);
+                });
 
-                    failures.ForEach(x =>
-                    {
-                        if (!errorDictionary.ContainsKey(x.PropertyName))
-                            errorDictionary.Add(x.PropertyName, new List<string>());
-
-                        errorDictionary[x.PropertyName].Add(x.ErrorMessage);
-                    });
-
-                    // var options = new JsonSerializerOptions
-                    // {
-                    //     Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(UnicodeRanges.All)
-                    // };
-
-                    // var errorStr = JsonSerializer.Serialize(errorDictionary, options);
-
-                    throw new GirvsException("One or more validation errors occurred.",
-                        StatusCodes.Status400BadRequest, errorDictionary);
-                }
+                throw new GirvsException(
+                    "One or more validation errors occurred.",
+                    StatusCodes.Status400BadRequest,
+                    errorDictionary
+                );
             }
-
-            return await next();
         }
-        
+
+        return await next();
     }
 }

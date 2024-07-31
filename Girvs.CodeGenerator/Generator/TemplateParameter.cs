@@ -19,7 +19,7 @@ public class TemplateParameter
 
     public string PrimarykeyTypeName { get; set; }
     public string EntityName { get; set; }
-    
+
     public string EntityNameTitleCaseName
     {
         get
@@ -32,7 +32,7 @@ public class TemplateParameter
             return EntityName;
         }
     }
-    
+
     public TemplateFieldParameter[] Fields { get; set; }
     public TemplateNamespaceParameter Namespace { get; set; }
     public string Comment { get; set; }

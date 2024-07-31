@@ -1,27 +1,21 @@
 ﻿namespace Girvs.BusinessBasis.Queries;
 
-public abstract class QueryBase<TEntity> : IQuery<TEntity> where TEntity : Entity
+public abstract class QueryBase<TEntity> : IQuery<TEntity>
+    where TEntity : Entity
 {
-    protected QueryBase()
-    {
-        OrderBy = string.Empty;
-        PageSize = 20;
-        PageIndex = 1;
-    }
-
     public int PageStart => (PageIndex - 1) * PageSize;
 
     /// <summary>
     /// 当前页，从1开始
     /// </summary>
     [QueryCacheKey]
-    public int PageIndex { get; set; }
+    public int PageIndex { get; set; } = 1;
 
-    [QueryCacheKey] public int PageSize { get; set; }
+    [QueryCacheKey] public int PageSize { get; set; } = 20;
     public int RecordCount { get; set; }
     public List<TEntity> Result { get; set; }
 
-    [QueryCacheKey] public string OrderBy { get; set; }
+    [QueryCacheKey] public string OrderBy { get; set; } = string.Empty;
 
     public int PageCount => (int) Math.Ceiling(RecordCount / (decimal) PageSize);
 
@@ -41,7 +35,7 @@ public abstract class QueryBase<TEntity> : IQuery<TEntity> where TEntity : Entit
             }
         }
 
-        if (QueryFields != null && QueryFields.Any())
+        if (QueryFields != null && QueryFields.Length != 0)
         {
             var queryFieldStr = string.Join(',', QueryFields);
             sb.Append($"QueryFields:{queryFieldStr}");

@@ -9,10 +9,8 @@ public class EngineContext
     /// 创建Girvs引擎的静态实例
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)]
-    public static IEngine Create()
-    {
-        return Singleton<IEngine>.Instance ?? (Singleton<IEngine>.Instance = new GirvsEngine());
-    }
+    public static IEngine Create() =>
+        Singleton<IEngine>.Instance ?? (Singleton<IEngine>.Instance = new GirvsEngine());
 
     /// <summary>
     /// 将静态引擎实例设置为提供的引擎。使用此方法提供您自己的引擎实现。
@@ -22,7 +20,6 @@ public class EngineContext
     {
         Singleton<IEngine>.Instance = engine;
     }
-        
 
     /// <summary>
     /// 获取用于访问服务的单例引擎。

@@ -1,15 +1,12 @@
 namespace Girvs.Quartz;
 
-public abstract class GirvsJob : IJob,IDisposable
+public abstract class GirvsJob : IJob, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public GirvsJob(
-        IServiceProvider serviceProvider
-    )
+    public GirvsJob(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-
     }
 
     public virtual Task Execute(IJobExecutionContext context)

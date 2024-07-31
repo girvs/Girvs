@@ -7,7 +7,9 @@ using Girvs.BusinessBasis.Repositories;
 
 namespace Girvs.AuthorizePermission.AuthorizeCompare
 {
-    public abstract class GirvsAuthorizeCompare11 : GirvsRepositoryOtherQueryCondition, IServiceMethodPermissionCompare
+    public abstract class GirvsAuthorizeCompare11
+        : GirvsRepositoryOtherQueryCondition,
+            IServiceMethodPermissionCompare
     {
         public abstract Task<AuthorizeModel> GetCurrnetUserAuthorize();
 
@@ -30,8 +32,9 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
         public override Task<Expression<Func<TEntity, bool>>> GetOtherQueryCondition<TEntity>()
         {
             //默认判断如果存
-            Expression<Func<TEntity, bool>> expression =
-                TurnOnTenant(typeof(TEntity)) ? BuilderTenantCondition<TEntity>() : x => true;
+            Expression<Func<TEntity, bool>> expression = TurnOnTenant(typeof(TEntity))
+                ? BuilderTenantCondition<TEntity>()
+                : x => true;
 
             var currentUserAuthorize = GetCurrnetUserAuthorize().Result ?? new AuthorizeModel();
             var dataRuleModels = currentUserAuthorize.AuthorizeDataRules;
@@ -41,12 +44,15 @@ namespace Girvs.AuthorizePermission.AuthorizeCompare
                 throw new GirvsException("未获取相关的数据授权信息", 568);
             }
 
-            var currentEntityDataRule =
-                dataRuleModels.FirstOrDefault(x => x.EntityTypeName == typeof(TEntity).FullName);
+            var currentEntityDataRule = dataRuleModels.FirstOrDefault(x =>
+                x.EntityTypeName == typeof(TEntity).FullName
+            );
 
             if (currentEntityDataRule != null)
             {
-                foreach (var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels)
+                foreach (
+                    var dataRuleFieldModel in currentEntityDataRule.AuthorizeDataRuleFieldModels
+                )
                 {
                     var param = Expression.Parameter(typeof(TEntity), "entity");
                     var left = Expression.Property(param, dataRuleFieldModel.FieldName);

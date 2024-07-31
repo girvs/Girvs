@@ -1,5 +1,3 @@
 ﻿namespace Girvs.AutoMapper.Mapper;
 
-public class ActionFieldAttribute : Attribute
-{
-}
+public class ActionFieldAttribute : Attribute { }

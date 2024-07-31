@@ -1,16 +1,15 @@
 ﻿namespace Girvs.TypeFinder;
 
-public class AppDomainTypeFinder : ITypeFinder
+public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : ITypeFinder
 {
     private readonly bool _ignoreReflectionErrors = true;
-    protected readonly IGirvsFileProvider FileProvider;
+    protected readonly IGirvsFileProvider FileProvider =
+        fileProvider ?? CommonHelper.DefaultFileProvider;
 
-    public AppDomainTypeFinder(IGirvsFileProvider fileProvider = null)
-    {
-        FileProvider = fileProvider ?? CommonHelper.DefaultFileProvider;
-    }
-
-    private void AddAssembliesInAppDomain(ICollection<string> addedAssemblyNames, ICollection<Assembly> assemblies)
+    private void AddAssembliesInAppDomain(
+        ICollection<string> addedAssemblyNames,
+        ICollection<Assembly> assemblies
+    )
     {
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -25,7 +24,10 @@ public class AppDomainTypeFinder : ITypeFinder
         }
     }
 
-    protected virtual void AddConfiguredAssemblies(List<string> addedAssemblyNames, List<Assembly> assemblies)
+    protected virtual void AddConfiguredAssemblies(
+        List<string> addedAssemblyNames,
+        List<Assembly> assemblies
+    )
     {
         foreach (var assemblyName in AssemblyNames)
         {
@@ -41,12 +43,16 @@ public class AppDomainTypeFinder : ITypeFinder
     protected virtual bool Matches(string assemblyFullName)
     {
         return !Matches(assemblyFullName, AssemblySkipLoadingPattern)
-               && Matches(assemblyFullName, AssemblyRestrictToLoadingPattern);
+            && Matches(assemblyFullName, AssemblyRestrictToLoadingPattern);
     }
 
     protected virtual bool Matches(string assemblyFullName, string pattern)
     {
-        return Regex.IsMatch(assemblyFullName, pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        return Regex.IsMatch(
+            assemblyFullName,
+            pattern,
+            RegexOptions.IgnoreCase | RegexOptions.Compiled
+        );
     }
 
     protected virtual void LoadMatchingAssemblies(string directoryPath)
@@ -87,12 +93,21 @@ public class AppDomainTypeFinder : ITypeFinder
         try
         {
             var genericTypeDefinition = openGeneric.GetGenericTypeDefinition();
-            foreach (var implementedInterface in type.FindInterfaces((objType, objCriteria) => true, null))
+            foreach (
+                var implementedInterface in type.FindInterfaces(
+                    (objType, objCriteria) => true,
+                    null
+                )
+            )
             {
                 if (!implementedInterface.IsGenericType)
                     continue;
 
-                if (genericTypeDefinition.IsAssignableFrom(implementedInterface.GetGenericTypeDefinition()))
+                if (
+                    genericTypeDefinition.IsAssignableFrom(
+                        implementedInterface.GetGenericTypeDefinition()
+                    )
+                )
                     return true;
             }
 
@@ -104,8 +119,11 @@ public class AppDomainTypeFinder : ITypeFinder
         }
     }
 
-    protected virtual IEnumerable<Type> FindOfType(Type assignTypeFrom, IEnumerable<Assembly> assemblies,
-        FindType findType)
+    protected virtual IEnumerable<Type> FindOfType(
+        Type assignTypeFrom,
+        IEnumerable<Assembly> assemblies,
+        FindType findType
+    )
     {
         var result = new List<Type>();
         try
@@ -131,8 +149,13 @@ public class AppDomainTypeFinder : ITypeFinder
 
                 foreach (var t in types)
                 {
-                    if (!assignTypeFrom.IsAssignableFrom(t) && (!assignTypeFrom.IsGenericTypeDefinition ||
-                                                                !DoesTypeImplementOpenGeneric(t, assignTypeFrom)))
+                    if (
+                        !assignTypeFrom.IsAssignableFrom(t)
+                        && (
+                            !assignTypeFrom.IsGenericTypeDefinition
+                            || !DoesTypeImplementOpenGeneric(t, assignTypeFrom)
+                        )
+                    )
                         continue;
 
                     switch (findType)
@@ -188,15 +211,13 @@ public class AppDomainTypeFinder : ITypeFinder
         return result;
     }
 
-    public IEnumerable<Type> FindOfType<T>(FindType findType = FindType.ConcreteClasses)
-    {
-        return FindOfType(typeof(T), findType);
-    }
+    public IEnumerable<Type> FindOfType<T>(FindType findType = FindType.ConcreteClasses) =>
+        FindOfType(typeof(T), findType);
 
-    public IEnumerable<Type> FindOfType(Type assignTypeFrom, FindType findType = FindType.ConcreteClasses)
-    {
-        return FindOfType(assignTypeFrom, GetAssemblies(), findType);
-    }
+    public IEnumerable<Type> FindOfType(
+        Type assignTypeFrom,
+        FindType findType = FindType.ConcreteClasses
+    ) => FindOfType(assignTypeFrom, GetAssemblies(), findType);
 
     public virtual IList<Assembly> GetAssemblies()
     {

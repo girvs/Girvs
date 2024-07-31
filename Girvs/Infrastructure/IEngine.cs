@@ -8,7 +8,8 @@ public interface IEngine
 
     void ConfigureEndpointRouteBuilder(IEndpointRouteBuilder endpointRouteBuilder);
 
-    T Resolve<T>(IServiceScope scope = null) where T : class;
+    T Resolve<T>(IServiceScope scope = null)
+        where T : class;
 
     object Resolve(Type type, IServiceScope scope = null);
 
@@ -32,7 +33,8 @@ public interface IEngine
 
     IGirvsClaimManager ClaimManager { get; }
 
-    TConfig GetAppModuleConfig<TConfig>() where TConfig : class,IAppModuleConfig;
+    TConfig GetAppModuleConfig<TConfig>()
+        where TConfig : class, IAppModuleConfig;
 
     void SetCurrentThreadServiceProvider(IServiceProvider serviceProvider);
 }

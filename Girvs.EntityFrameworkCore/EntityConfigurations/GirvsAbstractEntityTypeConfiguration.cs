@@ -1,6 +1,7 @@
 namespace Girvs.EntityFrameworkCore.EntityConfigurations;
 
-public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTypeConfiguration<TEntity>
+public abstract class GirvsAbstractEntityTypeConfiguration<TEntity>
+    : IEntityTypeConfiguration<TEntity>
     where TEntity : class, Entity
 {
     protected virtual void OnModelCreatingTable<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
@@ -16,14 +17,18 @@ public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTyp
         builder.HasKey(x => x.Id);
     }
 
-    protected virtual void OnModelCreatingTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
+    protected virtual void OnModelCreatingTableKey<TEntity, TKey>(
+        EntityTypeBuilder<TEntity> builder
+    )
         where TEntity : BaseEntity<TKey>, new()
     {
         OnModelCreatingTable<TEntity, TKey>(builder);
         OnModelCreatingKey<TEntity, TKey>(builder);
     }
 
-    protected virtual void OnModelCreatingBaseEntity<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
+    protected virtual void OnModelCreatingBaseEntity<TEntity, TKey>(
+        EntityTypeBuilder<TEntity> builder
+    )
         where TEntity : BaseEntity<TKey>, new()
     {
         foreach (var propertyInfo in typeof(TEntity).GetProperties())
@@ -35,7 +40,9 @@ public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTyp
 
             if (propertyInfo.Name == nameof(IIcludeTamperProof.DataCheckCode))
             {
-                builder.Property(nameof(IIcludeTamperProof.DataCheckCode)).HasColumnType("varchar(36)");
+                builder
+                    .Property(nameof(IIcludeTamperProof.DataCheckCode))
+                    .HasColumnType("varchar(36)");
             }
 
             if (propertyInfo.Name == nameof(IIncludeUpdateTime.UpdateTime))
@@ -52,17 +59,23 @@ public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTyp
             {
                 if (propertyInfo.PropertyType == typeof(Guid))
                 {
-                    builder.Property(nameof(IIncludeMultiTenant<object>.TenantId)).HasColumnType("varchar(36)");
+                    builder
+                        .Property(nameof(IIncludeMultiTenant<object>.TenantId))
+                        .HasColumnType("varchar(36)");
                 }
 
                 if (propertyInfo.PropertyType == typeof(Int32))
                 {
-                    builder.Property(nameof(IIncludeMultiTenant<object>.TenantId)).HasColumnType("number");
+                    builder
+                        .Property(nameof(IIncludeMultiTenant<object>.TenantId))
+                        .HasColumnType("number");
                 }
 
                 if (propertyInfo.PropertyType == typeof(string))
                 {
-                    builder.Property(nameof(IIncludeMultiTenant<object>.TenantId)).HasColumnType("varchar(36)");
+                    builder
+                        .Property(nameof(IIncludeMultiTenant<object>.TenantId))
+                        .HasColumnType("varchar(36)");
                 }
             }
 
@@ -75,28 +88,38 @@ public abstract class GirvsAbstractEntityTypeConfiguration<TEntity> : IEntityTyp
             {
                 if (propertyInfo.PropertyType == typeof(Guid))
                 {
-                    builder.Property(nameof(IIncludeCreatorId<object>.CreatorId)).HasColumnType("varchar(36)");
+                    builder
+                        .Property(nameof(IIncludeCreatorId<object>.CreatorId))
+                        .HasColumnType("varchar(36)");
                 }
 
                 if (propertyInfo.PropertyType == typeof(Int32))
                 {
-                    builder.Property(nameof(IIncludeCreatorId<object>.CreatorId)).HasColumnType("number");
+                    builder
+                        .Property(nameof(IIncludeCreatorId<object>.CreatorId))
+                        .HasColumnType("number");
                 }
 
                 if (propertyInfo.PropertyType == typeof(string))
                 {
-                    builder.Property(nameof(IIncludeCreatorId<object>.CreatorId)).HasColumnType("varchar(36)");
+                    builder
+                        .Property(nameof(IIncludeCreatorId<object>.CreatorId))
+                        .HasColumnType("varchar(36)");
                 }
             }
 
             if (propertyInfo.Name == nameof(IIncludeCreatorName.CreatorName))
             {
-                builder.Property(nameof(IIncludeCreatorName.CreatorName)).HasColumnType("nvarchar(40)");
+                builder
+                    .Property(nameof(IIncludeCreatorName.CreatorName))
+                    .HasColumnType("nvarchar(40)");
             }
         }
     }
 
-    public virtual void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(EntityTypeBuilder<TEntity> builder)
+    public virtual void OnModelCreatingBaseEntityAndTableKey<TEntity, TKey>(
+        EntityTypeBuilder<TEntity> builder
+    )
         where TEntity : BaseEntity<TKey>, new()
     {
         OnModelCreatingTableKey<TEntity, TKey>(builder);

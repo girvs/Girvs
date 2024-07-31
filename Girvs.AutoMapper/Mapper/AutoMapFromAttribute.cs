@@ -5,10 +5,8 @@ public class AutoMapFromAttribute(Type entityType) : Attribute
     public Type EntityType { get; } = entityType;
 }
 
-
 public class AutoMapFromAttribute<TFromType> : AutoMapFromAttribute
 {
-    public AutoMapFromAttribute(Type entityType):base(typeof(TFromType))
-    {
-    }
+    public AutoMapFromAttribute(Type entityType)
+        : base(typeof(TFromType)) { }
 }

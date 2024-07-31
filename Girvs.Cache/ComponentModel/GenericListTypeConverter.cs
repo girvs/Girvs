@@ -15,7 +15,9 @@ public class GenericListTypeConverter<T> : TypeConverter
     {
         TypeConverter = TypeDescriptor.GetConverter(typeof(T));
         if (TypeConverter == null)
-            throw new InvalidOperationException("No type converter exists for type " + typeof(T).FullName);
+            throw new InvalidOperationException(
+                "No type converter exists for type " + typeof(T).FullName
+            );
     }
 
     /// <summary>
@@ -25,11 +27,13 @@ public class GenericListTypeConverter<T> : TypeConverter
     /// <returns>Array</returns>
     protected virtual string[] GetStringArray(string input)
     {
-        return string.IsNullOrEmpty(input) ? Array.Empty<string>() : input.Split(',').Select(x => x.Trim()).ToArray();
+        return string.IsNullOrEmpty(input)
+            ? Array.Empty<string>()
+            : input.Split(',').Select(x => x.Trim()).ToArray();
     }
 
     /// <summary>
-    /// Gets a value indicating whether this converter can        
+    /// Gets a value indicating whether this converter can
     /// convert an object in the given source type to the native type of the converter
     /// using the context.
     /// </summary>
@@ -52,21 +56,28 @@ public class GenericListTypeConverter<T> : TypeConverter
     /// <param name="culture">Culture</param>
     /// <param name="value">Value</param>
     /// <returns>Result</returns>
-    public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+    public override object ConvertFrom(
+        ITypeDescriptorContext context,
+        CultureInfo culture,
+        object value
+    )
     {
         if (!(value is string) && value != null)
             return base.ConvertFrom(context, culture, value);
 
         var items = GetStringArray((string)value);
         var result = new List<T>();
-        Array.ForEach(items, s =>
-        {
-            var item = TypeConverter.ConvertFromInvariantString(s);
-            if (item != null)
+        Array.ForEach(
+            items,
+            s =>
             {
-                result.Add((T)item);
+                var item = TypeConverter.ConvertFromInvariantString(s);
+                if (item != null)
+                {
+                    result.Add((T)item);
+                }
             }
-        });
+        );
 
         return result;
     }
@@ -79,7 +90,12 @@ public class GenericListTypeConverter<T> : TypeConverter
     /// <param name="value">Value</param>
     /// <param name="destinationType">Destination type</param>
     /// <returns>Result</returns>
-    public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+    public override object ConvertTo(
+        ITypeDescriptorContext context,
+        CultureInfo culture,
+        object value,
+        Type destinationType
+    )
     {
         if (destinationType != typeof(string))
             return base.ConvertTo(context, culture, value, destinationType);

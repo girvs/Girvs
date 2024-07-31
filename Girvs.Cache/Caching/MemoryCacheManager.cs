@@ -1,7 +1,7 @@
 ﻿namespace Girvs.Cache.Caching;
 
 /// <summary>
-/// Represents a memory cache manager 
+/// Represents a memory cache manager
 /// </summary>
 public partial class MemoryCacheManager : ILocker, IStaticCacheManager
 {
@@ -12,7 +12,8 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
 
     private readonly IMemoryCache _memoryCache;
 
-    private static readonly ConcurrentDictionary<string, CancellationTokenSource> _prefixes = new ConcurrentDictionary<string, CancellationTokenSource>();
+    private static readonly ConcurrentDictionary<string, CancellationTokenSource> _prefixes =
+        new ConcurrentDictionary<string, CancellationTokenSource>();
     private static CancellationTokenSource _clearToken = new CancellationTokenSource();
 
     #endregion
@@ -68,12 +69,15 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
         if (key.CacheTime <= 0 || !key.EnableCaching)
             return acquire();
 
-        var result = _memoryCache.GetOrCreate(key.Key, entry =>
-        {
-            entry.SetOptions(PrepareEntryOptions(key));
+        var result = _memoryCache.GetOrCreate(
+            key.Key,
+            entry =>
+            {
+                entry.SetOptions(PrepareEntryOptions(key));
 
-            return acquire();
-        });
+                return acquire();
+            }
+        );
 
         //do not cache null value
         if (result == null)
@@ -103,12 +107,15 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
         if (key.CacheTime <= 0 || !key.EnableCaching)
             return await acquire();
 
-        var result = await _memoryCache.GetOrCreateAsync(key.Key, async entry =>
-        {
-            entry.SetOptions(PrepareEntryOptions(key));
+        var result = await _memoryCache.GetOrCreateAsync(
+            key.Key,
+            async entry =>
+            {
+                entry.SetOptions(PrepareEntryOptions(key));
 
-            return await acquire();
-        });
+                return await acquire();
+            }
+        );
 
         //do not cache null value
         if (result == null)
@@ -147,7 +154,11 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
     /// <param name="expirationTime">The time after which the lock will automatically be expired</param>
     /// <param name="action">Action to be performed with locking</param>
     /// <returns>True if lock was acquired and action was performed; otherwise false</returns>
-    public async Task<bool> PerformActionWithLock(string key, TimeSpan expirationTime, Func<Task> action)
+    public async Task<bool> PerformActionWithLock(
+        string key,
+        TimeSpan expirationTime,
+        Func<Task> action
+    )
     {
         //ensure that lock is acquired
         if (IsSet(new CacheKey(key)))
@@ -209,6 +220,7 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
     private static Dictionary<string, long> IncrementNumber = new Dictionary<string, long>();
 
     private static object asyncObj = new object();
+
     public long StringIncrement(string key)
     {
         lock (asyncObj)
@@ -220,7 +232,7 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
             }
             else
             {
-                IncrementNumber.Add(key,1);
+                IncrementNumber.Add(key, 1);
                 return 1;
             }
         }
@@ -241,7 +253,6 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
                     keys.Add(entry.Key.ToString());
                 }
             }
-
         }
 
         //var cacheItems = entries as IDictionary;

@@ -33,10 +33,8 @@ public static class DateTimeExtensions
     /// </summary>
     /// <param name="target"></param>
     /// <returns></returns>
-    public static DateTime ToDayEnd(this DateTime target)
-    {
-        return target.Date.AddDays(1).AddMilliseconds(-1);
-    }
+    public static DateTime ToDayEnd(this DateTime target) =>
+        target.Date.AddDays(1).AddMilliseconds(-1);
 
     /// <summary>
     /// Gets the First Date of the week for the specified date
@@ -60,11 +58,10 @@ public static class DateTimeExtensions
     /// <param name="year">The year.</param>
     /// <param name="month">The month.</param>
     /// <returns></returns>
-    public static IEnumerable<DateTime> DaysOfMonth(int year, int month)
-    {
-        return Enumerable.Range(0, DateTime.DaysInMonth(year, month))
+    public static IEnumerable<DateTime> DaysOfMonth(int year, int month) =>
+        Enumerable
+            .Range(0, DateTime.DaysInMonth(year, month))
             .Select(day => new DateTime(year, month, day + 1));
-    }
 
     /// <summary>
     /// Determines the Nth instance of a Date's DayOfWeek in a month
@@ -78,19 +75,18 @@ public static class DateTimeExtensions
             .Where(date => dateTime.DayOfWeek.Equals(date.DayOfWeek))
             .Select(x => new { n = ++y, date = x })
             .Where(x => x.date.Equals(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day)))
-            .Select(x => x.n).FirstOrDefault();
+            .Select(x => x.n)
+            .FirstOrDefault();
     }
-        
+
     /// <summary>
     /// Gets the total days in a month
     /// </summary>
     /// <param name="dateTime">The date time.</param>
     /// <returns></returns>
-    public static int TotalDaysInMonth(this DateTime dateTime)
-    {
-        return DaysOfMonth(dateTime.Year, dateTime.Month).Count();
-    }
-        
+    public static int TotalDaysInMonth(this DateTime dateTime) =>
+        DaysOfMonth(dateTime.Year, dateTime.Month).Count();
+
     /// <summary>
     /// Takes any date and returns it's value as an Unspecified DateTime
     /// </summary>
@@ -103,7 +99,15 @@ public static class DateTimeExtensions
             return date;
         }
 
-        return new DateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, DateTimeKind.Unspecified);
+        return new DateTime(
+            date.Year,
+            date.Month,
+            date.Day,
+            date.Hour,
+            date.Minute,
+            date.Second,
+            DateTimeKind.Unspecified
+        );
     }
 
     /// <summary>
@@ -111,8 +115,6 @@ public static class DateTimeExtensions
     /// </summary>
     /// <param name="date"></param>
     /// <returns></returns>
-    public static DateTime TrimMilliseconds(this DateTime date)
-    {
-        return new DateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Kind);
-    }
+    public static DateTime TrimMilliseconds(this DateTime date) =>
+        new(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Kind);
 }

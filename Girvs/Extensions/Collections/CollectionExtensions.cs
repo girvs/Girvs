@@ -8,10 +8,7 @@ public static class CollectionExtensions
     /// <summary>
     /// Checks whatever given collection object is null or has no item.
     /// </summary>
-    public static bool IsNullOrEmpty<T>(this ICollection<T> source)
-    {
-        return source is not {Count: > 0};
-    }
+    public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source is not { Count: > 0 };
 
     /// <summary>
     /// Adds an item to the collection if it's not already in the collection.

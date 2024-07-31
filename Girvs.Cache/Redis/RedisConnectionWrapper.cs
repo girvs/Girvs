@@ -44,11 +44,13 @@ public class RedisConnectionWrapper : IRedisConnectionWrapper, ILocker
     /// <returns></returns>
     protected ConnectionMultiplexer GetConnection()
     {
-        if (_connection != null && _connection.IsConnected) return _connection;
+        if (_connection != null && _connection.IsConnected)
+            return _connection;
 
         lock (_lock)
         {
-            if (_connection != null && _connection.IsConnected) return _connection;
+            if (_connection != null && _connection.IsConnected)
+                return _connection;
 
             //Connection disconnected. Disposing connection...
             _connection?.Dispose();
@@ -68,16 +70,18 @@ public class RedisConnectionWrapper : IRedisConnectionWrapper, ILocker
     {
         //get RedLock endpoints
         var configurationOptions = ConfigurationOptions.Parse(_connectionString.Value);
-        var redLockEndPoints = GetEndPoints().Select(endPoint => new RedLockEndPoint
-        {
-            EndPoint = endPoint,
-            Password = configurationOptions.Password,
-            Ssl = configurationOptions.Ssl,
-            RedisDatabase = configurationOptions.DefaultDatabase,
-            ConfigCheckSeconds = configurationOptions.ConfigCheckSeconds,
-            ConnectionTimeout = configurationOptions.ConnectTimeout,
-            SyncTimeout = configurationOptions.SyncTimeout
-        }).ToList();
+        var redLockEndPoints = GetEndPoints()
+            .Select(endPoint => new RedLockEndPoint
+            {
+                EndPoint = endPoint,
+                Password = configurationOptions.Password,
+                Ssl = configurationOptions.Ssl,
+                RedisDatabase = configurationOptions.DefaultDatabase,
+                ConfigCheckSeconds = configurationOptions.ConfigCheckSeconds,
+                ConnectionTimeout = configurationOptions.ConnectTimeout,
+                SyncTimeout = configurationOptions.SyncTimeout
+            })
+            .ToList();
 
         //create RedLock factory to use RedLock distributed lock algorithm
         return RedLockFactory.Create(redLockEndPoints);
@@ -137,7 +141,11 @@ public class RedisConnectionWrapper : IRedisConnectionWrapper, ILocker
     /// <param name="expirationTime">The time after which the lock will automatically be expired by Redis</param>
     /// <param name="action">Action to be performed with locking</param>
     /// <returns>True if lock was acquired and action was performed; otherwise false</returns>
-    public async Task<bool> PerformActionWithLock(string key, TimeSpan expirationTime, Func<Task> action)
+    public async Task<bool> PerformActionWithLock(
+        string key,
+        TimeSpan expirationTime,
+        Func<Task> action
+    )
     {
         //use RedLock library
         using var redisLock = _redisLockFactory.CreateLock(key, expirationTime);

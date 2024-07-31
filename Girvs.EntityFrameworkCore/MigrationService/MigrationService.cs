@@ -20,18 +20,22 @@ public class MigrationService : IMigrationService
         {
             _logger.LogInformation("开始执行数据库还原");
             var typeFinder = new WebAppTypeFinder();
-            var dbContexts = typeFinder.FindOfType(typeof
-                (GirvsDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
+            var dbContexts = typeFinder
+                .FindOfType(typeof(GirvsDbContext))
+                .Where(x => !x.IsAbstract && !x.IsInterface)
+                .ToList();
 
             if (!dbContexts.Any())
-
                 throw new GirvsException("not found dbcontext");
 
-
-            foreach (var dbContext in dbContexts.Select(dbContextType =>
-                         EngineContext.Current.Resolve(dbContextType) as GirvsDbContext))
+            foreach (
+                var dbContext in dbContexts.Select(dbContextType =>
+                    EngineContext.Current.Resolve(dbContextType) as GirvsDbContext
+                )
+            )
             {
-                var dbConfig = EngineContext.Current.GetAppModuleConfig<DbConfig>()
+                var dbConfig = EngineContext
+                    .Current.GetAppModuleConfig<DbConfig>()
                     .GetDataConnectionConfig(dbContext.GetType());
                 try
                 {

@@ -1,10 +1,10 @@
 ﻿namespace Girvs.BusinessBasis.Repositories;
 
-public interface IRepository<TEntity> : IRepository<TEntity, Guid> where TEntity : Entity
-{
-}
+public interface IRepository<TEntity> : IRepository<TEntity, Guid>
+    where TEntity : Entity { }
 
-public interface IRepository<TEntity, in TPrimaryKey> where TEntity : Entity
+public interface IRepository<TEntity, in TPrimaryKey>
+    where TEntity : Entity
 {
     Expression<Func<TEntity, bool>> OtherQueryCondition { get; }
 
@@ -97,7 +97,10 @@ public interface IRepository<TEntity, in TPrimaryKey> where TEntity : Entity
     /// </summary>
     /// <param name="fields">需要查询的字段列表</param>
     /// <returns>实体列表集合</returns>
-    Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate, params string[] fields);
+    Task<List<TEntity>> GetWhereAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        params string[] fields
+    );
 
     /// <summary>
     /// 根据查询条件获取集合

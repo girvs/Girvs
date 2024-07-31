@@ -16,9 +16,10 @@ public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQuery
     )
     {
         Expression<Func<TEntity, bool>> expression = x => true;
-            
-        if (!values.Any()) return expression;
-            
+
+        if (values.Length == 0)
+            return expression;
+
         Expression<Func<TEntity, bool>> internalExpression = null;
 
         foreach (var value in values)
@@ -29,9 +30,10 @@ public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQuery
             var right = Expression.Constant(convertValue);
             var be = Expression.MakeBinary(ExpressionType.Equal, left, right);
 
-            internalExpression = internalExpression == null ? 
-                Expression.Lambda<Func<TEntity, bool>>(be, param) : 
-                internalExpression.Or(Expression.Lambda<Func<TEntity, bool>>(be, param));
+            internalExpression =
+                internalExpression == null
+                    ? Expression.Lambda<Func<TEntity, bool>>(be, param)
+                    : internalExpression.Or(Expression.Lambda<Func<TEntity, bool>>(be, param));
         }
 
         expression = expression.And(internalExpression);
@@ -39,15 +41,18 @@ public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQuery
         return expression;
     }
 
-    protected virtual Expression<Func<TEntity, bool>> BuilderTenantBinaryExpression<TEntity>(object tenantId = null)
+    protected virtual Expression<Func<TEntity, bool>> BuilderTenantBinaryExpression<TEntity>(
+        object tenantId = null
+    )
         where TEntity : Entity
     {
         var propertyInfo = typeof(TEntity).GetProperty(TenantFieldName);
 
         Expression<Func<TEntity, bool>> expression = x => true;
 
-        if (propertyInfo is null) return expression;
-            
+        if (propertyInfo is null)
+            return expression;
+
         var data = new List<object>
         {
             tenantId ?? EngineContext.Current.ClaimManager.IdentityClaim.TenantId
@@ -62,19 +67,19 @@ public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQuery
             TenantFieldName,
             propertyInfo.PropertyType.ToString(),
             ExpressionType.Equal,
-            data.ToArray());
+            data.ToArray()
+        );
 
         return expression;
     }
 
-    protected virtual bool EnableOnTenant(Type entityType)
-    {
-        return entityType.GetProperty(TenantFieldName) != null;
-    }
+    protected virtual bool EnableOnTenant(Type entityType) =>
+        entityType.GetProperty(TenantFieldName) != null;
 
-    public virtual Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>() where TEntity : Entity
-    {
+    public virtual Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>()
+        where TEntity : Entity =>
         //默认判断如果存
-        return EnableOnTenant(typeof(TEntity)) ? BuilderTenantBinaryExpression<TEntity>() : x => true;
-    }
+        EnableOnTenant(typeof(TEntity))
+            ? BuilderTenantBinaryExpression<TEntity>()
+            : x => true;
 }

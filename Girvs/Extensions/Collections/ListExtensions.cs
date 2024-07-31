@@ -12,7 +12,10 @@ public static class ListExtensions
     /// <param name="source">A list of objects to sort</param>
     /// <param name="getDependencies">Function to resolve the dependencies</param>
     /// <returns></returns>
-    public static List<T> SortByDependencies<T>(this IEnumerable<T> source, Func<T, IEnumerable<T>> getDependencies)
+    public static List<T> SortByDependencies<T>(
+        this IEnumerable<T> source,
+        Func<T, IEnumerable<T>> getDependencies
+    )
     {
         /* See: http://www.codeproject.com/Articles/869059/Topological-sorting-in-Csharp
          *      http://en.wikipedia.org/wiki/Topological_sorting
@@ -30,14 +33,19 @@ public static class ListExtensions
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <typeparam name="T">The type of the members of values.</typeparam>
     /// <param name="item">Item to resolve</param>
     /// <param name="getDependencies">Function to resolve the dependencies</param>
     /// <param name="sorted">List with the sortet items</param>
     /// <param name="visited">Dictionary with the visited items</param>
-    private static void SortByDependenciesVisit<T>(T item, Func<T, IEnumerable<T>> getDependencies, List<T> sorted, Dictionary<T, bool> visited)
+    private static void SortByDependenciesVisit<T>(
+        T item,
+        Func<T, IEnumerable<T>> getDependencies,
+        List<T> sorted,
+        Dictionary<T, bool> visited
+    )
     {
         var alreadyVisited = visited.TryGetValue(item, out var inProcess);
 

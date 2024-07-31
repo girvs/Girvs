@@ -4,11 +4,12 @@ public class GirvsModelStateInvalidFilter : IActionFilter
 {
     private ModelStateInvalidFilter _modelStateInvalidFilter;
 
-    public GirvsModelStateInvalidFilter(IOptions<ApiBehaviorOptions> options,
-        ILogger<GirvsModelStateInvalidFilter> logger)
+    public GirvsModelStateInvalidFilter(
+        IOptions<ApiBehaviorOptions> options,
+        ILogger<GirvsModelStateInvalidFilter> logger
+    )
     {
-        _modelStateInvalidFilter =
-            new ModelStateInvalidFilter(options.Value, logger);
+        _modelStateInvalidFilter = new ModelStateInvalidFilter(options.Value, logger);
     }
 
     public void OnActionExecuting(ActionExecutingContext context)

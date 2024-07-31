@@ -8,7 +8,10 @@ public class CacheKey
     public CacheKey(string prefix)
     {
         if (string.IsNullOrWhiteSpace(prefix))
-            throw new System.ArgumentException($"'{nameof(prefix)}' cannot be null or whitespace.", nameof(prefix));
+            throw new System.ArgumentException(
+                $"'{nameof(prefix)}' cannot be null or whitespace.",
+                nameof(prefix)
+            );
         Prefix = prefix.Trim();
         var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
         CacheTime = cacheConfig.CacheBaseConfig.DefaultCacheTime;

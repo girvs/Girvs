@@ -2,7 +2,8 @@
 
 public static class DtoExtensions
 {
-    public static TEntity MapToEntity<TEntity>(this IDto dto) where TEntity : BaseEntity, new()
+    public static TEntity MapToEntity<TEntity>(this IDto dto)
+        where TEntity : BaseEntity, new()
     {
         var mapper = EngineContext.Current.Resolve<IMapper>();
         return mapper.Map<TEntity>(dto);
@@ -31,11 +32,14 @@ public static class DtoExtensions
         var propertyInfos = t.GetProperties();
         foreach (var propertyInfo in propertyInfos)
         {
-            var ignore = Attribute.GetCustomAttribute(propertyInfo, typeof(IgnoreAttribute)) as IgnoreAttribute;
-            if (!(ignore is null) || !CheckPropertyInfoValidity(propertyInfo)) continue;
+            var ignore =
+                Attribute.GetCustomAttribute(propertyInfo, typeof(IgnoreAttribute))
+                as IgnoreAttribute;
+            if (!(ignore is null) || !CheckPropertyInfoValidity(propertyInfo))
+                continue;
             var sourceMember =
-                Attribute.GetCustomAttribute(propertyInfo, typeof(SourceMemberAttribute)) as
-                    SourceMemberAttribute;
+                Attribute.GetCustomAttribute(propertyInfo, typeof(SourceMemberAttribute))
+                as SourceMemberAttribute;
             fields.Add(sourceMember is null ? propertyInfo.Name : sourceMember.Name);
         }
 

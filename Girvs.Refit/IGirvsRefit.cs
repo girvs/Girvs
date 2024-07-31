@@ -1,6 +1,3 @@
 ﻿namespace Girvs.Refit;
 
-public interface IGirvsRefit
-{
-        
-}
+public interface IGirvsRefit { }

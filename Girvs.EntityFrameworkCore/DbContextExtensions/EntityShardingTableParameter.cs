@@ -15,17 +15,20 @@ public class EntityShardingTableParameter
     /// <summary>
     /// 是否实现ITenantShardingTable接口
     /// </summary>
-    public bool IsAssignableTenantShardingTable => EntityType.IsAssignableTo(typeof(ITenantShardingTable));
+    public bool IsAssignableTenantShardingTable =>
+        EntityType.IsAssignableTo(typeof(ITenantShardingTable));
 
     /// <summary>
     /// 是否实现IYearShardingTable接口
     /// </summary>
-    public bool IsAssignableYearShardingTable => EntityType.IsAssignableTo(typeof(IYearShardingTable));
+    public bool IsAssignableYearShardingTable =>
+        EntityType.IsAssignableTo(typeof(IYearShardingTable));
 
     /// <summary>
     /// 是否需要进行分表
     /// </summary>
-    public bool IsNeedShardingTable => IsAssignableTenantShardingTable || IsAssignableYearShardingTable;
+    public bool IsNeedShardingTable =>
+        IsAssignableTenantShardingTable || IsAssignableYearShardingTable;
 
     /// <summary>
     /// 获取当前实体的分表名称
@@ -42,17 +45,17 @@ public class EntityShardingTableParameter
     /// <returns></returns>
     public string GetCurrentShrdingTableSuffix()
     {
-         var shardingTableSuffix = string.Empty;
-         if (IsAssignableTenantShardingTable)
-         {
-             shardingTableSuffix += EngineContext.Current.GetTenantShardingTableSuffix();
-         }
- 
-         if (IsAssignableYearShardingTable)
-         {
-             shardingTableSuffix += EngineContext.Current.GetYearShardingTableSuffix();
-         }
- 
-         return shardingTableSuffix;
+        var shardingTableSuffix = string.Empty;
+        if (IsAssignableTenantShardingTable)
+        {
+            shardingTableSuffix += EngineContext.Current.GetTenantShardingTableSuffix();
+        }
+
+        if (IsAssignableYearShardingTable)
+        {
+            shardingTableSuffix += EngineContext.Current.GetYearShardingTableSuffix();
+        }
+
+        return shardingTableSuffix;
     }
 }

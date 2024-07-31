@@ -5,7 +5,12 @@
 /// </summary>
 public enum CacheType
 {
-    [EnumMember(Value = "memory")] Memory,
-    [EnumMember(Value = "redis")] Redis,
-    [EnumMember(Value = "dapr")] Dapr
+    [EnumMember(Value = "memory")]
+    Memory,
+
+    [EnumMember(Value = "redis")]
+    Redis,
+
+    [EnumMember(Value = "dapr")]
+    Dapr
 }

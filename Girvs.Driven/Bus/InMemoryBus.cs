@@ -29,7 +29,10 @@ public sealed class InMemoryBus : IMediatorHandler
     /// <param name="command"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task<object> SendCommand<T>(T command, CancellationToken cancellationToken = default(CancellationToken))
+    public Task<object> SendCommand<T>(
+        T command,
+        CancellationToken cancellationToken = default(CancellationToken)
+    )
         where T : IBaseRequest
     {
         //这个是正确的
@@ -39,11 +42,14 @@ public sealed class InMemoryBus : IMediatorHandler
         //return Send(command);//请注意 入参 的类型
     }
 
-    public async Task<TResponse> SendCommand<TCommand, TResponse>(TCommand command,
-        CancellationToken cancellationToken = default(CancellationToken)) where TCommand : IBaseRequest
+    public async Task<TResponse> SendCommand<TCommand, TResponse>(
+        TCommand command,
+        CancellationToken cancellationToken = default(CancellationToken)
+    )
+        where TCommand : IBaseRequest
     {
         var obj = await SendCommand(command, cancellationToken);
-        return (TResponse)obj ;
+        return (TResponse)obj;
     }
 
     /// <summary>
@@ -53,7 +59,10 @@ public sealed class InMemoryBus : IMediatorHandler
     /// <param name="event">事件模型，比如StudentRegisteredEvent</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task RaiseEvent<T>(T @event, CancellationToken cancellationToken = default(CancellationToken))
+    public Task RaiseEvent<T>(
+        T @event,
+        CancellationToken cancellationToken = default(CancellationToken)
+    )
         where T : Event
     {
         // 除了领域通知以外的事件都保存下来

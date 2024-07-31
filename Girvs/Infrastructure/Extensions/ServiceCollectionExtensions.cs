@@ -2,10 +2,13 @@
 
 public static class ServiceCollectionExtensions
 {
-    public static (IEngine, AppSettings) ConfigureApplicationServices(this IServiceCollection services,
-        IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
+    public static (IEngine, AppSettings) ConfigureApplicationServices(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment webHostEnvironment
+    )
     {
-        ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
+        // ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
         CommonHelper.DefaultFileProvider = new GirvsFileProvider(webHostEnvironment);
 
         services.AddHttpContextAccessor();
@@ -22,7 +25,10 @@ public static class ServiceCollectionExtensions
         return (engine, appSettings);
     }
 
-    public static TConfig AddConfig<TConfig>(this IServiceCollection services, IConfiguration configuration)
+    public static TConfig AddConfig<TConfig>(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
         where TConfig : class, IConfig, new()
     {
         var config = new TConfig();
@@ -31,8 +37,10 @@ public static class ServiceCollectionExtensions
         return config;
     }
 
-
-    public static void AddBindSerilogConfiguation(this IServiceCollection services, IConfiguration configuration)
+    public static void AddBindSerilogConfiguation(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         if (!AppSettingsHelper.ExistSerilogConfigFile())
         {
@@ -40,8 +48,11 @@ public static class ServiceCollectionExtensions
         }
     }
 
-    public static void AddBindAppModelConfiguation(this IServiceCollection services, IConfiguration configuration,
-        AppSettings appSettings)
+    public static void AddBindAppModelConfiguation(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        AppSettings appSettings
+    )
     {
         configuration.Bind(appSettings);
         appSettings.PreLoadModelConfig();
@@ -50,8 +61,9 @@ public static class ServiceCollectionExtensions
 
         var typeFinder = new WebAppTypeFinder();
         var modelSettings = typeFinder.FindOfType<IAppModuleConfig>();
-        var instances = modelSettings
-            .Select(startup => (IAppModuleConfig)Activator.CreateInstance(startup));
+        var instances = modelSettings.Select(startup =>
+            (IAppModuleConfig)Activator.CreateInstance(startup)
+        );
 
         foreach (var appModelConfig in instances)
         {

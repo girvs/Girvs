@@ -1,6 +1,3 @@
 namespace Girvs.BusinessBasis.Entities;
 
-public interface IYearShardingTable
-{
-    
-}
+public interface IYearShardingTable { }

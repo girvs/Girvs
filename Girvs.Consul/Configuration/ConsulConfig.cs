@@ -11,11 +11,8 @@ public class ConsulConfig : IAppModuleConfig
 
     public ServerModel CurrentServerModel { get; set; } = ServerModel.WebApi;
 
-    public void Init()
-    {
-    }
+    public void Init() { }
 }
-
 
 public enum ServerModel
 {

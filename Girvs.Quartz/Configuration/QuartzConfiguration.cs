@@ -6,14 +6,15 @@ public class QuartzConfiguration : IAppModuleConfig
     {
         Tasks = new List<TaskConfig>();
     }
+
     public List<TaskConfig> Tasks { get; set; }
+
     public void Init()
     {
         Tasks.Add(new TaskConfig());
     }
 }
-    
-    
+
 public class TaskConfig
 {
     /// <summary>
@@ -45,7 +46,7 @@ public class TaskConfig
     /// 任务出现异常后,重启次数
     /// </summary>
     public int NumberOfTries { get; set; }
-        
+
     /// <summary>
     /// 是否为单线程任务
     /// </summary>

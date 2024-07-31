@@ -4,7 +4,8 @@ public static class IEngineExtensions
 {
     public static T RestService<T>(this IEngine engine)
     {
-        var attr = typeof(T).GetCustomAttribute(typeof(RefitServiceAttribute)) as RefitServiceAttribute;
+        var attr =
+            typeof(T).GetCustomAttribute(typeof(RefitServiceAttribute)) as RefitServiceAttribute;
         if (attr == null || string.IsNullOrEmpty(attr.ServiceName))
         {
             throw new GirvsException("请求配置错误");
@@ -21,10 +22,10 @@ public static class IEngineExtensions
         {
             throw new GirvsException($"未配置{attr.ServiceName}的请求地址");
         }
-            
+
         return global::Refit.RestService.For<T>(requestUrl);
     }
-        
+
     private static string LookupService(string serviceName)
     {
         var consulAddress = GetConsulAddress();
@@ -33,7 +34,9 @@ public static class IEngineExtensions
             configuration.Address = new Uri(consulAddress);
         });
 
-        var servicesEntry = consulClient.Health.Service(serviceName, string.Empty, true).Result.Response;
+        var servicesEntry = consulClient
+            .Health.Service(serviceName, string.Empty, true)
+            .Result.Response;
         if (servicesEntry != null && servicesEntry.Any())
         {
             int index = new Random().Next(servicesEntry.Count());
@@ -52,7 +55,7 @@ public static class IEngineExtensions
             var config = Singleton<AppSettings>.Instance.Get(ConfigNodeName);
             return config?.ConsulAddress;
         }
-        catch 
+        catch
         {
             var _refitConfig = EngineContext.Current.GetAppModuleConfig<RefitConfig>();
             return _refitConfig.ConsulServiceHost;

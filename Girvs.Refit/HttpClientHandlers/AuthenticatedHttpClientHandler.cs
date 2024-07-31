@@ -14,8 +14,10 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
         _logger = EngineContext.Current.Resolve<ILogger<AuthenticatedHttpClientHandler>>();
     }
 
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-        CancellationToken cancellationToken)
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
     {
         var headers = EngineContext.Current.HttpContext?.Request.Headers.ToList();
 
@@ -33,10 +35,10 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
             : _refitConfig[_refitServiceAttribute.ServiceName];
 
         _logger.LogInformation($"Girvs开始请求，请求ServerUrl地址为：{serverUrl}");
-            
-            
-        if (serverUrl.IsNullOrEmpty()) throw new GirvsException("GirvsRefit请求地址不能为空！");
-        string requestUriStr; 
+
+        if (serverUrl.IsNullOrEmpty())
+            throw new GirvsException("GirvsRefit请求地址不能为空！");
+        string requestUriStr;
         if (_refitServiceAttribute.InConsul)
         {
             requestUriStr = $"{current.Scheme}://{serverUrl}{current.PathAndQuery}";
@@ -45,11 +47,10 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
         {
             requestUriStr = $"{serverUrl}{current.PathAndQuery}";
         }
-            
 
         _logger.LogInformation($"Girvs开始请求，请求地址为：{requestUriStr}");
         request.RequestUri = new Uri(requestUriStr);
-            
+
         return base.SendAsync(request, cancellationToken);
     }
 
@@ -61,7 +62,9 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
             configuration.Address = new Uri(consulAddress);
         });
 
-        var servicesEntry = consulClient.Health.Service(serviceName, string.Empty, true).Result.Response;
+        var servicesEntry = consulClient
+            .Health.Service(serviceName, string.Empty, true)
+            .Result.Response;
         if (servicesEntry != null && servicesEntry.Any())
         {
             int index = new Random().Next(servicesEntry.Count());
@@ -80,10 +83,9 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
             var config = Singleton<AppSettings>.Instance.Get(ConfigNodeName);
             return config?.ConsulAddress;
         }
-        catch 
+        catch
         {
             return _refitConfig.ConsulServiceHost;
         }
     }
-        
 }

@@ -1,6 +1,7 @@
 ﻿namespace Girvs.BusinessBasis.Queries;
 
-public interface IQuery<TEntity>  where TEntity : Entity 
+public interface IQuery<TEntity>
+    where TEntity : Entity
 {
     int PageIndex { get; set; }
     int PageSize { get; set; }

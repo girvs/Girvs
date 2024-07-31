@@ -21,13 +21,18 @@ public class DefaultProfile : Profile, IOrderedMapperProfile
     {
         foreach (var modelType in types)
         {
-                
-            if (Attribute.GetCustomAttribute(modelType, typeof(AutoMapFromAttribute)) is AutoMapFromAttribute fromEntity)
+            if (
+                Attribute.GetCustomAttribute(modelType, typeof(AutoMapFromAttribute))
+                is AutoMapFromAttribute fromEntity
+            )
             {
                 CreateMap(fromEntity.EntityType, modelType);
             }
 
-            if (Attribute.GetCustomAttribute(modelType, typeof(AutoMapToAttribute)) is AutoMapToAttribute toEntity)
+            if (
+                Attribute.GetCustomAttribute(modelType, typeof(AutoMapToAttribute))
+                is AutoMapToAttribute toEntity
+            )
             {
                 CreateMap(modelType, toEntity.EntityType);
             }

@@ -36,8 +36,10 @@ public class ParameterManager
     private void InitXmlComment()
     {
         _xmlCommentHelper = new XmlCommentHelper();
-        var xmlFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-            $"{EntityType.Assembly.GetName().Name}.xml");
+        var xmlFilePath = Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory,
+            $"{EntityType.Assembly.GetName().Name}.xml"
+        );
         _xmlCommentHelper.Load(xmlFilePath);
     }
 
@@ -142,7 +144,9 @@ public class ParameterManager
 
     protected virtual IEnumerable<TemplateFieldParameter> CreateTemplateFieldParameter()
     {
-        var fields = EntityType.GetProperties().Where(x => x.CanWrite && !_needFilterFileds.Contains(x.Name));
+        var fields = EntityType
+            .GetProperties()
+            .Where(x => x.CanWrite && !_needFilterFileds.Contains(x.Name));
         var result = fields.Select(x =>
         {
             var (dbType, dbFieldMaxLength) = GetDbTypeName(x.PropertyType);
@@ -185,10 +189,11 @@ public class ParameterManager
 
         if (fieldType.IsGenericType)
         {
-            if (fieldType.FullName == null) return "List<>";
+            if (fieldType.FullName == null)
+                return "List<>";
             var fullName = fieldType.FullName;
             var tagIndex = fullName.IndexOf("[[", StringComparison.Ordinal);
-            var typeStr = fullName[(tagIndex+2)..(fullName.Length-2)];
+            var typeStr = fullName[(tagIndex + 2)..(fullName.Length - 2)];
             var subType = Type.GetType(typeStr);
             return subType != null ? $"List<{subType.Name}>" : "List<>";
         }

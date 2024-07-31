@@ -16,6 +16,6 @@ public static class SwaggerApplicationExtensions
             c.RoutePrefix = ""; // serve the UI at root
             c.SwaggerEndpoint("/v1/api-docs", "V1 Docs");
         });
-        return app; 
+        return app;
     }
 }

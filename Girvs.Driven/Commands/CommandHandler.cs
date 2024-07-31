@@ -11,7 +11,6 @@ public abstract class CommandHandler
         _bus = bus;
     }
 
-
     protected void NotifyValidationErrors(Command message)
     {
         foreach (var error in message.ValidationResult.Errors)

@@ -3,7 +3,8 @@
 public class DataRuleAttribute : Attribute
 {
     public DataRuleAttribute(
-        string attributeDesc, UserType userType = UserType.All,
+        string attributeDesc,
+        UserType userType = UserType.All,
         string tag = "",
         int order = 0,
         ConditionType conditionType = ConditionType.Or

@@ -1,19 +1,13 @@
 ﻿namespace Girvs.TypeFinder;
 
-public class WebAppTypeFinder : AppDomainTypeFinder
+public class WebAppTypeFinder(IGirvsFileProvider fileProvider = null)
+    : AppDomainTypeFinder(fileProvider)
 {
     private bool _binFolderAssembliesLoaded;
 
-    public WebAppTypeFinder(IGirvsFileProvider fileProvider = null) : base(fileProvider)
-    {
-    }
-
     public bool EnsureBinFolderAssembliesLoaded { get; set; } = true;
 
-    public virtual string GetBinDirectory()
-    {
-        return AppContext.BaseDirectory;
-    }
+    public virtual string GetBinDirectory() => AppContext.BaseDirectory;
 
     public override IList<Assembly> GetAssemblies()
     {

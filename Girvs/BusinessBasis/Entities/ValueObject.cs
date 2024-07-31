@@ -1,11 +1,12 @@
 ﻿namespace Girvs.BusinessBasis.Entities;
 
 /// <summary>
-/// 定义值对象基类 
+/// 定义值对象基类
 /// 注意没有唯一标识了
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public abstract class ValueObject<T> where T : ValueObject<T>
+public abstract class ValueObject<T>
+    where T : ValueObject<T>
 {
     /// <summary>
     /// 重写方法 相等运算
@@ -19,6 +20,7 @@ public abstract class ValueObject<T> where T : ValueObject<T>
     }
 
     protected abstract bool EqualsCore(T other);
+
     /// <summary>
     /// 获取哈希
     /// </summary>
@@ -29,6 +31,7 @@ public abstract class ValueObject<T> where T : ValueObject<T>
     }
 
     protected abstract int GetHashCodeCore();
+
     /// <summary>
     /// 重写方法 实体比较 ==
     /// </summary>
@@ -45,6 +48,7 @@ public abstract class ValueObject<T> where T : ValueObject<T>
 
         return a.Equals(b);
     }
+
     /// <summary>
     /// 重写方法 实体比较 !=
     /// </summary>
