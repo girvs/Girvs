@@ -5,24 +5,15 @@ public static class MappingExtensions
     public static TEntity MapToEntity<TEntity>(this Command command)
         where TEntity : Entity, new()
     {
-        IMapper mapper = EngineContext.Current.Resolve<IMapper>();
-        if (mapper != null)
-        {
-            return mapper.Map<TEntity>(command);
-        }
-        return new TEntity();
+        var mapper = EngineContext.Current.Resolve<IMapper>();
+        return mapper != null ? mapper.Map<TEntity>(command) : new TEntity();
     }
 
     public static TDto MapToDto<TDto>(this Command command)
         where TDto : IDto, new()
     {
-        IMapper mapper = EngineContext.Current.Resolve<IMapper>();
-        if (mapper != null)
-        {
-            return mapper.Map<TDto>(command);
-        }
-
-        return new TDto();
+        var mapper = EngineContext.Current.Resolve<IMapper>();
+        return mapper != null ? mapper.Map<TDto>(command) : new TDto();
     }
 
     public static TCommand MapToCommand<TCommand>(this IDto dto)

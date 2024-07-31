@@ -3,24 +3,9 @@
 /// <summary>
 /// 一个密封类，实现我们的中介内存总线
 /// </summary>
-public sealed class InMemoryBus : IMediatorHandler
+public sealed class InMemoryBus(IMediator mediator) : IMediatorHandler
 {
-    //构造函数注入
-    private readonly IMediator _mediator;
-
-    //注入服务工厂
-    // private readonly ServiceFactory _serviceFactory;
-    //
-    // private static readonly ConcurrentDictionary<Type, object> _requestHandlers =
-    //     new ConcurrentDictionary<Type, object>();
-
-
-    public InMemoryBus(IMediator mediator)
-    {
-        _mediator = mediator;
-        // _serviceFactory = serviceFactory;
-    }
-
+    // _serviceFactory = serviceFactory;
     /// <summary>
     /// 实现我们在IMediatorHandler中定义的接口
     /// 没有返回值
@@ -33,24 +18,13 @@ public sealed class InMemoryBus : IMediatorHandler
         T command,
         CancellationToken cancellationToken = default(CancellationToken)
     )
-        where T : IBaseRequest
-    {
-        //这个是正确的
-        return _mediator.Send(command, cancellationToken); //请注意 入参 的类型
-
-        //注意！这个仅仅是用来测试和研究源码的，请开发的时候不要使用这个
-        //return Send(command);//请注意 入参 的类型
-    }
+        where T : IBaseRequest => mediator.Send(command, cancellationToken);
 
     public async Task<TResponse> SendCommand<TCommand, TResponse>(
         TCommand command,
         CancellationToken cancellationToken = default(CancellationToken)
     )
-        where TCommand : IBaseRequest
-    {
-        var obj = await SendCommand(command, cancellationToken);
-        return (TResponse)obj;
-    }
+        where TCommand : IBaseRequest => (TResponse)await SendCommand(command, cancellationToken);
 
     /// <summary>
     /// 引发事件的实现方法
@@ -63,13 +37,5 @@ public sealed class InMemoryBus : IMediatorHandler
         T @event,
         CancellationToken cancellationToken = default(CancellationToken)
     )
-        where T : Event
-    {
-        // 除了领域通知以外的事件都保存下来
-        //if (!@event.MessageType.Equals("DomainNotification"))
-        //    _eventStoreService?.Save(@event);
-
-        // MediatR中介者模式中的第二种方法，发布/订阅模式
-        return _mediator.Publish(@event, cancellationToken);
-    }
+        where T : Event => mediator.Publish(@event, cancellationToken);
 }

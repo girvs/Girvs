@@ -7,13 +7,9 @@
 public class DomainNotificationHandler : INotificationHandler<DomainNotification>
 {
     // 通知信息列表
-    private List<DomainNotification> _notifications;
+    private List<DomainNotification> _notifications = new();
 
     // 每次访问该处理程序的时候，实例化一个空集合
-    public DomainNotificationHandler()
-    {
-        _notifications = new List<DomainNotification>();
-    }
 
     // 处理方法，把全部的通知信息，添加到内存里
     public Task Handle(DomainNotification message, CancellationToken cancellationToken)
@@ -23,16 +19,13 @@ public class DomainNotificationHandler : INotificationHandler<DomainNotification
     }
 
     // 获取当前生命周期内的全部通知信息
-    public virtual IEnumerable<DomainNotification> GetNotifications()
-    {
-        return _notifications;
-    }
+    public virtual IEnumerable<DomainNotification> GetNotifications() => _notifications;
 
     public virtual Dictionary<string, IList<string>> GetNotificationMessage()
     {
         var error = new Dictionary<string, IList<string>>();
 
-        if (!_notifications.Any())
+        if (_notifications.Count == 0)
             return error;
 
         _notifications.ForEach(x =>
@@ -47,14 +40,11 @@ public class DomainNotificationHandler : INotificationHandler<DomainNotification
     }
 
     // 判断在当前总线对象周期中，是否存在通知信息
-    public virtual bool HasNotifications()
-    {
-        return GetNotifications().Any();
-    }
+    public virtual bool HasNotifications() => GetNotifications().Any();
 
     // 手动回收（清空通知）
     public void Dispose()
     {
-        _notifications = new List<DomainNotification>();
+        _notifications = [];
     }
 }

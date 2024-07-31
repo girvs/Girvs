@@ -1,18 +1,13 @@
 ﻿namespace Girvs.Driven.CacheDriven.EventHandlers;
 
-public class RemoveCacheEventHandlers
+public class RemoveCacheEventHandlers(IStaticCacheManager staticCacheManager)
     : INotificationHandler<RemoveCacheEvent>,
         INotificationHandler<RemoveCacheListEvent>,
         INotificationHandler<SetCacheEvent>,
         INotificationHandler<RemoveCacheByPrefixEvent>
 {
-    private readonly IStaticCacheManager _staticCacheManager;
-
-    public RemoveCacheEventHandlers(IStaticCacheManager staticCacheManager)
-    {
-        _staticCacheManager =
-            staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
-    }
+    private readonly IStaticCacheManager _staticCacheManager =
+        staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
 
     public Task Handle(RemoveCacheEvent notification, CancellationToken cancellationToken)
     {

@@ -5,20 +5,16 @@
 /// </summary>
 /// <typeparam name="TRequest"></typeparam>
 /// <typeparam name="TResponse"></typeparam>
-public class CommandOperateBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+public class CommandOperateBehavior<TRequest, TResponse>(
+    IMediatorHandler mediator,
+    ILogger<CommandOperateBehavior<TRequest, TResponse>> logger
+) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly IMediatorHandler _mediator;
-    private readonly ILogger<CommandOperateBehavior<TRequest, TResponse>> _logger;
-
-    public CommandOperateBehavior(
-        IMediatorHandler mediator,
-        ILogger<CommandOperateBehavior<TRequest, TResponse>> logger
-    )
-    {
-        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly IMediatorHandler _mediator =
+        mediator ?? throw new ArgumentNullException(nameof(mediator));
+    private readonly ILogger<CommandOperateBehavior<TRequest, TResponse>> _logger =
+        logger ?? throw new ArgumentNullException(nameof(logger));
 
     public async Task<TResponse> Handle(
         TRequest request,
