@@ -14,15 +14,15 @@ public class EventBusModule : IAppModuleStartup
                 {
                     if (connectionConfig.Name == eventBusConfig.DbConnectionString)
                     {
-                        return ((DbType) (int) connectionConfig.UseDataType,
-                            connectionConfig.MasterDataConnectionString);
+                        return (
+                            (DbType)(int)connectionConfig.UseDataType,
+                            connectionConfig.MasterDataConnectionString
+                        );
                     }
                 }
             }
-        } 
-        finally
-        {
         }
+        finally { }
 
         return (eventBusConfig.DbType, eventBusConfig.DbConnectionString);
     }
@@ -37,9 +37,7 @@ public class EventBusModule : IAppModuleStartup
                 return cacheConfig.RedisCacheConfig.ConnectionString;
             }
         }
-        finally
-        {
-        }
+        finally { }
 
         return eventBusConfigRedisConnStr;
     }
@@ -55,75 +53,97 @@ public class EventBusModule : IAppModuleStartup
 
         var (dbType, connStr) = GetDbConnString(eventBusConfig);
 
-        services.AddCap(x =>
-        {
-            switch (dbType)
+        services
+            .AddCap(x =>
             {
-                case DbType.MsSql:
-                    x.UseSqlServer(connStr);
-                    break;
-                case DbType.MySql:
-                    x.UseMySql(connStr);
-                    break;
-                // case DbType.Oracle:
-                //     x.UseOracle(connStr);
-                //     break;
-                case DbType.SqlLite:
-                    x.UseSqlite(connStr);
-                    break;
-            }
+                switch (dbType)
+                {
+                    case DbType.MsSql:
+                        x.UseSqlServer(connStr);
+                        break;
+                    case DbType.MySql:
+                        x.UseMySql(connStr);
+                        break;
+                    // case DbType.Oracle:
+                    //     x.UseOracle(connStr);
+                    //     break;
+                    case DbType.SqlLite:
+                        x.UseSqlite(connStr);
+                        break;
+                }
 
-            switch (eventBusConfig.EventBusType)
-            {
-                case EventBusType.RabbitMQ:
-                    x.UseRabbitMQ(options =>
-                    {
-                        options.HostName = eventBusConfig.RabbitMqConfig.HostName;
-                        options.Port = eventBusConfig.RabbitMqConfig.Port;
-                        options.UserName = eventBusConfig.RabbitMqConfig.UserName;
-                        options.Password = eventBusConfig.RabbitMqConfig.Password;
-                        options.VirtualHost = eventBusConfig.RabbitMqConfig.VirtualHost;
-                    });
-                    break;
-                case EventBusType.Kafka:
-                    x.UseKafka(configure =>
-                    {
-                        configure.Servers = eventBusConfig.KafkaConfig.KafKaConnectionString;
-                        configure.MainConfig.Add("ssl.ca.location", eventBusConfig.KafkaConfig.SslCaLocation);
-                        configure.MainConfig.Add("sasl.mechanism", eventBusConfig.KafkaConfig.SaslMechanism);
-                        configure.MainConfig.Add("security.protocol", eventBusConfig.KafkaConfig.SecurityProtocol);
-                        configure.MainConfig.Add("sasl.username", eventBusConfig.KafkaConfig.SaslUsername);
-                        configure.MainConfig.Add("sasl.password", eventBusConfig.KafkaConfig.SaslPassword);
-                        //configure.MainConfig.Add("allow.auto.create.topics", "true");
-                    });
-                    break;
-                case EventBusType.Redis:
-                    x.UseRedis(GetRedisConnectionString(eventBusConfig.RedisConfig.RedisConnectionString));
-                    break;
-            }
+                switch (eventBusConfig.EventBusType)
+                {
+                    case EventBusType.RabbitMQ:
+                        x.UseRabbitMQ(options =>
+                        {
+                            options.HostName = eventBusConfig.RabbitMqConfig.HostName;
+                            options.Port = eventBusConfig.RabbitMqConfig.Port;
+                            options.UserName = eventBusConfig.RabbitMqConfig.UserName;
+                            options.Password = eventBusConfig.RabbitMqConfig.Password;
+                            options.VirtualHost = eventBusConfig.RabbitMqConfig.VirtualHost;
+                        });
+                        break;
+                    case EventBusType.Kafka:
+                        x.UseKafka(configure =>
+                        {
+                            configure.Servers = eventBusConfig.KafkaConfig.KafKaConnectionString;
+                            configure.MainConfig.Add(
+                                "ssl.ca.location",
+                                eventBusConfig.KafkaConfig.SslCaLocation
+                            );
+                            configure.MainConfig.Add(
+                                "sasl.mechanism",
+                                eventBusConfig.KafkaConfig.SaslMechanism
+                            );
+                            configure.MainConfig.Add(
+                                "security.protocol",
+                                eventBusConfig.KafkaConfig.SecurityProtocol
+                            );
+                            configure.MainConfig.Add(
+                                "sasl.username",
+                                eventBusConfig.KafkaConfig.SaslUsername
+                            );
+                            configure.MainConfig.Add(
+                                "sasl.password",
+                                eventBusConfig.KafkaConfig.SaslPassword
+                            );
+                            //configure.MainConfig.Add("allow.auto.create.topics", "true");
+                        });
+                        break;
+                    case EventBusType.Redis:
+                        x.UseRedis(
+                            GetRedisConnectionString(
+                                eventBusConfig.RedisConfig.RedisConnectionString
+                            )
+                        );
+                        break;
+                }
 
-            //x.UseGrivsConfigDataBase();
-            x.UseDashboard(d =>
-            {
+                //x.UseGrivsConfigDataBase();
+                x.UseDashboard(d =>
+                {
 #if DEBUG
-                //d.PathBase = "/cap";
+                    //d.PathBase = "/cap";
 #else
-                    var virticalPath = System.AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
+                    var virticalPath = System.AppDomain.CurrentDomain.FriendlyName.Replace(
+                        ".",
+                        "_"
+                    );
                     d.PathBase = $"/{virticalPath}";
 #endif
-            });
-            x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
-            // x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
-        }).AddSubscribeFilter<GirvsCapFilter>();
+                });
+                x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
+                x.SucceedMessageExpiredAfter = eventBusConfig.SucceedMessageExpiredAfter;
+                x.FailedMessageExpiredAfter = eventBusConfig.FailedMessageExpiredAfter;
+                // x.ProducerThreadCount = eventBusConfig.ProducerThreadCount;
+            })
+            .AddSubscribeFilter<GirvsCapFilter>();
     }
 
-    public void Configure(IApplicationBuilder application)
-    {
-    }
+    public void Configure(IApplicationBuilder application) { }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 50000;
 }
