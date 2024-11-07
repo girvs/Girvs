@@ -1,8 +1,6 @@
 ﻿namespace Girvs.BusinessBasis.Entities;
 
-public abstract class BaseEntity : BaseEntity<Guid>
-{
-}
+public abstract class BaseEntity : BaseEntity<Guid> { }
 
 /// <summary>
 /// 所有实体基类
@@ -61,14 +59,17 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
                 }
             }
 
-            var multiTenantPrperty = GetType().GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
+            var multiTenantPrperty = GetType()
+                .GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
             if (multiTenantPrperty != null)
             {
                 var tenantIdStr = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
                 if (!string.IsNullOrEmpty(tenantIdStr))
                 {
-                    var value = GirvsConvert.ToSpecifiedType(multiTenantPrperty.PropertyType.FullName,
-                        tenantIdStr);
+                    var value = GirvsConvert.ToSpecifiedType(
+                        multiTenantPrperty.PropertyType.FullName,
+                        tenantIdStr
+                    );
                     multiTenantPrperty.SetValue(this, value);
                 }
             }
@@ -79,8 +80,10 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
                 var currentUserIdStr = EngineContext.Current.ClaimManager.IdentityClaim.UserId;
                 if (!string.IsNullOrEmpty(currentUserIdStr))
                 {
-                    var value = GirvsConvert.ToSpecifiedType(creatorPrperty.PropertyType.FullName,
-                        currentUserIdStr);
+                    var value = GirvsConvert.ToSpecifiedType(
+                        creatorPrperty.PropertyType.FullName,
+                        currentUserIdStr
+                    );
                     creatorPrperty.SetValue(this, value);
                 }
             }
@@ -90,7 +93,7 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
     /// <summary>
     /// 主键值
     /// </summary>
-    public TPrimaryKey Id { get; set; }
+    public virtual TPrimaryKey Id { get; set; }
 
     /// <summary>
     /// 重写方法 相等运算
@@ -101,8 +104,10 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
     {
         var compareTo = obj as BaseEntity<TPrimaryKey>;
 
-        if (ReferenceEquals(this, compareTo)) return true;
-        if (ReferenceEquals(null, compareTo)) return false;
+        if (ReferenceEquals(this, compareTo))
+            return true;
+        if (ReferenceEquals(null, compareTo))
+            return false;
 
         return Id.Equals(compareTo.Id);
     }
