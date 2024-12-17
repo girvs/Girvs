@@ -1,6 +1,9 @@
-﻿namespace Girvs.Swagger;
+﻿using Girvs.Configuration;
+using Girvs.Swagger.Configuration;
 
-public class SwaggerModule: IAppModuleStartup
+namespace Girvs.Swagger;
+
+public class SwaggerModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
@@ -14,6 +17,11 @@ public class SwaggerModule: IAppModuleStartup
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
     {
+        var cacheConfig = Singleton<AppSettings>.Instance.Get<SwaggerConfig>();
+
+        if (!cacheConfig.EnableSwagger)
+            return;
+
         builder.MapSwagger("{documentName}/api-docs");
     }
 
