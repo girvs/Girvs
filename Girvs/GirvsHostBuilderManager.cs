@@ -9,10 +9,15 @@ public static class GirvsHostBuilderManager
     {
         return Host.CreateDefaultBuilder(args)
             .UseConsoleLifetime()
-            .UseSerilog((context, config) => { config.ReadFrom.Configuration(context.Configuration); })
+            .UseSerilog(
+                (context, config) =>
+                {
+                    config.ReadFrom.Configuration(context.Configuration);
+                }
+            )
             .UseDefaultServiceProvider(options =>
             {
-                //we don't validate the scopes, since at the app start and the initial configuration we need 
+                //we don't validate the scopes, since at the app start and the initial configuration we need
                 //to resolve some services (registered as "scoped") through the root container
                 options.ValidateScopes = false;
                 options.ValidateOnBuild = true;
@@ -25,7 +30,7 @@ public static class GirvsHostBuilderManager
                         config
                             .AddJsonFile(ConfigurationDefaults.AppSettingsFilePath, true, true)
                             .AddJsonFile(ConfigurationDefaults.SerilogSettingFilePath, true, true)
-                            .AddJsonFile("./config/appsettings.Development.json", true, true)
+                            .AddJsonFile("./config/appsettings.Production.json", true, true)
                             .AddEnvironmentVariables()
                             .AddCommandLine(args);
                     })
