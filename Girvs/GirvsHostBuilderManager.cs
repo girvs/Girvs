@@ -26,25 +26,66 @@ public static class GirvsHostBuilderManager
             {
                 webBuilder
                     .ConfigureAppConfiguration(
-                        (hostingContext, config) =>
+                        (hostingContext, appConfigBuilder) =>
                         {
+                            //清除源有的源
+                            appConfigBuilder.Sources.Clear();
+
                             var reloadOnChange = hostingContext.Configuration.GetValue(
                                 "hostBuilder:reloadConfigOnChange",
                                 defaultValue: true
                             );
+                            var env = hostingContext.HostingEnvironment;
 
-                            config.AddJsonFile(
-                                ConfigurationDefaults.SerilogSettingFilePath,
-                                true,
-                                reloadOnChange
-                            );
+                            appConfigBuilder
+                                .AddJsonFile(
+                                    ConfigurationDefaults.AppSettingsFilePath,
+                                    true,
+                                    reloadOnChange
+                                )
+                                .AddJsonFile(
+                                    ConfigurationDefaults.SerilogSettingFilePath,
+                                    true,
+                                    reloadOnChange
+                                )
+                                .AddJsonFile(
+                                    ConfigurationDefaults.AppSettingsEnvironmentNameFilePath(
+                                        env.EnvironmentName
+                                    ),
+                                    optional: true,
+                                    reloadOnChange: reloadOnChange
+                                );
+
+                            if (env.IsDevelopment() && env.ApplicationName is { Length: > 0 })
+                            {
+                                try
+                                {
+                                    var appAssembly = Assembly.Load(
+                                        new AssemblyName(env.ApplicationName)
+                                    );
+                                    appConfigBuilder.AddUserSecrets(
+                                        appAssembly,
+                                        optional: true,
+                                        reloadOnChange: reloadOnChange
+                                    );
+                                }
+                                catch (FileNotFoundException)
+                                {
+                                    // The assembly cannot be found, so just skip it.
+                                }
+                            }
+
+                            appConfigBuilder.AddEnvironmentVariables();
+
+                            if (args is { Length: > 0 })
+                                appConfigBuilder.AddCommandLine(args);
 
                             // 获取配置并执行替换操作
-                            var builtConfig = config.Build(); // 创建配置实例
+                            var builtConfig = appConfigBuilder.Build(); // 创建配置实例
 
                             builtConfig.ReplaceEnvironmentVariables(); // 自定义方法，替换占位符
 
-                            config.AddConfiguration(builtConfig);
+                            appConfigBuilder.AddConfiguration(builtConfig);
                         }
                     )
                     .UseStartup<TStartup>();
