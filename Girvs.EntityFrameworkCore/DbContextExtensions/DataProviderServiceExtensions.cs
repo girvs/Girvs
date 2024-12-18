@@ -8,29 +8,43 @@ public static class DataProviderServiceExtensions
     public static void AddGirvsObjectContext(this IServiceCollection services)
     {
         var typeFinder = new WebAppTypeFinder();
-        var dbContexts = typeFinder.FindOfType(typeof
-            (GirvsDbContext)).Where(x => !x.IsAbstract && !x.IsInterface).ToList();
+        var dbContexts = typeFinder
+            .FindOfType(typeof(GirvsDbContext))
+            .Where(x => !x.IsAbstract && !x.IsInterface)
+            .ToList();
 
-        if (!dbContexts.Any()) return;
+        if (!dbContexts.Any())
+            return;
         var serviceType = typeof(DataProviderServiceExtensions);
         var mi = serviceType.GetMethod(nameof(AddGirvsDbContext));
-        if (mi == null) return;
+        if (mi == null)
+            return;
         foreach (var dbContext in dbContexts)
         {
             var dmi = mi.MakeGenericMethod(dbContext);
-            var config = EngineContext.Current.GetAppModuleConfig<DbConfig>()?.GetDataConnectionConfig(dbContext);
-            dmi.Invoke(serviceType, new object[] {services, config});
+            var config = EngineContext
+                .Current.GetAppModuleConfig<DbConfig>()
+                ?.GetDataConnectionConfig(dbContext);
+            dmi.Invoke(serviceType, [services, config]);
         }
     }
 
-    public static IServiceCollection AddGirvsDbContext<TContext>(this IServiceCollection services,
-        DataConnectionConfig config)
+    public static IServiceCollection AddGirvsDbContext<TContext>(
+        this IServiceCollection services,
+        DataConnectionConfig config
+    )
         where TContext : GirvsDbContext
     {
-        return services.AddDbContext<TContext>((provider, builder) =>
-        {
-            builder.ConfigDbContextOptionsBuilder<TContext>(config,
-                config?.GetSecureRandomReadDataConnectionString());
-        }, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
+        return services.AddDbContext<TContext>(
+            (provider, builder) =>
+            {
+                builder.ConfigDbContextOptionsBuilder<TContext>(
+                    config,
+                    config?.GetSecureRandomReadDataConnectionString()
+                );
+            },
+            ServiceLifetime.Scoped,
+            ServiceLifetime.Scoped
+        );
     }
 }
