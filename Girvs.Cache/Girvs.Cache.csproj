@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>8.0.0-beta1</Version>
-    <PackageVersion>8.0.0-beta1</PackageVersion>
-    <LangVersion>12</LangVersion>
+    <Version>9.0.0-beta1</Version>
+    <PackageVersion>9.0.0-beta1</PackageVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
