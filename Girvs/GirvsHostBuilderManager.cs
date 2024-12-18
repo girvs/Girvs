@@ -25,25 +25,28 @@ public static class GirvsHostBuilderManager
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder
-                    .ConfigureAppConfiguration(config =>
-                    {
-                        // 清除原有的配置源
-                        config.Sources.Clear();
+                    .ConfigureAppConfiguration(
+                        (hostingContext, config) =>
+                        {
+                            var reloadOnChange = hostingContext.Configuration.GetValue(
+                                "hostBuilder:reloadConfigOnChange",
+                                defaultValue: true
+                            );
 
-                        config
-                            .AddJsonFile(ConfigurationDefaults.AppSettingsFilePath, false, true)
-                            .AddJsonFile(ConfigurationDefaults.SerilogSettingFilePath, false, true)
-                            .AddJsonFile("./config/appsettings.Production.json", false, true)
-                            .AddEnvironmentVariables()
-                            .AddCommandLine(args);
+                            config.AddJsonFile(
+                                ConfigurationDefaults.SerilogSettingFilePath,
+                                true,
+                                reloadOnChange
+                            );
 
-                        // 获取配置并执行替换操作
-                        var builtConfig = config.Build(); // 创建配置实例
+                            // 获取配置并执行替换操作
+                            var builtConfig = config.Build(); // 创建配置实例
 
-                        builtConfig.ReplaceEnvironmentVariables(); // 自定义方法，替换占位符
+                            builtConfig.ReplaceEnvironmentVariables(); // 自定义方法，替换占位符
 
-                        config.AddConfiguration(builtConfig);
-                    })
+                            config.AddConfiguration(builtConfig);
+                        }
+                    )
                     .UseStartup<TStartup>();
             });
     }
