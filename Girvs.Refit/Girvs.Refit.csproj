@@ -3,8 +3,8 @@
     <PropertyGroup>
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Version>9.0.0-beta1</Version>
-        <PackageVersion>9.0.0-beta1</PackageVersion>
+        <Version>9.0.0-beta1.1</Version>
+        <PackageVersion>9.0.0-beta1.1</PackageVersion>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
