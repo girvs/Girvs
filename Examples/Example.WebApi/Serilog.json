@@ -1,0 +1,69 @@
+﻿{
+  "Serilog": {
+    "Using": [
+      "Serilog.Settings.Configuration",
+      "Serilog.Sinks.File"
+    ],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Debug",
+        "System": "Debug"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}",
+          "restrictedToMinimumLevel": "Debug"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Debug",
+          "RollingInterval": "Hour",
+          "path": "./logs/Warning/log-Debug-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Warning",
+          "RollingInterval": "Hour",
+          "path": "./logs/Warning/log-Warning-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Information",
+          "RollingInterval": "Hour",
+          "path": "./logs/Information/log-Information-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Error",
+          "RollingInterval": "Hour",
+          "path": "./logs/Error/log-Error-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Fatal",
+          "RollingInterval": "Hour",
+          "path": "./logs/Fatal/log-Fatal-.log",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm-dd } || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception} ||end {NewLine}"
+        }
+      }
+    ]
+  }
+}

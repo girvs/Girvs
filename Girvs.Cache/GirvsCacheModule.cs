@@ -14,19 +14,15 @@ public class GirvsCacheModule : IAppModuleStartup
                 break;
             case CacheType.Redis:
                 services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
-                services.AddSingleton<ILocker, RedisConnectionWrapper>();
+                services.AddScoped<ILocker, RedisConnectionWrapper>();
                 services.AddSingleton<IStaticCacheManager, RedisCacheManager>();
                 break;
         }
     }
 
-    public void Configure(IApplicationBuilder application)
-    {
-    }
+    public void Configure(IApplicationBuilder application) { }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 1;
 }
