@@ -4,31 +4,40 @@
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.0-beta1.2</Version>
-        <PackageVersion>9.0.0-beta1.2</PackageVersion>
+        <Version>9.0.0-beta1.3</Version>
+        <PackageVersion>9.0.0-beta1.3</PackageVersion>
         <LangVersion>latest</LangVersion>
+        <Copyright>kicck</Copyright>
+        <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/girvs/Girvs?tab=Apache-2.0-1-ov-file</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/girvs/Girvs</RepositoryUrl>
+        <RepositoryType>Github</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj" />
+        <ProjectReference Include="..\Girvs.DynamicWebApi\Girvs.DynamicWebApi.csproj"/>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="DotLiquid" Version="2.2.692" />
+        <PackageReference Include="DotLiquid" Version="2.2.692"/>
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\BrowseViewModel.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\CreateViewModel.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\QueryViewModel.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\ViewModels\UpdateViewModel.tt" />
-      <EmbeddedResource Include="CodeTemplates\Domain\CommandHandlers\CommandHandler.tt" />
-      <EmbeddedResource Include="CodeTemplates\Domain\Commands\CreateCommand.tt" />
-      <EmbeddedResource Include="CodeTemplates\Domain\Commands\DeleteCommand.tt" />
-      <EmbeddedResource Include="CodeTemplates\Domain\Commands\UpdateCommand.tt" />
-      <EmbeddedResource Include="CodeTemplates\Domain\Queries\EntityQuery.tt" />
-      <EmbeddedResource Include="CodeTemplates\Domain\Repositories\IEntityRepository.tt" />
-      <EmbeddedResource Include="CodeTemplates\Infrastructure\EntityConfigurations\EntityTypeConfiguation.tt" />
-      <EmbeddedResource Include="CodeTemplates\Infrastructure\Repositories\EntityRepository.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\AppService\IService.tt" />
-      <EmbeddedResource Include="CodeTemplates\Application\AppService\Service.tt" />
+        <EmbeddedResource Include="CodeTemplates\Application\ViewModels\BrowseViewModel.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Application\ViewModels\CreateViewModel.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Application\ViewModels\QueryViewModel.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Application\ViewModels\UpdateViewModel.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Domain\CommandHandlers\CommandHandler.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Domain\Commands\CreateCommand.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Domain\Commands\DeleteCommand.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Domain\Commands\UpdateCommand.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Domain\Queries\EntityQuery.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Domain\Repositories\IEntityRepository.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Infrastructure\EntityConfigurations\EntityTypeConfiguation.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Infrastructure\Repositories\EntityRepository.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Application\AppService\IService.tt"/>
+        <EmbeddedResource Include="CodeTemplates\Application\AppService\Service.tt"/>
     </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <Exec Command="dotnet nuget push ./bin/Release/Girvs.CodeGenerator.$(PackageVersion).nupkg   --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key oy2bohmvcdiybmpjukzapf"/>
+    </Target>
 </Project>
