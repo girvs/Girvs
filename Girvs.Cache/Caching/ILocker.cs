@@ -8,12 +8,12 @@ public interface ILocker
     /// <param name="key">The key we are locking on</param>
     /// <param name="expirationTime">The time after which the lock will automatically be expired</param>
     /// <param name="action">Action to be performed with locking</param>
-    /// <param name="releaseImmediately"></param>
+    /// <param name="immediateLockDispose"></param>
     /// <returns>True if lock was acquired and action was performed; otherwise false</returns>
     Task<bool> PerformActionWithLock(
         string key,
         TimeSpan expirationTime,
         Func<Task> action,
-        bool releaseImmediately = true
+        bool immediateLockDispose = true
     );
 }

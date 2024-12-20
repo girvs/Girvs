@@ -140,28 +140,40 @@ public class RedisConnectionWrapper : IRedisConnectionWrapper, ILocker
     /// <param name="key">The thing we are locking on</param>
     /// <param name="expirationTime">The time after which the lock will automatically be expired by Redis</param>
     /// <param name="action">Action to be performed with locking</param>
-    /// <param name="releaseImmediately"></param>
+    /// <param name="immediateLockDispose"></param>
     /// <returns>True if lock was acquired and action was performed; otherwise false</returns>
     public async Task<bool> PerformActionWithLock(
         string key,
         TimeSpan expirationTime,
         Func<Task> action,
-        bool releaseImmediately = true
+        bool immediateLockDispose = true
     )
     {
         //use RedLock library
         var redisLock = await _redisLockFactory.CreateLockAsync(key, expirationTime);
         //ensure that lock is acquired
+
         if (!redisLock.IsAcquired)
             return false;
 
-        //perform action
-        await action();
+        try
+        {
+            //执行操作
+            await action();
 
-        if (releaseImmediately)
+            //释放锁
+            if (immediateLockDispose)
+                await redisLock.DisposeAsync();
+
+            //返回成功
+            return true;
+        }
+        catch (Exception e)
+        {
+            //如果遇到异常，立即释放锁，以免锁无法释放，影响重试等操作
             await redisLock.DisposeAsync();
-
-        return true;
+            throw;
+        }
     }
 
     /// <summary>
@@ -187,6 +199,7 @@ public class RedisConnectionWrapper : IRedisConnectionWrapper, ILocker
             //dispose RedLock factory
             _redisLockFactory?.Dispose();
         }
+
         _disposed = true;
     }
 

@@ -9,7 +9,7 @@ public class GirvsCacheModule : IAppModuleStartup
         switch (cacheConfig.DistributedCacheType)
         {
             case CacheType.Memory:
-                services.AddSingleton<ILocker, MemoryCacheManager>();
+                services.AddScoped<ILocker, MemoryCacheManager>();
                 services.AddSingleton<IStaticCacheManager, MemoryCacheManager>();
                 break;
             case CacheType.Redis:
