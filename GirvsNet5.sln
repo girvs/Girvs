@@ -37,6 +37,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{31
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.WebApi", "examples\Example.WebApi\Example.WebApi.csproj", "{163A8C14-9269-4456-93BC-B11527BE849B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Girvs.OpenApi", "Girvs.OpenApi\Girvs.OpenApi.csproj", "{12F38C5F-8932-4F4C-8943-E1BED936E688}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +109,10 @@ Global
 		{163A8C14-9269-4456-93BC-B11527BE849B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{163A8C14-9269-4456-93BC-B11527BE849B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{163A8C14-9269-4456-93BC-B11527BE849B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12F38C5F-8932-4F4C-8943-E1BED936E688}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12F38C5F-8932-4F4C-8943-E1BED936E688}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12F38C5F-8932-4F4C-8943-E1BED936E688}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12F38C5F-8932-4F4C-8943-E1BED936E688}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -35,7 +35,7 @@
     </ItemGroup>
 
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent"  Condition="'$(Configuration)' == 'Release'">
         <Exec Command="dotnet nuget push ./bin/Release/Girvs.SignalR.$(PackageVersion).nupkg   --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key oy2bohmvcdiybmpjukzapf"/>
     </Target>
 </Project>

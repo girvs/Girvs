@@ -37,7 +37,7 @@
         <EmbeddedResource Include="CodeTemplates\Application\AppService\Service.tt"/>
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent"  Condition="'$(Configuration)' == 'Release'">
         <Exec Command="dotnet nuget push ./bin/Release/Girvs.CodeGenerator.$(PackageVersion).nupkg   --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key oy2bohmvcdiybmpjukzapf"/>
     </Target>
 </Project>
