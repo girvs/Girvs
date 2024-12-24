@@ -1,4 +1,6 @@
-﻿namespace Girvs.Driven;
+﻿using Microsoft.AspNetCore.Hosting;
+
+namespace Girvs.Driven;
 
 public class DrivenModule : IAppModuleStartup
 {
@@ -28,7 +30,7 @@ public class DrivenModule : IAppModuleStartup
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
     }
 
-    public void Configure(IApplicationBuilder application) { }
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 

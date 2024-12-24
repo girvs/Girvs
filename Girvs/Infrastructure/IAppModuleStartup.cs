@@ -4,8 +4,8 @@ public interface IAppModuleStartup
 {
     void ConfigureServices(IServiceCollection services, IConfiguration configuration);
 
-    void Configure(IApplicationBuilder application);
-        
+    void Configure(IApplicationBuilder application, IWebHostEnvironment env);
+
     /// <summary>
     /// 端点路由生成器配置
     /// </summary>

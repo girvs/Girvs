@@ -1,4 +1,6 @@
-﻿namespace Girvs.Cache;
+﻿using Microsoft.AspNetCore.Hosting;
+
+namespace Girvs.Cache;
 
 public class GirvsCacheModule : IAppModuleStartup
 {
@@ -20,7 +22,7 @@ public class GirvsCacheModule : IAppModuleStartup
         }
     }
 
-    public void Configure(IApplicationBuilder application) { }
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 

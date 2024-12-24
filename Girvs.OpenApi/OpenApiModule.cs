@@ -31,9 +31,8 @@ public class OpenApiModule : IAppModuleStartup
         );
     }
 
-    public void Configure(IApplicationBuilder application)
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
     {
-        var env = application.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
         if (env.IsDevelopment())
         {
             application.UseSwaggerUI(options =>

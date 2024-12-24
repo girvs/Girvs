@@ -1,5 +1,5 @@
-﻿using Girvs.Configuration;
-using Girvs.Swagger.Configuration;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Girvs.Swagger;
 
@@ -10,19 +10,21 @@ public class SwaggerModule : IAppModuleStartup
         services.AddSwaggerServices();
     }
 
-    public void Configure(IApplicationBuilder application)
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
     {
-        application.UseSwaggerService();
+        if (env.IsDevelopment())
+        {
+            application.UseSwaggerService();
+        }
     }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
     {
-        var cacheConfig = Singleton<AppSettings>.Instance.Get<SwaggerConfig>();
-
-        if (!cacheConfig.EnableSwagger)
-            return;
-
-        builder.MapSwagger("{documentName}/api-docs");
+        var env = builder.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+        if (env.IsDevelopment())
+        {
+            builder.MapSwagger("{documentName}/api-docs");
+        }
     }
 
     public int Order { get; } = 99902;
