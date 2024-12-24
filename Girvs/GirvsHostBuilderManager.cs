@@ -6,7 +6,7 @@ namespace Girvs;
 public static class GirvsHostBuilderManager
 {
     public static IHostBuilder CreateGrivsHostBuilder<TStartup>(string[] args)
-        where TStartup : class
+        where TStartup : class, IGirvsStartup
     {
         var builder = Host.CreateDefaultBuilder(args);
         builder.HostUseSerilog();
@@ -101,6 +101,7 @@ public static class GirvsHostBuilderManager
         builder.Host.HostUseSerilog();
         builder.Configuration.HostUseGirvsConfig(builder.Environment, args);
 
+        CommonHelper.DefaultFileProvider = new GirvsFileProvider(builder.Environment);
         var typeFinder = new WebAppTypeFinder();
         var startupType = typeFinder.FindOfType<IGirvsStartup>();
 

@@ -7,7 +7,6 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment webHostEn
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
-        services.ConfigureApplicationServices(configuration, webHostEnvironment);
         services.AddCors(options =>
         {
             // this defines a CORS policy called "default"
@@ -31,11 +30,9 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment webHostEn
         app.UseCors("default");
         app.UseGirvsExceptionHandler();
         app.UseRouting();
-        app.ConfigureRequestPipeline(env);
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
-            endpoints.ConfigureEndpointRouteBuilder();
         });
     }
 }

@@ -1,3 +1,1 @@
-using Example.WebApi;
-
-GirvsHostBuilderManager.CreateGrivsHostBuilder<Startup>(args).Build().Run();
+GirvsHostBuilderManager.CreateGrivsWebApplicationBuilder(args).Run();

@@ -1,9 +1,11 @@
+using Girvs.AuthorizePermission;
 using Girvs.Cache.Caching;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Example.WebApi.Controllers;
 
+[Authorize(AuthenticationSchemes = GirvsAuthenticationScheme.GirvsJwt)]
 [ApiController]
 [Route("[controller]")]
 [AllowAnonymous]
