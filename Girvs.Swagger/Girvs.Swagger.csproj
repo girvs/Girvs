@@ -4,8 +4,8 @@
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.0-beta1.3.1</Version>
-        <PackageVersion>9.0.0-beta1.3.1</PackageVersion>
+        <Version>9.0.0-beta1.3.2</Version>
+        <PackageVersion>9.0.0-beta1.3.2</PackageVersion>
         <LangVersion>latest</LangVersion>
         <Copyright>kicck</Copyright>
         <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
@@ -27,9 +27,4 @@
         <PackageReference Include="IGeekFan.AspNetCore.Knife4jUI" Version="0.0.16"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0"/>
     </ItemGroup>
-
-
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent"  Condition="'$(Configuration)' == 'Release'">
-        <Exec Command="dotnet nuget push ./bin/Release/Girvs.Swagger.$(PackageVersion).nupkg   --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key oy2bohmvcdiybmpjukz"/>
-    </Target>
 </Project>
