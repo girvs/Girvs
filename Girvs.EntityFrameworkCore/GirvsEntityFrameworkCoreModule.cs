@@ -29,17 +29,21 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
             if (!dbContextTypes.Any())
                 return;
 
-            foreach (var dbContextType in dbContextTypes)
+            using (var scope = application.ApplicationServices.CreateScope())
             {
-                var dbContext = EngineContext.Current.Resolve(dbContextType) as GirvsDbContext;
-                var dbConfig = EngineContext
-                    .Current.GetAppModuleConfig<DbConfig>()
-                    .GetDataConnectionConfig(dbContextType);
-
-                if (dbConfig is { EnableAutoMigrate: true })
+                foreach (var dbContextType in dbContextTypes)
                 {
-                    dbContext?.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
-                    dbContext?.Database.MigrateAsync().Wait();
+                    var dbContext =
+                        scope.ServiceProvider.GetRequiredService(dbContextType) as GirvsDbContext;
+                    var dbConfig = EngineContext
+                        .Current.GetAppModuleConfig<DbConfig>()
+                        .GetDataConnectionConfig(dbContextType);
+
+                    if (dbConfig is { EnableAutoMigrate: true })
+                    {
+                        dbContext?.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
+                        dbContext?.Database.MigrateAsync().Wait();
+                    }
                 }
             }
 
