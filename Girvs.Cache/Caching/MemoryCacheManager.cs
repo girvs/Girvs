@@ -3,27 +3,38 @@
 /// <summary>
 /// Represents a memory cache manager
 /// </summary>
-public partial class MemoryCacheManager : ILocker, IStaticCacheManager
+/// <remarks>
+/// This class should be registered on IoC as singleton instance
+/// </remarks>
+public partial class MemoryCacheManager : CacheKeyService, IStaticCacheManager
 {
     #region Fields
 
     // Flag: Has Dispose already been called?
-    private bool _disposed;
+    protected bool _disposed;
 
-    private readonly IMemoryCache _memoryCache;
+    protected readonly IMemoryCache _memoryCache;
 
-    private static readonly ConcurrentDictionary<string, CancellationTokenSource> _prefixes =
-        new ConcurrentDictionary<string, CancellationTokenSource>();
+    /// <summary>
+    /// Holds the keys known by this nopCommerce instance
+    /// </summary>
+    protected readonly ICacheKeyManager _keyManager;
 
-    private static CancellationTokenSource _clearToken = new CancellationTokenSource();
+    protected static CancellationTokenSource _clearToken = new();
 
     #endregion
 
     #region Ctor
 
-    public MemoryCacheManager(IMemoryCache memoryCache)
+    public MemoryCacheManager(
+        AppSettings appSettings,
+        IMemoryCache memoryCache,
+        ICacheKeyManager cacheKeyManager
+    )
+        : base(appSettings)
     {
         _memoryCache = memoryCache;
+        _keyManager = cacheKeyManager;
     }
 
     #endregion
@@ -35,7 +46,7 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
     /// </summary>
     /// <param name="key">Cache key</param>
     /// <returns>Cache entry options</returns>
-    private MemoryCacheEntryOptions PrepareEntryOptions(CacheKey key)
+    protected virtual MemoryCacheEntryOptions PrepareEntryOptions(CacheKey key)
     {
         //set expiration time for the passed cache key
         var options = new MemoryCacheEntryOptions
@@ -43,15 +54,35 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(key.CacheTime)
         };
 
-        //add tokens to clear cache entries
+        //add token to clear cache entries
         options.AddExpirationToken(new CancellationChangeToken(_clearToken.Token));
-        foreach (var keyPrefix in key.Prefix.Split(':').ToList())
-        {
-            var tokenSource = _prefixes.GetOrAdd(keyPrefix, new CancellationTokenSource());
-            options.AddExpirationToken(new CancellationChangeToken(tokenSource.Token));
-        }
+        options.RegisterPostEvictionCallback(OnEviction);
+        _keyManager.AddKey(key.Key);
 
         return options;
+    }
+
+    /// <summary>
+    /// The callback method which gets called when a cache entry expires.
+    /// </summary>
+    /// <param name="key">The key of the entry being evicted.</param>
+    /// <param name="value">The value of the entry being evicted.</param>
+    /// <param name="reason">The <see cref="EvictionReason"/>.</param>
+    /// <param name="state">The information that was passed when registering the callback.</param>
+    protected virtual void OnEviction(object key, object value, EvictionReason reason, object state)
+    {
+        switch (reason)
+        {
+            // we clean up after ourselves elsewhere
+            case EvictionReason.Removed:
+            case EvictionReason.Replaced:
+            case EvictionReason.TokenExpired:
+                break;
+            // if the entry was evicted by the cache itself, we remove the key
+            default:
+                _keyManager.RemoveKey(key as string);
+                break;
+        }
     }
 
     #endregion
@@ -59,41 +90,91 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
     #region Methods
 
     /// <summary>
+    /// Remove the value with the specified key from the cache
+    /// </summary>
+    /// <param name="cacheKey">Cache key</param>
+    /// <param name="cacheKeyParameters">Parameters to create cache key</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public Task RemoveAsync(CacheKey cacheKey, params object[] cacheKeyParameters)
+    {
+        var key = PrepareKey(cacheKey, cacheKeyParameters).Key;
+        _memoryCache.Remove(key);
+        _keyManager.RemoveKey(key);
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Get a cached item. If it's not in the cache yet, then load and cache it
     /// </summary>
     /// <typeparam name="T">Type of cached item</typeparam>
     /// <param name="key">Cache key</param>
     /// <param name="acquire">Function to load item if it's not in the cache yet</param>
-    /// <returns>The cached value associated with the specified key</returns>
-    public T Get<T>(CacheKey key, Func<T> acquire)
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the cached value associated with the specified key
+    /// </returns>
+    public async Task<T> GetAsync<T>(CacheKey key, Func<Task<T>> acquire)
     {
-        if (key.CacheTime <= 0 || !key.EnableCaching)
-            return acquire();
+        if ((key?.CacheTime ?? 0) <= 0)
+            return await acquire();
 
-        var result = _memoryCache.GetOrCreate(
+        var task = _memoryCache.GetOrCreate(
             key.Key,
             entry =>
             {
                 entry.SetOptions(PrepareEntryOptions(key));
-
-                return acquire();
+                return new Lazy<Task<T>>(acquire, true);
             }
         );
 
-        //do not cache null value
-        if (result == null)
-            Remove(key);
+        try
+        {
+            var data = await task!.Value;
 
-        return result;
+            //if a cached function return null, remove it from the cache
+            if (data == null)
+                await RemoveAsync(key);
+
+            return data;
+        }
+        catch (Exception ex)
+        {
+            //if a cached function throws an exception, remove it from the cache
+            await RemoveAsync(key);
+
+            if (ex is NullReferenceException)
+                return default;
+
+            throw;
+        }
     }
 
     /// <summary>
-    /// Removes the value with the specified key from the cache
+    /// Get a cached item. If it's not in the cache yet, return a default value
     /// </summary>
-    /// <param name="key">Key of cached item</param>
-    public void Remove(CacheKey key)
+    /// <typeparam name="T">Type of cached item</typeparam>
+    /// <param name="key">Cache key</param>
+    /// <param name="defaultValue">A default value to return if the key is not present in the cache</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the cached value associated with the specified key, or the default value if none was found
+    /// </returns>
+    public async Task<T> GetAsync<T>(CacheKey key, T defaultValue = default)
     {
-        _memoryCache.Remove(key.Key);
+        var value = _memoryCache.Get<Lazy<Task<T>>>(key.Key)?.Value;
+
+        try
+        {
+            return value != null ? await value : defaultValue;
+        }
+        catch
+        {
+            //if a cached function throws an exception, remove it from the cache
+            await RemoveAsync(key);
+
+            throw;
+        }
     }
 
     /// <summary>
@@ -102,172 +183,92 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
     /// <typeparam name="T">Type of cached item</typeparam>
     /// <param name="key">Cache key</param>
     /// <param name="acquire">Function to load item if it's not in the cache yet</param>
-    /// <returns>The cached value associated with the specified key</returns>
-    public async Task<T> GetAsync<T>(CacheKey key, Func<Task<T>> acquire)
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the cached value associated with the specified key
+    /// </returns>
+    public async Task<T> GetAsync<T>(CacheKey key, Func<T> acquire)
     {
-        if (key.CacheTime <= 0 || !key.EnableCaching)
-            return await acquire();
-
-        var result = await _memoryCache.GetOrCreateAsync(
-            key.Key,
-            async entry =>
-            {
-                entry.SetOptions(PrepareEntryOptions(key));
-
-                return await acquire();
-            }
-        );
-
-        //do not cache null value
-        if (result == null)
-            Remove(key);
-
-        return result;
+        return await GetAsync(key, () => Task.FromResult(acquire()));
     }
 
     /// <summary>
-    /// Adds the specified key and object to the cache
+    /// Get a cached item as an <see cref="object"/> instance, or null on a cache miss.
+    /// </summary>
+    /// <param name="key">Cache key</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the cached value associated with the specified key, or null if none was found
+    /// </returns>
+    public async Task<object> GetAsync(CacheKey key)
+    {
+        var entry = _memoryCache.Get(key.Key);
+        if (entry == null)
+            return null;
+        try
+        {
+            if (entry.GetType().GetProperty("Value")?.GetValue(entry) is not Task task)
+                return null;
+
+            await task;
+
+            return task.GetType().GetProperty("Result")!.GetValue(task);
+        }
+        catch
+        {
+            //if a cached function throws an exception, remove it from the cache
+            await RemoveAsync(key);
+
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Add the specified key and object to the cache
     /// </summary>
     /// <param name="key">Key of cached item</param>
     /// <param name="data">Value for caching</param>
-    public void Set(CacheKey key, object data)
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public Task SetAsync<T>(CacheKey key, T data)
     {
-        if (key.CacheTime <= 0 || data == null || !key.EnableCaching)
-            return;
+        if (data != null && (key?.CacheTime ?? 0) > 0)
+            _memoryCache.Set(
+                key.Key,
+                new Lazy<Task<T>>(() => Task.FromResult(data), true),
+                PrepareEntryOptions(key)
+            );
 
-        _memoryCache.Set(key.Key, data, PrepareEntryOptions(key));
+        return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Gets a value indicating whether the value associated with the specified key is cached
+    /// Remove items by cache key prefix
     /// </summary>
-    /// <param name="key">Key of cached item</param>
-    /// <returns>True if item already is in cache; otherwise false</returns>
-    public bool IsSet(CacheKey key)
+    /// <param name="prefix">Cache key prefix</param>
+    /// <param name="prefixParameters">Parameters to create cache key prefix</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public Task RemoveByPrefixAsync(string prefix, params object[] prefixParameters)
     {
-        return _memoryCache.TryGetValue(key.Key, out _);
-    }
+        foreach (var key in _keyManager.RemoveByPrefix(PrepareKeyPrefix(prefix, prefixParameters)))
+            _memoryCache.Remove(key);
 
-    /// <summary>
-    /// Perform some action with exclusive in-memory lock
-    /// </summary>
-    /// <param name="key">The key we are locking on</param>
-    /// <param name="expirationTime">The time after which the lock will automatically be expired</param>
-    /// <param name="action">Action to be performed with locking</param>
-    /// <param name="immediateLockDispose"></param>
-    /// <returns>True if lock was acquired and action was performed; otherwise false</returns>
-    public async Task<bool> PerformActionWithLock(
-        string key,
-        TimeSpan expirationTime,
-        Func<Task> action,
-        bool immediateLockDispose = true
-    )
-    {
-        //ensure that lock is acquired
-        if (IsSet(new CacheKey(key)))
-            return false;
-
-        try
-        {
-            _memoryCache.Set(key, key, expirationTime);
-
-            //perform action
-            await action();
-
-            return true;
-        }
-        finally
-        {
-            if (immediateLockDispose)
-                //release lock even if action fails
-                Remove(key);
-        }
-    }
-
-    /// <summary>
-    /// Removes the value with the specified key from the cache
-    /// </summary>
-    /// <param name="key">Key of cached item</param>
-    public void Remove(string key)
-    {
-        _memoryCache.Remove(key);
-    }
-
-    /// <summary>
-    /// Removes items by key prefix
-    /// </summary>
-    /// <param name="prefix">String key prefix</param>
-    public void RemoveByPrefix(string prefix)
-    {
-        _prefixes.TryRemove(prefix, out var tokenSource);
-        tokenSource?.Cancel();
-        tokenSource?.Dispose();
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Clear all cache data
     /// </summary>
-    public void Clear()
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public Task ClearAsync()
     {
         _clearToken.Cancel();
         _clearToken.Dispose();
-
         _clearToken = new CancellationTokenSource();
+        _keyManager.Clear();
 
-        foreach (var prefix in _prefixes.Keys.ToList())
-        {
-            _prefixes.TryRemove(prefix, out var tokenSource);
-            tokenSource?.Dispose();
-        }
+        return Task.CompletedTask;
     }
 
-    private static Dictionary<string, long> IncrementNumber = new Dictionary<string, long>();
-
-    private static object asyncObj = new object();
-
-    public long StringIncrement(string key)
-    {
-        lock (asyncObj)
-        {
-            if (IncrementNumber.ContainsKey(key))
-            {
-                IncrementNumber[key]++;
-                return IncrementNumber[key];
-            }
-            else
-            {
-                IncrementNumber.Add(key, 1);
-                return 1;
-            }
-        }
-    }
-
-    public List<string> GetCacheKeys()
-    {
-        const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-        //var entries = provider.GetType().GetField("_entries", flags)?.GetValue(provider);
-        var keys = new List<string>();
-        var cache = _memoryCache.GetType().GetField("_cache", flags)?.GetValue(_memoryCache);
-        if (cache != null)
-        {
-            if (cache.GetType().GetField("_memory", flags)?.GetValue(cache) is IDictionary memory)
-            {
-                foreach (DictionaryEntry entry in memory)
-                {
-                    keys.Add(entry.Key.ToString());
-                }
-            }
-        }
-
-        //var cacheItems = entries as IDictionary;
-        //if (cacheItems == null) return keys;
-
-        return keys;
-    }
-
-    /// <summary>
-    /// Dispose cache manager
-    /// </summary>
     public void Dispose()
     {
         Dispose(true);
@@ -281,9 +282,8 @@ public partial class MemoryCacheManager : ILocker, IStaticCacheManager
             return;
 
         if (disposing)
-        {
-            _memoryCache.Dispose();
-        }
+            // don't dispose of the MemoryCache, as it is injected
+            _clearToken.Dispose();
 
         _disposed = true;
     }

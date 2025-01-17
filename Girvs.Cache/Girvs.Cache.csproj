@@ -15,10 +15,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="EasyCaching.InMemory" Version="1.9.2"/>
-        <PackageReference Include="RedLock.net" Version="2.3.2"/>
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="8.0.0" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="9.0.0" />
+    </ItemGroup>
+    
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
     </ItemGroup>

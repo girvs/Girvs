@@ -1,42 +1,76 @@
 ﻿namespace Girvs.Cache.Caching;
 
 /// <summary>
-/// 表示缓存对象的键
+/// Represents key for caching objects
 /// </summary>
 public class CacheKey
 {
-    public CacheKey(string prefix)
+    #region Ctor
+
+    /// <summary>
+    /// Initialize a new instance with key and prefixes
+    /// </summary>
+    /// <param name="key">Key</param>
+    /// <param name="prefixes">Prefixes for remove by prefix functionality</param>
+    public CacheKey(string key, params string[] prefixes)
     {
-        if (string.IsNullOrWhiteSpace(prefix))
-            throw new System.ArgumentException($"'{nameof(prefix)}' cannot be null or whitespace.", nameof(prefix));
-        Prefix = prefix.Trim();
-        var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
-        CacheTime = cacheConfig.CacheBaseConfig.DefaultCacheTime;
-        EnableCaching = cacheConfig.EnableCaching;
+        Key = key;
+        Prefixes.AddRange(prefixes.Where(prefix => !string.IsNullOrEmpty(prefix)));
     }
 
-    public CacheKey Create(string key = "", string otherKey = "", int? cacheTime = null)
+    #endregion
+
+    #region Methods
+
+    /// <summary>
+    /// Create a new instance from the current one and fill it with passed parameters
+    /// </summary>
+    /// <param name="createCacheKeyParameters">Function to create parameters</param>
+    /// <param name="keyObjects">Objects to create parameters</param>
+    /// <returns>Cache key</returns>
+    public virtual CacheKey Create(
+        Func<object, object> createCacheKeyParameters,
+        params object[] keyObjects
+    )
     {
-        Key = string.Format(Prefix, key);
+        var cacheKey = new CacheKey(Key, Prefixes.ToArray());
 
-        if (!string.IsNullOrEmpty(otherKey))
-            Key += (":" + otherKey);
+        if (!keyObjects.Any())
+            return cacheKey;
 
-        CacheTime = cacheTime ?? CacheTime;
-        return this;
+        cacheKey.Key = string.Format(
+            cacheKey.Key,
+            keyObjects.Select(createCacheKeyParameters).ToArray()
+        );
+
+        for (var i = 0; i < cacheKey.Prefixes.Count; i++)
+            cacheKey.Prefixes[i] = string.Format(
+                cacheKey.Prefixes[i],
+                keyObjects.Select(createCacheKeyParameters).ToArray()
+            );
+
+        return cacheKey;
     }
+
+    #endregion
+
+    #region Properties
 
     /// <summary>
     /// Gets or sets a cache key
     /// </summary>
-    public string Key { get; set; }
+    public string Key { get; protected set; }
 
-    public string Prefix { get; set; }
+    /// <summary>
+    /// Gets or sets prefixes for remove by prefix functionality
+    /// </summary>
+    public List<string> Prefixes { get; protected set; } = new();
 
     /// <summary>
     /// Gets or sets a cache time in minutes
     /// </summary>
-    public int CacheTime { get; set; }
+    public int CacheTime { get; set; } =
+        Singleton<AppSettings>.Instance.Get<CacheConfig>().DefaultCacheTime;
 
-    public bool EnableCaching { get; set; }
+    #endregion
 }

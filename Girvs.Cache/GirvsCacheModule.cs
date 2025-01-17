@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Girvs.Cache.CacheImps;
+using Girvs.Cache.Caching;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Girvs.Cache;
 
@@ -7,18 +9,64 @@ public class GirvsCacheModule : IAppModuleStartup
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var cacheConfig = Singleton<AppSettings>.Instance.Get<CacheConfig>();
+        var distributedCacheConfig = cacheConfig.DistributedCacheConfig;
 
-        switch (cacheConfig.DistributedCacheType)
+        services.AddTransient(typeof(IConcurrentCollection<>), typeof(ConcurrentTrie<>));
+
+        services.AddSingleton<ICacheKeyManager, CacheKeyManager>();
+        services.AddScoped<IShortTermCacheManager, PerRequestCacheManager>();
+
+        if (distributedCacheConfig.Enabled)
         {
-            case CacheType.Memory:
-                services.AddScoped<ILocker, MemoryCacheManager>();
-                services.AddSingleton<IStaticCacheManager, MemoryCacheManager>();
-                break;
-            case CacheType.Redis:
-                services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
-                services.AddScoped<ILocker, RedisConnectionWrapper>();
-                services.AddSingleton<IStaticCacheManager, RedisCacheManager>();
-                break;
+            switch (distributedCacheConfig.DistributedCacheType)
+            {
+                case DistributedCacheType.Memory:
+                    services.AddDistributedMemoryCache();
+                    services.AddScoped<IStaticCacheManager, MemoryDistributedCacheManager>();
+                    services.AddScoped<ICacheKeyService, MemoryDistributedCacheManager>();
+                    break;
+
+                case DistributedCacheType.SqlServer:
+                    services.AddScoped<IStaticCacheManager, MsSqlServerCacheManager>();
+                    services.AddScoped<ICacheKeyService, MsSqlServerCacheManager>();
+                    services.AddDistributedSqlServerCache(options =>
+                    {
+                        options.ConnectionString = distributedCacheConfig.ConnectionString;
+                        options.SchemaName = distributedCacheConfig.SchemaName;
+                        options.TableName = distributedCacheConfig.TableName;
+                    });
+                    break;
+
+                case DistributedCacheType.Redis:
+                    services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
+                    services.AddScoped<IStaticCacheManager, RedisCacheManager>();
+                    services.AddScoped<ICacheKeyService, RedisCacheManager>();
+                    services.AddStackExchangeRedisCache(options =>
+                    {
+                        options.Configuration = distributedCacheConfig.ConnectionString;
+                        options.InstanceName = distributedCacheConfig.InstanceName ?? string.Empty;
+                    });
+                    break;
+
+                case DistributedCacheType.RedisSynchronizedMemory:
+                    services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
+                    services.AddSingleton<ISynchronizedMemoryCache, RedisSynchronizedMemoryCache>();
+                    services.AddSingleton<IStaticCacheManager, SynchronizedMemoryCacheManager>();
+                    services.AddScoped<ICacheKeyService, SynchronizedMemoryCacheManager>();
+                    services.AddStackExchangeRedisCache(options =>
+                    {
+                        options.Configuration = distributedCacheConfig.ConnectionString;
+                        options.InstanceName = distributedCacheConfig.InstanceName ?? string.Empty;
+                    });
+                    break;
+            }
+            services.AddSingleton<ILocker, DistributedCacheLocker>();
+        }
+        else
+        {
+            services.AddSingleton<ILocker, MemoryCacheLocker>();
+            services.AddSingleton<IStaticCacheManager, MemoryCacheManager>();
+            services.AddScoped<ICacheKeyService, MemoryCacheManager>();
         }
     }
 

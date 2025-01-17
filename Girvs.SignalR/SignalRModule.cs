@@ -21,11 +21,13 @@ public class SignalRModule : IAppModuleStartup
 
         var signalServiceBuilder = services.AddSignalR().AddMessagePackProtocol();
         var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
-        if (cacheConfig.EnableCaching && cacheConfig.DistributedCacheType == CacheType.Redis)
+        var distributedCacheConfig = cacheConfig.DistributedCacheConfig;
+        if (
+            cacheConfig.EnableCaching
+            && distributedCacheConfig.DistributedCacheType == DistributedCacheType.Redis
+        )
         {
-            signalServiceBuilder.AddStackExchangeRedis(
-                cacheConfig.RedisCacheConfig.ConnectionString
-            );
+            signalServiceBuilder.AddStackExchangeRedis(distributedCacheConfig.ConnectionString);
         }
 
         services.TryAddEnumerable(

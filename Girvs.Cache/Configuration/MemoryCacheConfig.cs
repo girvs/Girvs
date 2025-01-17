@@ -1,6 +1,6 @@
-﻿namespace Girvs.Cache.Configuration;
-
-public class MemoryCacheConfig
-{
-        
-}
+﻿// namespace Girvs.Cache.Configuration;
+//
+// public class MemoryCacheConfig
+// {
+//
+// }
