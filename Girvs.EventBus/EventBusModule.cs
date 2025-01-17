@@ -36,7 +36,7 @@ public class EventBusModule : IAppModuleStartup
             var cacheConfig = Singleton<AppSettings>.Instance.Get(eventBusConfigRedisConnStr);
             if (cacheConfig.EnableCaching)
             {
-                return cacheConfig.RedisCacheConfig.ConnectionString;
+                return cacheConfig.DistributedCacheConfig.ConnectionString;
             }
         }
         finally { }
