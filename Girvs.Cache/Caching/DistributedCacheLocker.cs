@@ -3,23 +3,9 @@ using Newtonsoft.Json;
 
 namespace Girvs.Cache.Caching;
 
-public partial class DistributedCacheLocker : ILocker
+public partial class DistributedCacheLocker(IDistributedCache distributedCache) : ILocker
 {
-    #region Fields
-
-    protected static readonly string _running = JsonConvert.SerializeObject(TaskStatus.Running);
-    protected readonly IDistributedCache _distributedCache;
-
-    #endregion
-
-    #region Ctor
-
-    public DistributedCacheLocker(IDistributedCache distributedCache)
-    {
-        _distributedCache = distributedCache;
-    }
-
-    #endregion
+    protected static readonly string Running = JsonConvert.SerializeObject(TaskStatus.Running);
 
     #region Methods
 
@@ -29,20 +15,22 @@ public partial class DistributedCacheLocker : ILocker
     /// <param name="resource">The key we are locking on</param>
     /// <param name="expirationTime">The time after which the lock will automatically be expired</param>
     /// <param name="action">Asynchronous task to be performed with locking</param>
+    /// <param name="immediateLockDispose"></param>
     /// <returns>A task that resolves true if lock was acquired and action was performed; otherwise false</returns>
     public async Task<bool> PerformActionWithLockAsync(
         string resource,
         TimeSpan expirationTime,
-        Func<Task> action
+        Func<Task> action,
+        bool immediateLockDispose = true
     )
     {
         //ensure that lock is acquired
-        if (!string.IsNullOrEmpty(await _distributedCache.GetStringAsync(resource)))
+        if (!string.IsNullOrEmpty(await distributedCache.GetStringAsync(resource)))
             return false;
 
         try
         {
-            await _distributedCache.SetStringAsync(
+            await distributedCache.SetStringAsync(
                 resource,
                 resource,
                 new DistributedCacheEntryOptions
@@ -53,12 +41,17 @@ public partial class DistributedCacheLocker : ILocker
 
             await action();
 
+            if (immediateLockDispose)
+                //release lock even if action fails
+                await distributedCache.RemoveAsync(resource);
+
             return true;
         }
-        finally
+        catch
         {
             //release lock even if action fails
-            await _distributedCache.RemoveAsync(resource);
+            await distributedCache.RemoveAsync(resource);
+            throw;
         }
     }
 
@@ -80,7 +73,7 @@ public partial class DistributedCacheLocker : ILocker
         CancellationTokenSource cancellationTokenSource = default
     )
     {
-        if (!string.IsNullOrEmpty(await _distributedCache.GetStringAsync(key)))
+        if (!string.IsNullOrEmpty(await distributedCache.GetStringAsync(key)))
             return;
 
         var tokenSource = cancellationTokenSource ?? new CancellationTokenSource();
@@ -88,9 +81,9 @@ public partial class DistributedCacheLocker : ILocker
         try
         {
             // run heartbeat early to minimize risk of multiple execution
-            await _distributedCache.SetStringAsync(
+            await distributedCache.SetStringAsync(
                 key,
-                _running,
+                Running,
                 new DistributedCacheEntryOptions
                 {
                     AbsoluteExpirationRelativeToNow = expirationTime
@@ -104,7 +97,7 @@ public partial class DistributedCacheLocker : ILocker
                     try
                     {
                         tokenSource.Token.ThrowIfCancellationRequested();
-                        var status = _distributedCache.GetString(key);
+                        var status = distributedCache.GetString(key);
                         if (
                             !string.IsNullOrEmpty(status)
                             && JsonConvert.DeserializeObject<TaskStatus>(status)
@@ -115,9 +108,9 @@ public partial class DistributedCacheLocker : ILocker
                             return;
                         }
 
-                        _distributedCache.SetString(
+                        distributedCache.SetString(
                             key,
-                            _running,
+                            Running,
                             new DistributedCacheEntryOptions
                             {
                                 AbsoluteExpirationRelativeToNow = expirationTime
@@ -136,7 +129,7 @@ public partial class DistributedCacheLocker : ILocker
         catch (OperationCanceledException) { }
         finally
         {
-            await _distributedCache.RemoveAsync(key);
+            await distributedCache.RemoveAsync(key);
         }
     }
 
@@ -150,12 +143,12 @@ public partial class DistributedCacheLocker : ILocker
     /// necessarily imply that the task has been canceled, only that cancellation has been requested.</returns>
     public async Task CancelTaskAsync(string key, TimeSpan expirationTime)
     {
-        var status = await _distributedCache.GetStringAsync(key);
+        var status = await distributedCache.GetStringAsync(key);
         if (
             !string.IsNullOrEmpty(status)
             && JsonConvert.DeserializeObject<TaskStatus>(status) != TaskStatus.Canceled
         )
-            await _distributedCache.SetStringAsync(
+            await distributedCache.SetStringAsync(
                 key,
                 JsonConvert.SerializeObject(TaskStatus.Canceled),
                 new DistributedCacheEntryOptions
@@ -172,7 +165,7 @@ public partial class DistributedCacheLocker : ILocker
     /// <returns>A task that resolves to true if the background task is running; otherwise false</returns>
     public async Task<bool> IsTaskRunningAsync(string key)
     {
-        return !string.IsNullOrEmpty(await _distributedCache.GetStringAsync(key));
+        return !string.IsNullOrEmpty(await distributedCache.GetStringAsync(key));
     }
 
     #endregion

@@ -15,7 +15,8 @@ public class CacheConfig : IAppModuleConfig
     /// <summary>
     /// 分布式缓存配置
     /// </summary>
-    public DistributedCacheConfig DistributedCacheConfig { get; set; }
+    public DistributedCacheConfig DistributedCacheConfig { get; set; } =
+        new DistributedCacheConfig();
 
     // /// <summary>
     // /// Gets or sets whether to disable linq2db query cache

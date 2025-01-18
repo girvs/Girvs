@@ -64,6 +64,8 @@ public class GirvsCacheModule : IAppModuleStartup
         }
         else
         {
+            var memoryCache = new MemoryCache(new MemoryCacheOptions());
+            services.AddSingleton<IMemoryCache>(memoryCache);
             services.AddSingleton<ILocker, MemoryCacheLocker>();
             services.AddSingleton<IStaticCacheManager, MemoryCacheManager>();
             services.AddScoped<ICacheKeyService, MemoryCacheManager>();

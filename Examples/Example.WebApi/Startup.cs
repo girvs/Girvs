@@ -1,3 +1,8 @@
+using Girvs.AuthorizePermission.Extensions;
+using Girvs.DynamicWebApi;
+using Girvs.Infrastructure;
+using Microsoft.AspNetCore.HttpOverrides;
+
 namespace Example.WebApi;
 
 public class Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
@@ -6,33 +11,35 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment webHostEn
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllers();
-        services.AddCors(options =>
+        services.Configure<ForwardedHeadersOptions>(options =>
         {
-            // this defines a CORS policy called "default"
-            options.AddPolicy(
-                "default",
-                policy =>
-                {
-                    policy
-                        .SetIsOriginAllowed(origin => true)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                }
-            );
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
         });
+
+        services.AddControllersWithAuthorizePermissionFilter(options =>
+            options.Filters.Add<GirvsModelStateInvalidFilter>()
+        );
+        services.ConfigureApplicationServices(configuration, webHostEnvironment);
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        app.UseCors("default");
+        app.UseForwardedHeaders(
+            new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            }
+        );
+
         app.UseGirvsExceptionHandler();
         app.UseRouting();
+        app.ConfigureRequestPipeline(env);
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
+            endpoints.ConfigureEndpointRouteBuilder();
         });
     }
 }

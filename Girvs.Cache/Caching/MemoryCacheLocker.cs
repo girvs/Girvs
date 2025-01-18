@@ -3,23 +3,8 @@
 /// <summary>
 /// A distributed cache manager that locks the acquisition task
 /// </summary>
-public partial class MemoryCacheLocker : ILocker
+public partial class MemoryCacheLocker(IMemoryCache memoryCache) : ILocker
 {
-    #region Fields
-
-    protected readonly IMemoryCache _memoryCache;
-
-    #endregion
-
-    #region Ctor
-
-    public MemoryCacheLocker(IMemoryCache memoryCache)
-    {
-        _memoryCache = memoryCache;
-    }
-
-    #endregion
-
     #region Utilities
 
     /// <summary>
@@ -28,12 +13,14 @@ public partial class MemoryCacheLocker : ILocker
     /// <param name="key">The key of the background task</param>
     /// <param name="expirationTime">The time after which the lock will automatically be expired</param>
     /// <param name="action">The action to perform</param>
+    /// <param name="immediateLockDispose"></param>
     /// <param name="cancellationTokenSource">A CancellationTokenSource for manually canceling the task</param>
     /// <returns></returns>
     protected virtual async Task<bool> RunAsync(
         string key,
         TimeSpan? expirationTime,
         Func<CancellationToken, Task> action,
+        bool immediateLockDispose = true,
         CancellationTokenSource cancellationTokenSource = default
     )
     {
@@ -41,7 +28,7 @@ public partial class MemoryCacheLocker : ILocker
 
         try
         {
-            var tokenSource = _memoryCache
+            var tokenSource = memoryCache
                 .GetOrCreate(
                     key,
                     entry => new Lazy<CancellationTokenSource>(
@@ -58,13 +45,19 @@ public partial class MemoryCacheLocker : ILocker
                 ?.Value;
 
             if (tokenSource != null && started)
+            {
                 await action(tokenSource.Token);
+                if (immediateLockDispose)
+                {
+                    memoryCache.Remove(key);
+                }
+            }
         }
-        catch (OperationCanceledException) { }
-        finally
+        catch (OperationCanceledException)
         {
             if (started)
-                _memoryCache.Remove(key);
+                memoryCache.Remove(key);
+            throw;
         }
 
         return started;
@@ -80,14 +73,16 @@ public partial class MemoryCacheLocker : ILocker
     /// <param name="resource">The key we are locking on</param>
     /// <param name="expirationTime">The time after which the lock will automatically be expired</param>
     /// <param name="action">Asynchronous task to be performed with locking</param>
+    /// <param name="immediateLockDispose"></param>
     /// <returns>A task that resolves true if lock was acquired and action was performed; otherwise false</returns>
     public async Task<bool> PerformActionWithLockAsync(
         string resource,
         TimeSpan expirationTime,
-        Func<Task> action
+        Func<Task> action,
+        bool immediateLockDispose = true
     )
     {
-        return await RunAsync(resource, expirationTime, _ => action());
+        return await RunAsync(resource, expirationTime, _ => action(), immediateLockDispose);
     }
 
     /// <summary>
@@ -110,7 +105,7 @@ public partial class MemoryCacheLocker : ILocker
     {
         // We ignore expirationTime and heartbeatInterval here, as the cache is not shared with other instances,
         // and will be cleared on system failure anyway. The task is guaranteed to still be running as long as it is in the cache.
-        await RunAsync(key, null, action, cancellationTokenSource);
+        await RunAsync(key, null, action, cancellationTokenSource: cancellationTokenSource);
     }
 
     /// <summary>
@@ -123,7 +118,7 @@ public partial class MemoryCacheLocker : ILocker
     /// necessarily imply that the task has been canceled, only that cancellation has been requested.</returns>
     public Task CancelTaskAsync(string key, TimeSpan expirationTime)
     {
-        if (_memoryCache.TryGetValue(key, out Lazy<CancellationTokenSource> tokenSource))
+        if (memoryCache.TryGetValue(key, out Lazy<CancellationTokenSource> tokenSource))
             tokenSource.Value.Cancel();
 
         return Task.CompletedTask;
@@ -136,7 +131,7 @@ public partial class MemoryCacheLocker : ILocker
     /// <returns>A task that resolves to true if the background task is running; otherwise false</returns>
     public Task<bool> IsTaskRunningAsync(string key)
     {
-        return Task.FromResult(_memoryCache.TryGetValue(key, out _));
+        return Task.FromResult(memoryCache.TryGetValue(key, out _));
     }
 
     #endregion

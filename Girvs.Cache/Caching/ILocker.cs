@@ -8,11 +8,13 @@ public partial interface ILocker
     /// <param name="resource">The key we are locking on</param>
     /// <param name="expirationTime">The time after which the lock will automatically be expired</param>
     /// <param name="action">Asynchronous task to be performed with locking</param>
+    /// <param name="immediateLockDispose"></param>
     /// <returns>A task that resolves true if lock was acquired and action was performed; otherwise false</returns>
     Task<bool> PerformActionWithLockAsync(
         string resource,
         TimeSpan expirationTime,
-        Func<Task> action
+        Func<Task> action,
+        bool immediateLockDispose = true
     );
 
     /// <summary>

@@ -14,11 +14,22 @@ public class RedisController(IStaticCacheManager cacheManager, ILocker locker) :
     [HttpGet("GetRedisLock")]
     public async Task<IActionResult> GetRedisLock(string key)
     {
-        var result = await locker.PerformActionWithLockAsync(
-            key,
-            TimeSpan.FromSeconds(3),
-            () => Task.FromResult(true)
-        );
-        return Ok(result);
+        var list = new List<bool>();
+        for (int i = 0; i < 5; i++)
+        {
+            var result = await locker.PerformActionWithLockAsync(
+                key,
+                TimeSpan.FromSeconds(8),
+                () =>
+                {
+                    return Task.FromResult(true);
+                },
+                true
+            );
+            list.Add(result);
+            Thread.Sleep(5000);
+        }
+
+        return Ok(list);
     }
 }
