@@ -17,17 +17,9 @@ public class RedisController(IStaticCacheManager cacheManager, ILocker locker) :
         var list = new List<bool>();
         for (int i = 0; i < 5; i++)
         {
-            var result = await locker.PerformActionWithLockAsync(
-                key,
-                TimeSpan.FromSeconds(8),
-                () =>
-                {
-                    return Task.FromResult(true);
-                },
-                true
-            );
-            list.Add(result);
-            Thread.Sleep(5000);
+            var cacheKey = new CacheKey(key + i);
+
+            await cacheManager.SetAsync(cacheKey, i);
         }
 
         return Ok(list);

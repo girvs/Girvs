@@ -18,9 +18,32 @@ public class CacheKey
         Prefixes.AddRange(prefixes.Where(prefix => !string.IsNullOrEmpty(prefix)));
     }
 
+    public CacheKey(string key, int? cacheTime = null, params string[] prefixes)
+        : this(key, prefixes)
+    {
+        if (cacheTime == null)
+            CacheTime = Singleton<AppSettings>.Instance.Get<CacheConfig>().DefaultCacheTime;
+        else
+            this.CacheTime = cacheTime.Value;
+    }
+
     #endregion
 
     #region Methods
+
+    public CacheKey Create(string entityObjectKey = "", string otherKey = "", int? cacheTime = null)
+    {
+        var cacheKey = new CacheKey(Key, cacheTime, Prefixes.ToArray());
+        if (entityObjectKey.IsNullOrEmpty())
+            return cacheKey;
+
+        cacheKey.Key = string.Format(Key, entityObjectKey);
+
+        if (!string.IsNullOrEmpty(otherKey))
+            cacheKey.Key += (":" + otherKey);
+
+        return cacheKey;
+    }
 
     /// <summary>
     /// Create a new instance from the current one and fill it with passed parameters
