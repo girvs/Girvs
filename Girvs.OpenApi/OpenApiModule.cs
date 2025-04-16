@@ -22,6 +22,7 @@ public class OpenApiModule : IAppModuleStartup
 
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddEndpointsApiExplorer();
         services.AddOpenApi(
             _documentName,
             options =>

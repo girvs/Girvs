@@ -67,14 +67,36 @@ public partial class RedisCacheManager : DistributedCacheManager
     {
         prefix = PrepareKeyPrefix(prefix, prefixParameters);
         var db = await _connectionWrapper.GetDatabaseAsync();
-
-        var instanceName =
-            _appSettings.Get<CacheConfig>().DistributedCacheConfig.InstanceName ?? string.Empty;
+        var instanceName = _appSettings.Get<CacheConfig>().DistributedCacheConfig.InstanceName ?? string.Empty;
+        var fullPrefix = instanceName + prefix;
 
         foreach (var endPoint in await _connectionWrapper.GetEndPointsAsync())
         {
-            var keys = await GetKeysAsync(endPoint, instanceName + prefix);
-            db.KeyDelete(keys.ToArray());
+            // 获取当前节点所有匹配的键
+            var keys = (await GetKeysAsync(endPoint, fullPrefix))
+                .Select(k => (RedisKey) k);
+
+            var isCluster = (await _connectionWrapper.GetServerAsync(endPoint)).ServerType == ServerType.Cluster;
+
+            if (isCluster)
+            {
+                // 按哈希槽分组
+                var slotGroups = keys.GroupBy(k => db.Multiplexer.GetHashSlot(k));
+
+                foreach (var group in slotGroups)
+                {
+                    var keysInSlot = group.ToArray();
+                    if (keysInSlot.Length > 0)
+                    {
+                        // 对同一槽的键执行批量删除
+                        await db.KeyDeleteAsync(keysInSlot);
+                    }
+                }
+            }
+            else
+            {
+                db.KeyDelete(keys.ToArray());
+            }
         }
 
         RemoveByPrefixInstanceData(prefix);
