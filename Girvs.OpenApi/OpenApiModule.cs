@@ -28,6 +28,7 @@ public class OpenApiModule : IAppModuleStartup
             options =>
             {
                 options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+                options.ShouldInclude = (_) => true;
             }
         );
     }
