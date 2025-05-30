@@ -25,3 +25,4 @@ public class RedisController(IStaticCacheManager cacheManager, ILocker locker) :
         return Ok(list);
     }
 }
+

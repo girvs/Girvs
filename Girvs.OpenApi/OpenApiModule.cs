@@ -2,6 +2,7 @@ using Girvs.Infrastructure;
 using IGeekFan.AspNetCore.Knife4jUI;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,11 @@ public class OpenApiModule : IAppModuleStartup
                 options.ShouldInclude = (_) => true;
             }
         );
+
+        services.Configure<MvcOptions>(options =>
+        {
+            options.Conventions.Add(new AutoBindingConvention());
+        });
     }
 
     public void Configure(IApplicationBuilder application, IWebHostEnvironment env)

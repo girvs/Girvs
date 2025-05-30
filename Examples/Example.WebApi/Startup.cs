@@ -1,7 +1,11 @@
 using Girvs.AuthorizePermission.Extensions;
 using Girvs.DynamicWebApi;
 using Girvs.Infrastructure;
+using Girvs.OpenApi;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Example.WebApi;
 
@@ -18,7 +22,9 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment webHostEn
         });
 
         services.AddControllersWithAuthorizePermissionFilter(options =>
-            options.Filters.Add<GirvsModelStateInvalidFilter>()
+            {
+                options.Filters.Add<GirvsModelStateInvalidFilter>();
+            }
         );
         services.ConfigureApplicationServices(configuration, webHostEnvironment);
     }
@@ -43,3 +49,5 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment webHostEn
         });
     }
 }
+
+
