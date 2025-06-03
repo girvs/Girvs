@@ -1,3 +1,4 @@
+using Girvs.AntiJump;
 using Microsoft.AspNetCore.Mvc;
 using Panda.DynamicWebApi.Attributes;
 
@@ -17,6 +18,7 @@ public class TestService : ITestService
 
 
     [HttpGet]
+    [AntiJump(GenerateKey = "", AntiJumpLogic = AntiJumpLogic.Generate)]
     public dynamic GetOne(string key)
     {
         return key;
