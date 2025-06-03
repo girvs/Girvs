@@ -8,17 +8,6 @@ namespace Girvs.AntiJump;
 /// </summary>
 public class AntiJumpActionFilterAttribute : ActionFilterAttribute
 {
-    /// <summary>
-    /// 判断当前用户是否登陆
-    /// </summary>
-    /// <returns></returns>
-    private bool IsLogin()
-    {
-        //return (EngineContext.Current.ClaimManager?.CurrentClaims ?? Array.Empty<Claim>()).Any();
-        var httpContext = EngineContext.Current.HttpContext;
-        return httpContext?.User.Identity is {IsAuthenticated: true};
-    }
-
     public override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         if (context.ActionDescriptor is not ControllerActionDescriptor actionDescriptor)
@@ -27,12 +16,7 @@ public class AntiJumpActionFilterAttribute : ActionFilterAttribute
         var antiJumpAttribute = actionDescriptor.MethodInfo.GetCustomAttribute<AntiJumpAttribute>(false);
         if (antiJumpAttribute == null) return base.OnActionExecutionAsync(context, next);
 
-        var token = string.Empty;
-
-        if (IsLogin())
-            token = context.HttpContext.Request.Headers.Authorization;
-
-
+        var token =  context.HttpContext.Request.Headers.Authorization.ToString();
 
         if ((antiJumpAttribute.AntiJumpLogic & AntiJumpLogic.Verify) == AntiJumpLogic.Verify)
         {
