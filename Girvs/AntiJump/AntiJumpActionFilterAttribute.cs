@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Girvs.AntiJump;
 
+/// <summary>
+/// 防止表单跳跃提交，此处可能会存在一些问题，需要根据实际情况进行调整，特别是否存在性能问题
+/// </summary>
 public class AntiJumpActionFilterAttribute : ActionFilterAttribute
 {
     /// <summary>
