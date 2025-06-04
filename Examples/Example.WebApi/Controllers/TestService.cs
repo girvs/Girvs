@@ -11,31 +11,33 @@ namespace Example.WebApi.Controllers;
 public class TestService : ITestService
 {
     [HttpGet]
-    public MyClass GetMyClass(MyClass key)
+    [AntiJump(GenerateKey = "test1", AntiJumpLogic = AntiJumpLogic.Verify)]
+
+    public string GetMyClass(string key)
     {
         return key;
     }
 
 
     [HttpGet]
-    [AntiJump(GenerateKey = "", AntiJumpLogic = AntiJumpLogic.Generate)]
+    [AntiJump(GenerateKey = "test1", AntiJumpLogic = AntiJumpLogic.Generate)]
     public dynamic GetOne(string key)
     {
         return key;
     }
 
-    [HttpPut]
-    public dynamic PutOne(string key)
-    {
-        return key;
-    }
-
-
-    [HttpDelete]
-    public MyClass DeleteMyClass(MyClass key)
-    {
-        return key;
-    }
+    // [HttpPut]
+    // public dynamic PutOne(string key)
+    // {
+    //     return key;
+    // }
+    //
+    //
+    // [HttpDelete]
+    // public MyClass DeleteMyClass(MyClass key)
+    // {
+    //     return key;
+    // }
 
 
 
