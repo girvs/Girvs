@@ -25,7 +25,6 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment webHostEn
         services.AddControllersWithAuthorizePermissionFilter(options =>
             {
                 options.Filters.Add<GirvsModelStateInvalidFilter>();
-                options.Filters.Add<AntiJumpActionFilterAttribute>();
             }
         );
         services.ConfigureApplicationServices(configuration, webHostEnvironment);
