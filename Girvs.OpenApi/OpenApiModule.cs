@@ -13,13 +13,7 @@ namespace Girvs.OpenApi;
 
 public class OpenApiModule : IAppModuleStartup
 {
-    private readonly string _documentName = "girvs_webapi_document";
-
-    public OpenApiModule()
-    {
-        var currentName = AppDomain.CurrentDomain.FriendlyName;
-        _documentName = currentName;
-    }
+    private readonly string _documentName = "girvs_api";
 
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
@@ -33,10 +27,10 @@ public class OpenApiModule : IAppModuleStartup
             }
         );
 
-        services.Configure<MvcOptions>(options =>
-        {
-            options.Conventions.Add(new AutoBindingConvention());
-        });
+        // services.Configure<MvcOptions>(options =>
+        // {
+        //     options.Conventions.Add(new AutoBindingConvention());
+        // });
     }
 
     public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
