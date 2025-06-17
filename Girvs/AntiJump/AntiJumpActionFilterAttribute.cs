@@ -39,7 +39,7 @@ public class AntiJumpActionFilterAttribute : ActionFilterAttribute
                 var requestTime = Convert.ToDouble(requestValue.Right(10));
 
                 // 生成校验Key
-                var verifyKey = BuildKey(antiJumpAttribute.GenerateKey, token, requestTime);
+                var verifyKey = BuildKey(antiJumpAttribute.VerifyKey, token, requestTime);
                 if (requestKey != verifyKey)
                     throw new GirvsException("非法请求");
 

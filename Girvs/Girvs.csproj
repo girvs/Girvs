@@ -4,8 +4,8 @@
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.4</Version>
-        <PackageVersion>9.0.4</PackageVersion>
+        <Version>9.0.4.1</Version>
+        <PackageVersion>9.0.4.1</PackageVersion>
         <LangVersion>latest</LangVersion>
         <Copyright>kicck</Copyright>
         <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
