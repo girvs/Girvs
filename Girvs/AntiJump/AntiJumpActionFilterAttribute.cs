@@ -44,7 +44,7 @@ public class AntiJumpActionFilterAttribute : ActionFilterAttribute
                     throw new GirvsException("非法请求");
 
                 //计算时间差，判断请求的有效性
-                if (currentDatetime - requestTime > 15)
+                if (currentDatetime - requestTime > antiJumpAttribute.ValidTime)
                     throw new GirvsException("请求已超时，请重试！");
             }
             else

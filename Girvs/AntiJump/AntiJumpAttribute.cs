@@ -27,6 +27,11 @@ public class AntiJumpAttribute
     /// 防跳的逻辑处理
     /// </summary>
     public AntiJumpLogic AntiJumpLogic { get; set; } = AntiJumpLogic.Generate;
+
+    /// <summary>
+    /// 有效时间，单位秒,默认15秒
+    /// </summary>
+    public int ValidTime { get; set; } = 15;
 }
 
 /// <summary>
