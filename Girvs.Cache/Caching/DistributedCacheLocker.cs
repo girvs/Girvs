@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using Girvs.Cache.CacheImps;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Newtonsoft.Json;
 
 namespace Girvs.Cache.Caching;
@@ -30,14 +32,10 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
 
         try
         {
-            await distributedCache.SetStringAsync(
-                resource,
-                resource,
-                new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = expirationTime
-                }
-            );
+            var isAcquired = await Acquired(resource, expirationTime);
+            //如果没有获取到锁，直接返回
+            if (!isAcquired)
+                return false;
 
             await action();
 
@@ -53,6 +51,31 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
             await distributedCache.RemoveAsync(resource);
             throw;
         }
+    }
+
+    private async Task<bool> Acquired(string resource, TimeSpan expirationTime)
+    {
+        var isAcquired = false;
+        if (distributedCache is RedisCache redisCache)
+        {
+            var redis = EngineContext.Current.Resolve<RedisConnectionWrapper>();
+            isAcquired = await (await redis.GetDatabaseAsync()).StringSetAsync(
+                resource, resource, expirationTime, When.NotExists);
+        }
+        else
+        {
+            await distributedCache.SetStringAsync(
+                resource,
+                resource,
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = expirationTime
+                }
+            );
+            isAcquired = true;
+        }
+
+        return isAcquired;
     }
 
     /// <summary>
@@ -101,7 +124,7 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
                         if (
                             !string.IsNullOrEmpty(status)
                             && JsonConvert.DeserializeObject<TaskStatus>(status)
-                                == TaskStatus.Canceled
+                            == TaskStatus.Canceled
                         )
                         {
                             tokenSource.Cancel();
@@ -117,16 +140,20 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
                             }
                         );
                     }
-                    catch (OperationCanceledException) { }
+                    catch (OperationCanceledException)
+                    {
+                    }
                 },
                 state: null,
                 dueTime: 0,
-                period: (int)heartbeatInterval.TotalMilliseconds
+                period: (int) heartbeatInterval.TotalMilliseconds
             );
 
             await action(tokenSource.Token);
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+        }
         finally
         {
             await distributedCache.RemoveAsync(key);
