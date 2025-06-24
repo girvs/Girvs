@@ -7,7 +7,7 @@ namespace Girvs.Cache.Caching;
 public abstract class DistributedCacheLockerBase
 {
     private readonly IDistributedCache _distributedCache;
-    private readonly IDatabase _database;
+    protected readonly IDatabase Database;
     private readonly bool _isRedis = false;
     protected readonly string InstanceName;
 
@@ -17,7 +17,7 @@ public abstract class DistributedCacheLockerBase
         if (distributedCache is RedisCache)
         {
             var redisConnectionWrapper = EngineContext.Current.Resolve<IRedisConnectionWrapper>();
-            _database = redisConnectionWrapper.GetDatabaseAsync().Result;
+            Database = redisConnectionWrapper.GetDatabaseAsync().Result;
             _isRedis = true;
             var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
             InstanceName = cacheConfig.DistributedCacheConfig.InstanceName;
@@ -26,7 +26,7 @@ public abstract class DistributedCacheLockerBase
 
     public async Task<bool> ExistAtomicLockerAsync(string key) =>
         _isRedis
-            ? await _database.KeyExistsAsync($"{InstanceName}{key}")
+            ? await Database.KeyExistsAsync($"{InstanceName}{key}")
             : !string.IsNullOrEmpty(await _distributedCache.GetStringAsync(key));
 
     public async Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime)
@@ -37,7 +37,7 @@ public abstract class DistributedCacheLockerBase
         {
             key = $"{InstanceName}{key}";
             //此处重写，防止在高并发下，多个进程同时获取到锁，导致同时执行任务
-            isAcquired = await _database.StringSetAsync(
+            isAcquired = await Database.StringSetAsync(
                 key,
                 key,
                 expirationTime,
@@ -62,6 +62,6 @@ public abstract class DistributedCacheLockerBase
 
     public Task RemoveAtomicLockerAsync(string key) =>
         _isRedis
-            ? _database.KeyDeleteAsync($"{InstanceName}{key}")
+            ? Database.KeyDeleteAsync($"{InstanceName}{key}")
             : _distributedCache.RemoveAsync(key);
 }

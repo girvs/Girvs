@@ -59,10 +59,8 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
         var isAcquired = false;
         if (distributedCache is RedisCache)
         {
-            var redis = EngineContext.Current.Resolve<RedisConnectionWrapper>();
-            var dataBase = await redis.GetDatabaseAsync();
             var key = $"{InstanceName}{resource}";
-            isAcquired = await dataBase.HashSetAsync(
+            isAcquired = await Database.HashSetAsync(
                 key: key,
                 hashField: DataKey,
                 value: key,
@@ -71,7 +69,7 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
 
             // 为整个键设置过期时间
             if (isAcquired)
-                await dataBase.KeyExpireAsync(key, expirationTime);
+                await Database.KeyExpireAsync(key, expirationTime);
         }
         else
         {
