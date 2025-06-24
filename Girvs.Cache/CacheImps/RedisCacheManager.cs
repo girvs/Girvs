@@ -11,6 +11,7 @@ public partial class RedisCacheManager : DistributedCacheManager
     #region Fields
 
     private readonly IDistributedCache _distributedCache;
+    private readonly IDatabase _database;
     protected readonly IRedisConnectionWrapper _connectionWrapper;
 
     #endregion
@@ -28,6 +29,7 @@ public partial class RedisCacheManager : DistributedCacheManager
     {
         _distributedCache = distributedCache;
         _connectionWrapper = connectionWrapper;
+        _database = _connectionWrapper.GetDatabase();
     }
 
     #endregion
@@ -111,6 +113,28 @@ public partial class RedisCacheManager : DistributedCacheManager
         await _connectionWrapper.FlushDatabaseAsync();
 
         ClearInstanceData();
+    }
+
+    public override async Task<bool> ExistAtomicLockerAsync(string key)
+    {
+        return await _database.KeyExistsAsync($"{_instanceName}{key}");
+    }
+
+    public override async Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime)
+    {
+        key = $"{_instanceName}{key}";
+        //此处重写，防止在高并发下，多个进程同时获取到锁，导致同时执行任务
+        return await _database.StringSetAsync(
+            key,
+            key,
+            expirationTime,
+            When.NotExists // 确保键不存在时才设置值，防止多个进程同时设置
+        );
+    }
+
+    public override Task RemoveAtomicLockerAsync(string key)
+    {
+        return _database.KeyDeleteAsync($"{_instanceName}{key}");
     }
 
     #endregion

@@ -10,6 +10,7 @@ public abstract partial class CacheKeyService : ICacheKeyService
     #region Fields
 
     protected readonly AppSettings _appSettings;
+    protected readonly string _instanceName = string.Empty;
 
     #endregion
 
@@ -18,6 +19,9 @@ public abstract partial class CacheKeyService : ICacheKeyService
     protected CacheKeyService(AppSettings appSettings)
     {
         _appSettings = appSettings;
+        var cacheConfig = appSettings.Get<CacheConfig>();
+        if (cacheConfig != null)
+            _instanceName = cacheConfig.DistributedCacheConfig.InstanceName;
     }
 
     #endregion

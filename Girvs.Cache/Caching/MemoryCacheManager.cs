@@ -269,6 +269,33 @@ public partial class MemoryCacheManager : CacheKeyService, IStaticCacheManager
         return Task.CompletedTask;
     }
 
+    public async Task<bool> ExistAtomicLockerAsync(string key)
+    {
+        var cacheKey = new CacheKey(key);
+        var result = await GetAsync(cacheKey);
+        return result != null;
+    }
+
+    public async Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime)
+    {
+        var cacheKey = new CacheKey(key)
+        {
+            CacheTime = expirationTime.Seconds
+        };
+
+        if (await ExistAtomicLockerAsync(key))
+            return false;
+
+        await SetAsync(cacheKey, true);
+        return true;
+    }
+
+    public Task RemoveAtomicLockerAsync(string key)
+    {
+        var cacheKey = new CacheKey(key);
+        return RemoveAsync(cacheKey);
+    }
+
     public void Dispose()
     {
         Dispose(true);

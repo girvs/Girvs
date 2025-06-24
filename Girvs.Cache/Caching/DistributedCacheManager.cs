@@ -14,6 +14,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     /// Holds the keys known by this nopCommerce instance
     /// </summary>
     protected readonly ICacheKeyManager _localKeyManager;
+
     protected readonly IDistributedCache _distributedCache;
     protected readonly IConcurrentCollection<object> _concurrentCollection;
 
@@ -163,7 +164,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     public async Task<T> GetAsync<T>(CacheKey key, Func<Task<T>> acquire)
     {
         if (_concurrentCollection.TryGetValue(key.Key, out var data))
-            return (T)data;
+            return (T) data;
 
         var lazy = _ongoing.GetOrAdd(key.Key, _ => new(async () => await acquire(), true));
         var setTask = Task.CompletedTask;
@@ -171,12 +172,12 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
         try
         {
             if (lazy.IsValueCreated)
-                return (T)await lazy.Value;
+                return (T) await lazy.Value;
 
             var (isSet, item) = await TryGetItemAsync<T>(key.Key);
             if (!isSet)
             {
-                item = (T)await lazy.Value;
+                item = (T) await lazy.Value;
 
                 if (key.CacheTime == 0 || item == null)
                     return item;
@@ -279,6 +280,33 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     public abstract Task ClearAsync();
+
+    public virtual async Task<bool> ExistAtomicLockerAsync(string key)
+    {
+        var cacheKey = new CacheKey(key);
+        var result = await GetAsync(cacheKey);
+        return result != null;
+    }
+
+    public virtual async Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime)
+    {
+        var cacheKey = new CacheKey(key)
+        {
+            CacheTime = expirationTime.Seconds
+        };
+
+        if (await ExistAtomicLockerAsync(key))
+            return false;
+
+        await SetAsync(cacheKey, true);
+        return true;
+    }
+
+    public virtual Task RemoveAtomicLockerAsync(string key)
+    {
+        var cacheKey = new CacheKey(key);
+        return RemoveAsync(cacheKey);
+    }
 
     /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
     public void Dispose()

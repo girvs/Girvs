@@ -80,4 +80,26 @@ public partial interface IStaticCacheManager : IDisposable, ICacheKeyService
     /// </summary>
     /// <returns>A task that represents the asynchronous operation</returns>
     Task ClearAsync();
+
+    /// <summary>
+    /// Checks if the atomic locker exists
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    Task<bool> ExistAtomicLockerAsync(string key);
+
+    /// <summary>
+    /// Sets the atomic locker
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="expirationTime"></param>
+    /// <returns></returns>
+    Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime);
+
+    /// <summary>
+    /// Removes the atomic locker
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    Task RemoveAtomicLockerAsync(string key);
 }

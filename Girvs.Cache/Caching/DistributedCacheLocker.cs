@@ -5,9 +5,10 @@ using Newtonsoft.Json;
 
 namespace Girvs.Cache.Caching;
 
-public partial class DistributedCacheLocker(IDistributedCache distributedCache) : ILocker
+public partial class DistributedCacheLocker(IDistributedCache distributedCache) : DistributedCacheLockerBase(distributedCache),ILocker
 {
     protected static readonly string Running = JsonConvert.SerializeObject(TaskStatus.Running);
+    private const string DataKey = "data";
 
     #region Methods
 
@@ -56,11 +57,21 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
     private async Task<bool> Acquired(string resource, TimeSpan expirationTime)
     {
         var isAcquired = false;
-        if (distributedCache is RedisCache redisCache)
+        if (distributedCache is RedisCache)
         {
             var redis = EngineContext.Current.Resolve<RedisConnectionWrapper>();
-            isAcquired = await (await redis.GetDatabaseAsync()).StringSetAsync(
-                resource, resource, expirationTime, When.NotExists);
+            var dataBase = await redis.GetDatabaseAsync();
+            var key = $"{InstanceName}{resource}";
+            isAcquired = await dataBase.HashSetAsync(
+                key: key,
+                hashField: DataKey,
+                value: key,
+                when: When.NotExists // 确保只更新已存在的邮箱
+            );
+
+            // 为整个键设置过期时间
+            if (isAcquired)
+                await dataBase.KeyExpireAsync(key, expirationTime);
         }
         else
         {
