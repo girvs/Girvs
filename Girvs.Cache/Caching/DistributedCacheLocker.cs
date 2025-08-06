@@ -1,11 +1,12 @@
 ﻿using Girvs.Cache.CacheImps;
+using Girvs.Cache.Extensions;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Newtonsoft.Json;
 
 namespace Girvs.Cache.Caching;
 
-public partial class DistributedCacheLocker(IDistributedCache distributedCache) : DistributedCacheLockerBase(distributedCache),ILocker
+public partial class DistributedCacheLocker(IDistributedCache distributedCache) : ILocker
 {
     protected static readonly string Running = JsonConvert.SerializeObject(TaskStatus.Running);
     private const string DataKey = "data";
@@ -54,37 +55,14 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
         }
     }
 
-    private async Task<bool> Acquired(string resource, TimeSpan expirationTime)
+    private Task<bool> Acquired(string resource, TimeSpan expirationTime)
     {
-        var isAcquired = false;
-        if (distributedCache is RedisCache)
+        var options = new GirvsDistributedCacheEntryOptions
         {
-            var key = $"{InstanceName}{resource}";
-            isAcquired = await Database.HashSetAsync(
-                key: key,
-                hashField: DataKey,
-                value: key,
-                when: When.NotExists // 确保只更新已存在的邮箱
-            );
-
-            // 为整个键设置过期时间
-            if (isAcquired)
-                await Database.KeyExpireAsync(key, expirationTime);
-        }
-        else
-        {
-            await distributedCache.SetStringAsync(
-                resource,
-                resource,
-                new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = expirationTime
-                }
-            );
-            isAcquired = true;
-        }
-
-        return isAcquired;
+            AbsoluteExpirationRelativeToNow = expirationTime,
+            When = When.NotExists
+        };
+        return distributedCache.SafeClusterSetAsync(resource, resource, options);
     }
 
     /// <summary>

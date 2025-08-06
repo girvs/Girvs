@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using Girvs.Cache.Extensions;
+using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 
 namespace Girvs.Cache.Caching;
@@ -76,10 +77,10 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     /// </summary>
     /// <param name="key">Cache key</param>
     /// <returns>Cache entry options</returns>
-    protected virtual DistributedCacheEntryOptions PrepareEntryOptions(CacheKey key)
+    protected virtual GirvsDistributedCacheEntryOptions PrepareEntryOptions(CacheKey key)
     {
         //set expiration time for the passed cache key
-        return new DistributedCacheEntryOptions
+        return new GirvsDistributedCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(key.CacheTime)
         };
@@ -182,7 +183,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
                 if (key.CacheTime == 0 || item == null)
                     return item;
 
-                setTask = _distributedCache.SetStringAsync(
+                setTask = _distributedCache.SafeClusterSetAsync(
                     key.Key,
                     JsonConvert.SerializeObject(item),
                     PrepareEntryOptions(key)
@@ -255,7 +256,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
             // await the lazy task in order to force value creation instead of directly setting data
             // this way, other cache manager instances can access it while it is being set
             SetLocal(key.Key, await lazy.Value);
-            await _distributedCache.SetStringAsync(
+            await _distributedCache.SafeClusterSetAsync(
                 key.Key,
                 JsonConvert.SerializeObject(data),
                 PrepareEntryOptions(key)
