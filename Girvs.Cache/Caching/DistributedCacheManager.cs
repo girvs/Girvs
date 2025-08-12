@@ -79,10 +79,14 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     /// <returns>Cache entry options</returns>
     protected virtual GirvsDistributedCacheEntryOptions PrepareEntryOptions(CacheKey key)
     {
+        var creationTime = DateTimeOffset.UtcNow;
+        var absoluteExpirationRelativeToNow = TimeSpan.FromMinutes(key.CacheTime);
+
         //set expiration time for the passed cache key
         return new GirvsDistributedCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(key.CacheTime)
+            AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow,
+            AbsoluteExpiration = creationTime + absoluteExpirationRelativeToNow,
         };
     }
 
