@@ -1,20 +1,19 @@
 ﻿namespace Girvs;
 
-public class SecureRandomNumberGenerator : RandomNumberGenerator
+public partial class SecureRandomNumberGenerator : RandomNumberGenerator
 {
     #region Field
 
-    private bool _disposed = false;
-    private readonly RandomNumberGenerator _rng;
+    protected bool _disposed;
+    protected readonly RandomNumberGenerator _rng;
 
     #endregion
 
     #region Ctor
 
-    [Obsolete("Obsolete")]
     public SecureRandomNumberGenerator()
     {
-        _rng = new RNGCryptoServiceProvider();
+        _rng = Create();
     }
 
     #endregion
@@ -35,10 +34,7 @@ public class SecureRandomNumberGenerator : RandomNumberGenerator
 
     public int Next(int minValue, int maxValue)
     {
-        if (minValue > maxValue)
-        {
-            throw new ArgumentOutOfRangeException();
-        }
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(minValue, maxValue);
         return (int)Math.Floor(minValue + ((double)maxValue - minValue) * NextDouble());
     }
 
