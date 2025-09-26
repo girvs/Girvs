@@ -38,6 +38,11 @@ public enum UserType
     /// </summary>
     [Description("租户管理员")] TenantAdminUser = 64,
 
+
+    [Description("租户平台级别需要的用户类型")]Tenant = GeneralUser | TenantAdminUser,
+
+    [Description("系统级别所需要的用户类型")]Platform = AdminUser | SpecialUser,
+
     /// <summary>
     /// 所有用户
     /// </summary>

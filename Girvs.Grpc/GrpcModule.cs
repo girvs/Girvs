@@ -1,6 +1,8 @@
-﻿namespace Girvs.Grpc;
+﻿using Microsoft.AspNetCore.Hosting;
 
-public class GrpcModule: IAppModuleStartup
+namespace Girvs.Grpc;
+
+public class GrpcModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
@@ -10,9 +12,9 @@ public class GrpcModule: IAppModuleStartup
         });
     }
 
-    public void Configure(IApplicationBuilder application)
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
     {
-        application.UseGrpcWeb(new GrpcWebOptions() {DefaultEnabled = true});
+        application.UseGrpcWeb(new GrpcWebOptions() { DefaultEnabled = true });
     }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)

@@ -1,6 +1,4 @@
-﻿using Girvs.Configuration;
-using Girvs.Swagger.Configuration;
-using IGeekFan.AspNetCore.Knife4jUI;
+﻿using IGeekFan.AspNetCore.Knife4jUI;
 
 namespace Girvs.Swagger;
 
@@ -8,11 +6,6 @@ public static class SwaggerApplicationExtensions
 {
     public static IApplicationBuilder UseSwaggerService(this IApplicationBuilder app)
     {
-        var cacheConfig = Singleton<AppSettings>.Instance.Get<SwaggerConfig>();
-
-        if (!cacheConfig.EnableSwagger)
-            return app;
-
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {

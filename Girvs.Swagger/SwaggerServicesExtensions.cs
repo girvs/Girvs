@@ -1,6 +1,4 @@
-﻿using Girvs.Configuration;
-using Girvs.Swagger.Configuration;
-using Microsoft.AspNetCore.Mvc.Controllers;
+﻿using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace Girvs.Swagger;
 
@@ -8,11 +6,6 @@ public static class SwaggerServicesExtensions
 {
     public static void AddSwaggerServices(this IServiceCollection services)
     {
-        var cacheConfig = Singleton<AppSettings>.Instance.Get<SwaggerConfig>();
-
-        if (!cacheConfig.EnableSwagger)
-            return;
-
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc(

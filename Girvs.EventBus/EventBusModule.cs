@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Hosting;
+
 namespace Girvs.EventBus;
 
 public class EventBusModule : IAppModuleStartup
@@ -34,7 +36,7 @@ public class EventBusModule : IAppModuleStartup
             var cacheConfig = Singleton<AppSettings>.Instance.Get(eventBusConfigRedisConnStr);
             if (cacheConfig.EnableCaching)
             {
-                return cacheConfig.RedisCacheConfig.ConnectionString;
+                return cacheConfig.DistributedCacheConfig.ConnectionString;
             }
         }
         finally { }
@@ -141,7 +143,7 @@ public class EventBusModule : IAppModuleStartup
             .AddSubscribeFilter<GirvsCapFilter>();
     }
 
-    public void Configure(IApplicationBuilder application) { }
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 

@@ -1,38 +1,28 @@
 ﻿namespace Girvs.Driven.CacheDriven.EventHandlers;
 
-public class RemoveCacheEventHandlers :
-    INotificationHandler<RemoveCacheEvent>,
-    INotificationHandler<RemoveCacheListEvent>,
-    INotificationHandler<SetCacheEvent>,
-    INotificationHandler<RemoveCacheByPrefixEvent>
+public class RemoveCacheEventHandlers(IStaticCacheManager staticCacheManager)
+    : INotificationHandler<RemoveCacheEvent>,
+        INotificationHandler<RemoveCacheListEvent>,
+        INotificationHandler<SetCacheEvent>,
+        INotificationHandler<RemoveCacheByPrefixEvent>
 {
-    private readonly IStaticCacheManager _staticCacheManager;
-
-    public RemoveCacheEventHandlers(IStaticCacheManager staticCacheManager)
-    {
-        _staticCacheManager = staticCacheManager ?? throw new ArgumentNullException(nameof(staticCacheManager));
-    }
-
     public Task Handle(RemoveCacheEvent notification, CancellationToken cancellationToken)
     {
-        return Task.Run(() => { _staticCacheManager.Remove(notification.CacheKey); }, cancellationToken);
+        return staticCacheManager.RemoveAsync(notification.CacheKey);
     }
 
     public Task Handle(RemoveCacheListEvent notification, CancellationToken cancellationToken)
     {
-        return Task.Run(() => { _staticCacheManager.RemoveByPrefix(notification.PrefixKey.Key); },
-            cancellationToken);
+        return staticCacheManager.RemoveByPrefixAsync(notification.PrefixKey.Key);
     }
 
     public Task Handle(SetCacheEvent notification, CancellationToken cancellationToken)
     {
-        return Task.Run(() => { _staticCacheManager.Set(notification.Key, notification.Object); },
-            cancellationToken);
+        return staticCacheManager.SetAsync(notification.Key, notification.Object);
     }
 
     public Task Handle(RemoveCacheByPrefixEvent notification, CancellationToken cancellationToken)
     {
-        return Task.Run(() => { _staticCacheManager.RemoveByPrefix(notification.PrefixKey.Key); },
-            cancellationToken);
+        return staticCacheManager.RemoveByPrefixAsync(notification.PrefixKey.Key);
     }
 }

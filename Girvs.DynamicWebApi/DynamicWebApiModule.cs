@@ -1,5 +1,6 @@
 ﻿using System;
 using Girvs.TypeFinder;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Girvs.DynamicWebApi;
 
@@ -24,7 +25,7 @@ public class DynamicWebApiModule : IAppModuleStartup
         });
     }
 
-    public void Configure(IApplicationBuilder application) { }
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
     {
