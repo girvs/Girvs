@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <ImplicitUsings>enable</ImplicitUsings>
         <Version>9.0.5.3</Version>
@@ -27,7 +27,12 @@
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
         <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="9.0.0" />
     </ItemGroup>
-    
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0-rc.2.25502.107" />
+        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.0-rc.2.25502.107" />
+    </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
     </ItemGroup>

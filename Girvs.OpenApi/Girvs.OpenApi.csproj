@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net9.0;</TargetFrameworks>
+        <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <ImplicitUsings>enable</ImplicitUsings>
         <Version>9.0.5.3</Version>
@@ -24,6 +24,17 @@
         <PackageReference Include="IGeekFan.AspNetCore.Knife4jUI" Version="0.0.16" />
         <PackageReference Include="Scalar.AspNetCore" Version="1.2.70" />
         <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="9.0.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-rc.2.25502.107" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUi" Version="9.0.6" />
+        <PackageReference Include="IGeekFan.AspNetCore.Knife4jUI" Version="0.0.16" />
+        <PackageReference Include="Scalar.AspNetCore" Version="2.9.0" />
+        <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.0-rc.2.25502.107">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
