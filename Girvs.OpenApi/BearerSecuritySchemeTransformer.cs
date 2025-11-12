@@ -1,6 +1,12 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
+
+#if NET10_0_OR_GREATER
+using Microsoft.OpenApi;
+
+#else
 using Microsoft.OpenApi.Models;
+#endif
 
 namespace Girvs.OpenApi;
 
@@ -23,12 +29,42 @@ internal sealed class BearerSecuritySchemeTransformer(
     {
         document.Servers.Clear();
         var serviceName = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
-        document.Servers.Add(new OpenApiServer() { Url = "/", Description = "默认访问" });
-        document.Servers.Add(new OpenApiServer() { Url = "/" + serviceName, Description = "网关访问" });
+        document.Servers.Add(new OpenApiServer() {Url = "/", Description = "默认访问"});
+        document.Servers.Add(new OpenApiServer() {Url = "/" + serviceName, Description = "网关访问"});
     }
 
     private async Task TransformerBearer(OpenApiDocument document)
     {
+#if NET10_0_OR_GREATER
+
+        var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
+        if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
+        {
+            // Add the security scheme at the document level
+            var securitySchemes = new Dictionary<string, IOpenApiSecurityScheme>
+            {
+                ["Bearer"] = new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer", // "bearer" refers to the header name here
+                    In = ParameterLocation.Header,
+                    BearerFormat = "Json Web Token"
+                }
+            };
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes = securitySchemes;
+
+            // Apply it as a requirement for all operations
+            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+            {
+                operation.Value.Security ??= [];
+                operation.Value.Security.Add(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+                });
+            }
+        }
+#else
         var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
         if (authenticationSchemes.Any())
         {
@@ -64,6 +100,7 @@ internal sealed class BearerSecuritySchemeTransformer(
                 );
             }
         }
+#endif
     }
 
     private static void TransformerServer(OpenApiDocument document)

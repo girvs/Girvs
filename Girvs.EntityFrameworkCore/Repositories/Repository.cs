@@ -100,7 +100,19 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
     {
         if (!fieldValue.Any()) return Task.CompletedTask;
 
-        Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setPropertyCalls = b => b;
+#if NET10_0_OR_GREATER
+        return Queryable.Where(predicate).ExecuteUpdateAsync(x =>
+        {
+            foreach (var keyValuePair in fieldValue)
+            {
+                x.SetProperty(
+                    b => keyValuePair.Key,
+                    b => keyValuePair.Value
+                );
+            }
+        });
+#else
+               Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setPropertyCalls = b => b;
 
         foreach (var keyValuePair in fieldValue)
         {
@@ -109,6 +121,7 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
         }
 
         return Queryable.Where(predicate).ExecuteUpdateAsync(setPropertyCalls);
+#endif
     }
 
     public virtual Task DeleteAsync(TEntity t)

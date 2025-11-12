@@ -1,7 +1,7 @@
 namespace Girvs.AntiJump;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class TokenAntiJumpAttribute
+public class TokenAntiJumpAttribute : Attribute
 {
 
 }

@@ -47,12 +47,21 @@ public partial class RedisCacheManager : DistributedCacheManager
         string prefix = null
     )
     {
-        return await (await _connectionWrapper.GetServerAsync(endPoint))
-            .KeysAsync(
-                (await _connectionWrapper.GetDatabaseAsync()).Database,
-                string.IsNullOrEmpty(prefix) ? null : $"{prefix}*"
-            )
-            .ToListAsync();
+        var server = await _connectionWrapper.GetServerAsync(endPoint);
+        var db = await _connectionWrapper.GetDatabaseAsync();
+
+        var keys = server.KeysAsync(
+            db.Database,
+            string.IsNullOrEmpty(prefix) ? null : $"{prefix}*"
+        );
+
+        var result = new List<RedisKey>();
+        await foreach (var key in keys)
+        {
+            result.Add(key);
+        }
+
+        return result;
     }
 
     #endregion
@@ -69,16 +78,18 @@ public partial class RedisCacheManager : DistributedCacheManager
     {
         prefix = PrepareKeyPrefix(prefix, prefixParameters);
         var db = await _connectionWrapper.GetDatabaseAsync();
-        var instanceName = _appSettings.Get<CacheConfig>().DistributedCacheConfig.InstanceName ?? string.Empty;
+        var instanceName =
+            _appSettings.Get<CacheConfig>().DistributedCacheConfig.InstanceName ?? string.Empty;
         var fullPrefix = instanceName + prefix;
 
         foreach (var endPoint in await _connectionWrapper.GetEndPointsAsync())
         {
             // 获取当前节点所有匹配的键
-            var keys = (await GetKeysAsync(endPoint, fullPrefix))
-                .Select(k => (RedisKey) k);
+            var keys = (await GetKeysAsync(endPoint, fullPrefix)).Select(k => (RedisKey)k);
 
-            var isCluster = (await _connectionWrapper.GetServerAsync(endPoint)).ServerType == ServerType.Cluster;
+            var isCluster =
+                (await _connectionWrapper.GetServerAsync(endPoint)).ServerType
+                == ServerType.Cluster;
 
             if (isCluster)
             {
