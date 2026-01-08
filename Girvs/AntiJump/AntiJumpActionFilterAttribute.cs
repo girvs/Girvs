@@ -59,6 +59,7 @@ public class AntiJumpActionFilterAttribute : ActionFilterAttribute
         {
             var antiJumpKey = BuildKey(antiJumpAttribute.GenerateKey, token, currentDatetime);
             var headerValue = $"{antiJumpKey}_{currentDatetime}";
+            resultContext.HttpContext.Response.Headers["Access-Control-Expose-Headers"] = antiJumpAttribute.RelationName;
             resultContext.HttpContext.Response.Headers.Append(antiJumpAttribute.RelationName, headerValue);
         }
     }
