@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/examples/">
-    <Project Path="examples/Example.WebApi/Example.WebApi.csproj" />
-  </Folder>
   <Project Path="Girvs.AuthorizePermission/Girvs.AuthorizePermission.csproj" />
   <Project Path="Girvs.AutoMapper/Girvs.AutoMapper.csproj" />
   <Project Path="Girvs.Cache/Girvs.Cache.csproj" />
