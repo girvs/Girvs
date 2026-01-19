@@ -7,8 +7,18 @@ public class GirvsAuthorizePermissionService : IGirvsAuthorizePermissionService
     public Task<List<AuthorizePermissionModel>> GetAuthorizePermissionList()
     {
         var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-        var services = typeFinder.FindOfType<IAppWebApiService>()
+        var services = new List<Type>();
+
+        var appWebApiServices = typeFinder.FindOfType<IAppWebApiService>()
             .Where(x => x.IsDefined(typeof(ServicePermissionDescriptorAttribute), false));
+
+        services.AddRange(appWebApiServices);
+
+#if NET9_0_OR_GREATER
+        var miniServices = typeFinder.FindOfType<IAppWebMiniApiService>()
+            .Where(x => x.IsDefined(typeof(ServicePermissionDescriptorAttribute), false));
+        services.AddRange(miniServices);
+#endif
 
         var list = services.Select(service =>
         {

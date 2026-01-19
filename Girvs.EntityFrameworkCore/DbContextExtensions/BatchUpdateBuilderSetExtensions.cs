@@ -1,4 +1,5 @@
 using Humanizer;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore.Query;
 
 namespace Girvs.EntityFrameworkCore.DbContextExtensions;
@@ -12,8 +13,10 @@ public static class BatchUpdateBuilderSetExtensions
     //     
     //     return batchUpdateBuilder;
     // }
+#if NET10_0_OR_GREATER
 
-    public static Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> Append<TEntity>(
+#else
+        public static Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> Append<TEntity>(
         this Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> left,
         Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> right)
     {
@@ -21,4 +24,5 @@ public static class BatchUpdateBuilderSetExtensions
         var combined = replace.Visit(right.Body);
         return Expression.Lambda<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>>(combined, left.Parameters);
     }
+#endif
 }

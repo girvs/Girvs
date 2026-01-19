@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.5.3</Version>
-        <PackageVersion>9.0.5.3</PackageVersion>
+        <Version>9.0.8</Version>
+        <PackageVersion>9.0.8</PackageVersion>
         <LangVersion>latest</LangVersion>
         <Copyright>kicck</Copyright>
         <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
@@ -27,6 +27,18 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+        <PackageReference Include="LogDashboard" Version="1.4.8"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3"/>
+        <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0-dev-02304"/>
+        <PackageReference Include="Serilog.Sinks.AliyunLog" Version="1.1.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+        <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
+        <PackageReference Include="Portable.BouncyCastle" Version="1.9.0"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
         <PackageReference Include="LogDashboard" Version="1.4.8"/>
         <PackageReference Include="Serilog.AspNetCore" Version="8.0.3"/>
         <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="10.0.0"/>

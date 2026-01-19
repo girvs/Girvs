@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.5.3</Version>
-        <PackageVersion>9.0.5.3</PackageVersion>
+        <Version>9.0.8</Version>
+        <PackageVersion>9.0.8</PackageVersion>
         <LangVersion>latest</LangVersion>
         <Copyright>kicck</Copyright>
         <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
@@ -24,14 +24,18 @@
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3"/>
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.3"/>
         <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="8.0.3"/>
-        <!--此处MessagePack StackExchangeRedis版本使用5.0 版本会出现版本错误，所以目前只能使用3.0+版本-->
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0"/>
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="9.0.0"/>
         <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="9.0.0"/>
-        <!--此处MessagePack StackExchangeRedis版本使用5.0 版本会出现版本错误，所以目前只能使用3.0+版本-->
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.0"/>
     </ItemGroup>
 
 </Project>

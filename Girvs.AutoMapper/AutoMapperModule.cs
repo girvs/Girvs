@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Girvs.AutoMapper;
 
@@ -15,15 +16,19 @@ public class AutoMapperModule : IAppModuleStartup
             )
             .OrderBy(mapperConfiguration => mapperConfiguration.Order);
 
-        var config = new MapperConfiguration(cfg =>
-        {
-            //cfg.AddProfile<DefaultProfile>();
-            foreach (var instance in instances)
-            {
-                cfg.AddProfile(instance.GetType());
-            }
-        });
+        var logFactory = services.BuildServiceProvider().GetService<ILoggerFactory>();
 
+        var config = new MapperConfiguration(
+            cfg =>
+            {
+                //cfg.AddProfile<DefaultProfile>();
+                foreach (var instance in instances)
+                {
+                    cfg.AddProfile(instance.GetType());
+                }
+            },
+            logFactory
+        );
         services.AddSingleton(typeof(IMapper), config.CreateMapper());
     }
 

@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.5.3</Version>
-        <PackageVersion>9.0.5.3</PackageVersion>
+        <Version>9.0.8</Version>
+        <PackageVersion>9.0.8</PackageVersion>
         <LangVersion>latest</LangVersion>
         <Copyright>kicck</Copyright>
         <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
@@ -34,6 +34,17 @@
         <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="8.3.1"/>
         <PackageReference Include="DotNetCore.CAP.Sqlite" Version="8.3.0"/>
         <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.3.1"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <PackageReference Include="DotNetCore.CAP" Version="8.4.0"/>
+        <PackageReference Include="DotNetCore.CAP.Dashboard" Version="8.4.0"/>
+        <PackageReference Include="DotNetCore.CAP.Kafka" Version="8.4.0"/>
+        <PackageReference Include="DotNetCore.CAP.MySql" Version="8.4.0"/>
+        <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.4.0"/>
+        <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="8.4.0"/>
+        <PackageReference Include="DotNetCore.CAP.Sqlite" Version="8.4.0"/>
+        <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.4.0"/>
     </ItemGroup>
 
     <ItemGroup>

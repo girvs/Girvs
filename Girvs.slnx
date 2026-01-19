@@ -1,0 +1,17 @@
+<Solution>
+  <Project Path="Girvs.AuthorizePermission/Girvs.AuthorizePermission.csproj" />
+  <Project Path="Girvs.AutoMapper/Girvs.AutoMapper.csproj" />
+  <Project Path="Girvs.Cache/Girvs.Cache.csproj" />
+  <Project Path="Girvs.CodeGenerator/Girvs.CodeGenerator.csproj" />
+  <Project Path="Girvs.Consul/Girvs.Consul.csproj" />
+  <Project Path="Girvs.Driven/Girvs.Driven.csproj" />
+  <Project Path="Girvs.DynamicWebApi/Girvs.DynamicWebApi.csproj" />
+  <Project Path="Girvs.EntityFrameworkCore/Girvs.EntityFrameworkCore.csproj" />
+  <Project Path="Girvs.EventBus/Girvs.EventBus.csproj" />
+  <Project Path="Girvs.Grpc/Girvs.Grpc.csproj" />
+  <Project Path="Girvs.OpenApi/Girvs.OpenApi.csproj" />
+  <Project Path="Girvs.Quartz/Girvs.Quartz.csproj" />
+  <Project Path="Girvs.Refit/Girvs.Refit.csproj" />
+  <Project Path="Girvs.SignalR/Girvs.SignalR.csproj" />
+  <Project Path="Girvs/Girvs.csproj" />
+</Solution>

@@ -1,6 +1,5 @@
 ﻿using Girvs.Cache.Extensions;
 using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
 
 namespace Girvs.Cache.Caching;
 
@@ -122,7 +121,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
 
         return string.IsNullOrEmpty(json)
             ? (false, default)
-            : (true, item: JsonConvert.DeserializeObject<T>(json));
+            : (true, item: JsonSerializer.Deserialize<T>(json));
     }
 
     /// <summary>
@@ -189,7 +188,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
 
                 setTask = _distributedCache.SafeClusterSetAsync(
                     key.Key,
-                    JsonConvert.SerializeObject(item),
+                    JsonSerializer.Serialize(item),
                     PrepareEntryOptions(key)
                 );
             }
@@ -225,7 +224,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     {
         var value = await _distributedCache.GetStringAsync(key.Key);
 
-        return value != null ? JsonConvert.DeserializeObject<T>(value) : defaultValue;
+        return value != null ? JsonSerializer.Deserialize<T>(value) : defaultValue;
     }
 
     /// <summary>
@@ -262,7 +261,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
             SetLocal(key.Key, await lazy.Value);
             await _distributedCache.SafeClusterSetAsync(
                 key.Key,
-                JsonConvert.SerializeObject(data),
+                JsonSerializer.Serialize(data),
                 PrepareEntryOptions(key)
             );
         }
