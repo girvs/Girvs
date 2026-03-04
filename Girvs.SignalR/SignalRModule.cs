@@ -27,7 +27,12 @@ public class SignalRModule : IAppModuleStartup
             && distributedCacheConfig.DistributedCacheType == DistributedCacheType.Redis
         )
         {
-            signalServiceBuilder.AddStackExchangeRedis(distributedCacheConfig.ConnectionString);
+            signalServiceBuilder.AddStackExchangeRedis(distributedCacheConfig.ConnectionString, options =>
+            {
+                options.Configuration.ChannelPrefix = "Message";
+                options.Configuration.ConnectTimeout = 5000;
+                options.Configuration.KeepAlive = 60;
+            });
         }
 
         services.TryAddEnumerable(
