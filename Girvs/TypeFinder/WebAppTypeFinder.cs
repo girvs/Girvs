@@ -1,28 +1,25 @@
 ﻿namespace Girvs.TypeFinder;
 
-public class WebAppTypeFinder : AppDomainTypeFinder
+public class WebAppTypeFinder(IGirvsFileProvider fileProvider = null) : AppDomainTypeFinder(fileProvider)
 {
-    private bool _binFolderAssembliesLoaded;
-
-    public WebAppTypeFinder(IGirvsFileProvider fileProvider = null) : base(fileProvider)
-    {
-    }
+    // ✅ 修复五：改用 int + Interlocked，线程安全无锁
+    private int _binFolderAssembliesLoaded;
 
     public bool EnsureBinFolderAssembliesLoaded { get; set; } = true;
 
-    public virtual string GetBinDirectory()
-    {
-        return AppContext.BaseDirectory;
-    }
+    public virtual string GetBinDirectory() => AppContext.BaseDirectory;
 
     public override IList<Assembly> GetAssemblies()
     {
-        if (!EnsureBinFolderAssembliesLoaded || _binFolderAssembliesLoaded)
+        if (!EnsureBinFolderAssembliesLoaded)
             return base.GetAssemblies();
 
-        _binFolderAssembliesLoaded = true;
-        var binPath = GetBinDirectory();
-        LoadMatchingAssemblies(binPath);
+        // ✅ Interlocked.Exchange 原子操作，确保只加载一次
+        if (Interlocked.Exchange(ref _binFolderAssembliesLoaded, 1) == 0)
+        {
+            LoadMatchingAssemblies(GetBinDirectory());
+            // LoadMatchingAssemblies 内部已调用 InvalidateCache()
+        }
 
         return base.GetAssemblies();
     }

@@ -285,25 +285,54 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     /// <returns>A task that represents the asynchronous operation</returns>
     public abstract Task ClearAsync();
 
-    public virtual async Task<bool> ExistAtomicLockerAsync(string key)
+public virtual async Task<bool> ExistAtomicLockerAsync(string key)
     {
         var cacheKey = new CacheKey(key);
-        var result = await GetAsync(cacheKey);
-        return result != null;
+        var value = await _distributedCache.GetStringAsync(cacheKey.Key);
+        return !string.IsNullOrEmpty(value);
     }
 
     public virtual async Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime)
     {
-        var cacheKey = new CacheKey(key)
+        var cacheKey = new CacheKey(key);
+        
+        var options = new DistributedCacheEntryOptions
         {
-            CacheTime = expirationTime.Seconds
+            AbsoluteExpirationRelativeToNow = expirationTime
         };
 
-        if (await ExistAtomicLockerAsync(key))
-            return false;
+        try
+        {
+            var existingValue = await _distributedCache.GetStringAsync(cacheKey.Key);
+            if (!string.IsNullOrEmpty(existingValue))
+                return false;
 
-        await SetAsync(cacheKey, true);
-        return true;
+            var lockKey = $"{cacheKey.Key}:lock";
+            var lockValue = Guid.NewGuid().ToString();
+            
+            await _distributedCache.SetStringAsync(
+                lockKey, 
+                lockValue, 
+                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(10) }
+            );
+
+            existingValue = await _distributedCache.GetStringAsync(cacheKey.Key);
+            if (!string.IsNullOrEmpty(existingValue))
+            {
+                await _distributedCache.RemoveAsync(lockKey);
+                return false;
+            }
+
+            await _distributedCache.SetStringAsync(cacheKey.Key, "1", options);
+            await _distributedCache.RemoveAsync(lockKey);
+            
+            SetLocal(cacheKey.Key, true);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public virtual Task RemoveAtomicLockerAsync(string key)

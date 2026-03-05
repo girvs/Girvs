@@ -1,6 +1,8 @@
 namespace Girvs.AuthorizePermission.AuthorizeCompare;
 
-public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition, IServiceMethodPermissionCompare
+public abstract class GirvsAuthorizeCompare
+    : GirvsRepositoryOtherQueryCondition,
+        IServiceMethodPermissionCompare
 {
     public abstract AuthorizeModel GetCurrnetUserAuthorize();
 
@@ -12,7 +14,8 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
     public virtual bool IsIncludeVerifyDataRuleByEntity(Type entityType)
     {
         var properties = entityType.GetProperties();
-        return properties.Select(propertyInfo => propertyInfo.GetCustomAttribute<DataRuleAttribute>())
+        return properties
+            .Select(propertyInfo => propertyInfo.GetCustomAttribute<DataRuleAttribute>())
             .Any(dataRule => dataRule != null);
     }
 
@@ -24,8 +27,7 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
     {
         //return (EngineContext.Current.ClaimManager?.CurrentClaims ?? Array.Empty<Claim>()).Any();
         var httpContext = EngineContext.Current.HttpContext;
-        return httpContext?.User.Identity != null
-               && httpContext.User.Identity.IsAuthenticated;
+        return httpContext?.User.Identity != null && httpContext.User.Identity.IsAuthenticated;
     }
 
     public override Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>()
@@ -59,9 +61,7 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
             return expression;
         }
 
-        var currentUserAuthorize = GetCurrnetUserAuthorize() ??
-                                   new AuthorizeModel(new List<AuthorizeDataRuleModel>(),
-                                       new List<AuthorizePermissionModel>());
+        var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel([], []);
 
         var dataRuleModels = currentUserAuthorize.AuthorizeDataRules;
 
@@ -70,11 +70,15 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
             throw new GirvsException("未获取相关的数据授权信息", 568);
         }
 
-        var currentEntityDataRule =
-            dataRuleModels.FirstOrDefault(x => x.EntityTypeName == typeof(TEntity).FullName);
+        var currentEntityDataRule = dataRuleModels.FirstOrDefault(x =>
+            x.EntityTypeName == typeof(TEntity).FullName
+        );
 
         // 如果用户没有设置数据权限，则直接抛出异常,并且配置设置用户不是默认为所有数据
-        if (currentEntityDataRule == null || !currentEntityDataRule.AuthorizeDataRuleFieldModels.Any())
+        if (
+            currentEntityDataRule == null
+            || !currentEntityDataRule.AuthorizeDataRuleFieldModels.Any()
+        )
         {
             var config = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
             if (!config.UserDataRuleDefaultAll)
@@ -88,17 +92,27 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
             var orFields = GetEntityDataRuleOrFields(typeof(TEntity));
             //先处理Or 的字段条件
             var orAuthorizeDataRuleFieldModels =
-                currentEntityDataRule.AuthorizeDataRuleFieldModels.Where(x => orFields.Contains(x.FieldName));
+                currentEntityDataRule.AuthorizeDataRuleFieldModels.Where(x =>
+                    orFields.Contains(x.FieldName)
+                );
 
-            var orExpression = SpliceCondition<TEntity>(orAuthorizeDataRuleFieldModels, ConditionType.Or);
+            var orExpression = SpliceCondition<TEntity>(
+                orAuthorizeDataRuleFieldModels,
+                ConditionType.Or
+            );
             expression = expression.And(orExpression);
 
             //再处理And的字段条件
 
             var andAuthorizeDataRuleFieldModels =
-                currentEntityDataRule.AuthorizeDataRuleFieldModels.Where(x => !orFields.Contains(x.FieldName));
+                currentEntityDataRule.AuthorizeDataRuleFieldModels.Where(x =>
+                    !orFields.Contains(x.FieldName)
+                );
 
-            var andExpression = SpliceCondition<TEntity>(andAuthorizeDataRuleFieldModels, ConditionType.And);
+            var andExpression = SpliceCondition<TEntity>(
+                andAuthorizeDataRuleFieldModels,
+                ConditionType.And
+            );
             expression = expression.And(andExpression);
         }
 
@@ -107,36 +121,30 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
 
     #region 获取实体中所有带Or的条件字段
 
-    private Dictionary<string, string[]> entityDataRuleOrFields = new Dictionary<string, string[]>();
-    private static object sync = new object();
+    private static readonly ConcurrentDictionary<string, string[]> EntityDataRuleOrFieldsCache = new();
 
     private string[] GetEntityDataRuleOrFields(Type entityType)
     {
-        lock (sync)
+        return EntityDataRuleOrFieldsCache.GetOrAdd(entityType.Name, _ =>
         {
-            if (!entityDataRuleOrFields.ContainsKey(entityType.Name))
-            {
-                var orFields = entityType.GetProperties().Where(x =>
+            return entityType
+                .GetProperties()
+                .Where(x =>
                 {
                     var dataRule = x.GetCustomAttribute<DataRuleAttribute>();
-                    if (dataRule != null)
-                    {
-                        return dataRule.ConditionType == ConditionType.Or;
-                    }
-
-                    return false;
-                }).Select(x => x.Name).ToArray();
-                entityDataRuleOrFields.Add(entityType.Name, orFields);
-            }
-
-            return entityDataRuleOrFields[entityType.Name];
-        }
+                    return dataRule != null && dataRule.ConditionType == ConditionType.Or;
+                })
+                .Select(x => x.Name)
+                .ToArray();
+        });
     }
 
     #endregion
 
     private Expression<Func<TEntity, bool>> SpliceCondition<TEntity>(
-        IEnumerable<AuthorizeDataRuleFieldModel> dataRuleFieldModels, ConditionType conditionType)
+        IEnumerable<AuthorizeDataRuleFieldModel> dataRuleFieldModels,
+        ConditionType conditionType
+    )
     {
         Expression<Func<TEntity, bool>> innerExpression = x => conditionType == ConditionType.And;
         foreach (var dataRuleFieldModel in dataRuleFieldModels)
@@ -149,11 +157,13 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
                 dataRuleFieldModel.FieldName,
                 dataRuleFieldModel.FieldType,
                 dataRuleFieldModel.ExpressionType,
-                fieldValues);
+                fieldValues
+            );
 
-            innerExpression = conditionType == ConditionType.And
-                ? innerExpression.And(ex)
-                : innerExpression.Or(ex);
+            innerExpression =
+                conditionType == ConditionType.And
+                    ? innerExpression.And(ex)
+                    : innerExpression.Or(ex);
         }
 
         return innerExpression;
@@ -167,8 +177,7 @@ public abstract class GirvsAuthorizeCompare : GirvsRepositoryOtherQueryCondition
 
     public virtual bool PermissionCompare(Guid functionId, Permission permission)
     {
-        var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel(new List<AuthorizeDataRuleModel>(),
-            new List<AuthorizePermissionModel>());
+        var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel([], []);
 
         var ps = currentUserAuthorize.AuthorizePermissions;
 
