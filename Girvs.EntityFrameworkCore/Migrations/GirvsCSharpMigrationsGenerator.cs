@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.Design.Internal;
-using Pomelo.EntityFrameworkCore.MySql.Migrations;
 
 namespace Girvs.EntityFrameworkCore.Migrations;
 

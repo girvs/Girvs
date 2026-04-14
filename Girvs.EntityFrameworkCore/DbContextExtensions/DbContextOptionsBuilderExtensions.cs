@@ -34,14 +34,10 @@ public static class DbContextOptionsBuilderExtensions
     )
         where TDbContext : GirvsDbContext
     {
-        var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
-
-        optionsBuilder.UseMySql(
+        optionsBuilder.UseMySQL(
             connStr,
-            serverVersion,
             builder =>
             {
-                builder.EnableRetryOnFailure(maxRetryCount: 5);
                 if (config.EnableShardingTable)
                 {
                     var related =
@@ -52,7 +48,6 @@ public static class DbContextOptionsBuilderExtensions
                 }
             }
         );
-        // optionsBuilder.UseBatchEF_MySQLPomelo();
     }
 
     // public static void UseSqlLiteWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,

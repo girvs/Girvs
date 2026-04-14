@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"StyleCop\\\\|FxCop\\\\|Roslyn\\\\|CodeAnalysis\" /e/CompanyWork/Work/Girvs/*.props /e/CompanyWork/Work/Girvs/*/*.csproj)",
+      "Bash(dotnet build:*)",
+      "WebFetch(domain:www.nuget.org)"
+    ]
+  }
+}
