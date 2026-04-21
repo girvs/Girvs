@@ -29,6 +29,7 @@ public static class DataProviderServiceExtensions
         }
     }
 
+
     public static IServiceCollection AddGirvsDbContext<TContext>(
         this IServiceCollection services,
         DataConnectionConfig config
@@ -38,10 +39,12 @@ public static class DataProviderServiceExtensions
         return services.AddDbContext<TContext>(
             (provider, builder) =>
             {
-                builder.ConfigDbContextOptionsBuilder<TContext>(
-                    config,
-                    config?.GetSecureRandomReadDataConnectionString()
-                );
+                builder
+                    .AddInterceptors(new MySqlSyntaxInterceptor())
+                    .ConfigDbContextOptionsBuilder<TContext>(
+                        config,
+                        config?.GetSecureRandomReadDataConnectionString()
+                    );
             },
             ServiceLifetime.Scoped,
             ServiceLifetime.Scoped

@@ -32,6 +32,33 @@ public static class ServiceCollectionExtension
     }
 
 
+    #if NET10_0_OR_GREATER
+    public static IServiceCollection RegisterIValidatorType(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssemblyContaining(
+            typeof(GirvsCommandValidator<>),
+            lifetime: ServiceLifetime.Scoped,
+            filter: result =>
+                result.ValidatorType != typeof(GirvsDefaultCommandValidator<>) &&
+                IsAssignableToOpenGeneric(result.ValidatorType, typeof(GirvsCommandValidator<>)),
+            includeInternalTypes: false);
+
+        // 兜底注册：没有具体校验器时使用 Default
+        services.AddScoped(typeof(IValidator<>), typeof(GirvsDefaultCommandValidator<>));
+
+        return services;
+    }
+
+    private static bool IsAssignableToOpenGeneric(Type type, Type openGeneric)
+    {
+        for (var t = type; t != null && t != typeof(object); t = t.BaseType)
+        {
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == openGeneric)
+                return true;
+        }
+        return false;
+    }
+    #else
     public static void RegisterIValidatorType(this IServiceCollection services)
     {
         var typeFinder = new WebAppTypeFinder();
@@ -61,4 +88,10 @@ public static class ServiceCollectionExtension
         //     }
         // }
     }
+    #endif
+
+
+
+
+
 }

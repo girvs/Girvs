@@ -38,7 +38,7 @@ internal sealed class BearerSecuritySchemeTransformer(
 #if NET10_0_OR_GREATER
 
         var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
-        if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
+        if (authenticationSchemes.Any())
         {
             // Add the security scheme at the document level
             var securitySchemes = new Dictionary<string, IOpenApiSecurityScheme>

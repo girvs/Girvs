@@ -8,16 +8,13 @@ public class DrivenModule : IAppModuleStartup
     {
         var typeFinder = new WebAppTypeFinder();
 
-#if NET8_0
+#if NET9_0_OR_GREATER
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssemblyContaining<DrivenModule>());
+#else
         services.AddMediatR(
-            configuration =>
-            {
-                configuration.AsScoped();
-            },
-            typeof(DrivenModule)
-        );
-#elif NET9_0
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<DrivenModule>());
+            cfg => cfg.AsScoped(),
+            typeof(DrivenModule));
 #endif
         services.RegisterNotificationHandlerType();
         services.RegisterCommandHandlerType();
@@ -30,9 +27,13 @@ public class DrivenModule : IAppModuleStartup
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
     }
 
-    public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
+    {
+    }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
+    {
+    }
 
     public int Order { get; } = 3;
 }
