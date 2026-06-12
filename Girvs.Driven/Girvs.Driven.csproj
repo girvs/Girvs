@@ -12,17 +12,17 @@
         <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0"/>
     </ItemGroup>
 
+    <!-- MediatR 12+ 已将 DI 扩展（AddMediatR）合入主包，net9/net10 不再需要旧 Extensions 包；
+         net8 仍用 MediatR 11，AddMediatR 来自 Extensions 包，必须保留 -->
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
         <PackageReference Include="FluentValidation" Version="11.11.0"/>
         <PackageReference Include="MediatR" Version="12.4.1"/>
-        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
         <PackageReference Include="FluentValidation" Version="12.0.0"/>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
         <PackageReference Include="MediatR" Version="13.0.0"/>
-        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0"/>
     </ItemGroup>
 
 </Project>

@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
+        <!-- AutoMapper 13+ 已将 DI 扩展合入主包，且本模块手动注册 IMapper，无需旧 Extensions 包 -->
         <PackageReference Include="AutoMapper" Version="15.0.1"/>
-        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1"/>
     </ItemGroup>
 
     <ItemGroup>
