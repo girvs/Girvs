@@ -9,7 +9,8 @@ Girvs 是一个基于 .NET 的企业级快速开发框架，采用模块化设�
 - **解决方案文件**: `Girvs.slnx`（根目录）
 - **多目标框架**: `net8.0;net9.0;net10.0`（在 `Directory.Build.props` 中统一设置）
 - **SDK 版本**: `global.json` 中设置为 `10.0.0`（注意：这不是合法的 SDK feature band，本机会提示 `Invalid`，实际可忽略）
-- **统一版本号**: 所有模块的 `Version/PackageVersion` 在 `Directory.Build.props` 中集中管理
+- **统一版本号**: 所有模块的 `Version/PackageVersion` 在 `Directory.Build.props` 中集中管理（当前 `10.0.0-preview1.1`）
+- **构建即打包**: `GeneratePackageOnBuild=true`，每次构建都会在各模块 `bin/<配置>/` 下生成 nupkg
 
 ## 常用命令
 
@@ -27,11 +28,15 @@ dotnet build Girvs.EntityFrameworkCore/Girvs.EntityFrameworkCore.csproj
 dotnet clean Girvs.slnx
 dotnet build Girvs.slnx --no-incremental
 
-# 发布到 NuGet
+# 发布到 NuGet（需先 Release 构建）
 ./nugetpublish.ps1
 ```
 
-**注意**: 当前仓库没有测试项目，无法直接运行 `dotnet test`。`.vscode/tasks.json` 中的任务引用了已不存在的 `Net5/` 路径，视为过期配置。
+**注意**:
+- 当前仓库没有测试项目，无法直接运行 `dotnet test`。
+- `Examples/` 目录为空，不要在其中寻找示例代码。
+- 根目录 `AGENTS.md` 与本文件内容重叠，其中版本号（9.0.8.1）已过期，以本文件和 `Directory.Build.props` 为准。
+- 发布前须手动同步 `nugetpublish.ps1` 中的 `$env:PACKAGE_VERSION` 与 `Directory.Build.props` 中的版本号。脚本末尾的 `Girvs.Swagger` 推送行属过期残留（该模块已改名为 `Girvs.OpenApi`）。
 
 ## 模块架构
 
