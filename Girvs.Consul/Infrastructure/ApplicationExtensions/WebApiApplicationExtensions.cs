@@ -34,10 +34,12 @@ public static class WebApiApplicationExtensions
                 }
             };
 
-            consulClient.Agent.ServiceRegister(registration).Wait();
+            // 启动/停止钩子均为同步上下文，无法 await；
+            // 用 GetAwaiter().GetResult() 替代 Wait()，异常不再被 AggregateException 包装
+            consulClient.Agent.ServiceRegister(registration).GetAwaiter().GetResult();
             lifetime.ApplicationStopping.Register(() =>
             {
-                consulClient.Agent.ServiceDeregister(registration.ID).Wait();
+                consulClient.Agent.ServiceDeregister(registration.ID).GetAwaiter().GetResult();
             });
         }
     }
