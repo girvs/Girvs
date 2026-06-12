@@ -24,13 +24,6 @@ public interface IEngine
 
     bool IsAuthenticated { get; }
 
-    // /// <summary>
-    // /// 根据Claim名称获取相关的登陆信息
-    // /// </summary>
-    // /// <param name="name"></param>
-    // /// <returns></returns>
-    // Claim GetCurrentClaimByName(string name);
-
     IGirvsClaimManager ClaimManager { get; }
 
     TConfig GetAppModuleConfig<TConfig>()

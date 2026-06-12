@@ -223,17 +223,6 @@ public class GirvsEngine : IEngine
         }
     }
 
-    // public Claim GetCurrentClaimByName(string name)
-    // {
-    //     if (HttpContext != null
-    //         && HttpContext.User.Identity.IsAuthenticated)
-    //     {
-    //         return HttpContext.User.Claims.FirstOrDefault(x => x.Type == name);
-    //     }
-    //
-    //     return new Claim(name, "");
-    // }
-
     public IGirvsClaimManager ClaimManager
     {
         get

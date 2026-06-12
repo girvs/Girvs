@@ -36,15 +36,4 @@
         <PackageReference Include="Portable.BouncyCastle" Version="1.9.0"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Compile Remove="Infrastructure\GirvsServiceContext\**"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <EmbeddedResource Remove="Infrastructure\GirvsServiceContext\**"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Remove="Infrastructure\GirvsServiceContext\**"/>
-    </ItemGroup>
 </Project>
