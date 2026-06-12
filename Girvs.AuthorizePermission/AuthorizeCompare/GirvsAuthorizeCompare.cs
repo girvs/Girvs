@@ -4,7 +4,7 @@ public abstract class GirvsAuthorizeCompare
     : GirvsRepositoryOtherQueryCondition,
         IServiceMethodPermissionCompare
 {
-    public abstract AuthorizeModel GetCurrnetUserAuthorize();
+    public abstract AuthorizeModel GetCurrentUserAuthorize();
 
     /// <summary>
     /// 判断当前实体是否包含数据校验规则，不包含则直接跳过
@@ -25,7 +25,6 @@ public abstract class GirvsAuthorizeCompare
     /// <returns></returns>
     public virtual bool IsLogin()
     {
-        //return (EngineContext.Current.ClaimManager?.CurrentClaims ?? Array.Empty<Claim>()).Any();
         var httpContext = EngineContext.Current.HttpContext;
         return httpContext?.User.Identity != null && httpContext.User.Identity.IsAuthenticated;
     }
@@ -61,7 +60,7 @@ public abstract class GirvsAuthorizeCompare
             return expression;
         }
 
-        var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel([], []);
+        var currentUserAuthorize = GetCurrentUserAuthorize() ?? new AuthorizeModel([], []);
 
         var dataRuleModels = currentUserAuthorize.AuthorizeDataRules;
 
@@ -169,15 +168,9 @@ public abstract class GirvsAuthorizeCompare
         return innerExpression;
     }
 
-    // private List<object> ConverFieldValueToArray(string fieldType, string fieldValue)
-    // {
-    //     var values = fieldValue.Split(",");
-    //     return values.Select(value => GirvsConvert.ToSpecifiedType(fieldType, value)).ToList();
-    // }
-
     public virtual bool PermissionCompare(Guid functionId, Permission permission)
     {
-        var currentUserAuthorize = GetCurrnetUserAuthorize() ?? new AuthorizeModel([], []);
+        var currentUserAuthorize = GetCurrentUserAuthorize() ?? new AuthorizeModel([], []);
 
         var ps = currentUserAuthorize.AuthorizePermissions;
 

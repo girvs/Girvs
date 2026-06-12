@@ -5,7 +5,14 @@ namespace Girvs;
 
 public static class GirvsHostBuilderManager
 {
+    /// <summary>
+    /// 旧拼写兼容方法，转发到 CreateGirvsHostBuilder
+    /// </summary>
+    [Obsolete("拼写修正：请使用 CreateGirvsHostBuilder<TStartup>(args)")]
     public static IHostBuilder CreateGrivsHostBuilder<TStartup>(string[] args)
+        where TStartup : class, IGirvsStartup => CreateGirvsHostBuilder<TStartup>(args);
+
+    public static IHostBuilder CreateGirvsHostBuilder<TStartup>(string[] args)
         where TStartup : class, IGirvsStartup
     {
         var builder = Host.CreateDefaultBuilder(args);
@@ -94,7 +101,14 @@ public static class GirvsHostBuilderManager
         }
     }
 
-    public static WebApplication CreateGrivsWebApplicationBuilder(string[] args)
+    /// <summary>
+    /// 旧拼写兼容方法，转发到 CreateGirvsWebApplicationBuilder
+    /// </summary>
+    [Obsolete("拼写修正：请使用 CreateGirvsWebApplicationBuilder(args)")]
+    public static WebApplication CreateGrivsWebApplicationBuilder(string[] args) =>
+        CreateGirvsWebApplicationBuilder(args);
+
+    public static WebApplication CreateGirvsWebApplicationBuilder(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 

@@ -9,7 +9,7 @@ public class UnitOfWork<TEntity> : IUnitOfWork<TEntity> where TEntity : Entity
     public UnitOfWork()
     {
         var related = EngineContext.Current.GetShardingTableRelatedByEntity<TEntity>();
-        _context = related.GetInstant() ??
+        _context = related.GetInstance() ??
                    throw new ArgumentNullException(nameof(DbContext));
         _context.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
         _logger = EngineContext.Current.Resolve<ILogger<UnitOfWork<TEntity>>>();

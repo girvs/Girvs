@@ -96,7 +96,7 @@ public class DbContextEntityShardingTableRelated
     /// </summary>
     /// <returns></returns>
     /// <exception cref="GirvsException"></exception>
-    public GirvsDbContext GetInstant()
+    public GirvsDbContext GetInstance()
     {
         try
         {
@@ -107,4 +107,10 @@ public class DbContextEntityShardingTableRelated
             throw new GirvsException("暂时不能获取相关的实例");
         }
     }
+
+    /// <summary>
+    /// 旧拼写兼容方法，转发到 GetInstance
+    /// </summary>
+    [Obsolete("拼写修正：请使用 GetInstance()")]
+    public GirvsDbContext GetInstant() => GetInstance();
 }
