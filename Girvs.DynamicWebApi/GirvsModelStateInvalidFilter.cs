@@ -1,15 +1,11 @@
 ﻿namespace Girvs.DynamicWebApi;
 
-public class GirvsModelStateInvalidFilter : IActionFilter
+public class GirvsModelStateInvalidFilter(
+    IOptions<ApiBehaviorOptions> options,
+    ILogger<GirvsModelStateInvalidFilter> logger
+) : IActionFilter
 {
-    private ModelStateInvalidFilter _modelStateInvalidFilter;
-
-    public GirvsModelStateInvalidFilter(IOptions<ApiBehaviorOptions> options,
-        ILogger<GirvsModelStateInvalidFilter> logger)
-    {
-        _modelStateInvalidFilter =
-            new ModelStateInvalidFilter(options.Value, logger);
-    }
+    private ModelStateInvalidFilter _modelStateInvalidFilter = new(options.Value, logger);
 
     public void OnActionExecuting(ActionExecutingContext context)
     {

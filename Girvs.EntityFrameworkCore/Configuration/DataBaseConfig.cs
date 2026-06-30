@@ -19,12 +19,8 @@ public enum UseDataType
 
 public class DbConfig : IAppModuleConfig
 {
-    public DbConfig()
-    {
-        DataConnectionConfigs = new List<DataConnectionConfig>();
-    }
-
-    public ICollection<DataConnectionConfig> DataConnectionConfigs { get; set; }
+    public ICollection<DataConnectionConfig> DataConnectionConfigs { get; set; } =
+        new List<DataConnectionConfig>();
 
     public void Init()
     {

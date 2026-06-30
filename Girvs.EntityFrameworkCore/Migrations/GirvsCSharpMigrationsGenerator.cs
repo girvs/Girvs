@@ -2,15 +2,12 @@ using Microsoft.EntityFrameworkCore.Design.Internal;
 
 namespace Girvs.EntityFrameworkCore.Migrations;
 
-public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
+public class GirvsCSharpMigrationsGenerator(
+    [NotNull] MigrationsCodeGeneratorDependencies dependencies,
+    [NotNull] CSharpMigrationsGeneratorDependencies csharpDependencies
+) : CSharpMigrationsGenerator(dependencies, csharpDependencies)
 {
-    private ICSharpHelper Code
-        => CSharpDependencies.CSharpHelper;
-
-    public GirvsCSharpMigrationsGenerator([NotNull] MigrationsCodeGeneratorDependencies dependencies,
-        [NotNull] CSharpMigrationsGeneratorDependencies csharpDependencies) : base(dependencies, csharpDependencies)
-    {
-    }
+    private ICSharpHelper Code => CSharpDependencies.CSharpHelper;
 
     /// <summary>
     ///     Generates the migration code.
@@ -24,7 +21,8 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
         string migrationNamespace,
         string migrationName,
         IReadOnlyList<MigrationOperation> upOperations,
-        IReadOnlyList<MigrationOperation> downOperations)
+        IReadOnlyList<MigrationOperation> downOperations
+    )
     {
         Check.NotEmpty(migrationNamespace, nameof(migrationNamespace));
         Check.NotEmpty(migrationName, nameof(migrationName));
@@ -35,25 +33,25 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
         var namespaces = new List<string>
         {
             "Microsoft.EntityFrameworkCore.Migrations",
-            "Girvs.EntityFrameworkCore.Migrations"
+            "Girvs.EntityFrameworkCore.Migrations",
         };
         namespaces.AddRange(GetNamespaces(upOperations.Concat(downOperations)));
         foreach (var n in namespaces.OrderBy(x => x, new NamespaceComparer()).Distinct())
         {
-            builder
-                .Append("using ")
-                .Append(n)
-                .AppendLine(";");
+            builder.Append("using ").Append(n).AppendLine(";");
         }
 
         builder
             .AppendLine()
-            .Append("namespace ").AppendLine(Code.Namespace(migrationNamespace))
+            .Append("namespace ")
+            .AppendLine(Code.Namespace(migrationNamespace))
             .AppendLine("{");
         using (builder.Indent())
         {
             builder
-                .Append("public partial class ").Append(Code.Identifier(migrationName)).AppendLine(" : GirvsMigration")
+                .Append("public partial class ")
+                .Append(Code.Identifier(migrationName))
+                .AppendLine(" : GirvsMigration")
                 .AppendLine("{");
             using (builder.Indent())
             {
@@ -62,8 +60,11 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
                     .AppendLine("{");
                 using (builder.Indent())
                 {
-                    CSharpDependencies.CSharpMigrationOperationGenerator.Generate("migrationBuilder", upOperations,
-                        builder);
+                    CSharpDependencies.CSharpMigrationOperationGenerator.Generate(
+                        "migrationBuilder",
+                        upOperations,
+                        builder
+                    );
                 }
 
                 builder
@@ -74,13 +75,14 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
                     .AppendLine("{");
                 using (builder.Indent())
                 {
-                    CSharpDependencies.CSharpMigrationOperationGenerator.Generate("migrationBuilder",
-                        downOperations, builder);
+                    CSharpDependencies.CSharpMigrationOperationGenerator.Generate(
+                        "migrationBuilder",
+                        downOperations,
+                        builder
+                    );
                 }
 
-                builder
-                    .AppendLine()
-                    .AppendLine("}");
+                builder.AppendLine().AppendLine("}");
             }
 
             builder.AppendLine("}");
@@ -110,7 +112,8 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
         Type contextType,
         string migrationName,
         string migrationId,
-        IModel targetModel)
+        IModel targetModel
+    )
     {
         Check.NotEmpty(migrationNamespace, nameof(migrationNamespace));
         Check.NotNull(contextType, nameof(contextType));
@@ -125,7 +128,7 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
             "Microsoft.EntityFrameworkCore",
             "Microsoft.EntityFrameworkCore.Infrastructure",
             "Microsoft.EntityFrameworkCore.Migrations",
-            "Microsoft.EntityFrameworkCore.Storage.ValueConversion"
+            "Microsoft.EntityFrameworkCore.Storage.ValueConversion",
         };
         if (!string.IsNullOrEmpty(contextType.Namespace))
         {
@@ -135,27 +138,32 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
         namespaces.AddRange(GetNamespaces(targetModel));
         foreach (var n in namespaces.OrderBy(x => x, new NamespaceComparer()).Distinct())
         {
-            builder
-                .Append("using ")
-                .Append(n)
-                .AppendLine(";");
+            builder.Append("using ").Append(n).AppendLine(";");
         }
 
         builder
             .AppendLine()
-            .Append("namespace ").AppendLine(Code.Namespace(migrationNamespace))
+            .Append("namespace ")
+            .AppendLine(Code.Namespace(migrationNamespace))
             .AppendLine("{");
         using (builder.Indent())
         {
             builder
-                .Append("[DbContext(typeof(").Append(Code.Reference(contextType)).AppendLine("))]")
-                .Append("[Migration(").Append(Code.Literal(migrationId)).AppendLine(")]")
-                .Append("partial class ").AppendLine(Code.Identifier(migrationName))
+                .Append("[DbContext(typeof(")
+                .Append(Code.Reference(contextType))
+                .AppendLine("))]")
+                .Append("[Migration(")
+                .Append(Code.Literal(migrationId))
+                .AppendLine(")]")
+                .Append("partial class ")
+                .AppendLine(Code.Identifier(migrationName))
                 .AppendLine("{");
             using (builder.Indent())
             {
                 builder
-                    .AppendLine("protected override void BuildTargetModel(ModelBuilder modelBuilder)")
+                    .AppendLine(
+                        "protected override void BuildTargetModel(ModelBuilder modelBuilder)"
+                    )
                     .AppendLine("{")
                     .DecrementIndent()
                     .DecrementIndent()
@@ -165,7 +173,11 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
                 using (builder.Indent())
                 {
                     // TODO: Optimize. This is repeated below
-                    CSharpDependencies.CSharpSnapshotGenerator.Generate("modelBuilder", targetModel, builder);
+                    CSharpDependencies.CSharpSnapshotGenerator.Generate(
+                        "modelBuilder",
+                        targetModel,
+                        builder
+                    );
                 }
 
                 builder
@@ -197,7 +209,8 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
         string modelSnapshotNamespace,
         Type contextType,
         string modelSnapshotName,
-        IModel model)
+        IModel model
+    )
     {
         Check.NotEmpty(modelSnapshotNamespace, nameof(modelSnapshotNamespace));
         Check.NotNull(contextType, nameof(contextType));
@@ -210,7 +223,7 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
         {
             "Microsoft.EntityFrameworkCore",
             "Microsoft.EntityFrameworkCore.Infrastructure",
-            "Microsoft.EntityFrameworkCore.Storage.ValueConversion"
+            "Microsoft.EntityFrameworkCore.Storage.ValueConversion",
         };
         if (!string.IsNullOrEmpty(contextType.Namespace))
         {
@@ -220,21 +233,23 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
         namespaces.AddRange(GetNamespaces(model));
         foreach (var n in namespaces.OrderBy(x => x, new NamespaceComparer()).Distinct())
         {
-            builder
-                .Append("using ")
-                .Append(n)
-                .AppendLine(";");
+            builder.Append("using ").Append(n).AppendLine(";");
         }
 
         builder
             .AppendLine()
-            .Append("namespace ").AppendLine(Code.Namespace(modelSnapshotNamespace))
+            .Append("namespace ")
+            .AppendLine(Code.Namespace(modelSnapshotNamespace))
             .AppendLine("{");
         using (builder.Indent())
         {
             builder
-                .Append("[DbContext(typeof(").Append(Code.Reference(contextType)).AppendLine("))]")
-                .Append("partial class ").Append(Code.Identifier(modelSnapshotName)).AppendLine(" : ModelSnapshot")
+                .Append("[DbContext(typeof(")
+                .Append(Code.Reference(contextType))
+                .AppendLine("))]")
+                .Append("partial class ")
+                .Append(Code.Identifier(modelSnapshotName))
+                .AppendLine(" : ModelSnapshot")
                 .AppendLine("{");
             using (builder.Indent())
             {
@@ -248,7 +263,11 @@ public class GirvsCSharpMigrationsGenerator : CSharpMigrationsGenerator
                     .IncrementIndent();
                 using (builder.Indent())
                 {
-                    CSharpDependencies.CSharpSnapshotGenerator.Generate("modelBuilder", model, builder);
+                    CSharpDependencies.CSharpSnapshotGenerator.Generate(
+                        "modelBuilder",
+                        model,
+                        builder
+                    );
                 }
 
                 builder
