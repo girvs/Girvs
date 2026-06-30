@@ -38,7 +38,6 @@ global using System.Threading;
 global using Girvs.BusinessBasis.Queries;
 global using Girvs.Configuration;
 global using Girvs.Extensions;
-global using LogDashboard;
 global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Diagnostics;
