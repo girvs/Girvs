@@ -2,7 +2,13 @@ using System.Reflection;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.OpenApi;
+#if NET10_0
+// .NET 10 使用 Microsoft.OpenApi v2，类型位于根命名空间
 using Microsoft.OpenApi;
+#else
+// net9 使用 Microsoft.OpenApi v1，类型位于 Models 命名空间
+using Microsoft.OpenApi.Models;
+#endif
 
 namespace Girvs.OpenApi;
 
@@ -97,11 +103,20 @@ public class XmlCommentsDocumentTransformer : IOpenApiDocumentTransformer
             if (!document.Paths.TryGetValue(pathKey, out var pathItem))
                 continue;
 
-            var httpMethod = apiDesc.HttpMethod?.ToUpper();
-            var opType = httpMethod?.ToLower();
-
-            if (opType is null || !pathItem.Operations.TryGetValue(opType, out var operation))
+            if (apiDesc.HttpMethod is null)
                 continue;
+#if NET10_0
+            // Microsoft.OpenApi v2（.NET 10）将 Operations 的键由字符串改为 System.Net.Http.HttpMethod
+            var httpMethod = new System.Net.Http.HttpMethod(apiDesc.HttpMethod);
+            if (!pathItem.Operations.TryGetValue(httpMethod, out var operation))
+                continue;
+#else
+            // Microsoft.OpenApi v1（net9）Operations 的键为 OperationType 枚举
+            if (!Enum.TryParse<OperationType>(apiDesc.HttpMethod, true, out var opType))
+                continue;
+            if (!pathItem.Operations.TryGetValue(opType, out var operation))
+                continue;
+#endif
 
             if (XmlCommentStore.Summaries.TryGetValue(memberKey, out var summary))
                 operation.Summary = summary;
