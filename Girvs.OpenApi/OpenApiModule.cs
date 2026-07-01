@@ -62,16 +62,23 @@ public class OpenApiModule : IAppModuleStartup
             builder.MapOpenApi(pattern: "/girvs_openapi/{documentName}.json");
 #if NET10_0
             // Scalar.AspNetCore 2.x 移除 EndpointPathPrefix，端点路径改为 MapScalarApiReference 首参传入
-            builder.MapScalarApiReference("/girvs_scalar/{documentName}", options =>
+            // Scalar 2.x 的端点前缀不能包含 {documentName}，文档名通过 AddDocument 绑定。
+            builder.MapScalarApiReference("/girvs_scalar", options =>
             {
                 options.OpenApiRoutePattern = "/girvs_openapi/{documentName}.json";
+                options.AddDocument(
+                    _documentName,
+                    "girvs webapi Docs",
+                    $"/girvs_openapi/{_documentName}.json"
+                );
             });
 #else
             // Scalar.AspNetCore 1.x（net9）通过 EndpointPathPrefix 设置端点路径
             builder.MapScalarApiReference(options =>
             {
-                options.EndpointPathPrefix = "/girvs_scalar/{documentName}";
-                options.OpenApiRoutePattern = "/girvs_openapi/{documentName}.json";
+                // Scalar 1.x 通过固定 EndpointPathPrefix 暴露 UI，文档地址直接指向当前 OpenAPI 文档。
+                options.EndpointPathPrefix = "/girvs_scalar";
+                options.OpenApiRoutePattern = $"/girvs_openapi/{_documentName}.json";
             });
 #endif
         }

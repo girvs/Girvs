@@ -14,4 +14,5 @@
   <Project Path="Girvs.Refit/Girvs.Refit.csproj" />
   <Project Path="Girvs.SignalR/Girvs.SignalR.csproj" />
   <Project Path="Girvs/Girvs.csproj" />
+  <Project Path="tests/Girvs.Driven.RegistrationTests/Girvs.Driven.RegistrationTests.csproj" />
 </Solution>

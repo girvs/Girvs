@@ -1,5 +1,7 @@
 ﻿namespace Girvs.Driven.Extensions;
 
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
 public static class ServiceCollectionExtension
 {
     public static void RegisterNotificationHandlerType(this IServiceCollection services)
@@ -32,45 +34,33 @@ public static class ServiceCollectionExtension
     }
 
 
-    #if NET10_0_OR_GREATER
+#if NET10_0_OR_GREATER
     public static IServiceCollection RegisterIValidatorType(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssemblyContaining(
-            typeof(GirvsCommandValidator<>),
-            lifetime: ServiceLifetime.Scoped,
-            filter: result =>
-                result.ValidatorType != typeof(GirvsDefaultCommandValidator<>) &&
-                IsAssignableToOpenGeneric(result.ValidatorType, typeof(GirvsCommandValidator<>)),
-            includeInternalTypes: false);
-
-        // 兜底注册：没有具体校验器时使用 Default
-        services.AddScoped(typeof(IValidator<>), typeof(GirvsDefaultCommandValidator<>));
-
+        RegisterGirvsCommandValidators(services);
         return services;
     }
 
-    private static bool IsAssignableToOpenGeneric(Type type, Type openGeneric)
-    {
-        for (var t = type; t != null && t != typeof(object); t = t.BaseType)
-        {
-            if (t.IsGenericType && t.GetGenericTypeDefinition() == openGeneric)
-                return true;
-        }
-        return false;
-    }
     #else
     public static void RegisterIValidatorType(this IServiceCollection services)
     {
+        RegisterGirvsCommandValidators(services);
+    }
+#endif
+
+    private static void RegisterGirvsCommandValidators(IServiceCollection services)
+    {
         var typeFinder = new WebAppTypeFinder();
 
-        var validatorTypes = typeFinder.FindOfType<IValidator>();
+        var validatorTypes = typeFinder
+            .FindOfType<IValidator>()
+            .Where(type =>
+                !type.IsAbstract &&
+                !type.ContainsGenericParameters &&
+                IsAssignableToOpenGeneric(type, typeof(GirvsCommandValidator<>)));
 
         foreach (var validatorType in validatorTypes)
         {
-            if (validatorType.FullName == typeof(GirvsDefaultCommandValidator<>).FullName)
-            {
-                continue;
-            }
             var implementedInterface = validatorType.GetInterface("IValidator`1");
             if (implementedInterface != null)
             {
@@ -87,8 +77,20 @@ public static class ServiceCollectionExtension
         //         services.AddScoped(parentType, validatorType);
         //     }
         // }
+        // 兜底注册：没有具体校验器时使用 Default，不注册 FluentValidation 自身的开放泛型类型。
+        services.TryAddScoped(typeof(IValidator<>), typeof(GirvsDefaultCommandValidator<>));
     }
-    #endif
+
+    private static bool IsAssignableToOpenGeneric(Type type, Type openGeneric)
+    {
+        for (var currentType = type; currentType != null && currentType != typeof(object); currentType = currentType.BaseType)
+        {
+            if (currentType.IsGenericType && currentType.GetGenericTypeDefinition() == openGeneric)
+                return true;
+        }
+
+        return false;
+    }
 
 
 
