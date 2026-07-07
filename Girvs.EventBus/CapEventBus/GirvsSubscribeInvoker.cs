@@ -18,7 +18,7 @@ public class GirvsSubscribeInvoker(IServiceProvider serviceProvider, ISerializer
     protected override object GetInstance(IServiceProvider provider, ConsumerContext context)
     {
         // provider 即 CAP 在 InvokeAsync 中通过 CreateAsyncScope 建立的、本条消息专属的作用域。
-        EngineContext.Current.SetCurrentThreadServiceProvider(provider);
+        using var _ = EngineContext.Current.ChangeCurrentThreadServiceProvider(provider);
         return base.GetInstance(provider, context);
     }
 }

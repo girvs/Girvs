@@ -7,11 +7,6 @@ public abstract class GirvsIntegrationEventHandler<TIntegrationEvent>(
 {
     private readonly IServiceProvider _serviceProvider =
         serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-    private readonly IDisposable _ambientScopeToken =
-        EngineContext.Current.ChangeCurrentThreadServiceProvider(serviceProvider);
-
-    // 兜底：将本次消费的作用域登记为环境作用域。释放令牌时自动还原为切换前的值，
-    // 而不是旧实现那样置 null —— 后者会污染同线程上其它并发消费的上下文。
 
     public abstract Task Handle(
         TIntegrationEvent @event,
@@ -36,15 +31,26 @@ public abstract class GirvsIntegrationEventHandler<TIntegrationEvent>(
         if (body == null)
             throw new ArgumentNullException(nameof(body));
 
+        await HandleInScopeAsync((_, token) => body(token), cancellationToken);
+    }
+
+    /// <summary>
+    /// 在一个贯穿整个异步执行期的独立作用域内运行消费逻辑，并把该作用域桥接到 EngineContext。
+    /// </summary>
+    protected async Task HandleInScopeAsync(
+        Func<IServiceProvider, CancellationToken, Task> body,
+        CancellationToken cancellationToken
+    )
+    {
+        if (body == null)
+            throw new ArgumentNullException(nameof(body));
+
         using var scope = _serviceProvider.CreateScope();
         using var _ = EngineContext.Current.ChangeCurrentThreadServiceProvider(
             scope.ServiceProvider
         );
-        await body(cancellationToken);
+        await body(scope.ServiceProvider, cancellationToken);
     }
 
-    public virtual void Dispose()
-    {
-        _ambientScopeToken?.Dispose();
-    }
+    public virtual void Dispose() { }
 }

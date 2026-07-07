@@ -10,10 +10,19 @@ public static class ServiceCollectionExtension
         var types = typeFinder.FindOfType(typeof(INotificationHandler<>));
         foreach (var type in types)
         {
-            // var implementedInterface = type.GetInterface("INotificationHandler`1");
-            foreach (var implementedInterface in type.GetInterfaces())
+            services.TryAddScoped(type);
+            foreach (var implementedInterface in type.GetInterfaces()
+                         .Where(x => x.IsGenericType &&
+                                     x.GetGenericTypeDefinition() == typeof(INotificationHandler<>)))
             {
-                services.AddScoped(implementedInterface, type);
+                for (var index = services.Count - 1; index >= 0; index--)
+                {
+                    var descriptor = services[index];
+                    if (descriptor.ServiceType == implementedInterface && descriptor.ImplementationType == type)
+                        services.RemoveAt(index);
+                }
+
+                services.AddScoped(implementedInterface, provider => provider.GetRequiredService(type));
             }
         }
     }

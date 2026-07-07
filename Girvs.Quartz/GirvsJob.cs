@@ -4,10 +4,10 @@ public abstract class GirvsJob(IServiceProvider serviceProvider) : IJob
 {
     public virtual async Task Execute(IJobExecutionContext context)
     {
-        // serviceProvider 由 Quartz 官方 MicrosoftDependencyInjectionJobFactory 从本次触发的作用域注入；
-        // 作用域的创建与释放由 Quartz 负责，这里只把它桥接到 Girvs 的环境服务定位器（EngineContext），
-        // 令牌在异步执行期切换、结束后还原，避免污染并发上下文。
-        using var _ = EngineContext.Current.ChangeCurrentThreadServiceProvider(serviceProvider);
+        // 不依赖 Quartz 传入的作用域是否被复用；每次触发都建立独立作用域，
+        // 并在整个异步执行期桥接到 EngineContext，结束后自动还原。
+        using var scope = serviceProvider.CreateScope();
+        using var _ = EngineContext.Current.ChangeCurrentThreadServiceProvider(scope.ServiceProvider);
         await GirvsExecuteAsync(context);
     }
 

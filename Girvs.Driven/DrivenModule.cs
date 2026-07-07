@@ -10,7 +10,10 @@ public class DrivenModule : IAppModuleStartup
 
 #if NET9_0_OR_GREATER
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssemblyContaining<DrivenModule>());
+        {
+            cfg.RegisterServicesFromAssemblyContaining<DrivenModule>();
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
 #else
         services.AddMediatR(
             cfg => cfg.AsScoped(),
