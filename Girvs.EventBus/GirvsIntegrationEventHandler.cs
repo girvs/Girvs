@@ -5,9 +5,6 @@ public abstract class GirvsIntegrationEventHandler<TIntegrationEvent>(
 ) : IIntegrationEventHandler<TIntegrationEvent>, IDisposable
     where TIntegrationEvent : IntegrationEvent
 {
-    private readonly IServiceProvider _serviceProvider =
-        serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-
     public abstract Task Handle(
         TIntegrationEvent @event,
         CapHeader header,
@@ -45,7 +42,7 @@ public abstract class GirvsIntegrationEventHandler<TIntegrationEvent>(
         if (body == null)
             throw new ArgumentNullException(nameof(body));
 
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
         using var _ = EngineContext.Current.ChangeCurrentThreadServiceProvider(
             scope.ServiceProvider
         );
