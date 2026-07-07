@@ -1,28 +1,15 @@
 namespace Girvs.Quartz;
 
-public abstract class GirvsJob : IJob,IDisposable
+public abstract class GirvsJob(IServiceProvider serviceProvider) : IJob
 {
-    private readonly IServiceProvider _serviceProvider;
-
-    public GirvsJob(
-        IServiceProvider serviceProvider
-    )
+    public virtual async Task Execute(IJobExecutionContext context)
     {
-        _serviceProvider = serviceProvider;
-
+        // 不依赖 Quartz 传入的作用域是否被复用；每次触发都建立独立作用域，
+        // 并在整个异步执行期桥接到 EngineContext，结束后自动还原。
+        using var scope = serviceProvider.CreateScope();
+        using var _ = EngineContext.Current.ChangeCurrentThreadServiceProvider(scope.ServiceProvider);
+        await GirvsExecuteAsync(context);
     }
 
-    public virtual Task Execute(IJobExecutionContext context)
-    {
-        EngineContext.Current.SetCurrentThreadServiceProvider(_serviceProvider);
-        GirvsExecute(context);
-        return Task.CompletedTask;
-    }
-
-    public abstract void GirvsExecute(IJobExecutionContext context);
-
-    public virtual void Dispose()
-    {
-        EngineContext.Current.SetCurrentThreadServiceProvider(null);
-    }
+    public abstract Task GirvsExecuteAsync(IJobExecutionContext context);
 }

@@ -6,7 +6,7 @@ public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntit
 {
 }
 
-public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntity : class, Entity<Tkey>
+public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntity : class, Entity<TKey>
 {
     private readonly string ShareDataOperateErrorMessage = "当前租户与数据不一致，无法操作";
     internal DbContext DbContext { get; }
@@ -20,7 +20,7 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
     {
         _repositoryQueryCondition = EngineContext.Current.Resolve<IRepositoryOtherQueryCondition>();
         var related = EngineContext.Current.GetShardingTableRelatedByEntity<TEntity>();
-        DbContext = related.GetInstant() ??
+        DbContext = related.GetInstance() ??
                     throw new ArgumentNullException(nameof(Microsoft.EntityFrameworkCore.DbContext));
         DbContext.ShardingAutoMigration();
         DbSet = DbContext.Set<TEntity>();
@@ -37,7 +37,7 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
 
     public bool CompareTenantId(TEntity entity)
     {
-        if (entity is not IIncludeMultiTenant<Tkey>) return true;
+        if (entity is not IIncludeMultiTenant<TKey>) return true;
         var tenantId = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
         var identityType = EngineContext.Current.ClaimManager.IdentityClaim.IdentityType;
         if (string.IsNullOrEmpty(tenantId) && identityType == IdentityType.EventMessageUser)
@@ -45,7 +45,7 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
             tenantId = Guid.Empty.ToString();
         }
 
-        var propertyValue = CommonHelper.GetProperty(entity, nameof(IIncludeMultiTenant<Tkey>.TenantId));
+        var propertyValue = CommonHelper.GetProperty(entity, nameof(IIncludeMultiTenant<TKey>.TenantId));
         return propertyValue != null && propertyValue.ToString() == tenantId;
     }
 
@@ -151,7 +151,7 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
         return Queryable.Where(predicate).ExecuteDeleteAsync();
     }
 
-    public virtual Task<TEntity> GetByIdAsync(Tkey id)
+    public virtual Task<TEntity> GetByIdAsync(TKey id)
     {
         return Queryable.FirstOrDefaultAsync(t => t.Id.Equals(id));
     }
@@ -215,7 +215,7 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
         return Task.CompletedTask;
     }
 
-    public virtual Task<bool> ExistEntityAsync(Tkey id)
+    public virtual Task<bool> ExistEntityAsync(TKey id)
     {
         return ExistEntityAsync(t => t.Id.Equals(id));
     }
@@ -232,12 +232,12 @@ public class Repository<TEntity, Tkey> : IRepository<TEntity, Tkey> where TEntit
 
     public Task<bool> IsWasTrack(TEntity entity)
     {
-        return Task.FromResult(DbContext.IsWasTrack<TEntity, Tkey>(entity));
+        return Task.FromResult(DbContext.IsWasTrack<TEntity, TKey>(entity));
     }
 
-    public Task<bool> DetachById(Tkey key)
+    public Task<bool> DetachById(TKey key)
     {
-        DbContext.DetachById<TEntity, Tkey>(key);
+        DbContext.DetachById<TEntity, TKey>(key);
         return Task.FromResult(true);
     }
 

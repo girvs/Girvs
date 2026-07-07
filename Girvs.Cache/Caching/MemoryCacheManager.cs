@@ -6,36 +6,29 @@
 /// <remarks>
 /// This class should be registered on IoC as singleton instance
 /// </remarks>
-public partial class MemoryCacheManager : CacheKeyService, IStaticCacheManager
+public partial class MemoryCacheManager(
+    AppSettings appSettings,
+    IMemoryCache memoryCache,
+    ICacheKeyManager cacheKeyManager)
+    : CacheKeyService(appSettings), IStaticCacheManager
 {
     #region Fields
 
     // Flag: Has Dispose already been called?
     protected bool _disposed;
 
-    protected readonly IMemoryCache _memoryCache;
+    protected readonly IMemoryCache _memoryCache = memoryCache;
 
     /// <summary>
     /// Holds the keys known by this nopCommerce instance
     /// </summary>
-    protected readonly ICacheKeyManager _keyManager;
+    protected readonly ICacheKeyManager _keyManager = cacheKeyManager;
 
     protected static CancellationTokenSource _clearToken = new();
 
     #endregion
 
     #region Ctor
-
-    public MemoryCacheManager(
-        AppSettings appSettings,
-        IMemoryCache memoryCache,
-        ICacheKeyManager cacheKeyManager
-    )
-        : base(appSettings)
-    {
-        _memoryCache = memoryCache;
-        _keyManager = cacheKeyManager;
-    }
 
     #endregion
 
@@ -269,25 +262,40 @@ public partial class MemoryCacheManager : CacheKeyService, IStaticCacheManager
         return Task.CompletedTask;
     }
 
-    public async Task<bool> ExistAtomicLockerAsync(string key)
+    public Task<bool> ExistAtomicLockerAsync(string key)
     {
         var cacheKey = new CacheKey(key);
-        var result = await GetAsync(cacheKey);
-        return result != null;
+        return Task.FromResult(_memoryCache.TryGetValue(cacheKey.Key, out _));
     }
 
-    public async Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime)
+    public Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime)
     {
         var cacheKey = new CacheKey(key)
         {
-            CacheTime = expirationTime.Seconds
+            CacheTime = (int) expirationTime.TotalMinutes > 0
+                ? (int) expirationTime.TotalMinutes
+                : 1
         };
 
-        if (await ExistAtomicLockerAsync(key))
-            return false;
+        var options = new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = expirationTime
+        };
 
-        await SetAsync(cacheKey, true);
-        return true;
+        _keyManager.AddKey(cacheKey.Key);
+
+        var result = _memoryCache.TryGetValue(cacheKey.Key, out _);
+        if (result)
+            return Task.FromResult(false);
+
+        lock (_memoryCache)
+        {
+            if (_memoryCache.TryGetValue(cacheKey.Key, out _))
+                return Task.FromResult(false);
+
+            _memoryCache.Set(cacheKey.Key, true, options);
+            return Task.FromResult(true);
+        }
     }
 
     public Task RemoveAtomicLockerAsync(string key)

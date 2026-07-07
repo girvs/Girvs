@@ -1,25 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.8</Version>
-        <PackageVersion>9.0.8</PackageVersion>
-        <LangVersion>latest</LangVersion>
-        <Copyright>kicck</Copyright>
-        <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/girvs/Girvs?tab=Apache-2.0-1-ov-file</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/girvs/Girvs</RepositoryUrl>
-        <RepositoryType>Github</RepositoryType>
-    </PropertyGroup>
+    <!-- 公共依赖：原由 LogDashboard 传递提供，移除该包后需显式引用 -->
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+    </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-        <PackageReference Include="LogDashboard" Version="1.4.8"/>
         <PackageReference Include="Serilog.AspNetCore" Version="8.0.1"/>
         <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="10.0.0"/>
         <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0"/>
-        <PackageReference Include="Serilog.Sinks.AliyunLog" Version="1.1.0"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1"/>
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0"/>
         <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
@@ -27,11 +17,10 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-        <PackageReference Include="LogDashboard" Version="1.4.8"/>
+
         <PackageReference Include="Serilog.AspNetCore" Version="8.0.3"/>
         <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="10.0.0"/>
         <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0-dev-02304"/>
-        <PackageReference Include="Serilog.Sinks.AliyunLog" Version="1.1.0"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0"/>
         <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
@@ -39,26 +28,13 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-        <PackageReference Include="LogDashboard" Version="1.4.8"/>
-        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
         <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="10.0.0"/>
-        <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0-dev-02304"/>
-        <PackageReference Include="Serilog.Sinks.AliyunLog" Version="1.1.0"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
+        <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.1"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0"/>
-        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
         <PackageReference Include="Portable.BouncyCastle" Version="1.9.0"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <Compile Remove="Infrastructure\GirvsServiceContext\**"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <EmbeddedResource Remove="Infrastructure\GirvsServiceContext\**"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Remove="Infrastructure\GirvsServiceContext\**"/>
-    </ItemGroup>
 </Project>

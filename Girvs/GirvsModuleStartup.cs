@@ -7,7 +7,6 @@ public class GirvsModuleStartup : IAppModuleStartup
         services.RegisterRepository();
         services.RegisterUow();
         services.RegisterManager();
-        services.AddLogDashboard();
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders =
@@ -25,7 +24,6 @@ public class GirvsModuleStartup : IAppModuleStartup
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             }
         );
-        application.UseLogDashboard();
     }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }

@@ -14,7 +14,7 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
         _logger = EngineContext.Current.Resolve<ILogger<AuthenticatedHttpClientHandler>>();
     }
 
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         var headers = EngineContext.Current.HttpContext?.Request.Headers.ToList();
@@ -28,8 +28,9 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
         }
 
         var current = request.RequestUri;
+        // Consul 服务发现改为异步等待，消除请求管道中的线程阻塞
         var serverUrl = _refitServiceAttribute.InConsul
-            ? LookupService(_refitServiceAttribute.ServiceName)
+            ? await LookupServiceAsync(_refitServiceAttribute.ServiceName)
             : _refitConfig[_refitServiceAttribute.ServiceName];
 
         _logger.LogInformation($"Girvs开始请求，请求ServerUrl地址为：{serverUrl}");
@@ -49,19 +50,20 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
 
         _logger.LogInformation($"Girvs开始请求，请求地址为：{requestUriStr}");
         request.RequestUri = new Uri(requestUriStr);
-            
-        return base.SendAsync(request, cancellationToken);
+
+        return await base.SendAsync(request, cancellationToken);
     }
 
-    private string LookupService(string serviceName)
+    private async Task<string> LookupServiceAsync(string serviceName)
     {
         var consulAddress = GetConsulAddress();
-        var consulClient = new ConsulClient(configuration =>
+        // using 确保 ConsulClient 及时释放
+        using var consulClient = new ConsulClient(configuration =>
         {
             configuration.Address = new Uri(consulAddress);
         });
 
-        var servicesEntry = consulClient.Health.Service(serviceName, string.Empty, true).Result.Response;
+        var servicesEntry = (await consulClient.Health.Service(serviceName, string.Empty, true)).Response;
         if (servicesEntry != null && servicesEntry.Any())
         {
             int index = new Random().Next(servicesEntry.Count());

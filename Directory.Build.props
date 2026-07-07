@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>10.0.0-beta1.4.1</Version>
+    <PackageVersion>10.0.0-beta1.4.1</PackageVersion>
+    <LangVersion>latest</LangVersion>
+    <Copyright>kicck</Copyright>
+    <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/girvs/Girvs?tab=Apache-2.0-1-ov-file</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/girvs/Girvs</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
+  </PropertyGroup>
+</Project>

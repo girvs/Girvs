@@ -18,7 +18,6 @@ public static class ServiceCollectionExtensions
 
         engine.ConfigureServices(services, configuration);
 
-        // ServiceContextFactory.Create(services.BuildServiceProvider());
         return (engine, appSettings);
     }
 

@@ -1,19 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.8</Version>
-        <PackageVersion>9.0.8</PackageVersion>
-        <LangVersion>latest</LangVersion>
-        <Copyright>kicck</Copyright>
-        <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/girvs/Girvs?tab=Apache-2.0-1-ov-file</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/girvs/Girvs</RepositoryUrl>
-        <RepositoryType>Github</RepositoryType>
-    </PropertyGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
     </ItemGroup>
@@ -32,8 +18,8 @@
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
         <PackageReference Include="NConsul.AspNetCore" Version="0.8.1"/>
-        <PackageReference Include="Refit" Version="8.0.0"/>
-        <PackageReference Include="Refit.HttpClientFactory" Version="8.0.0"/>
+        <PackageReference Include="Refit" Version="12.1.0"/>
+        <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0"/>
     </ItemGroup>
 
 </Project>

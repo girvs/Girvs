@@ -5,9 +5,10 @@ public class RemoveByPrefixCommandHandler(
     IMediatorHandler bus
 ) : CommandHandler(null, bus), IRequestHandler<RemoveByPrefixCommand, bool>
 {
-    public Task<bool> Handle(RemoveByPrefixCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(RemoveByPrefixCommand request, CancellationToken cancellationToken)
     {
-        staticCacheManager.RemoveByPrefix(request.Prefix);
-        return Task.FromResult(true);
+        // 改用异步缓存接口，消除同步阻塞
+        await staticCacheManager.RemoveByPrefixAsync(request.Prefix);
+        return true;
     }
 }

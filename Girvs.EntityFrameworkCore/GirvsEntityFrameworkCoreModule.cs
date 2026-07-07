@@ -42,7 +42,8 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
                     if (dbConfig is { EnableAutoMigrate: true })
                     {
                         dbContext?.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
-                        dbContext?.Database.MigrateAsync().Wait();
+                        // 启动期同步上下文，使用 EF 同步迁移 API，避免 sync-over-async 阻塞
+                        dbContext?.Database.Migrate();
                     }
                 }
             }

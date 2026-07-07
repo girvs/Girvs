@@ -1,19 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.8</Version>
-        <PackageVersion>9.0.8</PackageVersion>
-        <LangVersion>latest</LangVersion>
-        <Copyright>kicck</Copyright>
-        <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/girvs/Girvs?tab=Apache-2.0-1-ov-file</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/girvs/Girvs</RepositoryUrl>
-        <RepositoryType>Github</RepositoryType>
-    </PropertyGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
     </ItemGroup>
@@ -41,11 +27,11 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-        <PackageReference Include="Google.Protobuf" Version="3.32.1"/>
-        <PackageReference Include="Grpc.AspNetCore.Server" Version="2.71.0"/>
-        <PackageReference Include="Grpc.AspNetCore.Web" Version="2.71.0"/>
+        <PackageReference Include="Google.Protobuf" Version="3.35.1"/>
+        <PackageReference Include="Grpc.AspNetCore.Server" Version="2.80.0"/>
+        <PackageReference Include="Grpc.AspNetCore.Web" Version="2.80.0"/>
         <PackageReference Include="Grpc.Core" Version="2.46.6"/>
-        <PackageReference Include="Grpc.Tools" Version="2.72.0">
+        <PackageReference Include="Grpc.Tools" Version="2.81.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

@@ -1,4 +1,6 @@
+using DotNetCore.CAP.Internal;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Girvs.EventBus;
 

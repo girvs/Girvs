@@ -1,38 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Version>9.0.8</Version>
-        <PackageVersion>9.0.8</PackageVersion>
-        <LangVersion>latest</LangVersion>
-        <Copyright>kicck</Copyright>
-        <PackageProjectUrl>https://github.com/girvs/Girvs</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/girvs/Girvs?tab=Apache-2.0-1-ov-file</PackageLicenseUrl>
-        <RepositoryUrl>https://github.com/girvs/Girvs</RepositoryUrl>
-        <RepositoryType>Github</RepositoryType>
-    </PropertyGroup>
-
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
         <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.28" />
+        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="8.0.28" />
+        <!-- 覆盖经 Microsoft.Data.SqlClient 传递引入的有漏洞版本 System.Drawing.Common 5.0.0（GHSA-rxg9-xrhp-64gj） -->
+        <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
         <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.17" />
+        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="9.0.17" />
+        <!-- 覆盖经 Microsoft.Data.SqlClient 传递引入的有漏洞版本 System.Drawing.Common 5.0.0（GHSA-rxg9-xrhp-64gj） -->
+        <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-        <PackageReference Include="System.Linq.Async" Version="6.0.3" />
-        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.0" />
+        <PackageReference Include="System.Linq.Async" Version="7.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.9" />
+        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.9" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
+        <!-- MsSqlServerCacheManager 直接使用 System.Data.SqlClient，原经 LogDashboard 传递，移除后需显式引用（4.8.6 修复 GHSA-8g2p-5pqh-5jmc） -->
+        <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     </ItemGroup>
 </Project>

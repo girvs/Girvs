@@ -34,14 +34,13 @@ public static class DbContextOptionsBuilderExtensions
     )
         where TDbContext : GirvsDbContext
     {
-        var serverVersion = new MySqlServerVersion(new Version(config.VersionNumber));
-
+        // net8/net9 使用 Pomelo.EntityFrameworkCore.MySql，net10 使用其派生包 Microting.EntityFrameworkCore.MySql；
+        // 三者扩展方法 API 一致：UseMySql 需传入 ServerVersion
         optionsBuilder.UseMySql(
             connStr,
-            serverVersion,
+            ServerVersion.AutoDetect(connStr),
             builder =>
             {
-                builder.EnableRetryOnFailure(maxRetryCount: 5);
                 if (config.EnableShardingTable)
                 {
                     var related =
@@ -52,43 +51,7 @@ public static class DbContextOptionsBuilderExtensions
                 }
             }
         );
-        // optionsBuilder.UseBatchEF_MySQLPomelo();
     }
-
-    // public static void UseSqlLiteWithLazyLoading<TDbContext>(this DbContextOptionsBuilder optionsBuilder,
-    //     DataConnectionConfig config, string connStr) where TDbContext : GirvsDbContext
-    // {
-    //     if (config.UseRowNumberForPaging)
-    //     {
-    //         optionsBuilder.UseSqlite(connStr,
-    //             builder =>
-    //             {
-    //                 builder.CommandTimeout(config.SQLCommandTimeout);
-    //                 if (config.EnableShardingTable)
-    //                 {
-    //                     var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-    //                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
-    //                 }
-    //             });
-    //
-    //         optionsBuilder.UseBatchEF_Sqlite();
-    //     }
-    //     else
-    //     {
-    //         optionsBuilder.UseSqlServer(connStr,
-    //             builder =>
-    //             {
-    //                 builder.CommandTimeout(config.SQLCommandTimeout);
-    //                 if (config.EnableShardingTable)
-    //                 {
-    //                     var related = EngineContext.Current.GetShardingTableRelatedByDbContext<TDbContext>();
-    //                     builder.MigrationsHistoryTable(related.GetCurrentMigrationsHistoryShardingTableName());
-    //                 }
-    //             });
-    //
-    //         optionsBuilder.UseBatchEF_MSSQL();
-    //     }
-    // }
 
 #if NET8_0
     public static void UseOracleWithLazyLoading<TDbContext>(
