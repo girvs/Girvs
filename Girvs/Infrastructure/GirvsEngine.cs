@@ -244,6 +244,28 @@ public class GirvsEngine : IEngine
         AsyncLocalServiceProvider.Value = serviceProvider;
     }
 
+    public IDisposable ChangeCurrentThreadServiceProvider(IServiceProvider serviceProvider)
+    {
+        var previous = AsyncLocalServiceProvider.Value;
+        AsyncLocalServiceProvider.Value = serviceProvider;
+        return new ServiceProviderScopeToken(previous);
+    }
+
+    /// <summary>
+    /// 作用域还原令牌：释放时把环境服务提供程序还原为切换前的值。
+    /// </summary>
+    private sealed class ServiceProviderScopeToken(IServiceProvider previous) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            AsyncLocalServiceProvider.Value = previous;
+        }
+    }
+
     public bool IsAuthenticated =>
         HttpContext?.User.Identity != null && HttpContext.User.Identity.IsAuthenticated;
 

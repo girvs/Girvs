@@ -3,7 +3,19 @@
     "allow": [
       "Bash(grep -r \"StyleCop\\\\|FxCop\\\\|Roslyn\\\\|CodeAnalysis\" /e/CompanyWork/Work/Girvs/*.props /e/CompanyWork/Work/Girvs/*/*.csproj)",
       "Bash(dotnet build:*)",
-      "WebFetch(domain:www.nuget.org)"
+      "WebFetch(domain:www.nuget.org)",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Libraries/Nop.Core\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Libraries/Nop.Core/Caching\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Libraries/Nop.Core/Infrastructure\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Libraries/Nop.Core/Events\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Libraries/Nop.Data\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Libraries/Nop.Services\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Presentation/Nop.Web.Framework\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Libraries/Nop.Services/Plugins\")",
+      "Bash(curl -s \"https://api.github.com/repos/nopSolutions/nopCommerce/contents/src/Libraries/Nop.Core/Configuration\")",
+      "PowerShell(dotnet build *)",
+      "PowerShell($out = dotnet build \"E:\\\\CompanyWork\\\\Work\\\\Girvs\\\\Girvs.slnx\" -c Debug --nologo -v m 2>&1; $errs = $out | Select-String -Pattern ': error'; if \\($errs\\) { \"有错误:\"; $errs } else { \"全部项目构建成功，0 编译错误\" }; \\($out | Select-String -Pattern '已成功生成|Build succeeded' | Select-Object -First 1\\))"
     ]
   }
 }
