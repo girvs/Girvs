@@ -1,6 +1,0 @@
-namespace {{Namespace.CurrentNamespacePrefixName}}.Domain.Repositories;
-
-public interface I{{EntityName}}Repository : IRepository<{{EntityName}}>
-{
-    
-}
