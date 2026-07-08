@@ -29,7 +29,7 @@ public class DynamicWebApiModule : IAppModuleStartup
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
     {
-#if NET9_0
+#if NET9_0_OR_GREATER
         var typeFinder = new WebAppTypeFinder();
         var serviceTypes = typeFinder.FindOfType<IAppWebMiniApiService>();
         foreach (var serviceType in serviceTypes)
