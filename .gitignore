@@ -341,3 +341,4 @@ ASALocalRun/
 healthchecksdb
 Location/
 nugetpublish.ps1
+push-nuget-packages.sh

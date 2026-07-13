@@ -18,7 +18,7 @@ public class UnitOfWork<TEntity> : IUnitOfWork<TEntity> where TEntity : Entity
     //手动回收
     public void Dispose()
     {
-        _context.Dispose();
+        // _context.Dispose();
     }
 
     public async Task<bool> Commit(CancellationToken cancellationToken = new CancellationToken())
