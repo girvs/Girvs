@@ -33,4 +33,14 @@ public class CacheConfig : IAppModuleConfig
     // public RedisCacheConfig RedisCacheConfig { get; set; } = new RedisCacheConfig();
 
     public void Init() { }
+
+    /// <summary>
+    /// 若 Aspire AppHost 注入了 girvs-cache 连接串，覆盖分布式缓存连接串；未注入时保持 appsettings 原值。
+    /// </summary>
+    public void ApplyAspireConnectionString(IConfiguration configuration)
+    {
+        var connectionString = configuration?.GetConnectionString("girvs-cache");
+        if (!string.IsNullOrEmpty(connectionString))
+            DistributedCacheConfig.ConnectionString = connectionString;
+    }
 }

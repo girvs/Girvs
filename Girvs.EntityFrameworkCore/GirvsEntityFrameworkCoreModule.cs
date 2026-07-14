@@ -6,6 +6,7 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
+        Singleton<AppSettings>.Instance.Get<DbConfig>().ApplyAspireConnectionStrings(configuration);
         services.AddGirvsObjectContext();
         // services.AddGirvsShardingCoreContext();
         services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));

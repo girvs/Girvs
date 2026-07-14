@@ -4,20 +4,12 @@ using Girvs.EventBus.Configuration;
 
 namespace Girvs.Aspire.Tests;
 
-public class AspireConnectionStringMapperTests
+/// <summary>
+/// 覆盖各组件自己实现的 Aspire 连接串覆盖方法（CacheConfig/EventBusConfig/DbConfig 等）。
+/// 映射逻辑本身归属各组件模块，此处仅验证 Aspire 场景下的端到端行为。
+/// </summary>
+public class AspireConnectionStringOverrideTests
 {
-    private static AppSettings CreateAppSettings(params IConfig[] configs)
-    {
-        var appSettings = new AppSettings();
-        appSettings.PreLoadModelConfig();
-        foreach (var config in configs)
-        {
-            appSettings.ModuleConfigurations.Add(config.GetType().Name, config);
-        }
-
-        return appSettings;
-    }
-
     private static IConfiguration BuildConfiguration(
         params (string Name, string Value)[] connectionStrings
     )
@@ -34,12 +26,11 @@ public class AspireConnectionStringMapperTests
     {
         var dbConfig = new DbConfig();
         dbConfig.DataConnectionConfigs.Add(new DataConnectionConfig { Name = "default" });
-        var appSettings = CreateAppSettings(dbConfig);
         var configuration = BuildConfiguration(
             ("girvs-db-default", "Server=aspire-host;database=demo;")
         );
 
-        AspireConnectionStringMapper.Apply(configuration, appSettings);
+        dbConfig.ApplyAspireConnectionStrings(configuration);
 
         Assert.Equal(
             "Server=aspire-host;database=demo;",
@@ -52,13 +43,12 @@ public class AspireConnectionStringMapperTests
     {
         var dbConfig = new DbConfig();
         dbConfig.DataConnectionConfigs.Add(new DataConnectionConfig { Name = "default" });
-        var appSettings = CreateAppSettings(dbConfig);
         var configuration = BuildConfiguration(
             ("girvs-db-default-read-0", "Server=read0;"),
             ("girvs-db-default-read-1", "Server=read1;")
         );
 
-        AspireConnectionStringMapper.Apply(configuration, appSettings);
+        dbConfig.ApplyAspireConnectionStrings(configuration);
 
         var readList = dbConfig.DataConnectionConfigs.First().ReadDataConnectionString;
         Assert.Equal(2, readList.Count);
@@ -73,10 +63,9 @@ public class AspireConnectionStringMapperTests
         dbConfig.DataConnectionConfigs.Add(
             new DataConnectionConfig { Name = "default", MasterDataConnectionString = "原值" }
         );
-        var appSettings = CreateAppSettings(dbConfig);
         var configuration = BuildConfiguration();
 
-        AspireConnectionStringMapper.Apply(configuration, appSettings);
+        dbConfig.ApplyAspireConnectionStrings(configuration);
 
         Assert.Equal("原值", dbConfig.DataConnectionConfigs.First().MasterDataConnectionString);
     }
@@ -85,25 +74,35 @@ public class AspireConnectionStringMapperTests
     public void 缓存连接串映射到分布式缓存配置()
     {
         var cacheConfig = new CacheConfig();
-        var appSettings = CreateAppSettings(cacheConfig);
         var configuration = BuildConfiguration(("girvs-cache", "aspire-redis:6379"));
 
-        AspireConnectionStringMapper.Apply(configuration, appSettings);
+        cacheConfig.ApplyAspireConnectionString(configuration);
 
         Assert.Equal("aspire-redis:6379", cacheConfig.DistributedCacheConfig.ConnectionString);
+    }
+
+    [Fact]
+    public void 缓存无对应连接串时保持配置原值()
+    {
+        var cacheConfig = new CacheConfig();
+        cacheConfig.DistributedCacheConfig.ConnectionString = "原值";
+        var configuration = BuildConfiguration();
+
+        cacheConfig.ApplyAspireConnectionString(configuration);
+
+        Assert.Equal("原值", cacheConfig.DistributedCacheConfig.ConnectionString);
     }
 
     [Fact]
     public void 事件总线数据库与Redis连接串分别映射()
     {
         var eventBusConfig = new EventBusConfig();
-        var appSettings = CreateAppSettings(eventBusConfig);
         var configuration = BuildConfiguration(
             ("girvs-eventbus-db", "Server=cap-db;"),
             ("girvs-eventbus-redis", "cap-redis:6379")
         );
 
-        AspireConnectionStringMapper.Apply(configuration, appSettings);
+        eventBusConfig.ApplyAspireConnectionStrings(configuration);
 
         Assert.Equal("Server=cap-db;", eventBusConfig.DbConnectionString);
         Assert.Equal("cap-redis:6379", eventBusConfig.RedisConfig.RedisConnectionString);
@@ -113,12 +112,11 @@ public class AspireConnectionStringMapperTests
     public void RabbitMq的AMQP连接串解析到各字段()
     {
         var eventBusConfig = new EventBusConfig();
-        var appSettings = CreateAppSettings(eventBusConfig);
         var configuration = BuildConfiguration(
             ("girvs-eventbus-rabbitmq", "amqp://guest:secret@rabbit-host:5673/myvhost")
         );
 
-        AspireConnectionStringMapper.Apply(configuration, appSettings);
+        eventBusConfig.ApplyAspireConnectionStrings(configuration);
 
         Assert.Equal("rabbit-host", eventBusConfig.RabbitMqConfig.HostName);
         Assert.Equal(5673, eventBusConfig.RabbitMqConfig.Port);
@@ -132,28 +130,23 @@ public class AspireConnectionStringMapperTests
     {
         var eventBusConfig = new EventBusConfig();
         var originalPort = eventBusConfig.RabbitMqConfig.Port;
-        var appSettings = CreateAppSettings(eventBusConfig);
         var configuration = BuildConfiguration(("girvs-eventbus-rabbitmq", "rabbit-host"));
 
-        AspireConnectionStringMapper.Apply(configuration, appSettings);
+        eventBusConfig.ApplyAspireConnectionStrings(configuration);
 
         Assert.Equal("rabbit-host", eventBusConfig.RabbitMqConfig.HostName);
         Assert.Equal(originalPort, eventBusConfig.RabbitMqConfig.Port);
     }
 
     [Fact]
-    public void 模块配置不存在时不抛异常()
+    public void 事件总线无任何对应连接串时保持配置原值()
     {
-        var appSettings = CreateAppSettings();
-        var configuration = BuildConfiguration(
-            ("girvs-db-default", "Server=x;"),
-            ("girvs-cache", "y:6379")
-        );
+        var eventBusConfig = new EventBusConfig();
+        var originalDbConnectionString = eventBusConfig.DbConnectionString;
+        var configuration = BuildConfiguration();
 
-        var exception = Record.Exception(
-            () => AspireConnectionStringMapper.Apply(configuration, appSettings)
-        );
+        eventBusConfig.ApplyAspireConnectionStrings(configuration);
 
-        Assert.Null(exception);
+        Assert.Equal(originalDbConnectionString, eventBusConfig.DbConnectionString);
     }
 }

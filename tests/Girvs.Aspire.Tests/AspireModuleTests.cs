@@ -1,4 +1,3 @@
-using Girvs.EntityFrameworkCore.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Girvs.Aspire.Tests;
@@ -47,23 +46,6 @@ public class AspireModuleTests
         Assert.Contains(
             services,
             descriptor => descriptor.ServiceType == typeof(HealthCheckService)
-        );
-    }
-
-    [Fact]
-    public void ConfigureServices执行连接串映射()
-    {
-        var dbConfig = new DbConfig();
-        dbConfig.DataConnectionConfigs.Add(new DataConnectionConfig { Name = "default" });
-        SetupSingletonAppSettings(dbConfig);
-        var services = new ServiceCollection();
-        var configuration = BuildConfiguration(("girvs-db-default", "Server=from-aspire;"));
-
-        new AspireModule().ConfigureServices(services, configuration);
-
-        Assert.Equal(
-            "Server=from-aspire;",
-            dbConfig.DataConnectionConfigs.First().MasterDataConnectionString
         );
     }
 

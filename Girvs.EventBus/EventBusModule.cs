@@ -52,6 +52,7 @@ public class EventBusModule : IAppModuleStartup
         services.AddCapSubscribe();
 
         var eventBusConfig = EngineContext.Current.GetAppModuleConfig<EventBusConfig>();
+        eventBusConfig.ApplyAspireConnectionStrings(configuration);
 
         services.AddScoped<IEventBus, CapEventBus.CapEventBus>();
 

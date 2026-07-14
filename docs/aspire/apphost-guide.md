@@ -13,9 +13,10 @@
 
 2. 无需修改任何代码与配置文件。`AspireModule` 会随 Girvs 模块机制自动生效：
    - 在 Aspire 环境（存在 `OTEL_EXPORTER_OTLP_ENDPOINT` 环境变量）下自动上报日志/追踪/指标到 Dashboard；
-   - 自动把 AppHost 注入的连接串映射到 Girvs 各模块配置（见下文约定）；
    - 暴露 `/health` 与 `/alive` 健康检查端点；
    - HttpClient 默认启用 Aspire 服务发现与标准弹性策略。
+
+   连接串映射（见下文约定）不依赖 `Girvs.Aspire` 包：`Girvs.Cache`/`Girvs.EventBus`/`Girvs.EntityFrameworkCore` 各自在自己的模块启动逻辑中读取 AppHost 注入的连接串并覆盖自身配置，只要服务被 AppHost 启动即生效。
 
 3. 定义根模块类并用 `[DependsOn]` 声明该服务使用的 Girvs 组件（放在可被 AppHost 引用的程序集，推荐 Application 层）：
 

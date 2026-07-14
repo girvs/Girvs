@@ -5,7 +5,6 @@ global using System.Collections.Generic;
 global using System.Linq;
 global using Girvs;
 global using Girvs.Aspire;
-global using Girvs.Aspire.Configuration;
 global using Girvs.Configuration;
 global using Girvs.Infrastructure;
 global using Microsoft.Extensions.Configuration;

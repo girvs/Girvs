@@ -55,6 +55,15 @@ public class DbConfig : IAppModuleConfig
 
         return dataBaseConfig;
     }
+
+    /// <summary>
+    /// 若 Aspire AppHost 为各命名数据连接注入了对应连接串，覆盖主库/读库连接串；未注入时保持 appsettings 原值。
+    /// </summary>
+    public void ApplyAspireConnectionStrings(IConfiguration configuration)
+    {
+        foreach (var connectionConfig in DataConnectionConfigs)
+            connectionConfig.ApplyAspireConnectionStrings(configuration);
+    }
 }
 
 public class DataConnectionConfig
@@ -137,6 +146,32 @@ public class DataConnectionConfig
                 return ReadDataConnectionString[index];
             }
         }
+    }
+
+    /// <summary>
+    /// 用 Aspire 注入的 girvs-db-&lt;Name&gt;（主库）与 girvs-db-&lt;Name&gt;-read-&lt;N&gt;（读库，N 从 0 起连续编号）
+    /// 覆盖本连接配置；未注入时保持 appsettings 原值。
+    /// </summary>
+    public void ApplyAspireConnectionStrings(IConfiguration configuration)
+    {
+        if (configuration == null || string.IsNullOrEmpty(Name))
+            return;
+
+        var master = configuration.GetConnectionString($"girvs-db-{Name}");
+        if (!string.IsNullOrEmpty(master))
+            MasterDataConnectionString = master;
+
+        var readConnections = new List<string>();
+        for (var i = 0; ; i++)
+        {
+            var read = configuration.GetConnectionString($"girvs-db-{Name}-read-{i}");
+            if (string.IsNullOrEmpty(read))
+                break;
+            readConnections.Add(read);
+        }
+
+        if (readConnections.Count > 0)
+            ReadDataConnectionString = readConnections;
     }
 }
 

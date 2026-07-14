@@ -1,15 +1,14 @@
 namespace Girvs.Aspire;
 
 /// <summary>
-/// Aspire 集成模块：连接串映射、OpenTelemetry、Aspire 服务发现、HttpClient 弹性与健康检查。
-/// Order 取极小值，确保连接串映射先于其他模块消费配置。
+/// Aspire 集成模块：OpenTelemetry、Aspire 服务发现、HttpClient 弹性与健康检查。
+/// 各组件的 Aspire 连接串覆盖由组件自身负责（如 CacheConfig.ApplyAspireConnectionString），
+/// 本模块不做集中映射。
 /// </summary>
 public class AspireModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        AspireConnectionStringMapper.Apply(configuration, Singleton<AppSettings>.Instance);
-
         services.AddServiceDiscovery();
         services.ConfigureHttpClientDefaults(http =>
         {

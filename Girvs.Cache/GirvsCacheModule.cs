@@ -9,6 +9,7 @@ public class GirvsCacheModule : IAppModuleStartup
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var cacheConfig = Singleton<AppSettings>.Instance.Get<CacheConfig>();
+        cacheConfig.ApplyAspireConnectionString(configuration);
         var distributedCacheConfig = cacheConfig.DistributedCacheConfig;
 
         services.AddTransient(typeof(IConcurrentCollection<>), typeof(ConcurrentTrie<>));

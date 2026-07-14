@@ -33,6 +33,24 @@ public class EventBusConfig : IAppModuleConfig
     public RedisConfig RedisConfig { get; set; } = new RedisConfig();
 
     public void Init() { }
+
+    /// <summary>
+    /// 若 Aspire AppHost 注入了对应连接串，覆盖事件总线连接信息；未注入时保持 appsettings 原值。
+    /// </summary>
+    public void ApplyAspireConnectionStrings(IConfiguration configuration)
+    {
+        var dbConnection = configuration?.GetConnectionString("girvs-eventbus-db");
+        if (!string.IsNullOrEmpty(dbConnection))
+            DbConnectionString = dbConnection;
+
+        var redisConnection = configuration?.GetConnectionString("girvs-eventbus-redis");
+        if (!string.IsNullOrEmpty(redisConnection))
+            RedisConfig.RedisConnectionString = redisConnection;
+
+        var amqpUri = configuration?.GetConnectionString("girvs-eventbus-rabbitmq");
+        if (!string.IsNullOrEmpty(amqpUri))
+            RabbitMqConfig.ApplyAspireConnectionString(amqpUri);
+    }
 }
 
 public class RabbitMQConfig
@@ -47,6 +65,39 @@ public class RabbitMQConfig
     public string VirtualHost { get; set; } = "zhuofan.wb";
     public string ExchangeName { get; set; } = "cap.default.router";
     public int Port { get; set; } = 5672;
+
+    /// <summary>
+    /// 用 Aspire 注入的 AMQP URI（amqp://user:pass@host:port/vhost）覆盖各字段；
+    /// 非 AMQP URI 格式时视为纯主机名，仅覆盖 HostName，其余字段保持原值。
+    /// </summary>
+    public void ApplyAspireConnectionString(string amqpUri)
+    {
+        if (
+            !Uri.TryCreate(amqpUri, UriKind.Absolute, out var uri)
+            || !uri.Scheme.StartsWith("amqp", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            HostName = amqpUri;
+            return;
+        }
+
+        HostName = uri.Host;
+        if (uri.Port > 0)
+            Port = uri.Port;
+
+        if (!string.IsNullOrEmpty(uri.UserInfo))
+        {
+            var userInfo = uri.UserInfo.Split(':', 2);
+            if (userInfo[0].Length > 0)
+                UserName = Uri.UnescapeDataString(userInfo[0]);
+            if (userInfo.Length == 2)
+                Password = Uri.UnescapeDataString(userInfo[1]);
+        }
+
+        var virtualHost = uri.AbsolutePath.TrimStart('/');
+        if (virtualHost.Length > 0)
+            VirtualHost = Uri.UnescapeDataString(virtualHost);
+    }
 }
 
 public class KafkaConfig
