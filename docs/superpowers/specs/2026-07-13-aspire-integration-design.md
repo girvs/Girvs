@@ -45,14 +45,14 @@ Girvs 是模块化 NuGet 框架（多目标 `net8.0;net9.0;net10.0`），当前�
 
 | Aspire 资源名（约定） | 映射目标 |
 |----------------------|----------|
-| `girvs-db-master` | `DbConfig.DataConnectionConfig.MasterDataConnectionString` |
-| `girvs-db-read-N`（N 从 0 起） | `DbConfig.DataConnectionConfig.ReadDataConnectionString[N]` |
-| `girvs-cache` | `CacheConfig.DistributedCacheConfig.ConnectionString`（及 Redis 相关配置） |
-| `girvs-eventbus-rabbitmq` | `EventBusConfig` RabbitMQ 连接信息 |
-| `girvs-eventbus-redis` | `EventBusConfig.RedisConnectionString` |
+| `girvs-db-<name>` | `DbConfig.DataConnectionConfigs` 中 `Name == <name>` 项的 `MasterDataConnectionString`（`DbConfig` 是命名集合，`<name>` 默认为 `default`） |
+| `girvs-db-<name>-read-<N>`（N 从 0 起连续） | 同名项的 `ReadDataConnectionString[N]` |
+| `girvs-cache` | `CacheConfig.DistributedCacheConfig.ConnectionString` |
+| `girvs-eventbus-rabbitmq` | AMQP URI（`amqp://user:pass@host:port/vhost`），解析后填入 `EventBusConfig.RabbitMqConfig` 的 HostName/Port/UserName/Password/VirtualHost |
+| `girvs-eventbus-redis` | `EventBusConfig.RedisConfig.RedisConnectionString` |
 | `girvs-eventbus-db` | `EventBusConfig.DbConnectionString` |
 
-实现方式：注册一个 `IConfigurationSource`/后处理步骤，在 `HostUseGirvsConfig` 之后、容器构建之前执行；只在对应环境变量存在时覆盖，不存在时保持 appsettings.json 原值。业务代码与现有配置文件零改动。
+实现方式：`AspireModule.ConfigureServices` 执行时（此时 `Singleton<AppSettings>.Instance` 已完成绑定），通过 `AppSettings.ModuleConfigurations` 字典 + 反射按属性名写入，避免 `Girvs.Aspire` 对 EFCore/Cache/EventBus 模块产生硬引用（硬引用会把未使用的模块拉进业务服务并触发其模块启动逻辑）。`AspireModule.Order` 取极小值（-10000），确保映射先于其他模块消费配置。只在对应连接串存在时覆盖，不存在时保持 appsettings.json 原值。业务代码与现有配置文件零改动。
 
 **（3）模块入口**
 
@@ -60,12 +60,9 @@ Girvs 是模块化 NuGet 框架（多目标 `net8.0;net9.0;net10.0`），当前�
 
 ### 3.2 宿主入口挂接（`Girvs` 核心模块）
 
-`GirvsHostBuilderManager.CreateGirvsWebApplicationBuilder` 中，通过 `#if NET10_0_OR_GREATER` + 反射探测 `Girvs.Aspire` 程序集：
+除 Serilog 桥接外，`Girvs.Aspire` 的全部能力（OTel、服务发现、健康检查、配置映射）都通过标准 `IAppModuleStartup` 模块机制生效，核心模块无需改动。
 
-- 存在：在 `builder.Build()` 前调用其 ServiceDefaults 挂接点与配置映射；
-- 不存在：静默跳过，行为与当前版本完全一致。
-
-核心模块不新增对 OpenTelemetry 等包的直接依赖。
+唯一需要挂接核心的是 Serilog OTLP sink（Serilog 在模块机制运行之前、由 `HostUseSerilog` 配置）：在 `GirvsHostBuilderManager.HostUseSerilog` 的配置回调中，用 `Type.GetType("Girvs.Aspire.GirvsAspireSerilogHook, Girvs.Aspire")` 反射探测；程序集存在且检测到 `OTEL_EXPORTER_OTLP_ENDPOINT` 时调用其 `AddOtlpSink` 追加 sink，否则静默跳过（`Type.GetType` 对缺失程序集返回 null，无需条件编译）。核心模块不新增对 OpenTelemetry 等包的直接依赖。
 
 ### 3.3 与现有能力的关系
 
@@ -103,8 +100,8 @@ net8/net9 服务：无任何动作，无任何影响。
 
 - `tests/` 下新增 `Girvs.Aspire.Tests`（net10.0）：
   - 配置适配层：各资源名 → 配置节映射、无环境变量时不覆盖原值、读库列表多条映射；
-  - OTLP 开关：有/无 `OTEL_EXPORTER_OTLP_ENDPOINT` 时的注册行为；
-  - Consul 共存警告逻辑。
+  - OTLP 开关：有/无 `OTEL_EXPORTER_OTLP_ENDPOINT` 时的注册行为。
+- Consul 共存警告逻辑由手工验证覆盖（测试工程不引用 Girvs.Consul，自动化测试只能覆盖"未加载则不警告"路径，价值有限）。
 - 手工验证：最小示例 AppHost + 一个 Girvs 示例服务，确认 Dashboard 中日志/追踪/指标可见、健康检查端点可用。
 
 ## 7. 明确不做的事（YAGNI）
