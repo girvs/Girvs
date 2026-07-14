@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net10.0</TargetFrameworks>
+        <Description>Girvs 框架的 .NET Aspire AppHost 编排扩展：AddGirvsProject 依据 [DependsOn] 模块声明自动创建共享资源并接线。</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Girvs\Girvs.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting" Version="13.4.6"/>
+        <PackageReference Include="Aspire.Hosting.Redis" Version="13.4.6"/>
+        <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.4.6"/>
+        <PackageReference Include="Aspire.Hosting.MySql" Version="13.4.6"/>
+        <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.4.6"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Girvs.Aspire.Hosting.Tests"/>
+    </ItemGroup>
+</Project>
