@@ -7,4 +7,5 @@ global using System.Linq;
 global using System.Reflection;
 global using Aspire.Hosting;
 global using Aspire.Hosting.ApplicationModel;
+global using Girvs.Aspire.Hosting.Contributors;
 global using Microsoft.Extensions.Configuration;
