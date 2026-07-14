@@ -27,6 +27,8 @@ Girvs 是一个基于 .NET 的企业级快速开发框架,旨在提供一套完�
 ```
 Girvs/
 ├── Girvs                          # 核心框架模块
+├── Girvs.Aspire                   # .NET Aspire 服务端集成模块 (仅 net10.0)
+├── Girvs.Aspire.Hosting           # .NET Aspire AppHost 编排扩展模块 (仅 net10.0)
 ├── Girvs.AuthorizePermission      # 权限认证模块
 ├── Girvs.AutoMapper               # 对象映射模块
 ├── Girvs.Cache                    # 缓存模块 (支持 Redis/SqlServer)
@@ -154,6 +156,25 @@ gRPC 服务支持模块。
 - 健康检查
 - 服务发现
 - 配置中心
+
+### Girvs.Aspire (.NET Aspire 服务端集成，仅 net10.0)
+为服务接入 .NET Aspire 提供 ServiceDefaults 能力，与 Girvs.Consul 互斥使用。
+
+**主要功能:**
+- OpenTelemetry 可观测性（追踪/指标/日志，通过 Serilog OTLP sink 桥接）
+- `/health`、`/alive` 健康检查端点
+- Aspire 服务发现与 HttpClient 标准弹性策略
+- Aspire 注入连接串到 Girvs 各模块配置的自动映射
+
+### Girvs.Aspire.Hosting (.NET Aspire AppHost 编排扩展，仅 net10.0)
+供业务方 AppHost 项目引用，依据服务根模块的 `[DependsOn]` 声明自动创建/复用资源并接线。
+
+**主要功能:**
+- `AddGirvsProject` 一行接入，自动编排 Redis/RabbitMQ/MySql/SqlServer 资源
+- 多服务共享资源、每服务独立数据库
+- 自定义模块资源贡献器扩展点
+
+详见 [Aspire 接入指南](docs/aspire/apphost-guide.md) 与架构图 `Architect.png`。
 
 ### Girvs.SignalR (实时通信)
 基于 SignalR 的实时通信模块。

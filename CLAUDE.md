@@ -56,6 +56,8 @@ dotnet build Girvs.slnx --no-incremental
 | `Girvs.AuthorizePermission` | 自定义认证方案、基于角色的权限控制、数据规则过滤 |
 | `Girvs.Grpc` | gRPC 服务配置、异常拦截器、自动服务注册 |
 | `Girvs.Quartz` | Quartz.NET 定时任务调度 |
+| `Girvs.Aspire` | .NET Aspire 服务端集成（仅 net10.0）：OpenTelemetry、健康检查、Aspire 服务发现、连接串映射 |
+| `Girvs.Aspire.Hosting` | Aspire AppHost 编排扩展（仅 net10.0）：`AddGirvsProject` 依据 `[DependsOn]` 自动创建资源并 WithReference |
 | `Girvs.Consul` | Consul 服务注册与发现、健康检查 |
 | `Girvs.SignalR` | SignalR 实时通信，JWT 认证集成 |
 | `Girvs.Refit` | 声明式 HTTP 客户端封装 |
