@@ -1,7 +1,8 @@
 # Girvs 框架引入 .NET Aspire 升级方案（设计文档）
 
-- 日期：2026-07-13
+- 日期：2026-07-13（2026-07-14 修订：新增 AppHost 自动编排）
 - 状态：已确认
+- 架构图：仓库根目录 `Architect.png`（Girvs + .NET Aspire 模块化云原生架构图，六层：访问入口 / API Gateway / Aspire 编排与运行时 / 业务服务 / Girvs 基础组件能力 / 基础设施资源）
 - 相关模块：新增 `Girvs.Aspire`；涉及 `Girvs`（宿主入口）、`Girvs.Consul`（共存）、`Girvs.Cache`、`Girvs.EventBus`、`Girvs.EntityFrameworkCore`（仅配置适配，不改代码）
 
 ## 1. 背景与目标
@@ -23,7 +24,8 @@ Girvs 是模块化 NuGet 框架（多目标 `net8.0;net9.0;net10.0`），当前�
 | Consul 去留 | 共存过渡：`Girvs.Consul` 保留、继续发包，与 Aspire 服务发现互斥使用，下游按自己节奏迁移 |
 | 目标框架 | `Girvs.Aspire` 仅 `net10.0`；net8/net9 下游不受影响、对新包不可见 |
 | 日志方案 | 保留 Serilog 门面，通过 `Serilog.Sinks.OpenTelemetry` 桥接 OTLP，现有配置零改动 |
-| AppHost 支持 | 只发 ServiceDefaults + 配置适配层；AppHost 项目由业务方自建，框架提供模板与文档，不发 `Girvs.Aspire.Hosting` 包 |
+| AppHost 支持 | **（2026-07-14 修订）**发 `Girvs.Aspire.Hosting` 包：`AddGirvsProject<TProject>(name, typeof(根模块))` 依据 `[DependsOn]` 声明自动创建/复用资源并自动 `WithReference`；ServiceDefaults + 配置适配层不变 |
+| 组件编排声明 | **（2026-07-14 新增）**服务定义根模块类并用 `[DependsOn(typeof(GirvsCacheModule), typeof(EventBusModule), ...)]` 声明使用的 Girvs 组件；覆盖全部自带含外部资源的组件（Cache、EventBus、EFCore；Quartz 当前为内存调度、无外部资源）。资源形态（broker 类型、库名/库类型）以服务 appsettings.json 为唯一真源 |
 
 ## 3. 架构设计
 
@@ -70,9 +72,55 @@ Girvs 是模块化 NuGet 框架（多目标 `net8.0;net9.0;net10.0`），当前�
 - **Girvs.Cache / Girvs.EventBus / Girvs.EntityFrameworkCore**：模块代码不改，只接受配置适配层喂入的连接串。
 - **CAP 分布式追踪**：`DotNetCore.Cap.OpenTelemetry` 作为 `Girvs.Aspire` 的可选注册项（检测到 EventBus 模块启用时自动加入 tracing source）。
 
-### 3.4 AppHost 模板与约定文档
+### 3.4 AppHost 自动编排（`Girvs.Aspire.Hosting`，2026-07-14 修订）
 
-- 在 `docs/aspire/` 提供 AppHost 项目模板（`AddRedis("girvs-cache")`、`AddSqlServer(...).AddDatabase("girvs-db-master")`、`AddRabbitMQ("girvs-eventbus-rabbitmq")` 等）与资源命名约定说明；
+**背景约束**：`IAppModuleStartup` 运行在服务进程内，`DistributedApplicationBuilder` 只存在于 AppHost 进程，二者无法直接互通。因此"组件自动编排"由 AppHost 侧的 `Girvs.Aspire.Hosting` 包实现，声明源是服务侧的 `[DependsOn]`。
+
+**（1）`DependsOnAttribute`（放在 Girvs 核心包）**
+
+```csharp
+[DependsOn(
+    typeof(GirvsCacheModule),
+    typeof(EventBusModule),
+    typeof(GirvsEntityFrameworkCoreModule))]
+public class OrderModule;
+```
+
+服务定义根模块类（纯声明类，无需实现接口）标注其使用的 Girvs 组件模块类型；属性支持递归（模块可再依赖模块）。本期只作为 Aspire 编排的声明源，未来可扩展用于服务端模块加载排序/校验。
+
+**（2）`AddGirvsProject`（AppHost 侧入口）**
+
+```csharp
+var builder = DistributedApplication.CreateBuilder(args);
+builder.AddGirvsProject<Projects.Order_Api>("order-api", typeof(OrderModule));
+builder.AddGirvsProject<Projects.User_Api>("user-api", typeof(UserModule));
+builder.Build().Run();
+```
+
+内部流程：递归遍历 `DependsOn` 图（去重、防环）→ 按"模块 → 资源"注册表创建资源（**按资源名惰性创建、多服务共享同一实例**）→ 自动 `WithReference` + `WaitFor`。
+
+可选配置通过 `GirvsProjectOptions` 回调传入，如 `builder.AddGirvsProject<Projects.Order_Api>("order-api", typeof(OrderModule), o => o.UseIsolatedCache = true)` 为该服务创建独立 Redis 实例。
+
+**（3）模块 → 资源注册表（按模块类型全名匹配，Hosting 不引用各组件工程）**
+
+| 模块类型 | 资源 |
+|---|---|
+| `Girvs.Cache.GirvsCacheModule` | 默认共享实例 `AddRedis("girvs-cache")`；通过 `GirvsProjectOptions.UseIsolatedCache` 可为服务创建独立实例 `girvs-cache-<service>`。无论共享还是独立，注入名固定为 `girvs-cache`（`WithReference(redis, connectionName: "girvs-cache")`），服务端映射不变（对应架构图"同一 Cache 组件可映射共享 Redis 也可映射独立实例"；按 DB Index 隔离留待后续版本） |
+| `Girvs.EventBus.EventBusModule` | 读服务 appsettings 的 `EventBusType`：RabbitMQ → 共享 `AddRabbitMQ("girvs-eventbus-rabbitmq")`；Redis → 共享 `AddRedis("girvs-eventbus-redis")`；Kafka → 警告并跳过（云 Kafka 通常直连外部集群，且服务端 `KafkaConfig` 含 SASL 等云端专属配置，不适合本地容器化） |
+| `Girvs.EntityFrameworkCore.GirvsEntityFrameworkCoreModule` | **每服务独立数据库**（对应架构图 orderdb/userdb/inventorydb）：共享数据库服务器（MySql → `AddMySql("girvs-mysql")`、MsSql → `AddSqlServer("girvs-sqlserver")`）+ 每服务独立 database 资源 `girvs-db-<service>-<Name>`（实际库名 `<service>_<Name>`）；用 `WithReference(db, connectionName: "girvs-db-<Name>")` 把注入名固定为服务端映射约定，服务端零感知 |
+| 其余模块（Quartz、AutoMapper、Driven、DynamicWebApi 等） | 无外部资源，参与依赖图但不产生资源 |
+
+`AddGirvsProject` 对 Web API 与 Worker/Background Service 项目同样适用（都是 Aspire `ProjectResource`），架构图第 4 层的四类服务用同一入口编排。
+
+资源形态以服务的 `appsettings.json`（`ModuleConfigurations` 节，AppHost 通过 `IProjectMetadata.ProjectPath` 定位服务目录）为唯一真源；文件或字段缺失时对该资源警告并跳过（业务方可用原生 Aspire API 按命名约定手动补）。注册表开放扩展点，业务方可为自定义模块类型注册资源贡献器。
+
+`girvs-eventbus-db`（CAP 存储库）不自动创建——通常复用业务库，需要独立库时手动添加。
+
+**（4）工程约束**：`typeof(OrderModule)` 要求 AppHost 能编译引用根模块所在程序集（Aspire 的 `IsAspireProjectResource="true"` 引用不暴露类型）。推荐把根模块类放在服务的 Application 层或共享程序集，AppHost 对其加普通 `ProjectReference`；接入文档写明该模式。
+
+### 3.5 接入文档
+
+- 在 `docs/aspire/` 提供接入指南：`[DependsOn]` 声明方式、`AddGirvsProject` 用法、资源命名约定、根模块程序集引用模式；
 - README 增补 Aspire 接入章节。
 
 ## 4. 工程约束
@@ -84,14 +132,14 @@ Girvs 是模块化 NuGet 框架（多目标 `net8.0;net9.0;net10.0`），当前�
   - `Microsoft.Extensions.Http.Resilience`
   - `Serilog.Sinks.OpenTelemetry`
   - `DotNetCore.Cap.OpenTelemetry`（可选特性）
-- 不引入任何 `Aspire.Hosting.*` 包（那些属于业务方 AppHost 项目）。
-- `nugetpublish.ps1` 增加 `Girvs.Aspire` 推送行。
+- `Girvs.Aspire`（服务端包）不引入任何 `Aspire.Hosting.*` 包；`Girvs.Aspire.Hosting`（AppHost 端包，仅 net10.0）引入 `Aspire.Hosting` 及 Redis/RabbitMQ/MySql/SqlServer 集成包（13.x），并引用 Girvs 核心（取 `DependsOnAttribute` 类型），但不引用任何 Girvs 组件工程（模块按类型全名字符串匹配）。
+- `nugetpublish.ps1` 增加 `Girvs.Aspire`、`Girvs.Aspire.Hosting` 推送行。
 
 ## 5. 业务方升级路径
 
 1. 升级 Girvs 系列包到新版本；
-2. net10 服务追加 `Girvs.Aspire` 包引用；
-3. 自建 AppHost 项目（按模板），资源命名遵循约定；
+2. net10 服务追加 `Girvs.Aspire` 包引用，并在可被 AppHost 引用的程序集中定义根模块类 + `[DependsOn]` 声明；
+3. 自建 AppHost 项目，引用 `Girvs.Aspire.Hosting`，每个服务一行 `AddGirvsProject<TProject>(name, typeof(根模块))`；
 4. （可选）从 `Girvs.Consul` 切到 Aspire 服务发现时，移除 Consul 包引用与配置。
 
 net8/net9 服务：无任何动作，无任何影响。
@@ -100,7 +148,12 @@ net8/net9 服务：无任何动作，无任何影响。
 
 - `tests/` 下新增 `Girvs.Aspire.Tests`（net10.0）：
   - 配置适配层：各资源名 → 配置节映射、无环境变量时不覆盖原值、读库列表多条映射；
-  - OTLP 开关：有/无 `OTEL_EXPORTER_OTLP_ENDPOINT` 时的注册行为。
+  - OTLP 开关：有/无 `OTEL_EXPORTER_OTLP_ENDPOINT` 时的注册行为；
+  - `DependsOnAttribute` 声明语义。
+- `tests/` 下新增 `Girvs.Aspire.Hosting.Tests`（net10.0）：
+  - `DependsOn` 图遍历：递归、去重、防环；
+  - 各贡献器：Cache → Redis 资源、EventBusType 分支、多命名库多类型创建、appsettings 缺失时跳过且不抛异常；
+  - 资源共享：两个服务声明同一组件时只创建一个资源实例。
 - Consul 共存警告逻辑由手工验证覆盖（测试工程不引用 Girvs.Consul，自动化测试只能覆盖"未加载则不警告"路径，价值有限）。
 - 手工验证：最小示例 AppHost + 一个 Girvs 示例服务，确认 Dashboard 中日志/追踪/指标可见、健康检查端点可用。
 
@@ -108,9 +161,11 @@ net8/net9 服务：无任何动作，无任何影响。
 
 - 不改 `Girvs.Consul` 任何代码，不打 `[Obsolete]`；
 - 不为 net8/net9 提供 Aspire 能力；
-- 不发 `Girvs.Aspire.Hosting` AppHost 侧扩展包；
 - 不替换 Serilog、不改动 `serilogsetting.json` 配置体系；
-- 不改 Cache/EventBus/EFCore 模块内部代码。
+- 不改 Cache/EventBus/EFCore/Quartz 模块内部代码（`DependsOnAttribute` 加在核心包，组件模块本身不加声明）；
+- 不自动创建 `girvs-eventbus-db`（CAP 存储通常复用业务库）；
+- Kafka 不做本地容器编排（云 Kafka 场景直连外部集群）；
+- `DependsOn` 本期不改变服务端模块加载顺序（仍由 `Order` 属性决定）。
 
 ## 8. 风险
 
@@ -120,3 +175,6 @@ net8/net9 服务：无任何动作，无任何影响。
 | 反射探测挂接点脆弱 | 挂接契约集中在一个静态类型名 + 方法名常量，加测试覆盖 |
 | Serilog OTLP sink 与 `ReadFrom.Configuration` 的叠加顺序 | 桥接以代码方式追加 sink，不依赖 json 配置，验证两者共存 |
 | Aspire 注入的连接串格式与 Girvs 期望格式不一致（如 Redis 带密码格式） | 适配层做格式归一化，测试覆盖常见格式 |
+| AppHost 读取服务 appsettings.json 与服务运行时配置行为不完全一致（环境变量覆盖、环境专属文件） | 只读基础 appsettings.json 判定资源形态（形态字段通常不随环境变化）；判定失败降级为警告 + 跳过，可手动补资源 |
+| 根模块程序集无法被 AppHost 引用（服务为单程序集 exe） | 文档提供两种模式：根模块放共享程序集（推荐）；或对服务加 `IsAspireProjectResource="false"` 的普通引用 |
+| `DependsOn` 声明与实际包引用不一致（声明了未引用的模块或反之） | 声明多了只会多创建资源（服务端映射按需生效），声明少了资源缺失在启动时即可发现；后续版本可在服务端加一致性校验 |
