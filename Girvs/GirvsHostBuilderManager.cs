@@ -37,8 +37,27 @@ public static class GirvsHostBuilderManager
             (context, configuration) =>
             {
                 configuration.ReadFrom.Configuration(context.Configuration);
+                TryAddGirvsAspireOtlpSink(configuration);
             }
         );
+    }
+
+    /// <summary>
+    /// 反射探测 Girvs.Aspire（仅 net10 包），存在且处于 Aspire 环境时追加 OTLP sink，否则静默跳过。
+    /// 契约：Girvs.Aspire.GirvsAspireSerilogHook.AddOtlpSink(LoggerConfiguration)
+    /// </summary>
+    private static void TryAddGirvsAspireOtlpSink(LoggerConfiguration loggerConfiguration)
+    {
+        if (
+            string.IsNullOrEmpty(
+                Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
+            )
+        )
+            return;
+
+        var hookType = Type.GetType("Girvs.Aspire.GirvsAspireSerilogHook, Girvs.Aspire");
+        var method = hookType?.GetMethod("AddOtlpSink", new[] { typeof(LoggerConfiguration) });
+        method?.Invoke(null, new object[] { loggerConfiguration });
     }
 
     public static void HostUseGirvsConfig(
