@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Girvs.Aspire/Girvs.Aspire.csproj" />
   <Project Path="Girvs.AuthorizePermission/Girvs.AuthorizePermission.csproj" />
   <Project Path="Girvs.AutoMapper/Girvs.AutoMapper.csproj" />
   <Project Path="Girvs.Cache/Girvs.Cache.csproj" />
@@ -13,4 +14,5 @@
   <Project Path="Girvs.Refit/Girvs.Refit.csproj" />
   <Project Path="Girvs.SignalR/Girvs.SignalR.csproj" />
   <Project Path="Girvs/Girvs.csproj" />
+  <Project Path="tests/Girvs.Aspire.Tests/Girvs.Aspire.Tests.csproj" />
 </Solution>
