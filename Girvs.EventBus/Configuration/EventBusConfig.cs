@@ -94,9 +94,10 @@ public class RabbitMQConfig
                 Password = Uri.UnescapeDataString(userInfo[1]);
         }
 
+        // AMQP URI 的 vhost 取自路径；路径为空时按标准 AMQP 语义默认为 "/"（而非保留 appsettings 原值，
+        // 否则 Aspire 注入的本地 broker（默认仅有 "/" vhost）会因 vhost 不匹配连接失败）。
         var virtualHost = uri.AbsolutePath.TrimStart('/');
-        if (virtualHost.Length > 0)
-            VirtualHost = Uri.UnescapeDataString(virtualHost);
+        VirtualHost = virtualHost.Length > 0 ? Uri.UnescapeDataString(virtualHost) : "/";
     }
 }
 

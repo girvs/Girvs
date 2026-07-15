@@ -99,6 +99,55 @@ public class GirvsProjectOrchestrationTests : IDisposable
     }
 
     [Fact]
+    public void EventBusType为数字0_同样创建RabbitMQ资源()
+    {
+        // 服务端框架会把枚举持久化为数值（RabbitMQ=0），贡献器须兼容数字与名称两种形式
+        var builder = CreateBuilder();
+        var directory = CreateServiceProjectDirectory(
+            "order-api",
+            """
+            {
+              "ModuleConfigurations": {
+                "EventBusConfig": { "EventBusType": 0 }
+              }
+            }
+            """
+        );
+        var project = AddServiceProject(builder, "order-api", directory);
+
+        builder.WireGirvsResources(project, directory, typeof(EventBusOnlyModule));
+
+        Assert.Single(
+            builder.Resources.OfType<RabbitMQServerResource>(),
+            r => r.Name == "girvs-eventbus-rabbitmq"
+        );
+    }
+
+    [Fact]
+    public void UseDataType为数字1_同样创建MySql数据库资源()
+    {
+        // 服务端框架会把枚举持久化为数值（MySql=1），贡献器须兼容数字与名称两种形式
+        var builder = CreateBuilder();
+        var directory = CreateServiceProjectDirectory(
+            "order-api",
+            """
+            {
+              "ModuleConfigurations": {
+                "DbConfig": {
+                  "DataConnectionConfigs": [ { "Name": "default", "UseDataType": 1 } ]
+                }
+              }
+            }
+            """
+        );
+        var project = AddServiceProject(builder, "order-api", directory);
+
+        builder.WireGirvsResources(project, directory, typeof(DbOnlyModule));
+
+        Assert.Single(builder.Resources.OfType<MySqlServerResource>(), r => r.Name == "girvs-mysql");
+    }
+
+    [Fact]
     public void EventBus配置缺失_不创建资源且不抛异常()
     {
         var builder = CreateBuilder();

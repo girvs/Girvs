@@ -1,4 +1,5 @@
 using Girvs;
+using Girvs.Infrastructure;
 
 namespace Sample.ServiceB;
 
@@ -7,12 +8,14 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment env) : IG
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
+        // CapEventBus.PublishAsync 依赖 EngineContext.Current.ClaimManager，样例无认证模块，注册最小实现
+        services.AddScoped<IGirvsClaimManager, SampleClaimManager>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        // 请求管道与端点映射由 CreateGirvsWebApplicationBuilder 统一处理
-        // （内部调用 ConfigureRequestPipeline + ConfigureEndpointRouteBuilder，
-        //  AspireModule 的 /health、/alive 端点在此自动映射），本壳服务无需额外配置
+        // CAP 自动创建其存储表；ServiceB 无业务 DbContext，无需 EnsureCreated。控制器需显式映射。
+        if (app is IEndpointRouteBuilder endpoints)
+            endpoints.MapControllers();
     }
 }

@@ -23,7 +23,7 @@ public class DatabaseResourceContributor : IGirvsResourceContributor
         foreach (var connectionConfig in connectionConfigs)
         {
             var name = connectionConfig["Name"] ?? "default";
-            var useDataType = connectionConfig["UseDataType"]?.ToLowerInvariant();
+            var useDataType = NormalizeUseDataType(connectionConfig["UseDataType"]);
             var serviceName = context.Project.Resource.Name;
 
             // 每服务独立数据库（架构图 orderdb/userdb 模式）：资源名全局唯一，
@@ -68,4 +68,14 @@ public class DatabaseResourceContributor : IGirvsResourceContributor
             }
         }
     }
+
+    // 服务端 appsettings 中枚举可能被持久化为名称（"MySql"）或数值（"1"）。
+    // 归一到小写名称，兼容两种形式（UseDataType: MsSql=0, MySql=1）。
+    private static string NormalizeUseDataType(string raw) =>
+        raw?.Trim().ToLowerInvariant() switch
+        {
+            "0" or "mssql" => "mssql",
+            "1" or "mysql" => "mysql",
+            var other => other
+        };
 }

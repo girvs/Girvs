@@ -126,6 +126,22 @@ public class AspireConnectionStringOverrideTests
     }
 
     [Fact]
+    public void RabbitMq的AMQP连接串无vhost路径时VirtualHost默认为斜杠()
+    {
+        // Aspire 注入的 AMQP URI 通常不带 vhost 路径，应按标准语义置为 "/"，
+        // 覆盖 appsettings 的非默认原值（否则本地 broker 因 vhost 不匹配连接失败）
+        var eventBusConfig = new EventBusConfig();
+        eventBusConfig.RabbitMqConfig.VirtualHost = "zhuofan.wb";
+        var configuration = BuildConfiguration(
+            ("girvs-eventbus-rabbitmq", "amqp://guest:pass@rabbit-host:5672")
+        );
+
+        eventBusConfig.ApplyAspireConnectionStrings(configuration);
+
+        Assert.Equal("/", eventBusConfig.RabbitMqConfig.VirtualHost);
+    }
+
+    [Fact]
     public void RabbitMq连接串非URI格式时按纯主机名处理()
     {
         var eventBusConfig = new EventBusConfig();
