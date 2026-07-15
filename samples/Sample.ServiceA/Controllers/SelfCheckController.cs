@@ -23,6 +23,18 @@ public class SelfCheckController(IDistributedCache cache) : ControllerBase
     }
 
     /// <summary>
+    /// 服务发现自检：用服务发现地址 http://service-b 调用 ServiceB 的 /ping，
+    /// 验证 Aspire 服务发现 + HttpClient 弹性在真实拓扑下工作（无硬编码地址）
+    /// </summary>
+    [HttpGet("callb")]
+    public async Task<IActionResult> CallB([FromServices] IHttpClientFactory factory)
+    {
+        var client = factory.CreateClient();
+        var pong = await client.GetStringAsync("http://service-b/ping");
+        return Ok(new { fromServiceB = pong });
+    }
+
+    /// <summary>
     /// 数据库自检：插入一条 Product 再按 Id 查回，验证 Aspire 注入的 MySQL 连接串 + EFCore 往返真实可用
     /// </summary>
     [HttpGet("db")]

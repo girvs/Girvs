@@ -321,6 +321,8 @@ git commit -m "test: 参照系统接入 Cache/EventBus/EFCore 并验证连接串
 
 **目标交付物**：ServiceA 通过服务发现（而非硬编码地址）调用 ServiceB 的一个端点，链路在 Dashboard 的分布式追踪里可见。证明 `AspireModule` 注册的 `Microsoft.Extensions.ServiceDiscovery` + HttpClient 弹性在真实拓扑下工作。
 
+> **✅ Task 3 已完成并跑通**：AppHost 用 `AddGirvsProject<Sample_ServiceA>(...).WithReference(serviceB)` 建立引用，Aspire 注入 `services__service-b__http__0=http://localhost:5102`；ServiceB 加 `GET /ping`→`pong`；ServiceA 加 `GET /selfcheck/callb`，用 `IHttpClientFactory.CreateClient()` 调 `http://service-b/ping`（服务发现解析，无硬编码地址）。`curl service-a/selfcheck/callb` 返回 `{"fromServiceB":"pong"}`。关键点：**无需业务代码显式启用服务发现**——`AspireModule` 已通过 `ConfigureHttpClientDefaults` 为所有 `IHttpClientFactory` 客户端加了 `AddServiceDiscovery` + `AddStandardResilienceHandler`，故默认客户端即可用 `http://<service-name>` 解析。用的是 http（服务 launchSettings 为 http 端点），非 https。分布式追踪由 OTel（HttpClient instrumentation）自动生成，Dashboard 可见。
+
 **Files:**
 - Modify: `samples/Sample.AppHost/Program.cs`（让 service-a `WithReference` service-b 以注入其发现地址）
 - Modify: `samples/Sample.ServiceB/*`（加一个被调用的 `GET /ping` 返回 `pong`）
