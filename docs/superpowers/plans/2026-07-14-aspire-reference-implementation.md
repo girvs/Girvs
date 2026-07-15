@@ -699,6 +699,8 @@ git commit -m "feat: 生产资源外部引用能力 + 参照系统 publish 清�
 
 **目标交付物**：参照系统补一个 Worker（后台服务）证明 `AddGirvsProject` 对非 Web 项目同样适用；更新 `docs/aspire/apphost-guide.md` 把参照系统作为权威模板指引。
 
+> **✅ Task 6 已完成并跑通**：新增 `Sample.Worker`——因 Girvs 启动机制（`CreateGirvsWebApplicationBuilder`）是 Web 宿主，Worker 用 Web SDK + `AddHostedService<HeartbeatWorker>`（`BackgroundService`）以复用模块机制，`[DependsOn(GirvsCacheModule)]`。后台任务每 3 秒往 Aspire 注入的 Redis 写心跳时间戳，`GET /selfcheck/heartbeat` 读回 `{"lastHeartbeat":"...ISO 时间"}`，证明 `AddGirvsProject` 对含后台负载的服务同样适用、且后台服务也能用组件连接串自动注入。收尾文档：新增 `samples/README.md`（组成、运行、各自检端点表、发布清单）；`docs/aspire/apphost-guide.md` 补第 6~8 节（参照实现指引 + 接入易踩点 + 共享配置 + 生产资源外部引用）。全量验证：样例解决方案构建成功，`Girvs.Aspire.Hosting.Tests` 22 个 + `Girvs.Aspire.Tests` 19 个单测全绿。（补记：加新项目后遇到一次 NuGet 还原缓存串味 Windows 路径的瞬态错误，`清 obj + dotnet restore --force` 解决。）
+
 **Files:**
 - Create: `samples/Sample.Worker/*`（Worker 项目 + 根模块）
 - Modify: `samples/Sample.AppHost/Program.cs`（加 `AddGirvsProject` for worker）

@@ -18,4 +18,7 @@ builder
     .AddGirvsProject<Projects.Sample_ServiceA>("service-a", typeof(ServiceAModule))
     .WithReference(serviceB);
 
+// 后台工作服务：AddGirvsProject 对含 BackgroundService 的服务同样适用
+builder.AddGirvsProject<Projects.Sample_Worker>("worker", typeof(WorkerModule));
+
 builder.Build().Run();

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Girvs\Girvs.csproj" />
+    <ProjectReference Include="..\..\Girvs.Aspire\Girvs.Aspire.csproj" />
+    <ProjectReference Include="..\..\Girvs.Cache\Girvs.Cache.csproj" />
+  </ItemGroup>
+</Project>

@@ -3,4 +3,5 @@
   <Project Path="Sample.Modules/Sample.Modules.csproj" />
   <Project Path="Sample.ServiceA/Sample.ServiceA.csproj" />
   <Project Path="Sample.ServiceB/Sample.ServiceB.csproj" />
+  <Project Path="Sample.Worker/Sample.Worker.csproj" />
 </Solution>
