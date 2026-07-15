@@ -226,6 +226,8 @@ git commit -m "test: 新增 Girvs+Aspire 最小参照系统骨架并端到端跑
 > **前置环境**：Aspire 在 Run 模式下拉起容器需 Docker 能拉取镜像。本机初次遇到 docker 守护进程未走代理导致 `redis` 镜像拉取 `connection refused`，由用户配置代理后解决——**迁移提示**：接入 Aspire 的开发机必须保证 Docker 能拉取 `redis`/`mysql`/`rabbitmq` 镜像（国内需配置镜像加速或代理）。
 >
 > **✅ Cache 增量已完成并跑通**：Aspire 自动拉起 `girvs-cache`(redis) 容器，注入的**带密码连接串**在运行时覆盖 appsettings 默认值并生效（`docker exec redis-cli` 裸连报 `NOAUTH` 反证服务用的是注入串），`GET /selfcheck/cache` 返回 `{"match":true}`。发现一处**对迁移重要**的框架行为：新 `CreateGirvsWebApplicationBuilder` 启动模型下，框架的 `ConfigureEndpointRouteBuilder` 只映射各模块端点（如 AspireModule 的 `/health`），**普通 MVC 控制器需在 `Startup.Configure` 里显式映射**——传入的 `app` 即 `WebApplication`（实现 `IEndpointRouteBuilder`），`if (app is IEndpointRouteBuilder e) e.MapControllers();` 即可。这与 Girvs 真实服务 Startup.Configure 调 `MapControllers` 一致，需写入迁移清单。
+>
+> **✅ EFCore 增量已完成并跑通（深层：真实 DB 往返）**：ServiceA 加 `[DependsOn(GirvsEntityFrameworkCoreModule)]`，Aspire 自动拉起 `girvs-mysql`(mysql:9.7) 容器 + 自动建库 `service_a_default`，注入带密码连接串覆盖 appsettings。`GET /selfcheck/db` 插入一条 Product 再查回返回 `{"match":true}`，并经 `docker exec mysql` 直查确认 `Products` 表实际有 1 行（排除 EF 一级缓存干扰，证明真落库）。关键最小写法（对迁移有参考价值）：① 实体仅继承 `AggregateRoot<Guid>`、**不实现任何多租户/分表接口即完全免租户上下文**（`Repository.CompareTenantId` 对非 `IIncludeMultiTenant` 实体放行）；② DbContext 加 `[GirvsDbConfig("<Name>")]`（Name 对应 `DataConnectionConfigs[].Name`）即被反射自动发现；③ 建表用 `EnableAutoMigrate=false` + 启动时 `DbContext.Database.EnsureCreated()`（框架默认走 EF Migrations，样例免迁移故自己调 EnsureCreated）；④ CRUD 用 `IRepository<T>.AddAsync` + `IUnitOfWork<T>.Commit()`（**提交方法是 `Commit()` 不是 SaveChangesAsync**）。
 
 **Files:**
 - Modify: `samples/Sample.Modules/ServiceAModule.cs`、`ServiceBModule.cs`（加 `[DependsOn]`）

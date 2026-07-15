@@ -9,5 +9,6 @@
     <ProjectReference Include="..\..\Girvs\Girvs.csproj" />
     <ProjectReference Include="..\..\Girvs.Aspire\Girvs.Aspire.csproj" />
     <ProjectReference Include="..\..\Girvs.Cache\Girvs.Cache.csproj" />
+    <ProjectReference Include="..\..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
   </ItemGroup>
 </Project>

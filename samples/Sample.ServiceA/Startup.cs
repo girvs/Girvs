@@ -1,4 +1,6 @@
 using Girvs;
+using Microsoft.EntityFrameworkCore;
+using Sample.ServiceA.Data;
 
 namespace Sample.ServiceA;
 
@@ -11,9 +13,14 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment env) : IG
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        // CreateGirvsWebApplicationBuilder 传入的 app 即 WebApplication（同时实现 IEndpointRouteBuilder）。
-        // 模块端点（AspireModule 的 /health、/alive 等）由框架随后的 ConfigureEndpointRouteBuilder 映射；
-        // 普通 MVC 控制器需在此显式映射（与 Girvs 真实服务的 Startup.Configure 一致）。
+        // 样例免迁移建表：EnableAutoMigrate=false，启动时对样例 DbContext 调 EnsureCreated 建表
+        using (var scope = app.ApplicationServices.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<SampleDbContext>();
+            db.Database.EnsureCreated();
+        }
+
+        // 模块端点（AspireModule /health 等）由框架 ConfigureEndpointRouteBuilder 映射；控制器需在此显式映射
         if (app is IEndpointRouteBuilder endpoints)
             endpoints.MapControllers();
     }
