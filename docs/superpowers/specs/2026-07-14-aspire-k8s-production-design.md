@@ -6,6 +6,17 @@
 - 关联业务落地文档：`docs/aspire/升级方案.md`（业务系统整体迁移指南，依赖本文档描述的框架能力）
 - 相关模块：新增 `Girvs.Aspire.Gateway`；扩展 `Girvs.Aspire`、`Girvs.Aspire.Hosting`
 
+## 0. 实施策略（2026-07-14 补充）：参照实现优先
+
+本文档识别的三项能力，此前均只有单元测试覆盖，从未在一个真实运行的多服务系统里端到端验证过——`Girvs.Aspire`/`Girvs.Aspire.Hosting` 能被单测证明"资源图正确、连接串映射正确"，但从未 `dotnet run` 真正跑起来、从未 `aspire publish` 生成过 K8s 清单、从未在 Aspire Dashboard 里看到过日志/追踪。这是"一结合真实业务就完全不是这么回事"的根本原因：框架本身的自洽性从未被验证，却直接拿真实业务当第一个试验场，等于同时调试"框架对不对"和"业务迁移对不对"两个变量。
+
+因此确定实施策略：**先在 Girvs 仓库内建一个最小但完整的参照实现（Reference/Sample），把它作为框架的活体端到端验证 + 业务迁移的抄写模板 + 三项能力的真实验证场，再谈真实业务迁移。** 参照实现构成：1 个自建 YARP 网关 + 2 个业务微服务（各用 Cache/EventBus/EFCore 并互调一次）+ 1 个 Worker + 1 个 AppHost。推进顺序为"每步能跑通再进下一步"：骨架跑通 → 接入真实组件 → 服务间调用与发现 → 共享配置注入 → 生产外部资源引用与 `aspire publish` → 网关 K8s 动态发现。
+
+由此，实施计划的组织从"按三个缺口切"调整为"按参照实现的分步搭建切"：
+- 计划 1（`2026-07-14-aspire-reference-implementation.md`）：参照实现搭建 + 分步验证，把本文档 3.2（共享配置）、3.3（外部资源引用）两项能力融入其中端到端验证；
+- 计划 2：`Girvs.Aspire.Gateway`（本文档 3.1），在计划 1 的参照系统之上叠加；
+- 计划 3：真实业务 NewOnlineRegistration 迁移（`docs/aspire/升级方案.md`），照参照实现改。
+
 ## 1. 背景与目标
 
 `docs/superpowers/specs/2026-07-13-aspire-integration-design.md` 确认并实现了 Girvs 服务接入 Aspire 的基础能力（`AddGirvsProject`、连接串映射、OTel、健康检查），但设计目标聚焦"单服务接入 + 本地开发资源编排"，未覆盖真正把一个多服务系统（如 NewOnlineRegistration，20+ 服务）**整体迁移到生产 K8s 环境**所需的三项能力：
