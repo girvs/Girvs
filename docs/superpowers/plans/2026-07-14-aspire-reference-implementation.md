@@ -60,10 +60,10 @@
 </Project>
 ```
 
-`samples/Sample.ServiceA/Startup.cs`（结构示意，以真跑通为准——见 Global Constraints）：
+`samples/Sample.ServiceA/Startup.cs`（**已按实测真实 API 定稿**——命名空间为 `Girvs`，非 `Girvs.Startup`）：
 
 ```csharp
-using Girvs.Startup;
+using Girvs;
 
 namespace Sample.ServiceA;
 
@@ -74,27 +74,25 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment env) : IG
         services.AddControllers();
     }
 
-    public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        application.UseRouting();
-        application.UseEndpoints(endpoints => endpoints.MapControllers());
+        // 请求管道与端点映射由 CreateGirvsWebApplicationBuilder 统一处理
+        // （内部调用 ConfigureRequestPipeline + ConfigureEndpointRouteBuilder，
+        //  AspireModule 的 /health、/alive 端点在此自动映射），本壳服务无需额外配置
     }
 }
 ```
 
-`samples/Sample.ServiceA/Program.cs`：
+`samples/Sample.ServiceA/Program.cs`（**已按实测真实 API 定稿**）：
 
 ```csharp
-using Girvs.Startup;
-using Sample.ServiceA;
+using Girvs;
 
-var builder = GirvsHostBuilderManager.CreateBuilder(args);
-var hostBuilder = GirvsHostBuilderManager.CreateGrivsHostBuilder<Startup>(builder);
-// 若 IGirvsHostBuilder 暴露 Build()/Run() 或 UseGirvs()，按其真实 API 完成启动；
-// 目的：得到一个运行中的 WebApplication，健康检查端点由 AspireModule 自动映射。
-var app = builder.Build();
+var app = GirvsHostBuilderManager.CreateGirvsWebApplicationBuilder(args);
 app.Run();
 ```
+
+> **实测确认的启动契约**（`Girvs/GirvsHostBuilderManager.cs`、`Girvs/IGirvsStartup.cs`，命名空间均为 `Girvs`）：`CreateGirvsWebApplicationBuilder(string[] args)` → `WebApplication`，它自动发现所有 `IGirvsStartup` 实现、依次 `ConfigureServices`、跑模块系统（`ConfigureApplicationServices`）、`Build`、依次 `Configure`、再 `ConfigureRequestPipeline` + `ConfigureEndpointRouteBuilder`。因此 Program.cs 只需两行，Startup.Configure 留空即可。（会话前期"读到"的 `CreateBuilder(args)` + `CreateGrivsHostBuilder<Startup>(builder).UseGirvs()` 等签名为环境读取故障产生的错误信息，实际不存在——已废弃。）
 
 `samples/Sample.ServiceA/appsettings.json`：
 
@@ -204,7 +202,13 @@ Run: `dotnet run --project samples/Sample.AppHost`（后台启动），记录控
 
 若跑不通，这就是"框架骨架自洽性"的第一个真实缺陷点——定位并修复（可能涉及框架侧 Program 启动流程），修复后再继续。**不要在骨架未跑通时进入 Task 2。**
 
-- [ ] **Step 8: 提交**
+> **✅ Task 1 实测结论（已完成并跑通）**：AppHost 编排下 `service-a`(端口 45571)、`service-b`(端口 45325) 均 Running，各自 `/health`、`/alive` 返回 200，Dashboard 正常，OTLP 端点已注入（OTel 生效）。执行中发现并固化了三个原计划未预见的修正点，**均为样例/工程层面、非框架代码改动**，对后续 Task 与业务迁移同样适用：
+>
+> 1. **目标框架收敛**：样例项目继承仓库根 `Directory.Build.props` 的 `net8;net9;net10` 多目标，会拉着只支持 net10 的 `Girvs.Aspire` 一起构建 net8/9 而失败。修法：新增 `samples/Directory.Build.props`，`Import` 根 props 后把 `<TargetFrameworks>` 覆盖为 `net10.0`、`GeneratePackageOnBuild=false`、`IsPackable=false`。一处生效，覆盖当前与后续全部样例项目。
+> 2. **AppHost 编译引用**：Aspire.AppHost.Sdk 默认把所有 `ProjectReference` 当编排资源（`ReferenceOutputAssembly=false`），导致 `Girvs.Aspire.Hosting`（`AddGirvsProject` 扩展）与 `Sample.Modules`（`typeof(XxxModule)`）的类型对 AppHost 不可见。修法：这两个引用显式加 `IsAspireProjectResource="false"`（普通编译引用）；被编排的 ServiceA/B 保持 `true`。
+> 3. **服务端点（关键，对迁移重要）**：Aspire 的 `AddProject` 依赖各服务 `Properties/launchSettings.json` 的 `applicationUrl` 分配端点。样例服务最初无 launchSettings，Aspire 未注入任何端口变量（实测服务进程 environ 中只有 `OTEL_*`，无 `ASPNETCORE_URLS`/`Kestrel__*`），两个服务都回退默认 5000 端口冲突、只有一个能起。修法：每个服务加 `Properties/launchSettings.json` 指定各自 `applicationUrl`（ServiceA `http://localhost:5101`、ServiceB `http://localhost:5102`）。**迁移提示**：真实 Girvs 服务接入 Aspire 编排必须具备 launchSettings 或在 AppHost 显式配置端点——需写入 `docs/aspire/升级方案.md` 的迁移清单。
+
+- [x] **Step 8: 提交**
 
 ```bash
 git add samples/
