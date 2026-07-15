@@ -6,5 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Girvs\Girvs.csproj" />
+    <!-- 根模块 [DependsOn] 声明需要引用对应组件模块类型 -->
+    <ProjectReference Include="..\..\Girvs.Cache\Girvs.Cache.csproj" />
   </ItemGroup>
 </Project>

@@ -221,6 +221,12 @@ git commit -m "test: 新增 Girvs+Aspire 最小参照系统骨架并端到端跑
 
 **目标交付物**：ServiceA 声明使用 Cache + EFCore、ServiceB 声明使用 EventBus，`dotnet run` AppHost 时 Aspire 自动拉起 Redis/MySQL/RabbitMQ 容器，服务真实连上（读写一次），证明 `AddGirvsProject` 的资源接线 + 各组件 `ApplyAspireConnectionString` 在运行时真的生效。
 
+> **实施说明（执行中确定）**：本 Task 按组件**逐个增量验证**（Cache → EventBus → EFCore），每个组件独立跑通再叠加下一个——因为发现三者有不同的真实依赖：EventBus 的 CAP 需要一个存储库（`DbType=MySql` + `DbConnectionString`）而 `EventBusResourceContributor` 只建 RabbitMQ 不建 CAP 库；EFCore 要真正验证 DB 往返需定义最小 `GirvsDbContext` + 实体。分开验证比一次性全绑更好定位问题。
+>
+> **前置环境**：Aspire 在 Run 模式下拉起容器需 Docker 能拉取镜像。本机初次遇到 docker 守护进程未走代理导致 `redis` 镜像拉取 `connection refused`，由用户配置代理后解决——**迁移提示**：接入 Aspire 的开发机必须保证 Docker 能拉取 `redis`/`mysql`/`rabbitmq` 镜像（国内需配置镜像加速或代理）。
+>
+> **✅ Cache 增量已完成并跑通**：Aspire 自动拉起 `girvs-cache`(redis) 容器，注入的**带密码连接串**在运行时覆盖 appsettings 默认值并生效（`docker exec redis-cli` 裸连报 `NOAUTH` 反证服务用的是注入串），`GET /selfcheck/cache` 返回 `{"match":true}`。发现一处**对迁移重要**的框架行为：新 `CreateGirvsWebApplicationBuilder` 启动模型下，框架的 `ConfigureEndpointRouteBuilder` 只映射各模块端点（如 AspireModule 的 `/health`），**普通 MVC 控制器需在 `Startup.Configure` 里显式映射**——传入的 `app` 即 `WebApplication`（实现 `IEndpointRouteBuilder`），`if (app is IEndpointRouteBuilder e) e.MapControllers();` 即可。这与 Girvs 真实服务 Startup.Configure 调 `MapControllers` 一致，需写入迁移清单。
+
 **Files:**
 - Modify: `samples/Sample.Modules/ServiceAModule.cs`、`ServiceBModule.cs`（加 `[DependsOn]`）
 - Modify: `samples/Sample.ServiceA/Sample.ServiceA.csproj`、`ServiceB` csproj（加组件包 `ProjectReference`）
