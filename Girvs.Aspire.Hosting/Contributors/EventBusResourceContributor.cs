@@ -10,21 +10,46 @@ public class EventBusResourceContributor : IGirvsResourceContributor
             context.ServiceSettings["ModuleConfigurations:EventBusConfig:EventBusType"]
         );
 
+        var isPublish = context.Builder.ExecutionContext.IsPublishMode;
+
         switch (eventBusType)
         {
             case "rabbitmq":
-                var rabbit = context.GetOrAddResource(
-                    "girvs-eventbus-rabbitmq",
-                    () => context.Builder.AddRabbitMQ("girvs-eventbus-rabbitmq")
-                );
-                context.Project.WithReference(rabbit).WaitFor(rabbit);
+                if (isPublish)
+                {
+                    // 生产：引用外部消息队列连接串，不在集群内新建容器
+                    var ext = context.GetOrAddResource(
+                        "girvs-eventbus-rabbitmq",
+                        () => context.Builder.AddConnectionString("girvs-eventbus-rabbitmq")
+                    );
+                    context.Project.WithReference(ext);
+                }
+                else
+                {
+                    var rabbit = context.GetOrAddResource(
+                        "girvs-eventbus-rabbitmq",
+                        () => context.Builder.AddRabbitMQ("girvs-eventbus-rabbitmq")
+                    );
+                    context.Project.WithReference(rabbit).WaitFor(rabbit);
+                }
                 break;
             case "redis":
-                var redis = context.GetOrAddResource(
-                    "girvs-eventbus-redis",
-                    () => context.Builder.AddRedis("girvs-eventbus-redis")
-                );
-                context.Project.WithReference(redis).WaitFor(redis);
+                if (isPublish)
+                {
+                    var ext = context.GetOrAddResource(
+                        "girvs-eventbus-redis",
+                        () => context.Builder.AddConnectionString("girvs-eventbus-redis")
+                    );
+                    context.Project.WithReference(ext);
+                }
+                else
+                {
+                    var redis = context.GetOrAddResource(
+                        "girvs-eventbus-redis",
+                        () => context.Builder.AddRedis("girvs-eventbus-redis")
+                    );
+                    context.Project.WithReference(redis).WaitFor(redis);
+                }
                 break;
             default:
                 // Kafka（云集群直连）或配置缺失：不自动创建，可按 girvs-* 命名约定手动补资源

@@ -32,6 +32,18 @@ public class DatabaseResourceContributor : IGirvsResourceContributor
             var databaseName = $"{serviceName}_{name}".Replace('-', '_');
             var connectionName = $"girvs-db-{name}";
 
+            if (context.Builder.ExecutionContext.IsPublishMode)
+            {
+                // 生产：阿里云 RDS 上已建好的独立库，连接串由部署参数/配置提供；不区分 MySql/MsSql
+                // （都是外部连接串），不在集群内新建数据库服务器容器。
+                var external = context.GetOrAddResource(
+                    resourceName,
+                    () => context.Builder.AddConnectionString(resourceName)
+                );
+                context.Project.WithReference(external, connectionName);
+                continue;
+            }
+
             switch (useDataType)
             {
                 case "mysql":

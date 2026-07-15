@@ -41,6 +41,16 @@ public class GirvsProjectOrchestrationTests : IDisposable
             new DistributedApplicationOptions { DisableDashboard = true }
         );
 
+    // 发布模式 builder：ExecutionContext.IsPublishMode 为 true，触发各贡献器的外部连接串引用分支
+    private static IDistributedApplicationBuilder CreatePublishBuilder() =>
+        DistributedApplication.CreateBuilder(
+            new DistributedApplicationOptions
+            {
+                DisableDashboard = true,
+                Args = ["--operation", "publish", "--publisher", "manifest", "--output-path", "."]
+            }
+        );
+
     private static IResourceBuilder<ProjectResource> AddServiceProject(
         IDistributedApplicationBuilder builder,
         string name,
@@ -251,5 +261,66 @@ public class GirvsProjectOrchestrationTests : IDisposable
         builder.WireGirvsResources(project, directory, typeof(NoResourceModule));
 
         Assert.Equal(resourceCountBefore, builder.Resources.Count);
+    }
+
+    // ---- 发布模式：基础设施改为外部连接串引用（阿里云托管），不建容器 ----
+
+    [Fact]
+    public void 发布模式Builder为IsPublishMode()
+    {
+        Assert.True(CreatePublishBuilder().ExecutionContext.IsPublishMode);
+    }
+
+    [Fact]
+    public void 发布模式声明Cache模块_创建外部连接串引用而非Redis容器()
+    {
+        var builder = CreatePublishBuilder();
+        var directory = CreateServiceProjectDirectory("order-api");
+        var project = AddServiceProject(builder, "order-api", directory);
+
+        builder.WireGirvsResources(project, directory, typeof(CacheOnlyModule));
+
+        Assert.Empty(builder.Resources.OfType<RedisResource>());
+        Assert.Contains(builder.Resources, r => r.Name == "girvs-cache");
+    }
+
+    [Fact]
+    public void 发布模式EventBusRabbitMQ_创建外部连接串引用而非容器()
+    {
+        var builder = CreatePublishBuilder();
+        var directory = CreateServiceProjectDirectory(
+            "order-api",
+            """{ "ModuleConfigurations": { "EventBusConfig": { "EventBusType": "RabbitMQ" } } }"""
+        );
+        var project = AddServiceProject(builder, "order-api", directory);
+
+        builder.WireGirvsResources(project, directory, typeof(EventBusOnlyModule));
+
+        Assert.Empty(builder.Resources.OfType<RabbitMQServerResource>());
+        Assert.Contains(builder.Resources, r => r.Name == "girvs-eventbus-rabbitmq");
+    }
+
+    [Fact]
+    public void 发布模式数据库_创建外部连接串引用而非容器()
+    {
+        var builder = CreatePublishBuilder();
+        var directory = CreateServiceProjectDirectory(
+            "order-api",
+            """
+            {
+              "ModuleConfigurations": {
+                "DbConfig": {
+                  "DataConnectionConfigs": [ { "Name": "default", "UseDataType": "MySql" } ]
+                }
+              }
+            }
+            """
+        );
+        var project = AddServiceProject(builder, "order-api", directory);
+
+        builder.WireGirvsResources(project, directory, typeof(DbOnlyModule));
+
+        Assert.Empty(builder.Resources.OfType<MySqlServerResource>());
+        Assert.Contains(builder.Resources, r => r.Name == "girvs-db-order-api-default");
     }
 }

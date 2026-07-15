@@ -12,6 +12,17 @@ public class CacheResourceContributor : IGirvsResourceContributor
             ? $"girvs-cache-{context.Project.Resource.Name}"
             : "girvs-cache";
 
+        if (context.Builder.ExecutionContext.IsPublishMode)
+        {
+            // 生产：引用阿里云托管 Redis（连接串由部署参数/配置提供），不在集群内新建容器
+            var external = context.GetOrAddResource(
+                resourceName,
+                () => context.Builder.AddConnectionString(resourceName)
+            );
+            context.Project.WithReference(external, connectionName: "girvs-cache");
+            return;
+        }
+
         var redis = context.GetOrAddResource(
             resourceName,
             () => context.Builder.AddRedis(resourceName)

@@ -564,6 +564,16 @@ git commit -m "feat: 共享配置注入能力 + 参照系统验证一处声明�
 
 **目标交付物**：Publish 模式下 Cache/EventBus/EFCore 改为引用外部连接串参数（不建容器）；对参照系统执行 publish 生成清单，人工审清单：业务服务是 Deployment/Service、基础设施是外部连接串引用而非容器。含单元测试。（真集群部署不在本计划——只验证到清单正确。）
 
+> **✅ Task 5 已完成并跑通**：三个贡献器（Cache/EventBus/Database）加 `IsPublishMode` 分支——Run 模式保持容器语义不变，Publish 模式改为 `AddConnectionString(<resourceName>)` 外部连接串引用（不建容器）。单测 4 个（`发布模式Builder为IsPublishMode` 确认 `Args=["--operation","publish","--publisher","manifest",...]` 在 13.4.6 触发 IsPublishMode；Cache/EventBus/Database 各断言无容器资源类型、有对应外部引用资源），Hosting.Tests 累计 22 个全绿。
+>
+> **清单审查通过**：`dotnet run --project Sample.AppHost -- --operation publish --publisher manifest --output-path <dir>` 生成 `aspire-manifest.json`，审查结果完全符合生产形态：
+> - 业务服务 `service-a`/`service-b` = `project.v0`（发布为 K8s Deployment/Service）；
+> - **基础设施全部为外部连接串引用、无一个 `container.v0`**：`girvs-cache`/`girvs-eventbus-rabbitmq`/`girvs-db-service-a-default`/`girvs-db-service-b-default` 均为 `parameter.v0` + `connectionString` + `secret:true`（指向阿里云托管实例，不在集群内建容器）；
+> - 连接串正确注入：service-a 得 `ConnectionStrings__girvs-cache`+`girvs-db-default`，service-b 得 `girvs-eventbus-rabbitmq`+`girvs-db-default`；
+> - 共享配置注入：两服务均有 `Logging__LogLevel__Default:"Warning"`（非敏感）+ `Jwt__Secret:{jwt-secret.value}`（secret 引用）；服务发现 `services__service-b__http__0` 已接线。
+>
+> 说明：本机 `aspire` CLI 不可用，用 manifest publisher 验证**资源模型形态**（外部引用 vs 容器）即达到本 Task 目标；生成真正的 K8s YAML（`Aspire.Hosting.Kubernetes` publisher）+ 真集群部署留待业务迁移计划 C。
+
 **Files:**
 - Modify: `Girvs.Aspire.Hosting/Contributors/CacheResourceContributor.cs`
 - Modify: `Girvs.Aspire.Hosting/Contributors/EventBusResourceContributor.cs`
