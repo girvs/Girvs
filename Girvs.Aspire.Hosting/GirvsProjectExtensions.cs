@@ -39,6 +39,29 @@ public static class GirvsProjectExtensions
                 contributor.Contribute(context);
         }
 
+        ApplySharedConfiguration(builder, project);
+
         return project;
     }
+
+    // 把 AddGirvsSharedConfiguration 声明的共享配置以环境变量注入本服务：
+    // 非敏感项直接注入值，敏感项以 secret 参数引用（publish 时落为 K8s Secret）。
+    // 服务端零改动——这些环境变量由 ASP.NET Core 默认环境变量配置源读取，优先级高于 appsettings.json，
+    // 天然实现"共享配置覆盖服务本地配置"。
+    private static void ApplySharedConfiguration(
+        IDistributedApplicationBuilder builder,
+        IResourceBuilder<ProjectResource> project
+    )
+    {
+        var shared = GirvsSharedConfigurationExtensions.GetShared(builder);
+
+        foreach (var (key, value) in shared.Settings)
+            project.WithEnvironment(ToEnvKey(key), value);
+
+        foreach (var (key, parameter) in shared.Secrets)
+            project.WithEnvironment(ToEnvKey(key), parameter);
+    }
+
+    // ASP.NET Core 配置层级分隔符 ':' 在环境变量中约定写作 '__'
+    private static string ToEnvKey(string configKey) => configKey.Replace(":", "__");
 }

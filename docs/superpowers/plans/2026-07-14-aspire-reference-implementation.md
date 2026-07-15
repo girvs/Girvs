@@ -367,6 +367,8 @@ git commit -m "test: 参照系统验证 Aspire 服务发现与跨服务调用链
 
 **目标交付物**：`Girvs.Aspire.Hosting` 支持 `AddGirvsSharedConfiguration` 一次声明、注入所有服务；参照系统里两个服务共享同一份日志等级 + JwtSecret，改一处两个服务都变。含单元测试。
 
+> **✅ Task 4 已完成并跑通**：新增 `GirvsSharedConfiguration`（`AddSetting` 非敏感 / `AddSecret` 敏感）+ `AddGirvsSharedConfigurationExtensions`（`AddGirvsSharedConfiguration` / `GetShared`，用 `ConditionalWeakTable` 按 builder 暂存）+ `WireGirvsResources` 末尾 `ApplySharedConfiguration`（`:`→`__` 键名转换，非敏感注入值、敏感注入 secret 参数引用）。**服务端零改动**——共享配置以环境变量注入，由 ASP.NET Core 默认环境变量源覆盖服务本地 appsettings（`HostUseGirvsConfig` 清源后仍重新 `AddEnvironmentVariables()`，故 env 优先级高于 json 成立）。单测 4 个（分类、单服务注入、两服务同注入、未声明不报错），`GetEnvironmentVariableValuesAsync(DistributedApplicationOperation.Publish)` 在 13.4.6 可用。参照系统验证：AppHost 一处声明 `Logging:LogLevel:Default=Warning` + secret `Jwt:Secret`，ServiceA 与 ServiceB 的 `GET /selfcheck/config` **均返回 `{"logLevel":"Warning","jwtSecretPresent":true}`**（Warning 覆盖了 ServiceA 本地 Information），证明"一处声明、全体生效、覆盖本地"。此实现对应设计文档 3.2 节，且有意偏离其"SharedConfigurationModule 插高优先级 provider"设想（改为环境变量注入，理由：IAppModuleStartup 拿到的 IConfiguration 已定型无法再插 provider，环境变量优先级天然满足需求且服务端零改动）。
+
 **Files:**
 - Create: `Girvs.Aspire.Hosting/GirvsSharedConfiguration.cs`
 - Create: `Girvs.Aspire.Hosting/GirvsSharedConfigurationExtensions.cs`

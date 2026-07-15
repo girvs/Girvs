@@ -25,4 +25,15 @@ public class SelfCheckController : ControllerBase
     [HttpGet("eventbus/received")]
     public IActionResult Received()
         => Ok(new { lastReceived = SampleMessageHandler.LastReceived });
+
+    /// <summary>
+    /// 共享配置自检：回显由 AppHost 一处声明、注入到所有服务的通用配置（日志等级 + JwtSecret 是否有值）
+    /// </summary>
+    [HttpGet("config")]
+    public IActionResult Config([FromServices] IConfiguration config) =>
+        Ok(new
+        {
+            logLevel = config["Logging:LogLevel:Default"],
+            jwtSecretPresent = !string.IsNullOrEmpty(config["Jwt:Secret"])
+        });
 }

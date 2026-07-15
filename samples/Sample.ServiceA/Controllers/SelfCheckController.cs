@@ -23,6 +23,17 @@ public class SelfCheckController(IDistributedCache cache) : ControllerBase
     }
 
     /// <summary>
+    /// 共享配置自检：回显由 AppHost 一处声明、注入到所有服务的通用配置（日志等级 + JwtSecret 是否有值）
+    /// </summary>
+    [HttpGet("config")]
+    public IActionResult Config([FromServices] IConfiguration config) =>
+        Ok(new
+        {
+            logLevel = config["Logging:LogLevel:Default"],
+            jwtSecretPresent = !string.IsNullOrEmpty(config["Jwt:Secret"])
+        });
+
+    /// <summary>
     /// 服务发现自检：用服务发现地址 http://service-b 调用 ServiceB 的 /ping，
     /// 验证 Aspire 服务发现 + HttpClient 弹性在真实拓扑下工作（无硬编码地址）
     /// </summary>
