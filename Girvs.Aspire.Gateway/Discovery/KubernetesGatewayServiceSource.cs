@@ -1,19 +1,22 @@
 using System.Collections.Immutable;
 using k8s;
 using k8s.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Girvs.Aspire.Gateway.Discovery;
 
 /// <summary>基于 K8s Service 的网关服务发现源：relist 建初态 + watch 增量触发重拉映射，断线自动重连。</summary>
 public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySource, IDisposable
 {
+    private readonly ILogger<KubernetesGatewayServiceSource> _logger;
     private readonly IKubernetes _client;
     private volatile IReadOnlyList<GatewayServiceEndpoint> _services = new List<GatewayServiceEndpoint>();
     private readonly CancellationTokenSource _stop = new();
     private Task? _watchLoop;
 
-    public KubernetesGatewayServiceSource(IKubernetes? client = null)
+    public KubernetesGatewayServiceSource(ILogger<KubernetesGatewayServiceSource> logger, IKubernetes? client = null)
     {
+        _logger = logger;
         // 集群内运行用 InClusterConfig；client 参数便于测试替身注入
         _client = client ?? new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
     }
@@ -63,7 +66,7 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
                 // 不打重连日志、不进 Delay，避免关闭噪声与无人观察的 faulted task
                 if (ct.IsCancellationRequested)
                     break;
-                Console.Error.WriteLine($"[Girvs.Aspire.Gateway] K8s watch 中断，2s 后重连：{ex.Message}");
+                _logger.LogWarning(ex, "K8s watch 中断，{Delay}s 后重连", 2);
                 await Task.Delay(TimeSpan.FromSeconds(2), ct);
             }
         }
