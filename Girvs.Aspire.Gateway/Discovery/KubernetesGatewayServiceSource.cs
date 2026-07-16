@@ -59,6 +59,10 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
             }
             catch (Exception ex)
             {
+                // 取消场景（如 Dispose 提前释放 client 触发 ObjectDisposedException）静默退出，
+                // 不打重连日志、不进 Delay，避免关闭噪声与无人观察的 faulted task
+                if (ct.IsCancellationRequested)
+                    break;
                 Console.Error.WriteLine($"[Girvs.Aspire.Gateway] K8s watch 中断，2s 后重连：{ex.Message}");
                 await Task.Delay(TimeSpan.FromSeconds(2), ct);
             }
@@ -94,6 +98,15 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
     public void Dispose()
     {
         _stop.Cancel();
+        // 先等 watch 循环收尾（最多 5s），避免在循环仍卡在 HTTP 调用时提前释放 client
+        // 导致 ObjectDisposedException 落入重连分支产生关闭噪声
+        try
+        {
+            _watchLoop?.Wait(TimeSpan.FromSeconds(5));
+        }
+        catch (AggregateException) { }
+        catch (OperationCanceledException) { }
+
         _stop.Dispose();
         (_client as IDisposable)?.Dispose();
     }
