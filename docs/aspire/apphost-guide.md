@@ -115,7 +115,15 @@ builder.AddGirvsSharedConfiguration(shared =>
 
 服务端零改动：共享配置以环境变量注入，优先级高于服务自身 appsettings.json（同名 key 被覆盖）。不支持运行时热更新，改配置需重新发布。
 
-## 8. 生产资源（阿里云托管）
+## 8. 网关（Girvs.Aspire.Gateway）
+
+自建 YARP 网关的服务发现与路由生成，与 Aspire AppHost 编排是两个独立话题：AppHost 负责本地/CI 环境编排各服务与基础设施，网关面向**生产多实例部署**（CentOS/Docker 或 K8s）做流量入口。两者可以同时使用：AppHost 跑参照实现验证接入，网关包直接用于生产网关进程。
+
+- 用法、约定路由规则、K8s RBAC 清单示例见 `Girvs.Aspire.Gateway/README.md`；
+- 端到端可跑通的验证系统（kind 集群 + 网关 + 两个 dummy 后端，验证过 K8s watch 动态路由的秒级增删）见 `samples/gateway-k8s/`（`Gateway/` 最小网关项目 + `Dockerfile` + `k8s.yaml`）；
+- 部署形态与发现源对应关系：CentOS/Docker → `GatewayDiscoveryType.Consul`（轮询）；K8s → `GatewayDiscoveryType.Kubernetes`（watch，事件驱动，秒级感知）。
+
+## 9. 生产资源（阿里云托管）
 
 `dotnet run --project <AppHost> -- --operation publish ...`（发布模式）下，Cache/EventBus/EFCore 自动改为**引用外部连接串**，不在集群内新建容器。连接串按资源名从部署参数/配置提供（`ConnectionStrings:<资源名>` 或部署流水线）：
 

@@ -56,3 +56,5 @@ Publish 模式下 Cache/EventBus/EFCore 自动改为**外部连接串引用**（
 - Girvs 启动机制（`CreateGirvsWebApplicationBuilder`）是 Web 宿主，故 Worker 亦用 Web SDK + `BackgroundService`，以复用 Girvs 模块机制与连接串自动注入。
 - 各服务需 `Properties/launchSettings.json` 指定端口，Aspire 据此分配/代理端点。
 - 详细设计与迁移指引见 `docs/aspire/apphost-guide.md` 与 `docs/superpowers/plans/2026-07-14-aspire-reference-implementation.md`。
+
+> 网关（`Girvs.Aspire.Gateway`，与本 AppHost 参照实现是独立话题）的 kind 集群端到端验证见 `samples/gateway-k8s/`。
