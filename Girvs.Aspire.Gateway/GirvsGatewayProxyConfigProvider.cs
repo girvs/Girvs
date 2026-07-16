@@ -10,8 +10,10 @@ namespace Girvs.Aspire.Gateway;
 public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDisposable
 {
     private readonly IGatewayServiceDiscoverySource _source;
+    private readonly object _lock = new();
     private volatile GirvsGatewayProxyConfig _config;
     private CancellationTokenSource _cts;
+    private bool _disposed;
 
     public GirvsGatewayProxyConfigProvider(IGatewayServiceDiscoverySource source)
     {
@@ -25,14 +27,23 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
 
     private void OnServicesChanged()
     {
-        // 先建新配置（新令牌），再 Cancel 旧令牌通知 YARP 重新 GetConfig —— 修掉现有令牌未接通的 bug
-        var newCts = new CancellationTokenSource();
-        var newConfig = BuildConfig(_source.GetServices(), newCts);
-        var oldCts = _cts;
-        _config = newConfig;
-        _cts = newCts;
-        oldCts.Cancel();
-        oldCts.Dispose();
+        // 整段读-改-写加锁，避免并发触发（如 K8s watch 重连 relist 在线程池线程重叠）时，
+        // 两个线程读到同一个 oldCts 各自 Cancel/Dispose，在已 Dispose 的 CTS 上抛 ObjectDisposedException。
+        // 与 Dispose 互斥，避免与销毁流程冲突。
+        lock (_lock)
+        {
+            if (_disposed)
+                return;
+
+            // 先建新配置（新令牌），再 Cancel 旧令牌通知 YARP 重新 GetConfig —— 修掉现有令牌未接通的 bug
+            var newCts = new CancellationTokenSource();
+            var newConfig = BuildConfig(_source.GetServices(), newCts);
+            var oldCts = _cts;
+            _config = newConfig;
+            _cts = newCts;
+            oldCts.Cancel();
+            oldCts.Dispose();
+        }
     }
 
     private static GirvsGatewayProxyConfig BuildConfig(
@@ -42,10 +53,11 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
     {
         var routes = new List<RouteConfig>();
         var clusters = new List<ClusterConfig>();
+        var seen = new HashSet<string>();
 
         foreach (var svc in services)
         {
-            if (routes.Exists(r => r.RouteId == svc.ServiceName))
+            if (!seen.Add(svc.ServiceName))
                 continue;
 
             routes.Add(
@@ -76,6 +88,13 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
     public void Dispose()
     {
         _source.ServicesChanged -= OnServicesChanged;
-        _cts.Dispose();
+        // 与并发的 OnServicesChanged 互斥，避免在正被切换/取消的 CTS 上重复 Dispose。
+        lock (_lock)
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+            _cts.Dispose();
+        }
     }
 }

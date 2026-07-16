@@ -62,4 +62,22 @@ public class GirvsGatewayProxyConfigProviderTests
         var provider = new GirvsGatewayProxyConfigProvider(source);
         Assert.Single(provider.GetConfig().Routes);
     }
+
+    [Fact]
+    public void 并发触发服务变化不抛异常()
+    {
+        var source = new FakeSource { Services = { Endpoint("a") } };
+        var provider = new GirvsGatewayProxyConfigProvider(source);
+
+        // 并发多次触发 ServicesChanged（模拟 K8s watch 重连 relist 在多个线程池线程重叠触发），
+        // 断言全程不抛异常（尤其不抛 ObjectDisposedException：旧实现里读-改-写非原子会导致重复 Cancel/Dispose）。
+        var exception = Record.Exception(() =>
+            Parallel.For(0, 1000, new ParallelOptions { MaxDegreeOfParallelism = 16 }, _ => source.Raise()));
+
+        Assert.Null(exception);
+        // 触发过后仍可正常读取最新配置。
+        var config = provider.GetConfig();
+        Assert.False(config.ChangeToken.HasChanged);
+        Assert.Single(config.Routes);
+    }
 }
