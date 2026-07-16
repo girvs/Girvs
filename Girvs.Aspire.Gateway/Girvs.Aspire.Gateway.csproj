@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks></TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Girvs 自建 YARP 网关的服务发现与路由生成：可插拔 Consul/K8s(watch) 源。</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Girvs\Girvs.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Yarp.ReverseProxy" Version="2.1.0" />
+    <PackageReference Include="KubernetesClient" Version="15.0.1" />
+    <PackageReference Include="Consul" Version="1.7.14.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Girvs.Aspire.Gateway.Tests" />
+  </ItemGroup>
+</Project>
