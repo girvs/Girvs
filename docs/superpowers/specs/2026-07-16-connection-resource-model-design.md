@@ -51,4 +51,6 @@ public class Resource
 
 `DataConnectionConfig` 不保存 `MasterDataConnectionString` 或 `ReadDataConnectionString`，而是以 `ConnectionRef` 表示主库、以 `ReadConnectionRefs` 表示读库资源键集合。`GirvsEntityFrameworkCoreModule` 在注册 DbContext 前组装这些连接串；Aspire 的 `girvs-db-{Name}` 与 `girvs-db-{Name}-read-{N}` 分别覆盖主库与读库的运行时结果。
 
+EF 模块注册仅运行时存在的 `IDataConnectionStringProvider`，按数据连接配置名称保存主库和读库连接串。DbContext 创建与读写切换都通过该 Provider 读取连接串；它不写入 `AppSettings`，也不参与 `appsettings.json` 绑定。
+
 `EventBusConfig` 不保存 `DbConnectionString`；其 Redis 子配置不保存 `RedisConnectionString`，仅保留 `ConnectionRef` 和 `DefaultDatabase`。`EventBusModule` 通过 `PersistenceConnectionRef` 与 Redis `ConnectionRef` 在注册 CAP 前分别生成持久化数据库和 Redis Transport 的局部连接串。Aspire 的 `girvs-eventbus-db` 与 `girvs-eventbus-redis` 优先于资源组装结果。
