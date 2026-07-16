@@ -46,3 +46,9 @@ public class Resource
 ## Cache 连接组装
 
 `DistributedCacheConfig` 不保存 `ConnectionString`，而是保留模块专属的 `DefaultDatabase`、`InstanceName`、`SchemaName` 和 `TableName`。当缓存类型为 `SqlServer` 时，`ConnectionRef` 必须引用 `Type: "sqlserver"` 的资源；当类型为 `Redis` 或 `RedisSynchronizedMemory` 时，必须引用 `Type: "redis"` 的资源。`GirvsCacheModule` 在注册缓存服务前读取该资源并组装实际连接串：Redis 使用 `Endpoints`、可选 `Ssl` 与模块的 `DefaultDatabase`；SqlServer 使用资源中的连接信息。Aspire 注入的 `girvs-cache` 连接串仍以最高优先级覆盖组装结果。
+
+## EntityFrameworkCore 与 EventBus 连接组装
+
+`DataConnectionConfig` 不保存 `MasterDataConnectionString` 或 `ReadDataConnectionString`，而是以 `ConnectionRef` 表示主库、以 `ReadConnectionRefs` 表示读库资源键集合。`GirvsEntityFrameworkCoreModule` 在注册 DbContext 前组装这些连接串；Aspire 的 `girvs-db-{Name}` 与 `girvs-db-{Name}-read-{N}` 分别覆盖主库与读库的运行时结果。
+
+`EventBusConfig` 不保存 `DbConnectionString`；其 Redis 子配置不保存 `RedisConnectionString`，仅保留 `ConnectionRef` 和 `DefaultDatabase`。`EventBusModule` 通过 `PersistenceConnectionRef` 与 Redis `ConnectionRef` 在注册 CAP 前分别生成持久化数据库和 Redis Transport 的局部连接串。Aspire 的 `girvs-eventbus-db` 与 `girvs-eventbus-redis` 优先于资源组装结果。
