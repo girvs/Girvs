@@ -41,24 +41,35 @@
 
 ### 3.1 `Girvs.Aspire.Gateway`（新包，仅 net10.0，服务端）
 
-**职责**：为自建 YARP 网关提供基于 K8s API 的动态路由发现，替代 `CustomProxyConfigProvider` 轮询 Consul 的实现。
+**（2026-07-15 依现有 YarpGateway 代码现实重写）**
+
+**现状核对**（`NewOnlineRegistration/netcoresrc` 的 `ZhuoFan.Wb.YarpGateway` 考生端 + `ZhuoFan.Wb.Management.YarpGateway` 管理端，两者 Provider/Consul/K8s 发现代码逐字节相同，仅 `RequestFilterMiddleware` 不同）：
+
+- 网关**已有** K8s 服务发现：`Services/KubernetesClientService.cs` 用 `InClusterConfig()` + `ListServiceForAllNamespacesAsync()` 拿 Service，由 `ServiceDiscoveryConfig.ServiceDiscoveryType` 在 Consul / K8s 间切换。即"用 K8s 替代 Consul"已做一半，但与 Consul 一样是 **30s Timer 轮询（一次性 list）**，非 watch。
+- **路由是约定式**：`CustomProxyConfigProvider.UpdateConfig` 对每个服务名生成 `RouteConfig{ Match.Path="/{服务名}/{**catch-all}", Transforms=[PathRemovePrefix={服务名}] }` + `ClusterConfig{ Destinations }`，**不读任何 Tag/Meta/Annotation**。
+- **双网关分流靠中间件、不靠 Label**：两网关拉同一份全量服务列表，`RequestFilterMiddleware` 按 URL 前缀 allow/deny（管理端前缀 `/api/wb_management`）区分。
+- **变更令牌有潜在 bug**：YARP 监听的 `CustomProxyConfig.ChangeToken` 包装的 `_cts` 从不 Cancel；Provider 里 Cancel 的是另一个无关 `_cts`。当前靠 30s 新建 `_config` + YARP 自身周期重读兜底，热更新信号实际未接通。
+
+**修正后的职责（比原设计窄）**：把分散在两网关里的 K8s/Consul 发现 + YARP 路由生成逻辑提取为可复用的 `Girvs.Aspire.Gateway` 包；提供一个**可插拔的服务发现抽象**，其中 K8s 来源从"30s 轮询"升级为 **watch 事件驱动**；Consul 来源保留原样。**不引入 Label 分流、不引入 Annotation 路由**（现实里分流在中间件、路由是约定式，无需要）。
+
+**多部署形态（回应"兼顾 CentOS/docker 部署"）**：服务发现来源由 `ServiceDiscoveryType` 选择，同一份网关代码适配三种部署——
+
+| 部署形态 | 服务发现来源 |
+|---|---|
+| CentOS 编译部署 / docker(-compose) 部署（无 K8s） | Consul（沿用现有轮询，不变） |
+| 阿里云 K8s 部署 | K8s **watch**（本包新增，替代 30s 轮询、事件驱动更实时） |
 
 **核心组件**：
 
-- `KubernetesProxyConfigProvider : IProxyConfigProvider`：使用官方 `KubernetesClient`（`k8s` NuGet 包）建立 watch 连接，监听带 Label `girvs.io/expose=true` 的 Service 与对应 EndpointSlice 变化，增量重建 YARP 的 `RouteConfig`/`ClusterConfig` 并通过 `IProxyConfigProvider` 的变更令牌机制通知 YARP 热更新（无需轮询间隔，watch 事件驱动，比 Consul 30 秒轮询更实时）；
-- 路由前缀等元数据从 Service 的 Annotation 读取（约定见 3.1.1），解析失败的 Service 跳过并记录警告，不影响其余路由；
-- 支持按 Label 区分"考生端可见"与"管理端可见"两组路由（如 `girvs.io/gateway=examinee` / `girvs.io/gateway=admin`），两套网关分别用不同 Label Selector 初始化 Provider，保持现有双网关分流架构不变；
-- 注册方式：网关服务在 `ConfigureServices` 中 `services.AddReverseProxy().LoadFromKubernetesDiscovery(options => ...)`，替换现有 `LoadFromConfig`/自定义 Provider 注册代码。
+- `IGatewayServiceDiscoverySource`（抽象）：产出 `IReadOnlyList<GatewayServiceEndpoint>{ ServiceName, Destinations }`，并暴露"服务集变化"事件/变更令牌；
+- `ConsulGatewayServiceSource`：封装现有 `ConsulClientService` 逻辑（`Agent.Services` 拉取 + 30s 轮询），供非 K8s 部署；
+- `KubernetesGatewayServiceSource`：用官方 `KubernetesClient`（`k8s` 包）对 Service（视需要含 EndpointSlice）建立 **watch**，事件驱动增量更新，参考 K8s Informer 标准做法（断线重连 + 全量 relist）；
+- `GirvsGatewayProxyConfigProvider : IProxyConfigProvider`：消费选定的 source，按现有约定（服务名→路径前缀 + PathRemovePrefix）生成 `RouteConfig`/`ClusterConfig`，并**正确接通 `CancellationChangeToken`** 通知 YARP 热更新（修掉现有 bug）；
+- 注册扩展：`services.AddGirvsGateway()`（内部按 `ServiceDiscoveryType` 选 source + 注册 Provider + `AddReverseProxy().AddTransforms(...)` 保留现有转换：`AddOriginalHost(false)`/`CopyRequestHeaders`/`AddXForwarded`），替换两网关中重复的 `CustomProxyConfigProvider` + `YarpGatewayModule` 注册代码。
 
-**3.1.1 Annotation 约定**
+**保留的现有能力**（新 Provider 须等价）：路径去前缀 `PathRemovePrefix`、X-Forwarded 头转发、CORS/维护模式/RequestFilter 中间件（保留在网关侧，不进本包）。负载均衡/健康检查/超时重试现状未配置（每服务单 Destination），本包暂不新增。
 
-| Annotation | 含义 | 来源 |
-|---|---|---|
-| `girvs.io/route-prefix` | 该服务对外暴露的路径前缀（如 `/api/order`） | `GirvsProjectOptions.RoutePrefix` |
-| `girvs.io/gateway` | 归属网关（`examinee` / `admin`，可多值逗号分隔） | `GirvsProjectOptions.Gateway` |
-| `girvs.io/cluster-name`（可选） | 自定义 YARP Cluster 名，缺省用 K8s Service 名 | `GirvsProjectOptions.ClusterName` |
-
-**RBAC 要求**：网关的 K8s ServiceAccount 需要对 `services`、`endpointslices` 具备 `list`/`watch` 权限（命名空间级即可，不需要集群级）。发布阶段需要在生成的 K8s 清单中附带对应 Role/RoleBinding——`Girvs.Aspire.Hosting` 针对声明了 `Gateway` 选项的项目自动追加这段 RBAC 清单（通过 Aspire K8s publisher 的清单自定义扩展点）。
+**RBAC 要求**：K8s 部署时网关 ServiceAccount 需对 `services`（含 `endpointslices`，若用）具备 `list`/`watch` 权限（命名空间级）。对应 Role/RoleBinding 由部署清单提供（业务迁移计划 C 落地；本包文档给出清单示例）。
 
 ### 3.2 共享配置注入（`Girvs.Aspire.Hosting` + `Girvs.Aspire` 扩展）
 
