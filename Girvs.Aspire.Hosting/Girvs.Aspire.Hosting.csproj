@@ -15,6 +15,7 @@
         <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.4.6"/>
         <PackageReference Include="Aspire.Hosting.MySql" Version="13.4.6"/>
         <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.4.6"/>
+        <PackageReference Include="Aspire.Hosting.Kafka" Version="13.4.6"/>
     </ItemGroup>
 
     <ItemGroup>
