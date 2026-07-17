@@ -1,10 +1,11 @@
+using Girvs.TypeFinder;
 using GirvsResource = Girvs.Configuration.Resources.Resource;
 
 namespace Girvs.Aspire.Hosting;
 
 /// <summary>
 /// 把已登记的 Aspire 资源转换为 Girvs Resource 条目。
-/// 匹配顺序:自定义提供程序(GirvsResourceSettingsProviders.Register)
+/// 匹配顺序:自动发现的自定义提供程序(实现 IGirvsResourceSettingsProvider 即生效)
 /// → 内置预设(redis / mysql / sqlserver / rabbitmq / kafka)
 /// → AsGirvsResource 显式指定的 type/settings 兜底。
 /// Settings 键与各模块 BuildConnectionString 的消费约定对齐(见设计文档表格)。
@@ -20,6 +21,22 @@ internal static class GirvsResourceEntryBuilder
         new KafkaSettingsProvider(),
     ];
 
+    // 与框架模块机制同款的 TypeFinder 自动发现:扩展方定义实现类即生效,无需注册。
+    // 用 AppDomainTypeFinder(WebAppTypeFinder 的 bin 目录扫描依赖 Web 宿主文件提供程序,
+    // AppHost 进程没有),提供程序需定义在已加载的程序集——通常就是 AppHost 项目本身。
+    // 排除本程序集(内置预设显式列出保证顺序可控);按类型全名排序保证多个自定义间的确定性。
+    private static readonly Lazy<IGirvsResourceSettingsProvider[]> DiscoveredProviders = new(() =>
+        new AppDomainTypeFinder()
+            .FindOfType<IGirvsResourceSettingsProvider>()
+            .Where(type =>
+                type.Assembly != typeof(GirvsResourceEntryBuilder).Assembly
+                && type.GetConstructor(Type.EmptyTypes) is not null
+            )
+            .OrderBy(type => type.FullName, StringComparer.Ordinal)
+            .Select(type => (IGirvsResourceSettingsProvider)Activator.CreateInstance(type))
+            .ToArray()
+    );
+
     public static async Task<KeyValuePair<string, GirvsResource>> BuildAsync(
         IResource resource,
         GirvsResourceAnnotation annotation,
@@ -27,14 +44,14 @@ internal static class GirvsResourceEntryBuilder
     )
     {
         var built =
-            await TryBuildFromProvidersAsync(GirvsResourceSettingsProviders.CustomProviders, resource, ct)
+            await TryBuildFromProvidersAsync(DiscoveredProviders.Value, resource, ct)
             ?? await TryBuildFromProvidersAsync(BuiltInProviders, resource, ct)
             ?? (
                 annotation.TypeOverride is not null
                     ? new GirvsResource { Type = annotation.TypeOverride }
                     : throw new InvalidOperationException(
                         $"AsGirvsResource 不支持资源类型 {resource.GetType().Name}:"
-                            + "请实现 IGirvsResourceSettingsProvider 并 GirvsResourceSettingsProviders.Register 注册,"
+                            + "请实现 IGirvsResourceSettingsProvider(自动发现,无需注册),"
                             + "或显式指定 type 与 settings 参数"
                     )
             );

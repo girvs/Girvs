@@ -91,10 +91,10 @@ builder.Build().Run();
 
 ### 扩展其他资源类型
 
-内置预设只覆盖上表五种;其它资源类型(sqlite、elasticsearch、mongo 等)有两种接入方式:
+内置预设只覆盖上表五种;其它资源类型(sqlite、mongodb、elasticsearch 等)有两种接入方式:
 
 - **一次性场景**:`AsGirvsResource(type: "...", settings: ...)` 显式传 Type 与 Settings;
-- **可复用扩展**:实现 `IGirvsResourceSettingsProvider` 并在 AppHost 启动早期注册,自定义提供程序优先于内置预设匹配:
+- **可复用扩展**:实现 `IGirvsResourceSettingsProvider`——与框架模块机制一样通过 TypeFinder 反射**自动发现,定义即生效,无需注册**(要求公共无参构造,定义在 AppHost 已加载的程序集,通常就是 AppHost 项目本身);自定义提供程序优先于内置预设匹配,可接管内置类型:
 
 ```csharp
 public class SqliteSettingsProvider : IGirvsResourceSettingsProvider
@@ -109,11 +109,9 @@ public class SqliteSettingsProvider : IGirvsResourceSettingsProvider
         });
     }
 }
-
-GirvsResourceSettingsProviders.Register(new SqliteSettingsProvider());
 ```
 
-服务端对应模块的 `BuildConnectionString` 需要认识该 Type 才能消费(资源模型的 Type 是开放字符串,由消费模块解释)。
+参照实现见 `samples/Sample.AppHost/`:`SqliteResource.cs`(无容器本地文件,实现 `IResourceWithoutLifetime` 免 WaitFor)与 `MongoSettingsProvider.cs`(官方集成包容器)。服务端对应模块的 `BuildConnectionString` 需要认识该 Type 才能消费(资源模型的 Type 是开放字符串,由消费模块解释)。
 
 ### 手写共享文件(girvs.shared.json)
 

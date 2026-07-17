@@ -3,11 +3,9 @@ using Sample.AppHost;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// 自定义资源类型扩展示例:注册 SQLite(无容器,见 SqliteResource.cs)
-// 与 MongoDB(官方集成包容器,见 MongoSettingsProvider.cs)两种提供程序,
-// 内置预设之外的资源类型都用这种方式接入
-GirvsResourceSettingsProviders.Register(new SqliteSettingsProvider());
-GirvsResourceSettingsProviders.Register(new MongoSettingsProvider());
+// 自定义资源类型扩展:SQLite(无容器,见 SqliteResource.cs)与
+// MongoDB(官方集成包容器,见 MongoSettingsProvider.cs)两个提供程序
+// 实现 IGirvsResourceSettingsProvider 即被自动发现,无需注册。
 
 // 显式编排基础资源并登记为 Girvs 资源:资源名即各服务 ConnectionRef 引用的键。
 // 服务用不用、用哪个,由服务自己的 appsettings 决定,AppHost 不感知。
