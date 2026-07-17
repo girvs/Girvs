@@ -45,6 +45,24 @@ public class GirvsProjectExtensionsTests : IDisposable
         Assert.Contains(waits, w => w.Resource == redis.Resource);
     }
 
+    /// <summary>无生命周期的自定义资源(如本地文件型 SQLite),永远不会进入 running 状态。</summary>
+    private sealed class FileBackedResource(string name)
+        : Resource(name), IResourceWithoutLifetime;
+
+    [Fact]
+    public void 无生命周期资源不WaitFor避免服务永久等待()
+    {
+        var builder = CreateBuilder();
+        var sqlite = builder
+            .AddResource(new FileBackedResource("sample-sqlite"))
+            .AsGirvsResource(type: "sqlite");
+        var project = AddServiceProject(builder, "service-a");
+        builder.AddGirvsProject(project);
+
+        var waits = project.Resource.Annotations.OfType<WaitAnnotation>().ToList();
+        Assert.DoesNotContain(waits, w => w.Resource == sqlite.Resource);
+    }
+
     [Fact]
     public async Task run模式注入运行时共享文件路径且文件内容含登记资源()
     {

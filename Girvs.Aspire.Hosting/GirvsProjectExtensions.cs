@@ -34,7 +34,12 @@ public static class GirvsProjectExtensions
 
         foreach (var resource in builder.Resources)
         {
-            if (resource.Annotations.OfType<GirvsResourceAnnotation>().Any())
+            // 无生命周期资源(IResourceWithoutLifetime,如本地文件型 SQLite)永远不会进入
+            // running 状态,WaitFor 会让服务永久等待,跳过
+            if (
+                resource.Annotations.OfType<GirvsResourceAnnotation>().Any()
+                && resource is not IResourceWithoutLifetime
+            )
                 project.WaitFor(builder.CreateResourceBuilder(resource));
         }
 
