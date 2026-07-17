@@ -27,7 +27,7 @@ public static class GirvsAspireSerilogHook
             {
                 options.ResourceAttributes = new Dictionary<string, object>
                 {
-                    ["service.name"] = serviceName
+                    ["service.name"] = serviceName,
                 };
             }
         });
@@ -39,7 +39,7 @@ public static class GirvsAspireSerilogHook
         return protocol?.ToLowerInvariant() switch
         {
             "http/protobuf" or "http" => OtlpProtocol.HttpProtobuf,
-            _ => OtlpProtocol.Grpc
+            _ => OtlpProtocol.Grpc,
         };
     }
 }

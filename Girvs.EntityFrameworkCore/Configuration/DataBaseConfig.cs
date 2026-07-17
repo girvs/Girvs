@@ -40,7 +40,6 @@ public class DbConfig : IAppModuleConfig
 
         return dataBaseConfig;
     }
-
 }
 
 public class DataConnectionConfig
@@ -96,17 +95,36 @@ public class DataConnectionConfig
     public string BuildConnectionString(Resource resource)
     {
         ArgumentNullException.ThrowIfNull(resource);
+
         if (!string.Equals(resource.Type, "mysql", StringComparison.OrdinalIgnoreCase))
             throw new GirvsException($"Resources:{ConnectionRef}:Type 必须为 mysql");
+
         if (!resource.Settings.TryGetValue("Host", out var host) || string.IsNullOrWhiteSpace(host))
             throw new GirvsException($"Resources:{ConnectionRef}:Settings:Host 未配置");
 
-        var builder = new System.Data.Common.DbConnectionStringBuilder();
-        builder["Server"] = host;
-        if (resource.Settings.TryGetValue("Database", out var database) && !string.IsNullOrWhiteSpace(database)) builder["Database"] = database;
-        if (int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port)) builder["Port"] = port;
-        if (resource.Settings.TryGetValue("UserName", out var userName) && !string.IsNullOrWhiteSpace(userName)) builder["User ID"] = userName;
-        if (resource.Settings.TryGetValue("Password", out var password) && !string.IsNullOrWhiteSpace(password)) builder["Password"] = password;
+        var builder = new System.Data.Common.DbConnectionStringBuilder { ["Server"] = host };
+
+        if (
+            resource.Settings.TryGetValue("Database", out var database)
+            && !string.IsNullOrWhiteSpace(database)
+        )
+            builder["Database"] = database;
+
+        if (int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port))
+            builder["Port"] = port;
+
+        if (
+            resource.Settings.TryGetValue("UserName", out var userName)
+            && !string.IsNullOrWhiteSpace(userName)
+        )
+            builder["User ID"] = userName;
+
+        if (
+            resource.Settings.TryGetValue("Password", out var password)
+            && !string.IsNullOrWhiteSpace(password)
+        )
+            builder["Password"] = password;
+
         return builder.ConnectionString;
     }
 }

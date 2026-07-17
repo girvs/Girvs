@@ -1,19 +1,12 @@
 ﻿namespace Girvs.AuthorizePermission.AuthorizeCompare;
 
-public class ActionPermissionFilter : ActionFilterAttribute
+public class ActionPermissionFilter(ILogger<ActionPermissionFilter> logger) : ActionFilterAttribute
 {
-    private readonly ILogger<ActionPermissionFilter> _logger;
-    private readonly AuthorizeConfig _authorizeConfig;
-
-    public ActionPermissionFilter(ILogger<ActionPermissionFilter> logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _authorizeConfig = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
-    }
+    private readonly AuthorizeConfig authorizeConfig = EngineContext.Current.GetAppModuleConfig<AuthorizeConfig>();
 
     public override void OnActionExecuting(ActionExecutingContext context)
     {
-        if (!_authorizeConfig.UseServiceMethodPermissionCompare)
+        if (!authorizeConfig.UseServiceMethodPermissionCompare)
         {
             base.OnActionExecuting(context);
             return;
@@ -28,11 +21,8 @@ public class ActionPermissionFilter : ActionFilterAttribute
         }
 
         var service = context.Controller;
-        var spd =
-            service.GetType().GetCustomAttribute(typeof(ServicePermissionDescriptorAttribute)) as
-                ServicePermissionDescriptorAttribute;
 
-        if (spd == null)
+        if (service.GetType().GetCustomAttribute(typeof(ServicePermissionDescriptorAttribute)) is not ServicePermissionDescriptorAttribute spd)
         {
             base.OnActionExecuting(context);
             return;
@@ -51,7 +41,7 @@ public class ActionPermissionFilter : ActionFilterAttribute
             ad.MethodInfo.GetCustomAttribute(typeof(ServiceMethodPermissionDescriptorAttribute), false) as
                 ServiceMethodPermissionDescriptorAttribute;
 
-        _logger.LogInformation($"ServiceName:{spd.ServiceName}  ActionMethodName:{swamped.MethodName}");
+        logger.LogInformation($"ServiceName:{spd.ServiceName}  ActionMethodName:{swamped.MethodName}");
 
         var serviceMethodPermissionCompare = EngineContext.Current.Resolve<IServiceMethodPermissionCompare>();
         if (serviceMethodPermissionCompare != null)
@@ -65,7 +55,7 @@ public class ActionPermissionFilter : ActionFilterAttribute
         }
         else
         {
-            _logger.LogWarning("当前服务没有实现接口权限认证，需要实现接口：IServiceMethodPermissionCompare");
+            logger.LogWarning("当前服务没有实现接口权限认证，需要实现接口：IServiceMethodPermissionCompare");
         }
 
         base.OnActionExecuting(context);

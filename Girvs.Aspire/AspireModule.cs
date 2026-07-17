@@ -18,12 +18,10 @@ public class AspireModule : IAppModuleStartup
 
         services
             .AddHealthChecks()
-            .AddCheck("self", () => HealthCheckResult.Healthy(), tags: new[] { "live" });
+            .AddCheck("self", () => HealthCheckResult.Healthy(), tags: ["live"]);
 
         if (
-            !string.IsNullOrEmpty(
-                Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
-            )
+            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT"))
         )
         {
             services
@@ -55,7 +53,7 @@ public class AspireModule : IAppModuleStartup
             "/alive",
             new HealthCheckOptions
             {
-                Predicate = registration => registration.Tags.Contains("live")
+                Predicate = registration => registration.Tags.Contains("live"),
             }
         );
     }

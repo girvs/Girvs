@@ -31,10 +31,13 @@ public class SignalRModule : IAppModuleStartup
             )
                 ? value
                 : throw new GirvsException($"Resources:{signalRConfig.RedisConnectionRef} 未配置");
+
             if (!string.Equals(resource.Type, "redis", StringComparison.OrdinalIgnoreCase))
                 throw new GirvsException($"Resources:{signalRConfig.RedisConnectionRef}:Type 必须为 redis");
+
             var connectionString = resource.Settings.GetValueOrDefault("Endpoints")
                 ?? throw new GirvsException($"Resources:{signalRConfig.RedisConnectionRef}:Settings:Endpoints 未配置");
+
             signalServiceBuilder.AddStackExchangeRedis(connectionString, options =>
             {
                 options.Configuration.ChannelPrefix = "Message";
