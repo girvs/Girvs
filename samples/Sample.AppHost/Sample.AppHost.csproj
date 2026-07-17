@@ -8,10 +8,9 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <!-- 普通编译引用：AppHost 需要 AddGirvsProject 扩展方法与根模块类型 -->
-    <!-- IsAspireProjectResource=false 阻止 AppHost SDK 把它们当成编排资源（否则程序集不参与编译） -->
+    <!-- 普通编译引用：AppHost 需要 AddGirvsProject / AsGirvsResource 扩展方法 -->
+    <!-- IsAspireProjectResource=false 阻止 AppHost SDK 把它当成编排资源（否则程序集不参与编译） -->
     <ProjectReference Include="..\..\Girvs.Aspire.Hosting\Girvs.Aspire.Hosting.csproj" IsAspireProjectResource="false" />
-    <ProjectReference Include="..\Sample.Modules\Sample.Modules.csproj" IsAspireProjectResource="false" />
     <!-- 编排目标：生成 Projects.Sample_ServiceA / Projects.Sample_ServiceB 元数据 -->
     <ProjectReference Include="..\Sample.ServiceA\Sample.ServiceA.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\Sample.ServiceB\Sample.ServiceB.csproj" IsAspireProjectResource="true" />
