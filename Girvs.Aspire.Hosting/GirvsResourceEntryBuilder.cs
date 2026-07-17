@@ -12,27 +12,17 @@ namespace Girvs.Aspire.Hosting;
 /// </summary>
 internal static class GirvsResourceEntryBuilder
 {
-    private static readonly IGirvsResourceSettingsProvider[] BuiltInProviders =
-    [
-        new RedisSettingsProvider(),
-        new MySqlSettingsProvider(),
-        new SqlServerSettingsProvider(),
-        new RabbitMQSettingsProvider(),
-        new KafkaSettingsProvider(),
-    ];
-
-    // 与框架模块机制同款的 TypeFinder 自动发现:扩展方定义实现类即生效,无需注册。
+    // 与框架模块机制同款的 TypeFinder 自动发现,内置预设与自定义提供程序走同一条路径:
+    // 实现 IGirvsResourceSettingsProvider(公共无参构造)定义即生效,无需注册。
     // 用 AppDomainTypeFinder(WebAppTypeFinder 的 bin 目录扫描依赖 Web 宿主文件提供程序,
     // AppHost 进程没有),提供程序需定义在已加载的程序集——通常就是 AppHost 项目本身。
-    // 排除本程序集(内置预设显式列出保证顺序可控);按类型全名排序保证多个自定义间的确定性。
-    private static readonly Lazy<IGirvsResourceSettingsProvider[]> DiscoveredProviders = new(() =>
+    // 排序:自定义(非本程序集)在前,可接管内置类型;再按类型全名排序保证确定性。
+    private static readonly Lazy<IGirvsResourceSettingsProvider[]> Providers = new(() =>
         new AppDomainTypeFinder()
             .FindOfType<IGirvsResourceSettingsProvider>()
-            .Where(type =>
-                type.Assembly != typeof(GirvsResourceEntryBuilder).Assembly
-                && type.GetConstructor(Type.EmptyTypes) is not null
-            )
-            .OrderBy(type => type.FullName, StringComparer.Ordinal)
+            .Where(type => type.GetConstructor(Type.EmptyTypes) is not null)
+            .OrderBy(type => type.Assembly == typeof(GirvsResourceEntryBuilder).Assembly)
+            .ThenBy(type => type.FullName, StringComparer.Ordinal)
             .Select(type => (IGirvsResourceSettingsProvider)Activator.CreateInstance(type))
             .ToArray()
     );
@@ -44,8 +34,7 @@ internal static class GirvsResourceEntryBuilder
     )
     {
         var built =
-            await TryBuildFromProvidersAsync(DiscoveredProviders.Value, resource, ct)
-            ?? await TryBuildFromProvidersAsync(BuiltInProviders, resource, ct)
+            await TryBuildFromProvidersAsync(Providers.Value, resource, ct)
             ?? (
                 annotation.TypeOverride is not null
                     ? new GirvsResource { Type = annotation.TypeOverride }
