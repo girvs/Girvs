@@ -69,6 +69,13 @@ public static class GirvsHostBuilderManager
     {
         //清除原有的源
         config.Sources.Clear();
+
+        // 共享配置文件(GIRVS_SHARED_CONFIG 指向,由 Aspire AppHost 注入或 K8s ConfigMap 挂载):
+        // 作为最低优先级配置源,服务本地 appsettings*.json 与环境变量天然覆盖其中的同名键。
+        var sharedConfigPath = Environment.GetEnvironmentVariable("GIRVS_SHARED_CONFIG");
+        if (!string.IsNullOrWhiteSpace(sharedConfigPath))
+            config.AddJsonFile(sharedConfigPath, optional: true, reloadOnChange: true);
+
         config.AddJsonFile(ConfigurationDefaults.AppSettingsFilePath, true, true);
         config.AddJsonFile(ConfigurationDefaults.SerilogSettingFilePath, true, true);
         if (otherJsonFiles is { Length: > 0 })
