@@ -47,6 +47,8 @@ public class GirvsCacheModule : IAppModuleStartup
 
                 case "redis-synchronized-memory":
                     var synchronizedRedisConnectionString = GetConnectionString(cacheConfig);
+                    // RedisSynchronizedMemoryCache 以本地内存缓存为主存储、Redis 仅做失效同步,必须注册 IMemoryCache
+                    services.AddSingleton<IMemoryCache>(new MemoryCache(new MemoryCacheOptions()));
                     services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
                     services.AddSingleton<ISynchronizedMemoryCache, RedisSynchronizedMemoryCache>();
                     services.AddSingleton<IStaticCacheManager, SynchronizedMemoryCacheManager>();

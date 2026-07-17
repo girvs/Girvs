@@ -39,11 +39,13 @@ public static class DataProviderServiceExtensions
         return services.AddDbContext<TContext>(
             (provider, builder) =>
             {
+                // 用回调自带的作用域 provider 解析:GirvsEngine 在模块注册前生成的快照容器
+                // 不含 IDataConnectionStringProvider,经 EngineContext 解析会得到 null
                 builder
                     .AddInterceptors(new MySqlSyntaxInterceptor())
                     .ConfigDbContextOptionsBuilder<TContext>(
                         config,
-                        EngineContext.Current.Resolve<IDataConnectionStringProvider>()
+                        provider.GetRequiredService<IDataConnectionStringProvider>()
                             .GetReadConnectionString(config.Name)
                     );
             },

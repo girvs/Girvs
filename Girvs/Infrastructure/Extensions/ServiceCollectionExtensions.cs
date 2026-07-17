@@ -65,7 +65,14 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddSingleton(appSettings);
-        AppSettingsHelper.SaveAppSettings(appSettings);
+
+        // 配置来自外部分发(GIRVS_SHARED_CONFIG,Aspire AppHost 注入或 K8s ConfigMap 挂载)时不回写:
+        // 回写会把共享文件中的动态资源地址固化到本地 appsettings.json,
+        // 本地文件优先级更高,下次启动会用固化的旧地址覆盖共享文件的新值。
+        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GIRVS_SHARED_CONFIG")))
+            AppSettingsHelper.SaveAppSettings(appSettings);
+        else
+            Singleton<AppSettings>.Instance = appSettings;
     }
 
     public static void AddHttpContextAccessor(this IServiceCollection services)
