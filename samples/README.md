@@ -6,7 +6,7 @@
 
 | 项目 | 说明 | 使用的 Girvs 组件 |
 |------|------|------|
-| `Sample.AppHost` | Aspire 编排入口（`AsGirvsResource` 登记资源 + `AddGirvsProject` 分发共享配置文件）；含自定义资源类型扩展示例 `SqliteResource.cs`（`IGirvsResourceSettingsProvider`） | Girvs.Aspire.Hosting |
+| `Sample.AppHost` | Aspire 编排入口（`AsGirvsResource` 登记资源 + `AddGirvsProject` 分发共享配置文件）；含 `IGirvsResourceSettingsProvider` 两类扩展示例：`SqliteResource.cs`（无容器本地文件）与 `MongoSettingsProvider.cs`（官方集成包容器） | Girvs.Aspire.Hosting |
 | `Sample.ServiceA` | Web 服务：缓存 + 数据库 + 调用 ServiceB | Cache、EntityFrameworkCore |
 | `Sample.ServiceB` | Web 服务：事件总线（CAP）+ 数据库（CAP 存储） | EventBus、EntityFrameworkCore |
 | `Sample.Worker` | 后台工作服务（BackgroundService 周期写缓存） | Cache |

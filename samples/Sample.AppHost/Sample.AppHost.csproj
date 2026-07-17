@@ -8,6 +8,10 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
+    <!-- MongoDB 官方 Aspire 集成:资源提取由样例自己的 MongoSettingsProvider 完成(框架内置预设之外的扩展示例) -->
+    <PackageReference Include="Aspire.Hosting.MongoDB" Version="13.4.6" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- 普通编译引用：AppHost 需要 AddGirvsProject / AsGirvsResource 扩展方法 -->
     <!-- IsAspireProjectResource=false 阻止 AppHost SDK 把它当成编排资源（否则程序集不参与编译） -->
     <ProjectReference Include="..\..\Girvs.Aspire.Hosting\Girvs.Aspire.Hosting.csproj" IsAspireProjectResource="false" />
