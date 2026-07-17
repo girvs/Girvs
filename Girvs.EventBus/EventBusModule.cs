@@ -16,8 +16,8 @@ public class EventBusModule : IAppModuleStartup
         services.AddScoped<IEventBus, CapEventBus.CapEventBus>();
 
         var resources = Singleton<AppSettings>.Instance.Resources;
-        var connStr = configuration.GetConnectionString("girvs-eventbus-db")
-            ?? eventBusConfig.BuildPersistenceConnectionString(resources[eventBusConfig.PersistenceConnectionRef]);
+        var connStr = eventBusConfig.BuildPersistenceConnectionString(
+            resources[eventBusConfig.PersistenceConnectionRef]);
         var transport = resources[eventBusConfig.TransportConnectionRef];
         var persistenceType = resources[eventBusConfig.PersistenceConnectionRef].Type.ToLowerInvariant();
 

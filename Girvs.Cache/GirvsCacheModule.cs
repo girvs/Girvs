@@ -22,7 +22,7 @@ public class GirvsCacheModule : IAppModuleStartup
             switch (resource.Type.ToLowerInvariant())
             {
                 case "sqlserver":
-                    var sqlServerConnectionString = GetConnectionString(cacheConfig, configuration);
+                    var sqlServerConnectionString = GetConnectionString(cacheConfig);
                     services.AddScoped<IStaticCacheManager, MsSqlServerCacheManager>();
                     services.AddScoped<ICacheKeyService, MsSqlServerCacheManager>();
                     services.AddDistributedSqlServerCache(options =>
@@ -34,7 +34,7 @@ public class GirvsCacheModule : IAppModuleStartup
                     break;
 
                 case "redis":
-                    var redisConnectionString = GetConnectionString(cacheConfig, configuration);
+                    var redisConnectionString = GetConnectionString(cacheConfig);
                     services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
                     services.AddScoped<IStaticCacheManager, RedisCacheManager>();
                     services.AddScoped<ICacheKeyService, RedisCacheManager>();
@@ -46,7 +46,7 @@ public class GirvsCacheModule : IAppModuleStartup
                     break;
 
                 case "redis-synchronized-memory":
-                    var synchronizedRedisConnectionString = GetConnectionString(cacheConfig, configuration);
+                    var synchronizedRedisConnectionString = GetConnectionString(cacheConfig);
                     services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
                     services.AddSingleton<ISynchronizedMemoryCache, RedisSynchronizedMemoryCache>();
                     services.AddSingleton<IStaticCacheManager, SynchronizedMemoryCacheManager>();
@@ -76,13 +76,13 @@ public class GirvsCacheModule : IAppModuleStartup
 
     public int Order { get; } = 1;
 
-    private static string GetConnectionString(CacheConfig cacheConfig, IConfiguration configuration)
+    private static string GetConnectionString(CacheConfig cacheConfig)
     {
         var cache = cacheConfig.DistributedCacheConfig;
         var resources = Singleton<AppSettings>.Instance.Resources;
         var resource = resources.TryGetValue(cache.ConnectionRef, out var value)
             ? value
             : throw new GirvsException($"Resources:{cache.ConnectionRef} 未配置");
-        return cacheConfig.GetConnectionString(resource, configuration);
+        return cache.BuildConnectionString(resource);
     }
 }

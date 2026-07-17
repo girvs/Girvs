@@ -85,7 +85,7 @@ public class ModuleConnectionReferenceTests
             },
         };
 
-        var provider = new DataConnectionStringProvider([db], resources, null);
+        var provider = new DataConnectionStringProvider([db], resources);
 
         Assert.Contains("Server=mysql", provider.GetMasterConnectionString("Ailynx"));
         Assert.Contains("Server=mysql-read", provider.GetReadConnectionString("Ailynx"));

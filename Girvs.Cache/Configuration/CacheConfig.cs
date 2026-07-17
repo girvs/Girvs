@@ -35,13 +35,4 @@ public class CacheConfig : IAppModuleConfig
     // public RedisCacheConfig RedisCacheConfig { get; set; } = new RedisCacheConfig();
 
     public void Init() { }
-
-    public string GetConnectionString(Resource resource, IConfiguration configuration)
-    {
-        var connectionString = configuration?.GetConnectionString("girvs-cache");
-        if (!string.IsNullOrEmpty(connectionString))
-            return connectionString;
-
-        return DistributedCacheConfig.BuildConnectionString(resource);
-    }
 }

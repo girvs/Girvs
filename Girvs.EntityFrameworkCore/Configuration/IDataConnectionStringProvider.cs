@@ -14,18 +14,15 @@ public sealed class DataConnectionStringProvider : IDataConnectionStringProvider
 
     public DataConnectionStringProvider(
         IEnumerable<DataConnectionConfig> configurations,
-        IReadOnlyDictionary<string, Resource> resources,
-        IConfiguration configuration
+        IReadOnlyDictionary<string, Resource> resources
     )
     {
         foreach (var config in configurations)
         {
             var master = GetResource(resources, config.ConnectionRef);
-            var masterConnection = configuration?.GetConnectionString($"girvs-db-{config.Name}")
-                ?? config.BuildConnectionString(master);
+            var masterConnection = config.BuildConnectionString(master);
             var reads = config.ReadConnectionRefs
-                .Select((reference, index) => configuration?.GetConnectionString($"girvs-db-{config.Name}-read-{index}")
-                    ?? config.BuildConnectionString(GetResource(resources, reference)))
+                .Select(reference => config.BuildConnectionString(GetResource(resources, reference)))
                 .ToList();
             _connections[config.Name] = (masterConnection, reads);
         }

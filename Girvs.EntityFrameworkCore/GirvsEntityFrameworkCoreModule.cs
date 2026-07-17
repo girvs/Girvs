@@ -9,8 +9,7 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
         var dbConfig = Singleton<AppSettings>.Instance.Get<DbConfig>();
         services.AddSingleton<IDataConnectionStringProvider>(new DataConnectionStringProvider(
             dbConfig.DataConnectionConfigs,
-            Singleton<AppSettings>.Instance.Resources,
-            configuration
+            Singleton<AppSettings>.Instance.Resources
         ));
         services.AddGirvsObjectContext();
         // services.AddGirvsShardingCoreContext();
