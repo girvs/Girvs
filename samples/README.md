@@ -6,7 +6,7 @@
 
 | 项目 | 说明 | 使用的 Girvs 组件 |
 |------|------|------|
-| `Sample.AppHost` | Aspire 编排入口（`AddGirvsProject` + 共享配置） | Girvs.Aspire.Hosting |
+| `Sample.AppHost` | Aspire 编排入口（`AsGirvsResource` 登记资源 + `AddGirvsProject` 分发共享配置文件） | Girvs.Aspire.Hosting |
 | `Sample.ServiceA` | Web 服务：缓存 + 数据库 + 调用 ServiceB | Cache、EntityFrameworkCore |
 | `Sample.ServiceB` | Web 服务：事件总线（CAP）+ 数据库（CAP 存储） | EventBus、EntityFrameworkCore |
 | `Sample.Worker` | 后台工作服务（BackgroundService 周期写缓存） | Cache |
@@ -24,7 +24,7 @@ no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 \
   dotnet run --project samples/Sample.AppHost
 ```
 
-启动后控制台会打印 Aspire Dashboard 地址。Aspire 会自动拉起 Redis / MySQL / RabbitMQ 容器并把连接串注入各服务。
+启动后控制台会打印 Aspire Dashboard 地址。AppHost 拉起 Redis / MySQL / RabbitMQ 容器后,把实际地址写入运行时共享文件(`Sample.AppHost/obj/girvs.shared.runtime.json`)并以 `GIRVS_SHARED_CONFIG` 注入各服务;服务按自己配置中的 `ConnectionRef` 从 `Resources` 组装连接串。
 
 ## 自检端点（验证各能力）
 
@@ -33,10 +33,10 @@ no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 \
 | 服务 | 端点 | 验证 | 预期 |
 |------|------|------|------|
 | 全部 | `GET /health`、`GET /alive` | AspireModule 健康检查 | 200 |
-| ServiceA | `GET /selfcheck/cache` | Redis 连接串注入 + 缓存读写 | `{"match":true}` |
-| ServiceA | `GET /selfcheck/db` | MySQL 连接串注入 + EFCore 往返 | `{"match":true}` |
+| ServiceA | `GET /selfcheck/cache` | 共享文件 Redis 资源 + 缓存读写 | `{"match":true}` |
+| ServiceA | `GET /selfcheck/db` | 共享文件 MySQL 资源 + EFCore 往返 | `{"match":true}` |
 | ServiceA | `GET /selfcheck/callb` | 服务发现调用 ServiceB `/ping` | `{"fromServiceB":"pong"}` |
-| ServiceA/B | `GET /selfcheck/config` | 共享配置注入 | `{"logLevel":"Warning","jwtSecretPresent":true}` |
+| ServiceA/B | `GET /selfcheck/config` | 共享文件非资源配置分发（girvs.shared.json 的 Logging 节点） | `{"logLevel":"Information","jwtSecretPresent":false}` |
 | ServiceB | `GET /ping` | 被 ServiceA 服务发现调用 | `pong` |
 | ServiceB | `GET /selfcheck/eventbus` | CAP 发布（RabbitMQ + MySQL 存储） | `{"published":true,...}` |
 | ServiceB | `GET /selfcheck/eventbus/received` | 订阅者端到端收到 | `{"lastReceived":"msg-..."}` |
@@ -49,11 +49,11 @@ dotnet run --project samples/Sample.AppHost -- \
   --operation publish --publisher manifest --output-path ./publish-out
 ```
 
-Publish 模式下 Cache/EventBus/EFCore 自动改为**外部连接串引用**（指向阿里云托管实例），不在集群内建容器；生成的 `aspire-manifest.json` 中业务服务为 `project.v0`，基础设施为 `parameter.v0` + `secret`。
+Publish 模式下不生成运行时共享文件，各服务的 `GIRVS_SHARED_CONFIG` 指向约定挂载路径 `/girvs-config/girvs.shared.json`，由生产 ConfigMap 提供内容（`Resources` 写阿里云托管实例的真实地址），不在集群内建容器。
 
 ## 设计说明
 
-- Girvs 启动机制（`CreateGirvsWebApplicationBuilder`）是 Web 宿主，故 Worker 亦用 Web SDK + `BackgroundService`，以复用 Girvs 模块机制与连接串自动注入。
+- Girvs 启动机制（`CreateGirvsWebApplicationBuilder`）是 Web 宿主，故 Worker 亦用 Web SDK + `BackgroundService`，以复用 Girvs 模块机制与共享配置文件分发。
 - 各服务需 `Properties/launchSettings.json` 指定端口，Aspire 据此分配/代理端点。
 - 详细设计与迁移指引见 `docs/aspire/apphost-guide.md` 与 `docs/superpowers/plans/2026-07-14-aspire-reference-implementation.md`。
 
