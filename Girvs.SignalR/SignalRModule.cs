@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Girvs.Configuration;
+using Girvs.SignalR.Configuration;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Girvs.SignalR;
 
@@ -20,14 +22,20 @@ public class SignalRModule : IAppModuleStartup
         }
 
         var signalServiceBuilder = services.AddSignalR().AddMessagePackProtocol();
-        var cacheConfig = EngineContext.Current.GetAppModuleConfig<CacheConfig>();
-        var distributedCacheConfig = cacheConfig.DistributedCacheConfig;
-        if (
-            cacheConfig.EnableCaching
-            && distributedCacheConfig.DistributedCacheType == DistributedCacheType.Redis
-        )
+        var signalRConfig = EngineContext.Current.GetAppModuleConfig<SignalRConfig>();
+        if (!string.IsNullOrWhiteSpace(signalRConfig.RedisConnectionRef))
         {
-            signalServiceBuilder.AddStackExchangeRedis(distributedCacheConfig.ConnectionString, options =>
+            var resource = Singleton<AppSettings>.Instance.Resources.TryGetValue(
+                signalRConfig.RedisConnectionRef,
+                out var value
+            )
+                ? value
+                : throw new GirvsException($"Resources:{signalRConfig.RedisConnectionRef} 未配置");
+            if (!string.Equals(resource.Type, "redis", StringComparison.OrdinalIgnoreCase))
+                throw new GirvsException($"Resources:{signalRConfig.RedisConnectionRef}:Type 必须为 redis");
+            var connectionString = resource.Settings.GetValueOrDefault("Endpoints")
+                ?? throw new GirvsException($"Resources:{signalRConfig.RedisConnectionRef}:Settings:Endpoints 未配置");
+            signalServiceBuilder.AddStackExchangeRedis(connectionString, options =>
             {
                 options.Configuration.ChannelPrefix = "Message";
                 options.Configuration.ConnectTimeout = 5000;

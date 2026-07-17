@@ -9,7 +9,6 @@ public class GirvsCacheModule : IAppModuleStartup
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var cacheConfig = Singleton<AppSettings>.Instance.Get<CacheConfig>();
-        cacheConfig.ApplyAspireConnectionString(configuration);
         var distributedCacheConfig = cacheConfig.DistributedCacheConfig;
 
         services.AddTransient(typeof(IConcurrentCollection<>), typeof(ConcurrentTrie<>));
@@ -17,46 +16,44 @@ public class GirvsCacheModule : IAppModuleStartup
         services.AddSingleton<ICacheKeyManager, CacheKeyManager>();
         services.AddScoped<IShortTermCacheManager, PerRequestCacheManager>();
 
-        if (distributedCacheConfig.Enabled)
+        if (distributedCacheConfig.Enabled && !string.IsNullOrWhiteSpace(distributedCacheConfig.ConnectionRef))
         {
-            switch (distributedCacheConfig.DistributedCacheType)
+            var resource = Singleton<AppSettings>.Instance.Resources[distributedCacheConfig.ConnectionRef];
+            switch (resource.Type.ToLowerInvariant())
             {
-                case DistributedCacheType.Memory:
-                    services.AddDistributedMemoryCache();
-                    services.AddScoped<IStaticCacheManager, MemoryDistributedCacheManager>();
-                    services.AddScoped<ICacheKeyService, MemoryDistributedCacheManager>();
-                    break;
-
-                case DistributedCacheType.SqlServer:
+                case "sqlserver":
+                    var sqlServerConnectionString = GetConnectionString(cacheConfig, configuration);
                     services.AddScoped<IStaticCacheManager, MsSqlServerCacheManager>();
                     services.AddScoped<ICacheKeyService, MsSqlServerCacheManager>();
                     services.AddDistributedSqlServerCache(options =>
                     {
-                        options.ConnectionString = distributedCacheConfig.ConnectionString;
+                        options.ConnectionString = sqlServerConnectionString;
                         options.SchemaName = distributedCacheConfig.SchemaName;
                         options.TableName = distributedCacheConfig.TableName;
                     });
                     break;
 
-                case DistributedCacheType.Redis:
+                case "redis":
+                    var redisConnectionString = GetConnectionString(cacheConfig, configuration);
                     services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
                     services.AddScoped<IStaticCacheManager, RedisCacheManager>();
                     services.AddScoped<ICacheKeyService, RedisCacheManager>();
                     services.AddStackExchangeRedisCache(options =>
                     {
-                        options.Configuration = distributedCacheConfig.ConnectionString;
+                        options.Configuration = redisConnectionString;
                         options.InstanceName = distributedCacheConfig.InstanceName ?? string.Empty;
                     });
                     break;
 
-                case DistributedCacheType.RedisSynchronizedMemory:
+                case "redis-synchronized-memory":
+                    var synchronizedRedisConnectionString = GetConnectionString(cacheConfig, configuration);
                     services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
                     services.AddSingleton<ISynchronizedMemoryCache, RedisSynchronizedMemoryCache>();
                     services.AddSingleton<IStaticCacheManager, SynchronizedMemoryCacheManager>();
                     services.AddScoped<ICacheKeyService, SynchronizedMemoryCacheManager>();
                     services.AddStackExchangeRedisCache(options =>
                     {
-                        options.Configuration = distributedCacheConfig.ConnectionString;
+                        options.Configuration = synchronizedRedisConnectionString;
                         options.InstanceName = distributedCacheConfig.InstanceName ?? string.Empty;
                     });
                     break;
@@ -78,4 +75,14 @@ public class GirvsCacheModule : IAppModuleStartup
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 1;
+
+    private static string GetConnectionString(CacheConfig cacheConfig, IConfiguration configuration)
+    {
+        var cache = cacheConfig.DistributedCacheConfig;
+        var resources = Singleton<AppSettings>.Instance.Resources;
+        var resource = resources.TryGetValue(cache.ConnectionRef, out var value)
+            ? value
+            : throw new GirvsException($"Resources:{cache.ConnectionRef} 未配置");
+        return cacheConfig.GetConnectionString(resource, configuration);
+    }
 }

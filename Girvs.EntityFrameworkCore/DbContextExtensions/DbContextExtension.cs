@@ -13,9 +13,10 @@ public static class DbContextExtension
             ?.GetDataConnectionConfig(dbContext.GetType());
 
         var logger = EngineContext.Current.Resolve<ILogger<object>>();
+        var provider = EngineContext.Current.Resolve<IDataConnectionStringProvider>();
         var connStr = dataBaseWriteAndRead == DataBaseWriteAndRead.Write
-            ? currentDbContextConfig?.MasterDataConnectionString
-            : currentDbContextConfig?.GetSecureRandomReadDataConnectionString();
+            ? provider.GetMasterConnectionString(currentDbContextConfig.Name)
+            : provider.GetReadConnectionString(currentDbContextConfig.Name);
 
         var conn = dbContext.Database.GetDbConnection();
 

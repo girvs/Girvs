@@ -43,7 +43,8 @@ public static class DataProviderServiceExtensions
                     .AddInterceptors(new MySqlSyntaxInterceptor())
                     .ConfigDbContextOptionsBuilder<TContext>(
                         config,
-                        config?.GetSecureRandomReadDataConnectionString()
+                        EngineContext.Current.Resolve<IDataConnectionStringProvider>()
+                            .GetReadConnectionString(config.Name)
                     );
             },
             ServiceLifetime.Scoped,

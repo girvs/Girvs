@@ -1,7 +1,12 @@
-﻿namespace Girvs.Configuration;
+﻿using Girvs.Configuration.Resources;
+
+namespace Girvs.Configuration;
+
 
 public class AppSettings
 {
+    public Dictionary<string, Resource> Resources { get; set; } = new();
+
     public CommonConfig CommonConfig { get; set; } = new CommonConfig();
 
     public HostingConfig HostingConfig { get; set; } = new HostingConfig();
@@ -13,6 +18,7 @@ public class AppSettings
     }
 
     public IDictionary<string, IConfig> ModuleConfigurations { get; private set; } = null;
+
 
     public void PreLoadModelConfig()
     {

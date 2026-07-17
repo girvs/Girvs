@@ -1,21 +1,6 @@
-﻿namespace Girvs.EntityFrameworkCore.Configuration;
+﻿using Girvs.Configuration.Resources;
 
-public enum UseDataType
-{
-    [EnumMember(Value = "mssql")]
-    MsSql,
-
-    [EnumMember(Value = "mysql")]
-    MySql,
-
-#if NET8_0
-    [EnumMember(Value = "sqllite")]
-    SqlLite,
-
-    [EnumMember(Value = "oracle")]
-    Oracle
-#endif
-}
+namespace Girvs.EntityFrameworkCore.Configuration;
 
 public class DbConfig : IAppModuleConfig
 {
@@ -56,18 +41,13 @@ public class DbConfig : IAppModuleConfig
         return dataBaseConfig;
     }
 
-    /// <summary>
-    /// 若 Aspire AppHost 为各命名数据连接注入了对应连接串，覆盖主库/读库连接串；未注入时保持 appsettings 原值。
-    /// </summary>
-    public void ApplyAspireConnectionStrings(IConfiguration configuration)
-    {
-        foreach (var connectionConfig in DataConnectionConfigs)
-            connectionConfig.ApplyAspireConnectionStrings(configuration);
-    }
 }
 
 public class DataConnectionConfig
 {
+    /// <summary>引用 Resources 中的 MySQL 资源键。</summary>
+    public string ConnectionRef { get; set; }
+
     /// <summary>
     /// 数据库名称
     /// </summary>
@@ -77,12 +57,6 @@ public class DataConnectionConfig
     /// 启用自动还原数据库
     /// </summary>
     public bool EnableAutoMigrate { get; set; } = true;
-
-    /// <summary>
-    /// 数据库类型
-    /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public UseDataType UseDataType { get; set; } = UseDataType.MsSql;
 
     /// <summary>
     /// 数据库版本号
@@ -114,72 +88,25 @@ public class DataConnectionConfig
 
     public bool EnableShardingTable { get; set; } = true;
 
-    /// <summary>
-    /// 主数据库连接字符串
-    /// </summary>
-    public string MasterDataConnectionString { get; set; } =
-        "Server=192.168.51.166;database=Wb_BasicManagement;User ID=root;Password=123456;Character Set=utf8;";
-
-    /// <summary>
-    /// 从数据库字符串集,可以是多个
-    /// </summary>
-    public IList<string> ReadDataConnectionString { get; set; } = new List<string>();
+    public IList<string> ReadConnectionRefs { get; set; } = new List<string>();
 
     // public DbHostServerPort MasterDatabaseHost { get; set; } = new DbHostServerPort();
     // public IList<DbHostServerPort> SlaveDatabaseHost { get; set; } = new List<DbHostServerPort>();
 
-    public string GetSecureRandomReadDataConnectionString()
+    public string BuildConnectionString(Resource resource)
     {
-        if (ReadDataConnectionString == null || !ReadDataConnectionString.Any())
-        {
-            return MasterDataConnectionString;
-        }
-        else
-        {
-            if (ReadDataConnectionString.Count == 1)
-            {
-                return ReadDataConnectionString[0];
-            }
-            else
-            {
-                var index = SecureRandomNumberGenerator.GetInt32(0, ReadDataConnectionString.Count);
-                return ReadDataConnectionString[index];
-            }
-        }
+        ArgumentNullException.ThrowIfNull(resource);
+        if (!string.Equals(resource.Type, "mysql", StringComparison.OrdinalIgnoreCase))
+            throw new GirvsException($"Resources:{ConnectionRef}:Type 必须为 mysql");
+        if (!resource.Settings.TryGetValue("Host", out var host) || string.IsNullOrWhiteSpace(host))
+            throw new GirvsException($"Resources:{ConnectionRef}:Settings:Host 未配置");
+
+        var builder = new System.Data.Common.DbConnectionStringBuilder();
+        builder["Server"] = host;
+        if (resource.Settings.TryGetValue("Database", out var database) && !string.IsNullOrWhiteSpace(database)) builder["Database"] = database;
+        if (int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port)) builder["Port"] = port;
+        if (resource.Settings.TryGetValue("UserName", out var userName) && !string.IsNullOrWhiteSpace(userName)) builder["User ID"] = userName;
+        if (resource.Settings.TryGetValue("Password", out var password) && !string.IsNullOrWhiteSpace(password)) builder["Password"] = password;
+        return builder.ConnectionString;
     }
-
-    /// <summary>
-    /// 用 Aspire 注入的 girvs-db-&lt;Name&gt;（主库）与 girvs-db-&lt;Name&gt;-read-&lt;N&gt;（读库，N 从 0 起连续编号）
-    /// 覆盖本连接配置；未注入时保持 appsettings 原值。
-    /// </summary>
-    public void ApplyAspireConnectionStrings(IConfiguration configuration)
-    {
-        if (configuration == null || string.IsNullOrEmpty(Name))
-            return;
-
-        var master = configuration.GetConnectionString($"girvs-db-{Name}");
-        if (!string.IsNullOrEmpty(master))
-            MasterDataConnectionString = master;
-
-        var readConnections = new List<string>();
-        for (var i = 0; ; i++)
-        {
-            var read = configuration.GetConnectionString($"girvs-db-{Name}-read-{i}");
-            if (string.IsNullOrEmpty(read))
-                break;
-            readConnections.Add(read);
-        }
-
-        if (readConnections.Count > 0)
-            ReadDataConnectionString = readConnections;
-    }
-}
-
-public class DbHostServerPort
-{
-    public string Server { get; set; } = "192.168.51.166";
-    public int Port { get; set; } = 3306;
-    public string DatabaseName { get; set; } = "Wb_BasicManagement";
-    public string UserId { get; set; } = "root";
-    public string Password { get; set; } = "123456";
 }

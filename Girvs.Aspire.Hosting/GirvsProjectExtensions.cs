@@ -30,7 +30,11 @@ public static class GirvsProjectExtensions
         GirvsProjectOptions options = null
     )
     {
-        var serviceSettings = GirvsServiceAppSettings.Read(projectDirectory);
+        var shared = GirvsSharedConfigurationExtensions.GetShared(builder);
+        var serviceSettings = GirvsServiceAppSettings.ReadEffective(
+            shared.Configuration,
+            projectDirectory
+        );
         var context = new GirvsOrchestrationContext(builder, project, serviceSettings, options);
 
         foreach (var moduleType in DependsOnGraph.Collect(rootModuleType))
@@ -39,7 +43,7 @@ public static class GirvsProjectExtensions
                 contributor.Contribute(context);
         }
 
-        ApplySharedConfiguration(builder, project);
+        ApplySharedConfiguration(builder, project, projectDirectory);
 
         return project;
     }
@@ -50,16 +54,30 @@ public static class GirvsProjectExtensions
     // 天然实现"共享配置覆盖服务本地配置"。
     private static void ApplySharedConfiguration(
         IDistributedApplicationBuilder builder,
-        IResourceBuilder<ProjectResource> project
+        IResourceBuilder<ProjectResource> project,
+        string projectDirectory
     )
     {
         var shared = GirvsSharedConfigurationExtensions.GetShared(builder);
+        var localSettings = GirvsServiceAppSettings.Read(projectDirectory);
+
+        foreach (var (key, value) in shared.Configuration.AsEnumerable())
+        {
+            if (value != null && localSettings[key] == null)
+                project.WithEnvironment(ToEnvKey(key), value);
+        }
 
         foreach (var (key, value) in shared.Settings)
-            project.WithEnvironment(ToEnvKey(key), value);
+        {
+            if (localSettings[key] == null)
+                project.WithEnvironment(ToEnvKey(key), value);
+        }
 
         foreach (var (key, parameter) in shared.Secrets)
-            project.WithEnvironment(ToEnvKey(key), parameter);
+        {
+            if (localSettings[key] == null)
+                project.WithEnvironment(ToEnvKey(key), parameter);
+        }
     }
 
     // ASP.NET Core 配置层级分隔符 ':' 在环境变量中约定写作 '__'

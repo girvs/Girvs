@@ -1,4 +1,6 @@
-﻿namespace Girvs.Cache.Configuration;
+﻿using Girvs.Configuration.Resources;
+
+namespace Girvs.Cache.Configuration;
 
 /// <summary>
 /// 代表分布式缓存配置参数
@@ -34,13 +36,12 @@ public class CacheConfig : IAppModuleConfig
 
     public void Init() { }
 
-    /// <summary>
-    /// 若 Aspire AppHost 注入了 girvs-cache 连接串，覆盖分布式缓存连接串；未注入时保持 appsettings 原值。
-    /// </summary>
-    public void ApplyAspireConnectionString(IConfiguration configuration)
+    public string GetConnectionString(Resource resource, IConfiguration configuration)
     {
         var connectionString = configuration?.GetConnectionString("girvs-cache");
         if (!string.IsNullOrEmpty(connectionString))
-            DistributedCacheConfig.ConnectionString = connectionString;
+            return connectionString;
+
+        return DistributedCacheConfig.BuildConnectionString(resource);
     }
 }

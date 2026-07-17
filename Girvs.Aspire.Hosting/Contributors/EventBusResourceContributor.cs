@@ -6,9 +6,8 @@ public class EventBusResourceContributor : IGirvsResourceContributor
 
     public void Contribute(GirvsOrchestrationContext context)
     {
-        var eventBusType = NormalizeEventBusType(
-            context.ServiceSettings["ModuleConfigurations:EventBusConfig:EventBusType"]
-        );
+        var transportRef = context.ServiceSettings["ModuleConfigurations:EventBusConfig:TransportConnectionRef"];
+        var eventBusType = context.ServiceSettings[$"Resources:{transportRef}:Type"]?.ToLowerInvariant();
 
         var isPublish = context.Builder.ExecutionContext.IsPublishMode;
 
@@ -60,14 +59,4 @@ public class EventBusResourceContributor : IGirvsResourceContributor
         }
     }
 
-    // 服务端 appsettings 中枚举可能被持久化为名称（"RabbitMQ"）或数值（"0"）。
-    // 归一到小写名称，兼容两种形式（EventBusType: RabbitMQ=0, Kafka=1, Redis=2）。
-    private static string NormalizeEventBusType(string raw) =>
-        raw?.Trim().ToLowerInvariant() switch
-        {
-            "0" or "rabbitmq" => "rabbitmq",
-            "1" or "kafka" => "kafka",
-            "2" or "redis" => "redis",
-            var other => other
-        };
 }

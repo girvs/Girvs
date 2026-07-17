@@ -6,122 +6,81 @@ namespace Girvs.EventBus;
 
 public class EventBusModule : IAppModuleStartup
 {
-    private (DbType, string) GetDbConnString(EventBusConfig eventBusConfig)
-    {
-        try
-        {
-            var dbConfig = Singleton<AppSettings>.Instance.Get("DbConfig");
-
-            if (dbConfig != null)
-            {
-                foreach (var connectionConfig in dbConfig.DataConnectionConfigs)
-                {
-                    if (connectionConfig.Name == eventBusConfig.DbConnectionString)
-                    {
-                        return (
-                            (DbType)(int)connectionConfig.UseDataType,
-                            connectionConfig.MasterDataConnectionString
-                        );
-                    }
-                }
-            }
-        }
-        finally { }
-
-        return (eventBusConfig.DbType, eventBusConfig.DbConnectionString);
-    }
-
-    private string GetRedisConnectionString(string eventBusConfigRedisConnStr)
-    {
-        try
-        {
-            var cacheConfig = Singleton<AppSettings>.Instance.Get(eventBusConfigRedisConnStr);
-            if (cacheConfig.EnableCaching)
-            {
-                return cacheConfig.DistributedCacheConfig.ConnectionString;
-            }
-        }
-        finally { }
-
-        return eventBusConfigRedisConnStr;
-    }
-
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         //Note: The injection of services needs before of `services.AddCap()`
         services.AddCapSubscribe();
 
         var eventBusConfig = EngineContext.Current.GetAppModuleConfig<EventBusConfig>();
-        eventBusConfig.ApplyAspireConnectionStrings(configuration);
 
         services.AddScoped<IEventBus, CapEventBus.CapEventBus>();
 
-        var (dbType, connStr) = GetDbConnString(eventBusConfig);
+        var resources = Singleton<AppSettings>.Instance.Resources;
+        var connStr = configuration.GetConnectionString("girvs-eventbus-db")
+            ?? eventBusConfig.BuildPersistenceConnectionString(resources[eventBusConfig.PersistenceConnectionRef]);
+        var transport = resources[eventBusConfig.TransportConnectionRef];
+        var persistenceType = resources[eventBusConfig.PersistenceConnectionRef].Type.ToLowerInvariant();
 
         services
             .AddCap(x =>
             {
-                switch (dbType)
+                switch (persistenceType)
                 {
-                    case DbType.MsSql:
+                    case "sqlserver":
                         x.UseSqlServer(connStr);
                         break;
-                    case DbType.MySql:
+                    case "mysql":
                         x.UseMySql(connStr);
                         break;
                     // case DbType.Oracle:
                     //     x.UseOracle(connStr);
                     //     break;
-                    case DbType.SqlLite:
+                    case "sqlite":
                         x.UseSqlite(connStr);
                         break;
                 }
 
-                switch (eventBusConfig.EventBusType)
+                switch (transport.Type.ToLowerInvariant())
                 {
-                    case EventBusType.RabbitMQ:
+                    case "rabbitmq":
                         x.UseRabbitMQ(options =>
                         {
-                            options.HostName = eventBusConfig.RabbitMqConfig.HostName;
-                            options.Port = eventBusConfig.RabbitMqConfig.Port;
-                            options.UserName = eventBusConfig.RabbitMqConfig.UserName;
-                            options.Password = eventBusConfig.RabbitMqConfig.Password;
-                            options.VirtualHost = eventBusConfig.RabbitMqConfig.VirtualHost;
+                            options.HostName = transport.Settings.GetValueOrDefault("HostName") ?? transport.Settings.GetValueOrDefault("Host");
+                            options.Port = int.TryParse(transport.Settings.GetValueOrDefault("Port"), out var port) ? port : 5672;
+                            options.UserName = transport.Settings.GetValueOrDefault("UserName");
+                            options.Password = transport.Settings.GetValueOrDefault("Password");
+                            options.VirtualHost = transport.Settings.GetValueOrDefault("VirtualHost") ?? "/";
                         });
                         break;
-                    case EventBusType.Kafka:
+                    case "kafka":
                         x.UseKafka(configure =>
                         {
-                            configure.Servers = eventBusConfig.KafkaConfig.KafKaConnectionString;
+                            configure.Servers = transport.Settings.GetValueOrDefault("BootstrapServers") ?? transport.Settings.GetValueOrDefault("Endpoints");
                             configure.MainConfig.Add(
                                 "ssl.ca.location",
-                                eventBusConfig.KafkaConfig.SslCaLocation
+                                transport.Settings.GetValueOrDefault("SslCaLocation")
                             );
                             configure.MainConfig.Add(
                                 "sasl.mechanism",
-                                eventBusConfig.KafkaConfig.SaslMechanism
+                                transport.Settings.GetValueOrDefault("SaslMechanism")
                             );
                             configure.MainConfig.Add(
                                 "security.protocol",
-                                eventBusConfig.KafkaConfig.SecurityProtocol
+                                transport.Settings.GetValueOrDefault("SecurityProtocol")
                             );
                             configure.MainConfig.Add(
                                 "sasl.username",
-                                eventBusConfig.KafkaConfig.SaslUsername
+                                transport.Settings.GetValueOrDefault("SaslUsername")
                             );
                             configure.MainConfig.Add(
                                 "sasl.password",
-                                eventBusConfig.KafkaConfig.SaslPassword
+                                transport.Settings.GetValueOrDefault("SaslPassword")
                             );
                             //configure.MainConfig.Add("allow.auto.create.topics", "true");
                         });
                         break;
-                    case EventBusType.Redis:
-                        x.UseRedis(
-                            GetRedisConnectionString(
-                                eventBusConfig.RedisConfig.RedisConnectionString
-                            )
-                        );
+                    case "redis":
+                        x.UseRedis(transport.Settings.GetValueOrDefault("Endpoints"));
                         break;
                 }
 

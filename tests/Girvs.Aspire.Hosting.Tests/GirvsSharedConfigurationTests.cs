@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+
 namespace Girvs.Aspire.Hosting.Tests;
 
 public class GirvsSharedConfigurationTests
@@ -21,6 +23,31 @@ public class GirvsSharedConfigurationTests
         );
         var project = builder.AddProject(name, Path.Combine(directory, $"{name}.csproj"));
         return (project, directory);
+    }
+
+    [Fact]
+    public void 本地Binding字段覆盖共享默认值但继承共享资源名()
+    {
+        var shared = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string>
+                {
+                    ["Bindings:cache:Resource"] = "platform-redis",
+                    ["Bindings:cache:Options:DefaultDatabase"] = "1",
+                }
+            )
+            .Build();
+        var directory = Directory.CreateTempSubdirectory("girvs-shared-config").FullName;
+        File.WriteAllText(
+            Path.Combine(directory, "appsettings.json"),
+            """{ "Bindings": { "cache": { "Options": { "DefaultDatabase": 3 } } } }"""
+        );
+
+        var effective = GirvsServiceAppSettings.ReadEffective(shared, directory);
+
+        Assert.Equal("platform-redis", effective["Bindings:cache:Resource"]);
+        Assert.Equal("3", effective["Bindings:cache:Options:DefaultDatabase"]);
+        Directory.Delete(directory, true);
     }
 
     [Fact]

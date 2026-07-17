@@ -6,6 +6,7 @@ namespace Girvs.Aspire.Hosting;
 /// </summary>
 public class GirvsSharedConfiguration
 {
+    private IConfiguration _configuration = new ConfigurationBuilder().Build();
     private readonly List<(string Key, string Value)> _settings = new();
     private readonly List<(string Key, IResourceBuilder<ParameterResource> Parameter)> _secrets = new();
 
@@ -26,4 +27,16 @@ public class GirvsSharedConfiguration
 
     public IReadOnlyList<(string Key, string Value)> Settings => _settings;
     public IReadOnlyList<(string Key, IResourceBuilder<ParameterResource> Parameter)> Secrets => _secrets;
+
+    /// <summary>添加供所有 Girvs 服务继承的共享默认配置。</summary>
+    public void AddConfiguration(IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        _configuration = new ConfigurationBuilder()
+            .AddConfiguration(_configuration)
+            .AddConfiguration(configuration)
+            .Build();
+    }
+
+    public IConfiguration Configuration => _configuration;
 }
