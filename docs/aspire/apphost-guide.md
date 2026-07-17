@@ -89,7 +89,31 @@ builder.Build().Run();
 | `AddRabbitMQ` | `rabbitmq` | `HostName`、`Port`、`UserName`、`Password`、`VirtualHost` |
 | `AddKafka` | `kafka` | `BootstrapServers` |
 
-其他资源类型必须显式传 `type` 与 `settings`。
+### 扩展其他资源类型
+
+内置预设只覆盖上表五种;其它资源类型(sqlite、elasticsearch、mongo 等)有两种接入方式:
+
+- **一次性场景**:`AsGirvsResource(type: "...", settings: ...)` 显式传 Type 与 Settings;
+- **可复用扩展**:实现 `IGirvsResourceSettingsProvider` 并在 AppHost 启动早期注册,自定义提供程序优先于内置预设匹配:
+
+```csharp
+public class SqliteSettingsProvider : IGirvsResourceSettingsProvider
+{
+    public Task<Resource> TryBuildAsync(IResource resource, CancellationToken ct)
+    {
+        if (resource is not SqliteResource sqlite) return Task.FromResult<Resource>(null);
+        return Task.FromResult(new Resource
+        {
+            Type = "sqlite",
+            Settings = new Dictionary<string, string> { ["DataSource"] = sqlite.DatabasePath },
+        });
+    }
+}
+
+GirvsResourceSettingsProviders.Register(new SqliteSettingsProvider());
+```
+
+服务端对应模块的 `BuildConnectionString` 需要认识该 Type 才能消费(资源模型的 Type 是开放字符串,由消费模块解释)。
 
 ### 手写共享文件(girvs.shared.json)
 

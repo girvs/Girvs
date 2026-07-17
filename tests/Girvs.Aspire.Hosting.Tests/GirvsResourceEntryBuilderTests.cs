@@ -116,4 +116,76 @@ public class GirvsResourceEntryBuilderTests
             GirvsResourceEntryBuilder.BuildAsync(
                 container.Resource, GetAnnotation(container.Resource), CancellationToken.None));
     }
+
+    /// <summary>自定义提供程序:把任意容器资源识别为 elasticsearch。</summary>
+    private sealed class ElasticsearchSettingsProvider : IGirvsResourceSettingsProvider
+    {
+        public Task<GirvsResource> TryBuildAsync(IResource resource, CancellationToken ct)
+        {
+            if (resource is not ContainerResource { Name: "search" })
+                return Task.FromResult<GirvsResource>(null);
+            return Task.FromResult(new GirvsResource
+            {
+                Type = "elasticsearch",
+                Settings = new Dictionary<string, string> { ["Url"] = "http://localhost:9200" },
+            });
+        }
+    }
+
+    /// <summary>自定义提供程序:接管 RedisResource,验证自定义优先于内置。</summary>
+    private sealed class RedisTakeoverProvider : IGirvsResourceSettingsProvider
+    {
+        public Task<GirvsResource> TryBuildAsync(IResource resource, CancellationToken ct) =>
+            Task.FromResult(resource is RedisResource
+                ? new GirvsResource
+                {
+                    Type = "redis-custom",
+                    Settings = new Dictionary<string, string> { ["Endpoints"] = "custom:1" },
+                }
+                : null);
+    }
+
+    [Fact]
+    public async Task 注册自定义提供程序后支持新资源类型()
+    {
+        var provider = new ElasticsearchSettingsProvider();
+        GirvsResourceSettingsProviders.Register(provider);
+        try
+        {
+            var builder = CreateBuilder();
+            var search = builder.AddContainer("search", "elasticsearch:8").AsGirvsResource();
+
+            var entry = await GirvsResourceEntryBuilder.BuildAsync(
+                search.Resource, GetAnnotation(search.Resource), CancellationToken.None);
+
+            Assert.Equal("elasticsearch", entry.Value.Type);
+            Assert.Equal("http://localhost:9200", entry.Value.Settings["Url"]);
+        }
+        finally
+        {
+            GirvsResourceSettingsProviders.Unregister(provider);
+        }
+    }
+
+    [Fact]
+    public async Task 自定义提供程序优先于内置预设()
+    {
+        var provider = new RedisTakeoverProvider();
+        GirvsResourceSettingsProviders.Register(provider);
+        try
+        {
+            var builder = CreateBuilder();
+            var redis = builder.AddRedis("platform-redis").AsGirvsResource();
+
+            var entry = await GirvsResourceEntryBuilder.BuildAsync(
+                redis.Resource, GetAnnotation(redis.Resource), CancellationToken.None);
+
+            Assert.Equal("redis-custom", entry.Value.Type);
+            Assert.Equal("custom:1", entry.Value.Settings["Endpoints"]);
+        }
+        finally
+        {
+            GirvsResourceSettingsProviders.Unregister(provider);
+        }
+    }
 }
