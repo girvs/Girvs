@@ -20,7 +20,8 @@
       "Bash(dotnet test *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(dotnet clean *)"
+      "Bash(dotnet clean *)",
+      "Bash(git -C /mnt/e/CompanyWork/Work/girvs log --oneline -10)"
     ]
   }
 }
