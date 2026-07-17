@@ -2,7 +2,6 @@
   <Project Path="Girvs.Aspire/Girvs.Aspire.csproj" />
   <Folder Name="/samples/">
     <Project Path="samples/Sample.AppHost/Sample.AppHost.csproj" />
-    <Project Path="samples/Sample.Modules/Sample.Modules.csproj" />
     <Project Path="samples/Sample.ServiceA/Sample.ServiceA.csproj" />
     <Project Path="samples/Sample.ServiceB/Sample.ServiceB.csproj" />
     <Project Path="samples/Sample.Worker/Sample.Worker.csproj" />
