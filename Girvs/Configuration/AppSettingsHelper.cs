@@ -10,13 +10,12 @@ public class AppSettingsHelper
 
         fileProvider ??= CommonHelper.DefaultFileProvider;
 
-        //create file if not exists
+        //文件已存在则不再回写,只有首次(文件不存在)才创建并写入
         var filePath = fileProvider.MapPath(ConfigurationDefaults.AppSettingsFilePath);
-        fileProvider.CreateFile(filePath);
+        if (fileProvider.FileExists(filePath))
+            return;
 
-        //check additional configuration parameters
-        // var additionalData = JsonConvert.DeserializeObject<AppSettings>(await fileProvider.ReadAllTextAsync(filePath, Encoding.UTF8))?.AdditionalData;
-        // appSettings.AdditionalData = additionalData;
+        fileProvider.CreateFile(filePath);
 
         //save app settings to the file
         var text = JsonConvert.SerializeObject(appSettings, Formatting.Indented);
@@ -56,13 +55,12 @@ public class AppSettingsHelper
 
         fileProvider ??= CommonHelper.DefaultFileProvider;
 
-        //create file if not exists
+        //文件已存在则不再回写,只有首次(文件不存在)才创建并写入
         var filePath = fileProvider.MapPath(ConfigurationDefaults.AppSettingsFilePath);
-        fileProvider.CreateFile(filePath);
+        if (fileProvider.FileExists(filePath))
+            return;
 
-        //check additional configuration parameters
-        // var additionalData = JsonConvert.DeserializeObject<AppSettings>(fileProvider.ReadAllText(filePath, Encoding.UTF8))?.AdditionalData;
-        // appSettings.AdditionalData = additionalData;
+        fileProvider.CreateFile(filePath);
 
         //save app settings to the file
         var text = JsonConvert.SerializeObject(appSettings, Formatting.Indented);
