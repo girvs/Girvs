@@ -1,9 +1,13 @@
 using Girvs.Aspire.Gateway;
 using Girvs.Aspire.Gateway.Configuration;
 using Girvs.Aspire.Gateway.Discovery;
-using System.Text;
+using Girvs.Infrastructure.Extensions;
+using Microsoft.OpenApi;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.ConfigureApplicationServices(builder.Configuration, builder.Environment);
 
 var gatewayDiscovery = builder.Configuration
     .GetSection("GatewayDiscovery")
@@ -11,73 +15,87 @@ var gatewayDiscovery = builder.Configuration
     ?? new GatewayDiscoveryConfig();
 
 builder.Services.AddGirvsGateway(gatewayDiscovery, builder.Configuration);
-
-var app = builder.Build();
-
-await app.Services.GetRequiredService<IGatewayServiceDiscoverySource>()
-    .StartAsync(CancellationToken.None);
-
-app.UseSwaggerUI(options =>
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
 {
-    options.RoutePrefix = "girvs_swagger";
-    options.DocumentTitle = "Girvs Sample Gateway API Docs";
-    options.IndexStream = () => new MemoryStream(
-        Encoding.UTF8.GetBytes(
-            """
-            <!DOCTYPE html>
-            <html lang="zh-CN">
-            <head>
-                <meta charset="UTF-8">
-                <title>Girvs Sample Gateway API Docs</title>
-                <link rel="stylesheet" type="text/css" href="./swagger-ui.css">
-                <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32">
-                <style>html{box-sizing:border-box;overflow-y:scroll}*,*:before,*:after{box-sizing:inherit}body{margin:0;background:#fafafa}</style>
-            </head>
-            <body>
-                <div id="swagger-ui"></div>
-                <script src="./swagger-ui-bundle.js"></script>
-                <script src="./swagger-ui-standalone-preset.js"></script>
-                <script>
-                window.onload = async function () {
-                    const response = await fetch('./swagger-config', { cache: 'no-store' });
-                    const config = await response.json();
-                    window.ui = SwaggerUIBundle({
-                        dom_id: '#swagger-ui',
-                        deepLinking: true,
-                        urls: config.urls,
-                        presets: [
-                            SwaggerUIBundle.presets.apis,
-                            SwaggerUIStandalonePreset
-                        ],
-                        plugins: [
-                            SwaggerUIBundle.plugins.DownloadUrl
-                        ],
-                        layout: 'StandaloneLayout'
-                    });
-                };
-                </script>
-            </body>
-            </html>
-            """
-        )
+    c.SwaggerDoc(
+        "v1",
+        new OpenApiInfo { Title = AppDomain.CurrentDomain.FriendlyName, Version = "v1" }
     );
 });
 
-app.MapGet("/girvs_swagger/swagger-config", (IGatewayServiceDiscoverySource source) =>
-{
-    var urls = source.GetServices()
-        .OrderBy(service => service.ServiceName, StringComparer.OrdinalIgnoreCase)
-        .Select(service => new
-        {
-            url = $"/{service.ServiceName}/girvs_openapi/girvs_api.json",
-            name = $"{service.ServiceName} API"
-        })
-        .ToArray();
+var app = builder.Build();
 
-    return Results.Json(new { urls });
+var gatewayServiceDiscoverySource = app.Services.GetRequiredService<IGatewayServiceDiscoverySource>();
+var swaggerEndpoints = new SwaggerEndpointEnumerator();
+
+await gatewayServiceDiscoverySource.StartAsync(CancellationToken.None);
+swaggerEndpoints.Refresh(gatewayServiceDiscoverySource);
+
+app.UseMiddleware<SwaggerFilterMiddleware>(swaggerEndpoints);
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.RoutePrefix = "girvs_swagger";
+    c.DocumentTitle = "Girvs Sample Gateway API Docs";
+    c.ConfigObject.Urls = swaggerEndpoints;
 });
+
+app.MapGet(
+    "/",
+    async context =>
+    {
+        await context.Response.WriteAsync("Welcome to ScsApiGateway!");
+    }
+);
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapSwagger("{documentName}/api-docs");
+}
+
 
 app.MapReverseProxy();
 app.MapGet("/health", () => Results.Ok("ok"));
 
 app.Run();
+
+public sealed class SwaggerEndpointEnumerator : List<UrlDescriptor>
+{
+    public void Refresh(IGatewayServiceDiscoverySource source)
+    {
+        Clear();
+
+        AddRange(
+            source.GetServices()
+                .OrderBy(service => service.ServiceName, StringComparer.OrdinalIgnoreCase)
+                .Select(service => new UrlDescriptor
+                {
+                    Url = $"/{service.ServiceName}/girvs_openapi/girvs_api.json",
+                    Name = $"{service.ServiceName} API"
+                })
+        );
+    }
+}
+
+public sealed class SwaggerFilterMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly SwaggerEndpointEnumerator _swaggerEndpoints;
+
+    public SwaggerFilterMiddleware(
+        RequestDelegate next,
+        SwaggerEndpointEnumerator swaggerEndpoints)
+    {
+        _next = next;
+        _swaggerEndpoints = swaggerEndpoints;
+    }
+
+    public Task InvokeAsync(
+        HttpContext context,
+        IGatewayServiceDiscoverySource source)
+    {
+        _swaggerEndpoints.Refresh(source);
+        return _next(context);
+    }
+}
