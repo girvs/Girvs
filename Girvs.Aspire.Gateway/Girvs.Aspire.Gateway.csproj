@@ -10,7 +10,6 @@
   <ItemGroup>
     <PackageReference Include="Yarp.ReverseProxy" Version="2.1.0" />
     <PackageReference Include="KubernetesClient" Version="15.0.1" />
-    <PackageReference Include="Consul" Version="1.7.14.9" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Girvs.Aspire.Gateway.Tests" />

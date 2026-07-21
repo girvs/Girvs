@@ -1,4 +1,3 @@
-using Consul;
 using Girvs.Aspire.Gateway.Configuration;
 using Girvs.Aspire.Gateway.Discovery;
 using Girvs.Aspire.Gateway.FlowProtection;
@@ -18,16 +17,13 @@ public static class GirvsGatewayExtensions
         IConfiguration configuration = default
     )
     {
-        if (config.DiscoveryType == GatewayDiscoveryType.Consul)
+        if (config.DiscoveryType == GatewayDiscoveryType.Kubernetes)
         {
-            services.AddSingleton<IConsulClient>(
-                _ => new ConsulClient(c => c.Address = new Uri(config.ConsulAddress))
-            );
-            services.AddSingleton<IGatewayServiceDiscoverySource, ConsulGatewayServiceSource>();
+            services.AddSingleton<IGatewayServiceDiscoverySource, KubernetesGatewayServiceSource>();
         }
         else
         {
-            services.AddSingleton<IGatewayServiceDiscoverySource, KubernetesGatewayServiceSource>();
+            services.AddSingleton<IGatewayServiceDiscoverySource, AspireGatewayServiceSource>();
         }
 
         services.AddSingleton<IProxyConfigProvider, GirvsGatewayProxyConfigProvider>();
