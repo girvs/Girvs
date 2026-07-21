@@ -1,6 +1,8 @@
 using Consul;
 using Girvs.Aspire.Gateway.Configuration;
 using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Aspire.Gateway.FlowProtection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
@@ -12,7 +14,8 @@ public static class GirvsGatewayExtensions
 {
     public static IServiceCollection AddGirvsGateway(
         this IServiceCollection services,
-        GatewayDiscoveryConfig config
+        GatewayDiscoveryConfig config,
+        IConfiguration configuration = default
     )
     {
         if (config.DiscoveryType == GatewayDiscoveryType.Consul)
@@ -38,6 +41,11 @@ public static class GirvsGatewayExtensions
                 context.AddXForwarded(ForwardedTransformActions.Append);
                 context.AddXForwardedFor("X-Forwarded-For", ForwardedTransformActions.Append);
             });
+
+        if (configuration is not null)
+        {
+            services.AddFlowProtection(configuration);
+        }
 
         return services;
     }
