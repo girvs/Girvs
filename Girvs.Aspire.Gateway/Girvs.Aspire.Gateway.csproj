@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Girvs\Girvs.csproj" />
+    <ProjectReference Include="..\Girvs.Cache\Girvs.Cache.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Yarp.ReverseProxy" Version="2.1.0" />
