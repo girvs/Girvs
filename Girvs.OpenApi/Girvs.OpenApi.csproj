@@ -13,7 +13,7 @@
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUi" Version="7.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
         <PackageReference Include="IGeekFan.AspNetCore.Knife4jUI" Version="0.0.16" />
         <PackageReference Include="Scalar.AspNetCore" Version="1.2.70" />
         <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="9.0.0">
@@ -24,7 +24,7 @@
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
-        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUi" Version="10.2.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
         <PackageReference Include="IGeekFan.AspNetCore.Knife4jUI" Version="0.0.16" />
         <PackageReference Include="Scalar.AspNetCore" Version="2.16.6" />
         <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.9">
