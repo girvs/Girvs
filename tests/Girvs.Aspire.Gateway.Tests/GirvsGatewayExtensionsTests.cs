@@ -26,6 +26,25 @@ public class GirvsGatewayExtensionsTests
     }
 
     [Fact]
+    public void 配置为Consul_注册Consul源与Provider()
+    {
+        var services = new ServiceCollection();
+        services.AddGirvsGateway(new GatewayDiscoveryConfig { DiscoveryType = GatewayDiscoveryType.Consul });
+
+        var descriptors = services.ToList();
+        Assert.Contains(
+            descriptors,
+            d =>
+                d.ServiceType == typeof(IGatewayServiceDiscoverySource)
+                && d.ImplementationType == typeof(ConsulGatewayServiceSource)
+        );
+        Assert.Contains(
+            descriptors,
+            d => d.ServiceType == typeof(Yarp.ReverseProxy.Configuration.IProxyConfigProvider)
+        );
+    }
+
+    [Fact]
     public void 配置为Kubernetes_注册K8s源与Provider()
     {
         var services = new ServiceCollection();
@@ -38,12 +57,12 @@ public class GirvsGatewayExtensionsTests
     }
 
     [Fact]
-    public void GatewayDiscoveryConfig_不再暴露Consul配置()
+    public void GatewayDiscoveryConfig_支持Consul兼容配置()
     {
         var properties = typeof(GatewayDiscoveryConfig).GetProperties().Select(p => p.Name).ToArray();
 
-        Assert.DoesNotContain("ConsulAddress", properties);
+        Assert.Contains("ConsulAddress", properties);
         Assert.DoesNotContain("ConsulConfig", properties);
-        Assert.DoesNotContain("Consul", Enum.GetNames<GatewayDiscoveryType>());
+        Assert.Contains("Consul", Enum.GetNames<GatewayDiscoveryType>());
     }
 }
