@@ -9,8 +9,6 @@ public sealed class FlowResponseTransform(
     FlowTicketService ticketService
 ) : ITransformProvider
 {
-    private const string BusinessIdResponseHeader = "X-Flow-Business-Id";
-
     public void ValidateRoute(TransformRouteValidationContext context)
     {
     }
@@ -67,18 +65,18 @@ public sealed class FlowResponseTransform(
         }
         finally
         {
-            context.HttpContext.Response.Headers.Remove(BusinessIdResponseHeader);
+            context.HttpContext.Response.Headers.Remove(FlowProtectionHeaders.BusinessIdFromResponse);
         }
     }
 
     private static string ReadBusinessId(ResponseTransformContext context)
     {
-        if (context.ProxyResponse?.Headers.TryGetValues(BusinessIdResponseHeader, out var values) == true)
+        if (context.ProxyResponse?.Headers.TryGetValues(FlowProtectionHeaders.BusinessIdFromResponse, out var values) == true)
         {
             return values.FirstOrDefault() ?? string.Empty;
         }
 
-        if (context.ProxyResponse?.Content?.Headers.TryGetValues(BusinessIdResponseHeader, out values) == true)
+        if (context.ProxyResponse?.Content?.Headers.TryGetValues(FlowProtectionHeaders.BusinessIdFromResponse, out values) == true)
         {
             return values.FirstOrDefault() ?? string.Empty;
         }
@@ -95,14 +93,14 @@ public sealed class FlowResponseTransform(
         context.Response.Headers.CacheControl = "no-store";
         if (result.Completed)
         {
-            context.Response.Headers["X-Flow-Completed"] = "true";
+            context.Response.Headers[FlowProtectionHeaders.Completed] = "true";
             return;
         }
 
         context.Response.Headers[options.TicketHeaderName] = attempt.Ticket;
         if (result.NextIndex.HasValue)
         {
-            context.Response.Headers["X-Flow-Next-Index"] = result.NextIndex.Value.ToString();
+            context.Response.Headers[FlowProtectionHeaders.NextIndex] = result.NextIndex.Value.ToString();
         }
     }
 }

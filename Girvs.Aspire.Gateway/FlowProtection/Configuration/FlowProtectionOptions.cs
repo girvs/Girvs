@@ -13,9 +13,9 @@ public sealed class FlowProtectionOptions
 
     public int CompletedTtlSeconds { get; set; } = 60;
 
-    public string TicketHeaderName { get; set; } = "X-Flow-Ticket";
+    public string TicketHeaderName { get; set; } = FlowProtectionHeaders.Ticket;
 
-    public string BusinessIdHeaderName { get; set; } = "X-Business-Id";
+    public string BusinessIdHeaderName { get; set; } = FlowProtectionHeaders.BusinessId;
 
     public List<FlowDefinitionOptions> Flows { get; set; } = [];
 }

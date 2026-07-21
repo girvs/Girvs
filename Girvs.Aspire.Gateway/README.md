@@ -59,6 +59,105 @@ K8s 模式下地址固定为集群内 DNS：`http://<ServiceName>.<Namespace>.sv
 
 不支持基于 Label/Annotation 的分流或自定义路由规则——这类需求留给网关侧自行叠加中间件，本包只负责"服务名 → 约定路由"这一层。
 
+## 流程防护
+
+网关可选启用严格线性流程防护，阻止已登录用户跳过前置接口直接调用后续接口。流程定义独立放在 `FlowProtection` 配置节，不写入 YARP Route Metadata；状态只保存在 Redis，所有 Reserve/Commit/Release/Delete 都通过 Lua 原子执行。
+
+启用前置条件：
+
+- Redis 配置使用 `Girvs.Cache`，并且 `CacheConfig.DistributedCacheConfig.ConnectionRef` 指向 `Resources` 中 `Type=redis` 的资源；
+- `redis-synchronized-memory`、memory、SQL Server 缓存都不接受；
+- 下游受保护接口不能绕过 YARP 暴露公网；
+- 本功能不替代认证、授权、资源权限校验和业务幂等。
+
+示例配置：
+
+```json
+{
+  "FlowProtection": {
+    "Enabled": true,
+    "DefaultTtlSeconds": 300,
+    "LockTtlSeconds": 30,
+    "CompletedTtlSeconds": 60,
+    "TicketHeaderName": "X-Flow-Ticket",
+    "BusinessIdHeaderName": "X-Business-Id",
+    "Flows": [
+      {
+        "FlowId": "user-role-abc",
+        "TtlSeconds": 300,
+        "Steps": [
+          { "Method": "POST", "Path": "/api/user1" },
+          { "Method": "POST", "Path": "/api/role1" },
+          { "Method": "POST", "Path": "/api/abc1" }
+        ]
+      }
+    ]
+  },
+  "ModuleConfigurations": {
+    "CacheConfig": {
+      "DistributedCacheConfig": {
+        "Enabled": true,
+        "ConnectionRef": "gateway-redis"
+      }
+    }
+  },
+  "Resources": {
+    "gateway-redis": {
+      "Type": "redis",
+      "Settings": {
+        "Endpoints": "redis:6379"
+      }
+    }
+  }
+}
+```
+
+接入代码：
+
+```csharp
+builder.Services.AddGirvsGateway(
+    new GatewayDiscoveryConfig { DiscoveryType = GatewayDiscoveryType.Kubernetes },
+    builder.Configuration);
+
+builder.Services.AddCors(options => options.AddPolicy("gateway", policy => policy
+    .AllowAnyOrigin()
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .WithExposedHeaders(FlowProtectionHeaders.ResponseHeaders)));
+
+var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseCors("gateway");
+
+app.MapReverseProxy(proxyPipeline =>
+{
+    proxyPipeline.UseMiddleware<FlowTicketMiddleware>();
+});
+```
+
+步骤 Path 使用下游服务路径。例如约定路由 `/{ServiceName}/{**catch-all}` 加 `PathRemovePrefix=order` 时，客户端请求 `/order/api/pay1`，流程配置写 `/api/pay1`。本期只支持精确 Path，不支持模板、通配符、Query 或 JSON Body 提取。
+
+响应 Header：
+
+- 未完成：`X-Flow-Ticket`、`X-Flow-Next-Index`、`Cache-Control: no-store`
+- 完成：`X-Flow-Completed: true`、`Cache-Control: no-store`
+- 下游可在第一步成功响应 `X-Flow-Business-Id`，网关会消费并写入 Redis，不透传给客户端。
+
+错误码均返回 RFC 7807 ProblemDetails，HTTP 403：
+
+| code | 含义 |
+|---|---|
+| `FLOW_NOT_FOUND` | Ticket 不存在、缺失或已过期 |
+| `FLOW_EXPIRED` | 流程状态已过期 |
+| `FLOW_BUSINESS_MISMATCH` | `X-Business-Id` 与 Redis 绑定值不一致 |
+| `FLOW_STEP_NOT_ALLOWED` | 当前步骤不是流程允许的下一步 |
+| `FLOW_IN_PROGRESS` | 同一步已有未过期处理锁 |
+| `FLOW_COMPLETED` | 流程已完成，重复调用被拒绝 |
+
+前端只保存服务端返回的 Ticket，建议以内存按 `flowId + businessId` 作为 key 保存；后续受保护请求自动附加 `X-Flow-Ticket` 和 `X-Business-Id`。收到 `FLOW_*` 403 后清除本地 Ticket 并提示用户重新开始。Ticket 是持有者凭据，本期明确不绑定 `userId/tenantId`，因此不要长期放入 LocalStorage，也不要记录到普通业务日志。
+
 ## 变更令牌与热更新
 
 `GirvsGatewayProxyConfigProvider` 订阅发现源的 `ServicesChanged` 事件：每次触发，先构建携带新 `ChangeToken` 的新配置、再取消旧配置持有的令牌，YARP 收到令牌取消通知后会重新调用 `GetConfig()` 拿到新路由——全程不重启进程、不轮询。K8s 模式下这意味着 Service 增删/端口变化能在**秒级**（watch 事件到达后）反映到网关路由，而不是等下一次轮询周期。
