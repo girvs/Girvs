@@ -4,12 +4,14 @@
     <IsPackable>false</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Girvs\Girvs.csproj" />
     <ProjectReference Include="..\..\Girvs.Aspire\Girvs.Aspire.csproj" />
-    <ProjectReference Include="..\..\Girvs.Consul\Girvs.Consul.csproj" />
     <ProjectReference Include="..\..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\Girvs.EventBus\Girvs.EventBus.csproj" />
+    <ProjectReference Include="..\..\Girvs.OpenApi\Girvs.OpenApi.csproj" />
   </ItemGroup>
 </Project>

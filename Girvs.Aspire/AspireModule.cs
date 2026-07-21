@@ -40,8 +40,6 @@ public class AspireModule : IAppModuleStartup
                 })
                 .UseOtlpExporter();
         }
-
-        WarnWhenConsulCoexists();
     }
 
     public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
@@ -63,13 +61,4 @@ public class AspireModule : IAppModuleStartup
     private static bool IsEventBusModuleLoaded() =>
         Type.GetType("Girvs.EventBus.EventBusModule, Girvs.EventBus") != null;
 
-    private static void WarnWhenConsulCoexists()
-    {
-        if (Type.GetType("Girvs.Consul.ConsulModule, Girvs.Consul") != null)
-        {
-            Log.Warning(
-                "检测到 Girvs.Consul 与 Girvs.Aspire 同时启用：两者的服务发现机制互斥，请仅保留其一（迁移期间可忽略此警告）"
-            );
-        }
-    }
 }

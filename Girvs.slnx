@@ -12,7 +12,6 @@
   <Project Path="Girvs.AuthorizePermission/Girvs.AuthorizePermission.csproj" />
   <Project Path="Girvs.AutoMapper/Girvs.AutoMapper.csproj" />
   <Project Path="Girvs.Cache/Girvs.Cache.csproj" />
-  <Project Path="Girvs.Consul/Girvs.Consul.csproj" />
   <Project Path="Girvs.Driven/Girvs.Driven.csproj" />
   <Project Path="Girvs.DynamicWebApi/Girvs.DynamicWebApi.csproj" />
   <Project Path="Girvs.EntityFrameworkCore/Girvs.EntityFrameworkCore.csproj" />

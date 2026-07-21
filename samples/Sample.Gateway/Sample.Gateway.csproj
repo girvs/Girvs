@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUi" Version="10.2.3" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Girvs.Aspire.Gateway\Girvs.Aspire.Gateway.csproj" />
   </ItemGroup>
 </Project>

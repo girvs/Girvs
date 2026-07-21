@@ -3,7 +3,7 @@ namespace Girvs.Aspire.Hosting.Tests;
 public class SampleGatewayConsulContractTests
 {
     [Fact]
-    public void Sample_AppHost_编排Consul网关并让ServiceA和ServiceB注册到Consul()
+    public void 样例AppHost_不再启动Consul_网关Run模式使用Aspire()
     {
         var repoRoot = FindRepoRoot();
         var appHostProgram = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.AppHost", "Program.cs"));
@@ -14,16 +14,29 @@ public class SampleGatewayConsulContractTests
         var serviceASettings = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.ServiceA", "appsettings.json"));
         var serviceBSettings = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.ServiceB", "appsettings.json"));
 
-        Assert.Contains("AddContainer(\"consul\", \"hashicorp/consul\"", appHostProgram);
+        Assert.Contains("builder.ExecutionContext.IsRunMode", appHostProgram);
+        Assert.Contains("builder.ExecutionContext.IsPublishMode", appHostProgram);
+        Assert.DoesNotContain("AddContainer(\"consul\"", appHostProgram);
         Assert.Contains("Projects.Sample_Gateway", appHostProgram);
-        Assert.Contains("ModuleConfigurations__ConsulConfig__ConsulAddress", appHostProgram);
-        Assert.Contains("ModuleConfigurations__ConsulConfig__HealthAddress", appHostProgram);
-        Assert.Contains("GatewayDiscoveryType.Consul", gatewayProgram);
-        Assert.Contains("ConsulAddress", gatewayProgram);
-        Assert.Contains("Girvs.Consul.csproj", serviceAProject);
-        Assert.Contains("Girvs.Consul.csproj", serviceBProject);
-        Assert.Contains("\"ConsulConfig\"", serviceASettings);
-        Assert.Contains("\"ConsulConfig\"", serviceBSettings);
+        Assert.DoesNotContain("ConsulConfig", appHostProgram);
+        Assert.Contains("GatewayDiscovery__DiscoveryType", appHostProgram);
+        Assert.Contains("GatewayDiscovery__DiscoveryType\", \"Aspire\"", appHostProgram);
+        Assert.Contains("\"Kubernetes\"", appHostProgram);
+        Assert.Contains("GetSection(\"GatewayDiscovery\")", gatewayProgram);
+        Assert.Contains("Get<GatewayDiscoveryConfig>()", gatewayProgram);
+        Assert.DoesNotContain("DiscoveryType = GatewayDiscoveryType.Consul", gatewayProgram);
+        Assert.DoesNotContain("ConsulAddress", gatewayProgram);
+        Assert.Contains("UseSwaggerUI", gatewayProgram);
+        Assert.Contains("GetServices()", gatewayProgram);
+        Assert.Contains("girvs_openapi/girvs_api.json", gatewayProgram);
+        Assert.DoesNotContain("ServiceA API", gatewayProgram);
+        Assert.DoesNotContain("ServiceB API", gatewayProgram);
+        Assert.DoesNotContain("Girvs.Consul.csproj", serviceAProject);
+        Assert.DoesNotContain("Girvs.Consul.csproj", serviceBProject);
+        Assert.Contains("Girvs.OpenApi.csproj", serviceAProject);
+        Assert.Contains("Girvs.OpenApi.csproj", serviceBProject);
+        Assert.DoesNotContain("\"ConsulConfig\"", serviceASettings);
+        Assert.DoesNotContain("\"ConsulConfig\"", serviceBSettings);
         Assert.Contains("Sample.Gateway\\Sample.Gateway.csproj", appHostProject);
     }
 
