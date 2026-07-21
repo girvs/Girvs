@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net10.0</TargetFrameworks>
+        <TargetFramework>net10.0</TargetFramework>
         <Description>Girvs 框架的 .NET Aspire AppHost 编排扩展：AsGirvsResource 显式登记基础资源，AddGirvsProject 生成并分发共享配置文件（GIRVS_SHARED_CONFIG）。</Description>
     </PropertyGroup>
 
