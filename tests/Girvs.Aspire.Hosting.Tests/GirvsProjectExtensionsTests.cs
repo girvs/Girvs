@@ -64,7 +64,7 @@ public class GirvsProjectExtensionsTests : IDisposable
     }
 
     [Fact]
-    public async Task run模式注入运行时共享文件路径且文件内容含登记资源()
+    public async Task run模式共享文件不存在时自动创建且含登记资源()
     {
         var builder = CreateBuilder();
         var redis = builder.AddRedis("platform-redis").AsGirvsResource();
@@ -76,16 +76,17 @@ public class GirvsProjectExtensionsTests : IDisposable
             DistributedApplicationOperation.Run);
 
         var path = Assert.Contains("GIRVS_SHARED_CONFIG", env);
-        Assert.EndsWith(Path.Combine("obj", "girvs.shared.runtime.json"), path);
+        Assert.Equal(Path.Combine(_tempRoot, "girvs.shared.json"), path);
         var content = await File.ReadAllTextAsync(path);
         Assert.Contains("platform-redis", content);
         Assert.Contains("localhost:56379", content);
     }
 
     [Fact]
-    public async Task run模式合并AppHost目录手写共享文件()
+    public async Task run模式共享文件已存在时就地更新并保留手写内容()
     {
-        File.WriteAllText(Path.Combine(_tempRoot, "girvs.shared.json"),
+        var sharedPath = Path.Combine(_tempRoot, "girvs.shared.json");
+        File.WriteAllText(sharedPath,
             """{"Logging":{"LogLevel":{"Default":"Warning"}}}""");
         var builder = CreateBuilder();
         var project = AddServiceProject(builder, "service-a");
@@ -94,7 +95,8 @@ public class GirvsProjectExtensionsTests : IDisposable
         var env = await project.Resource.GetEnvironmentVariableValuesAsync(
             DistributedApplicationOperation.Run);
 
-        var content = await File.ReadAllTextAsync(env["GIRVS_SHARED_CONFIG"]);
+        Assert.Equal(sharedPath, env["GIRVS_SHARED_CONFIG"]);
+        var content = await File.ReadAllTextAsync(sharedPath);
         Assert.Contains("Warning", content);
     }
 
@@ -109,7 +111,6 @@ public class GirvsProjectExtensionsTests : IDisposable
             DistributedApplicationOperation.Publish);
 
         Assert.Equal("/girvs-config/girvs.shared.json", env["GIRVS_SHARED_CONFIG"]);
-        Assert.False(File.Exists(
-            Path.Combine(_tempRoot, "obj", "girvs.shared.runtime.json")));
+        Assert.False(File.Exists(Path.Combine(_tempRoot, "girvs.shared.json")));
     }
 }

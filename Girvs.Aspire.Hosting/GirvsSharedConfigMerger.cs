@@ -6,7 +6,7 @@ namespace Girvs.Aspire.Hosting;
 
 /// <summary>
 /// 合并手写共享配置(girvs.shared.json)与 AsGirvsResource 登记的资源条目:
-/// 手写内容整体保留,登记资源覆盖 Resources 下同名键。输出运行时共享文件的 JSON 文本。
+/// 手写内容整体保留,登记资源覆盖 Resources 下同名键。输出就地更新后的共享文件 JSON 文本。
 /// </summary>
 internal static class GirvsSharedConfigMerger
 {

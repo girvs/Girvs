@@ -24,7 +24,7 @@ no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 \
   dotnet run --project samples/Sample.AppHost
 ```
 
-启动后控制台会打印 Aspire Dashboard 地址。AppHost 拉起 Redis / MySQL / RabbitMQ 容器后,把实际地址写入运行时共享文件(`Sample.AppHost/obj/girvs.shared.runtime.json`)并以 `GIRVS_SHARED_CONFIG` 注入各服务;服务按自己配置中的 `ConnectionRef` 从 `Resources` 组装连接串。
+启动后控制台会打印 Aspire Dashboard 地址。AppHost 拉起 Redis / MySQL / RabbitMQ 容器后,把实际地址就地更新进 `Sample.AppHost/girvs.shared.json`(不存在则创建,存在则只更新 `Resources` 节点)并以 `GIRVS_SHARED_CONFIG` 注入各服务;服务按自己配置中的 `ConnectionRef` 从 `Resources` 组装连接串。
 
 ## 自检端点（验证各能力）
 
@@ -49,7 +49,7 @@ dotnet run --project samples/Sample.AppHost -- \
   --operation publish --publisher manifest --output-path ./publish-out
 ```
 
-Publish 模式下不生成运行时共享文件，各服务的 `GIRVS_SHARED_CONFIG` 指向约定挂载路径 `/girvs-config/girvs.shared.json`，由生产 ConfigMap 提供内容（`Resources` 写阿里云托管实例的真实地址），不在集群内建容器。
+Publish 模式下不更新共享文件，各服务的 `GIRVS_SHARED_CONFIG` 指向约定挂载路径 `/girvs-config/girvs.shared.json`，由生产 ConfigMap 提供内容（`Resources` 写阿里云托管实例的真实地址），不在集群内建容器。
 
 ## 设计说明
 

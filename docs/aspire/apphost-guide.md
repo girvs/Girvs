@@ -15,7 +15,7 @@ girvs.shared.json(共享文件,GIRVS_SHARED_CONFIG 指向)
 ```
 
 - **单体 / 无共享文件**:`Resources` 直接写在服务 `appsettings.json`,行为与从前一致;
-- **Aspire 本地编排**:AppHost 拉起容器,把实际地址生成为运行时共享文件并注入 `GIRVS_SHARED_CONFIG`;
+- **Aspire 本地编排**:AppHost 拉起容器,把实际地址就地更新进 AppHost 目录下的 `girvs.shared.json`(不存在则创建)并注入 `GIRVS_SHARED_CONFIG`;
 - **K8s 生产**:共享文件由 ConfigMap 挂载到约定路径 `/girvs-config/girvs.shared.json`。
 
 服务本地配置永远优先于共享文件——由 .NET 标准配置合并规则保证,框架无任何特殊覆盖逻辑。
@@ -74,7 +74,7 @@ builder.AddGirvsProject<Projects.User_Api>("user-api");
 builder.Build().Run();
 ```
 
-- `AsGirvsResource()`:容器地址确定后写入运行时共享文件(`obj/girvs.shared.runtime.json`)的 `Resources` 节点;Type 自动推断(redis/mysql/sqlserver/rabbitmq/kafka),可用参数覆盖:`AsGirvsResource(type: "redis-synchronized-memory")`,或补充 Settings:`AsGirvsResource(settings: new Dictionary<string,string> { ["Ssl"] = "true" })`;
+- `AsGirvsResource()`:容器地址确定后就地更新 AppHost 目录下 `girvs.shared.json`(不存在则创建,存在则只更新 `Resources` 节点、其余手写内容原样保留)的 `Resources` 节点;Type 自动推断(redis/mysql/sqlserver/rabbitmq/kafka),可用参数覆盖:`AsGirvsResource(type: "redis-synchronized-memory")`,或补充 Settings:`AsGirvsResource(settings: new Dictionary<string,string> { ["Ssl"] = "true" })`;
 - `AddGirvsProject<TProject>(name)`:注入 `GIRVS_SHARED_CONFIG` 并对所有已登记资源 `WaitFor`;
 - **AppHost 不感知服务依赖**:服务用不用某资源、用哪个,完全由服务自己配置里的 `ConnectionRef` 决定;
 - Worker / Background Service 项目同样用 `AddGirvsProject` 编排。
@@ -113,15 +113,15 @@ public class SqliteSettingsProvider : IGirvsResourceSettingsProvider
 
 参照实现见 `samples/Sample.AppHost/`:`SqliteResource.cs`(无容器本地文件,实现 `IResourceWithoutLifetime` 免 WaitFor)与 `MongoSettingsProvider.cs`(官方集成包容器)。服务端对应模块的 `BuildConnectionString` 需要认识该 Type 才能消费(资源模型的 Type 是开放字符串,由消费模块解释)。
 
-### 手写共享文件(girvs.shared.json)
+### 共享文件(girvs.shared.json)
 
-AppHost 项目目录可放一个手写 `girvs.shared.json`,存放跨服务共享的非资源配置(如日志等级)或指向已有外部设施的资源条目。生成运行时文件时手写内容整体保留,`AsGirvsResource` 登记的资源覆盖 `Resources` 下同名键;想连公司现有 Redis 而不拉容器,就在手写文件里写死该资源、AppHost 里不编排它。
+AppHost 目录下的 `girvs.shared.json` 既是手写文件也是运行产物:不存在时 AppHost 首次启动自动创建;已存在时每次启动只**就地更新** `Resources` 节点,其余手写节点(如日志等级)原样保留。想连公司现有 Redis 而不拉容器,就在该文件里写死该资源、AppHost 里不编排它——`AsGirvsResource` 登记的同名资源会覆盖手写值,未登记的手写资源原样透传。该文件默认随仓库提交,记录了最近一次本地运行的资源快照;如不希望其内容随每次运行变动产生 git diff 噪音,可自行将其加入 `.gitignore`。
 
 ## 4. 生产部署(K8s)
 
 - 共享配置维护为一个 ConfigMap,挂载到各服务容器 `/girvs-config/girvs.shared.json`(publish 模式注入的 `GIRVS_SHARED_CONFIG` 即指向该路径);`Resources` 写生产基础设施(如阿里云托管 Redis/RDS)的真实地址;
 - 服务自身参数放镜像内 `appsettings.Production.json`,按优先级链天然覆盖共享值;
-- publish 模式下 AppHost 不生成运行时文件、不 WaitFor;若不希望容器资源进入发布清单,可用 `builder.ExecutionContext.IsRunMode` 包裹编排代码;
+- publish 模式下 AppHost 不更新共享文件、不 WaitFor;若不希望容器资源进入发布清单,可用 `builder.ExecutionContext.IsRunMode` 包裹编排代码;
 - 现有"volume 直接挂 `appsettings.json`"的老方式继续可用,两套并存、平滑迁移。
 
 ## 5. 根模块与程序集引用

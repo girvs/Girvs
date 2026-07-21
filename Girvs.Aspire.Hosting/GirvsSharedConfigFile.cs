@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 namespace Girvs.Aspire.Hosting;
 
 /// <summary>
-/// 运行时共享文件的幂等生成:首个服务的环境回调触发写入,后续服务复用同一结果。
-/// 生成时机在服务启动前(环境回调求值时),此时被 WaitFor 的容器 endpoint 均已分配。
+/// 共享文件(girvs.shared.json)的幂等就地更新:首个服务的环境回调触发写入,后续服务复用同一结果。
+/// 更新时机在服务启动前(环境回调求值时),此时被 WaitFor 的容器 endpoint 均已分配。
+/// 文件不存在则创建;已存在则只更新 Resources 节点,其余手写内容原样保留(见 GirvsSharedConfigMerger)。
 /// </summary>
 internal static class GirvsSharedConfigFile
 {
@@ -46,19 +47,11 @@ internal static class GirvsSharedConfigFile
             entries.Add(await GirvsResourceEntryBuilder.BuildAsync(resource, annotation, ct));
         }
 
-        var handWrittenPath = Path.Combine(builder.AppHostDirectory, HandWrittenFileName);
-        var handWrittenJson = File.Exists(handWrittenPath)
-            ? await File.ReadAllTextAsync(handWrittenPath, ct)
-            : null;
+        var path = Path.Combine(builder.AppHostDirectory, HandWrittenFileName);
+        var existingJson = File.Exists(path) ? await File.ReadAllTextAsync(path, ct) : null;
 
-        var merged = GirvsSharedConfigMerger.Merge(handWrittenJson, entries);
-        var outputPath = Path.Combine(
-            builder.AppHostDirectory,
-            "obj",
-            "girvs.shared.runtime.json"
-        );
-        Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-        await File.WriteAllTextAsync(outputPath, merged, ct);
-        return outputPath;
+        var merged = GirvsSharedConfigMerger.Merge(existingJson, entries);
+        await File.WriteAllTextAsync(path, merged, ct);
+        return path;
     }
 }
