@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Girvs\Girvs.csproj" />
     <ProjectReference Include="..\..\Girvs.Aspire\Girvs.Aspire.csproj" />
+    <ProjectReference Include="..\..\Girvs.Consul\Girvs.Consul.csproj" />
     <ProjectReference Include="..\..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\Girvs.EventBus\Girvs.EventBus.csproj" />
   </ItemGroup>

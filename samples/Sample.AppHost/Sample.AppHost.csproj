@@ -18,6 +18,7 @@
     <!-- 编排目标：生成 Projects.Sample_ServiceA / Projects.Sample_ServiceB 元数据 -->
     <ProjectReference Include="..\Sample.ServiceA\Sample.ServiceA.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\Sample.ServiceB\Sample.ServiceB.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="..\Sample.Gateway\Sample.Gateway.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\Sample.Worker\Sample.Worker.csproj" IsAspireProjectResource="true" />
   </ItemGroup>
 </Project>

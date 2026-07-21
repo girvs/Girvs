@@ -13,6 +13,11 @@ builder.AddRedis("sample-redis").AsGirvsResource(type: "redis-synchronized-memor
 builder.AddMySql("sample-mysql-server").AddDatabase("sample-mysql", databaseName: "sample").AsGirvsResource();
 builder.AddRabbitMQ("sample-rabbitmq").AsGirvsResource();
 
+var consul = builder
+    .AddContainer("consul", "hashicorp/consul", "1.20")
+    .WithArgs("agent", "-dev", "-client=0.0.0.0")
+    .WithHttpEndpoint(targetPort: 8500, name: "http");
+
 // 本地文件型资源:无容器、无生命周期(IResourceWithoutLifetime,不会被 WaitFor)
 builder.AddSqlite("sample-sqlite", Path.Combine(builder.AppHostDirectory, "obj", "sample.db"))
     .AsGirvsResource();
@@ -20,10 +25,25 @@ builder.AddSqlite("sample-sqlite", Path.Combine(builder.AppHostDirectory, "obj",
 // 官方集成包容器资源:提取逻辑由上面注册的 MongoSettingsProvider 完成
 builder.AddMongoDB("sample-mongo").AsGirvsResource();
 
-var serviceB = builder.AddGirvsProject<Projects.Sample_ServiceB>("service-b");
+var serviceB = builder.AddGirvsProject<Projects.Sample_ServiceB>("service-b")
+    .WaitFor(consul)
+    .WithEnvironment("ModuleConfigurations__ConsulConfig__ServerName", "service-b")
+    .WithEnvironment("ModuleConfigurations__ConsulConfig__ConsulAddress", consul.GetEndpoint("http"))
+    .WithEnvironment("ModuleConfigurations__ConsulConfig__HealthAddress", "http://host.docker.internal:5102/Health");
 
 // service-a 引用 service-b:注入其发现地址,供 service-a 用 http://service-b 通过服务发现调用
-builder.AddGirvsProject<Projects.Sample_ServiceA>("service-a").WithReference(serviceB);
+var serviceA = builder.AddGirvsProject<Projects.Sample_ServiceA>("service-a")
+    .WaitFor(consul)
+    .WithReference(serviceB)
+    .WithEnvironment("ModuleConfigurations__ConsulConfig__ServerName", "service-a")
+    .WithEnvironment("ModuleConfigurations__ConsulConfig__ConsulAddress", consul.GetEndpoint("http"))
+    .WithEnvironment("ModuleConfigurations__ConsulConfig__HealthAddress", "http://host.docker.internal:5101/Health");
+
+builder.AddProject<Projects.Sample_Gateway>("gateway")
+    .WaitFor(consul)
+    .WithReference(serviceA)
+    .WithReference(serviceB)
+    .WithEnvironment("ConsulAddress", consul.GetEndpoint("http"));
 
 // 后台工作服务:AddGirvsProject 对含 BackgroundService 的服务同样适用
 builder.AddGirvsProject<Projects.Sample_Worker>("worker");

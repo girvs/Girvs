@@ -9,6 +9,7 @@
 | `Sample.AppHost` | Aspire 编排入口（`AsGirvsResource` 登记资源 + `AddGirvsProject` 分发共享配置文件）；含 `IGirvsResourceSettingsProvider` 两类扩展示例：`SqliteResource.cs`（无容器本地文件）与 `MongoSettingsProvider.cs`（官方集成包容器） | Girvs.Aspire.Hosting |
 | `Sample.ServiceA` | Web 服务：缓存 + 数据库 + 调用 ServiceB | Cache、EntityFrameworkCore |
 | `Sample.ServiceB` | Web 服务：事件总线（CAP）+ 数据库（CAP 存储） | EventBus、EntityFrameworkCore |
+| `Sample.Gateway` | 本地网关：通过 Consul 发现 ServiceA/ServiceB，并按 `/{service}/...` 约定转发 | Aspire.Gateway |
 | `Sample.Worker` | 后台工作服务（BackgroundService 周期写缓存） | Cache |
 | `Sample.Modules` | 各服务的根模块声明（`[DependsOn]`），供 AppHost 引用 | — |
 
@@ -16,7 +17,7 @@
 
 ## 运行
 
-前置：本机 Docker 可拉取 `redis`/`mysql`/`rabbitmq` 镜像（国内需配镜像加速/代理）。
+前置：本机 Docker 可拉取 `redis`/`mysql`/`rabbitmq`/`hashicorp/consul` 镜像（国内需配镜像加速/代理）。
 
 ```bash
 # 本机若配置了 http 代理，务必带 no_proxy，否则 Aspire 的 localhost 通信会被塞进代理
@@ -24,7 +25,7 @@ no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 \
   dotnet run --project samples/Sample.AppHost
 ```
 
-启动后控制台会打印 Aspire Dashboard 地址。AppHost 拉起 Redis / MySQL / RabbitMQ 容器后,把实际地址就地更新进 `Sample.AppHost/girvs.shared.json`(不存在则创建,存在则只更新 `Resources` 节点)并以 `GIRVS_SHARED_CONFIG` 注入各服务;服务按自己配置中的 `ConnectionRef` 从 `Resources` 组装连接串。
+启动后控制台会打印 Aspire Dashboard 地址。AppHost 拉起 Redis / MySQL / RabbitMQ / Consul 容器后,把实际地址就地更新进 `Sample.AppHost/girvs.shared.json`(不存在则创建,存在则只更新 `Resources` 节点)并以 `GIRVS_SHARED_CONFIG` 注入各服务;服务按自己配置中的 `ConnectionRef` 从 `Resources` 组装连接串。ServiceA/ServiceB 通过 `Girvs.Consul` 注册到 Consul，Sample.Gateway 再通过 `Girvs.Aspire.Gateway` 的 Consul 源生成 YARP 路由。
 
 ## 自检端点（验证各能力）
 
@@ -40,6 +41,8 @@ no_proxy=localhost,127.0.0.1,::1 NO_PROXY=localhost,127.0.0.1,::1 \
 | ServiceB | `GET /ping` | 被 ServiceA 服务发现调用 | `pong` |
 | ServiceB | `GET /selfcheck/eventbus` | CAP 发布（RabbitMQ + MySQL 存储） | `{"published":true,...}` |
 | ServiceB | `GET /selfcheck/eventbus/received` | 订阅者端到端收到 | `{"lastReceived":"msg-..."}` |
+| Gateway | `GET /service-a/selfcheck/config` | 网关经 Consul 发现转发到 ServiceA | `{"logLevel":"Information","jwtSecretPresent":false}` |
+| Gateway | `GET /service-b/ping` | 网关经 Consul 发现转发到 ServiceB | `pong` |
 | Worker | `GET /selfcheck/heartbeat` | 后台服务写缓存的心跳 | `{"lastHeartbeat":"...ISO 时间"}` |
 
 ## 生成生产发布清单（外部资源引用）
@@ -54,7 +57,8 @@ Publish 模式下不更新共享文件，各服务的 `GIRVS_SHARED_CONFIG` 指�
 ## 设计说明
 
 - Girvs 启动机制（`CreateGirvsWebApplicationBuilder`）是 Web 宿主，故 Worker 亦用 Web SDK + `BackgroundService`，以复用 Girvs 模块机制与共享配置文件分发。
+- 网关示例保留 Consul 部署形态：ServiceA/ServiceB 使用 `Girvs.Consul` 注册服务，Sample.Gateway 使用 `GatewayDiscoveryType.Consul` 轮询 Consul Agent 服务目录。
 - 各服务需 `Properties/launchSettings.json` 指定端口，Aspire 据此分配/代理端点。
 - 详细设计与迁移指引见 `docs/aspire/apphost-guide.md` 与 `docs/superpowers/plans/2026-07-14-aspire-reference-implementation.md`。
 
-> 网关（`Girvs.Aspire.Gateway`，与本 AppHost 参照实现是独立话题）的 kind 集群端到端验证见 `samples/gateway-k8s/`。
+> K8s watch 模式的网关端到端验证见 `samples/gateway-k8s/`。
