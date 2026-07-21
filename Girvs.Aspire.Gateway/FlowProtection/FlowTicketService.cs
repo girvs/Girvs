@@ -4,8 +4,22 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace Girvs.Aspire.Gateway.FlowProtection;
 
-public sealed class FlowTicketService(IFlowStateStore stateStore)
+public sealed class FlowTicketService
 {
+    private readonly IFlowStateStore _stateStore;
+    private readonly int _lockTtlSeconds;
+
+    public FlowTicketService(IFlowStateStore stateStore)
+        : this(stateStore, lockTtlSeconds: 30)
+    {
+    }
+
+    public FlowTicketService(IFlowStateStore stateStore, int lockTtlSeconds)
+    {
+        _stateStore = stateStore;
+        _lockTtlSeconds = lockTtlSeconds;
+    }
+
     public string CreateTicket()
     {
         return CreateRandomToken();
@@ -24,7 +38,7 @@ public sealed class FlowTicketService(IFlowStateStore stateStore)
     {
         var ticket = CreateTicket();
         var attemptId = CreateAttemptId();
-        var result = await stateStore.CreateAndReserveAsync(
+        var result = await _stateStore.CreateAndReserveAsync(
             new FlowReserveRequest(
                 ticket,
                 step.Flow.FlowId,
@@ -32,7 +46,7 @@ public sealed class FlowTicketService(IFlowStateStore stateStore)
                 step.StepIndex,
                 attemptId,
                 step.Flow.TtlSeconds,
-                LockTtlSeconds: 30
+                _lockTtlSeconds
             ),
             cancellationToken
         );
@@ -59,7 +73,7 @@ public sealed class FlowTicketService(IFlowStateStore stateStore)
     )
     {
         var attemptId = CreateAttemptId();
-        var result = await stateStore.ReserveAsync(
+        var result = await _stateStore.ReserveAsync(
             new FlowReserveRequest(
                 ticket,
                 step.Flow.FlowId,
@@ -67,7 +81,7 @@ public sealed class FlowTicketService(IFlowStateStore stateStore)
                 step.StepIndex,
                 attemptId,
                 step.Flow.TtlSeconds,
-                LockTtlSeconds: 30
+                _lockTtlSeconds
             ),
             cancellationToken
         );
@@ -93,7 +107,7 @@ public sealed class FlowTicketService(IFlowStateStore stateStore)
         CancellationToken cancellationToken
     )
     {
-        var result = await stateStore.CommitAsync(
+        var result = await _stateStore.CommitAsync(
             new FlowCommitRequest(
                 attempt.Ticket,
                 attempt.AttemptId,
@@ -113,7 +127,7 @@ public sealed class FlowTicketService(IFlowStateStore stateStore)
 
     public async Task ReleaseAsync(FlowAttemptContext attempt, CancellationToken cancellationToken)
     {
-        var result = await stateStore.ReleaseAsync(
+        var result = await _stateStore.ReleaseAsync(
             new FlowReleaseRequest(attempt.Ticket, attempt.AttemptId),
             cancellationToken
         );
@@ -123,7 +137,7 @@ public sealed class FlowTicketService(IFlowStateStore stateStore)
 
     public async Task DeleteAsync(FlowAttemptContext attempt, CancellationToken cancellationToken)
     {
-        var result = await stateStore.DeleteAsync(
+        var result = await _stateStore.DeleteAsync(
             new FlowReleaseRequest(attempt.Ticket, attempt.AttemptId),
             cancellationToken
         );

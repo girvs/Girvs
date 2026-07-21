@@ -2,6 +2,8 @@ namespace Girvs.Aspire.Gateway.FlowProtection;
 
 public sealed class FlowAttemptContext
 {
+    public const string ItemsKey = "__GirvsFlowAttemptContext";
+
     public required string Ticket { get; init; }
 
     public required string AttemptId { get; init; }

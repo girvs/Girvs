@@ -5,6 +5,7 @@ using Girvs.Cache.Configuration;
 using Girvs.Configuration.Resources;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Yarp.ReverseProxy.Transforms.Builder;
 
 namespace Girvs.Aspire.Gateway.FlowProtection;
 
@@ -30,8 +31,12 @@ public static class FlowProtectionServiceCollectionExtensions
             return new FlowDefinitionRegistry(options);
         });
         services.AddSingleton<IFlowStateStore, RedisFlowStateStore>();
-        services.AddSingleton<FlowTicketService>();
+        services.AddSingleton(sp => new FlowTicketService(
+            sp.GetRequiredService<IFlowStateStore>(),
+            options.LockTtlSeconds
+        ));
         services.AddSingleton<DownstreamPathResolver>();
+        services.AddSingleton<ITransformProvider, FlowResponseTransform>();
 
         return services;
     }
