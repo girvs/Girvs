@@ -1,6 +1,6 @@
 # Girvs.Aspire.Gateway
 
-Girvs 自建 YARP 网关的**服务发现与路由生成**：可插拔 Consul（轮询）/ K8s（watch）两种发现源，按约定生成 YARP 路由与集群配置，替代各业务网关里重复的 `CustomProxyConfigProvider`/`ConsulClientService`/`KubernetesClientService`。
+Girvs 自建 YARP 网关的**服务发现与路由生成**：可插拔 Aspire 本地配置源 / K8s（watch）两种发现源，按约定生成 YARP 路由与集群配置，替代各业务网关里重复的 `CustomProxyConfigProvider`/`KubernetesClientService`。
 
 ## 用途
 
@@ -13,7 +13,7 @@ Girvs 自建 YARP 网关的**服务发现与路由生成**：可插拔 Consul（
 
 | 部署形态 | `GatewayDiscoveryType` | 发现源 | 机制 |
 |---|---|---|---|
-| CentOS / Docker（非 K8s） | `Consul` | `ConsulGatewayServiceSource` | 轮询 Consul Agent 服务目录（30 秒一次） |
+| 本地 AppHost | `Aspire` | `AspireGatewayServiceSource` | 读取 Aspire 注入的 `services:{name}:...` 端点配置 |
 | Kubernetes | `Kubernetes` | `KubernetesGatewayServiceSource` | relist 建初态 + watch K8s Service 增量事件，事件驱动、无轮询等待 |
 
 ## 用法
@@ -23,14 +23,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddGirvsGateway(new GatewayDiscoveryConfig
 {
-    DiscoveryType = GatewayDiscoveryType.Kubernetes, // 或 GatewayDiscoveryType.Consul
-    ConsulAddress = "http://192.168.51.166:8500",    // 仅 Consul 模式需要
+    DiscoveryType = GatewayDiscoveryType.Kubernetes, // 本地 AppHost 可用 GatewayDiscoveryType.Aspire
 });
 
 var app = builder.Build();
 
 // 关键：AddGirvsGateway 只注册服务，不会自动开始发现，必须在启动时显式调用 StartAsync
-// （K8s 模式下这里会启动后台 relist+watch 循环；Consul 模式下启动轮询定时器）
+// （K8s 模式下这里会启动后台 relist+watch 循环；Aspire 模式下读取当前配置快照）
 await app.Services.GetRequiredService<IGatewayServiceDiscoverySource>().StartAsync(CancellationToken.None);
 
 app.MapReverseProxy();
@@ -45,7 +44,7 @@ app.Run();
 
 ## 约定路由规则
 
-发现到一个后端服务（服务名 `ServiceName`，如 K8s Service 名 / Consul 注册的服务名），自动生成：
+发现到一个后端服务（服务名 `ServiceName`，如 Aspire 项目名 / K8s Service 名），自动生成：
 
 - 路由：`RouteId=ServiceName`，`Match.Path = "/{ServiceName}/{**catch-all}"`，`Transforms: PathRemovePrefix=ServiceName`
 - 集群：`ClusterId=ServiceName`，`Destinations` 为该服务的实际地址
@@ -55,7 +54,7 @@ app.Run();
 - 客户端请求 `GET /echo-a/foo`
 - 网关匹配到路由 `echo-a`，去掉 `echo-a` 前缀后转发 `GET /foo` 到该服务的地址
 
-K8s 模式下地址固定为集群内 DNS：`http://<ServiceName>.<Namespace>.svc.cluster.local:<Port>`（K8s Service 声明几个端口就生成几个 Destination）。Consul 模式下地址为 `http://<AgentService.Address>:<AgentService.Port>`。
+Aspire 模式下地址来自 AppHost 注入给网关项目的 `services:{ServiceName}:...` 配置。K8s 模式下地址固定为集群内 DNS：`http://<ServiceName>.<Namespace>.svc.cluster.local:<Port>`（K8s Service 声明几个端口就生成几个 Destination）。
 
 不支持基于 Label/Annotation 的分流或自定义路由规则——这类需求留给网关侧自行叠加中间件，本包只负责"服务名 → 约定路由"这一层。
 
@@ -212,6 +211,6 @@ watch 连接异常（网络抖动、API Server 重启等）会被捕获，2 秒�
 
 `samples/gateway-k8s/` 是一个可在 kind 集群里跑通的最小验证系统（网关 + `echo-a`/`echo-b` 两个 dummy 后端），包含完整 K8s 清单（RBAC/Deployment/Service）与 Dockerfile，并验证过"删除 Service → 路由秒级消失（404）→ 重新创建 → 路由恢复（200）"的动态更新场景。可直接照抄用于验证自己的部署。
 
-## 与 Consul 模式的区别
+## Aspire 与 K8s 模式的区别
 
-Consul 模式面向非 K8s 部署（如 CentOS 直接部署、Docker Compose），不需要 RBAC，但发现是**轮询**（默认 30 秒一次），服务上下线到网关感知之间有最多 30 秒延迟；K8s 模式是事件驱动，感知延迟通常是秒级。两种模式共用同一套 `AddGirvsGateway` API 与约定路由规则，仅 `GatewayDiscoveryConfig.DiscoveryType` 不同。
+Aspire 模式面向本地 AppHost，网关启动时读取 AppHost 注入的端点配置，适合本地联调和参照样例；K8s 模式面向生产集群，watch Service 变化并通过变更令牌热更新 YARP 配置。两种模式共用同一套 `AddGirvsGateway` API 与约定路由规则，仅 `GatewayDiscoveryConfig.DiscoveryType` 不同。

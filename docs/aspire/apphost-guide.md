@@ -1,6 +1,6 @@
 # Girvs 服务接入 .NET Aspire 指南
 
-适用范围：目标框架为 net10.0 的 Girvs 服务。net8/net9 服务请继续使用 Girvs.Consul。
+适用范围：目标框架为 net10.0 的 Girvs 服务。框架主线统一使用 Girvs.Aspire，不再提供 Consul 服务发现模块。
 架构总览见仓库根目录 `Architect.png`。
 
 ## 1. 配置分发模型(核心概念)
@@ -54,7 +54,7 @@ girvs.shared.json(共享文件,GIRVS_SHARED_CONFIG 指向)
 }
 ```
 
-4. 与 Girvs.Consul 互斥:迁移到 Aspire 服务发现后,移除 Girvs.Consul 包引用与相关配置。
+4. 服务发现由 Aspire / K8s 提供,服务项目不再引用服务注册中心模块。
 
 ## 3. AppHost 项目(Girvs.Aspire.Hosting)
 
@@ -131,7 +131,6 @@ AppHost 目录下的 `girvs.shared.json` 既是手写文件也是运行产物:�
 ## 6. 常见问题
 
 - **Dashboard 里看不到日志?** 确认服务由 AppHost 启动(`OTEL_EXPORTER_OTLP_ENDPOINT` 由 Aspire 自动注入);框架保留 Serilog,OTLP 是追加的 sink,本地文件/控制台日志不受影响。
-- **与 Consul 共存告警?** 迁移期间可忽略;完成迁移后移除 Girvs.Consul。
 - **改了 girvs.shared.json 服务没生效?** 共享文件以 `reloadOnChange` 加载,但绑定进 `Singleton<AppSettings>` 的值是启动时快照,改资源配置需重启服务。
 - **服务本地为什么不再回写 appsettings.json?** 设置了 `GIRVS_SHARED_CONFIG` 时框架跳过 AppSettings 回写,避免把共享文件中的动态地址固化到本地文件反向覆盖。
 - **数据库连接串格式?** 由各模块的 `BuildConnectionString` 按 `Resources` 的 Settings 组装,与手工连接串等价。
@@ -147,8 +146,8 @@ AppHost 目录下的 `girvs.shared.json` 既是手写文件也是运行产物:�
 
 ## 8. 网关(Girvs.Aspire.Gateway)
 
-自建 YARP 网关的服务发现与路由生成,与 Aspire AppHost 编排是两个独立话题:AppHost 负责本地/CI 环境编排各服务与基础设施,网关面向**生产多实例部署**(CentOS/Docker 或 K8s)做流量入口。两者可以同时使用:AppHost 跑参照实现验证接入,网关包直接用于生产网关进程。
+自建 YARP 网关的服务发现与路由生成,与 Aspire AppHost 编排是两个独立话题:AppHost 负责本地/CI 环境编排各服务与基础设施,网关面向本地 Aspire 与生产 K8s 两种部署做流量入口。两者可以同时使用:AppHost 跑参照实现验证接入,网关包直接用于生产网关进程。
 
 - 用法、约定路由规则、K8s RBAC 清单示例见 `Girvs.Aspire.Gateway/README.md`;
 - 端到端可跑通的验证系统(kind 集群 + 网关 + 两个 dummy 后端,验证过 K8s watch 动态路由的秒级增删)见 `samples/gateway-k8s/`(`Gateway/` 最小网关项目 + `Dockerfile` + `k8s.yaml`);
-- 部署形态与发现源对应关系:CentOS/Docker → `GatewayDiscoveryType.Consul`(轮询);K8s → `GatewayDiscoveryType.Kubernetes`(watch,事件驱动,秒级感知)。
+- 部署形态与发现源对应关系:本地 AppHost → `GatewayDiscoveryType.Aspire`(读取 Aspire 注入端点);K8s → `GatewayDiscoveryType.Kubernetes`(watch,事件驱动,秒级感知)。

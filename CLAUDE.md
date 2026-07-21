@@ -69,8 +69,7 @@ no_proxy=localhost,127.0.0.1,::1 dotnet run --project samples/Sample.AppHost
 | `Girvs.Quartz` | Quartz.NET 定时任务调度 |
 | `Girvs.Aspire` | .NET Aspire 服务端集成（仅 net10.0）：OpenTelemetry、健康检查、Aspire 服务发现 |
 | `Girvs.Aspire.Hosting` | Aspire AppHost 编排扩展（仅 net10.0）：`AsGirvsResource` 显式登记基础资源，`AddGirvsProject` 生成共享配置文件并注入 `GIRVS_SHARED_CONFIG` |
-| `Girvs.Aspire.Gateway` | YARP 网关服务发现与约定路由（仅 net10.0）：可插拔 Consul（轮询）/ K8s（watch）发现源，服务变化时通过变更令牌热更新路由，详见该模块 `README.md` |
-| `Girvs.Consul` | Consul 服务注册与发现、健康检查 |
+| `Girvs.Aspire.Gateway` | YARP 网关服务发现与约定路由（仅 net10.0）：本地 Aspire 配置发现源 / K8s watch 发现源，服务变化时通过变更令牌热更新路由，详见该模块 `README.md` |
 | `Girvs.SignalR` | SignalR 实时通信，JWT 认证集成 |
 | `Girvs.Refit` | 声明式 HTTP 客户端封装 |
 | `Girvs.AutoMapper` | AutoMapper 自动配置发现与集成 |
@@ -81,7 +80,7 @@ no_proxy=localhost,127.0.0.1,::1 dotnet run --project samples/Sample.AppHost
 
 - `samples/`：Girvs + Aspire 端到端参照实现（AppHost + ServiceA/B + Worker），使用独立解决方案 `GirvsAspireSample.slnx`（不进主 `Girvs.slnx`，避免构建即打包），通过 `ProjectReference` 直引框架源码，改框架代码后样例立即生效。各服务暴露 `/selfcheck/*` 自检端点，见 `samples/README.md`。
 - `samples/gateway-k8s/`：`Girvs.Aspire.Gateway` 的 kind 集群端到端验证（网关 + 两个 echo 后端 + 完整 K8s 清单），与 AppHost 参照实现是独立话题。
-- `docs/aspire/apphost-guide.md`：业务服务接入 Aspire 的迁移指引（net8/net9 服务继续用 Girvs.Consul，net10.0 迁移到 Girvs.Aspire）。
+- `docs/aspire/apphost-guide.md`：业务服务接入 Aspire 的迁移指引（框架主线统一使用 Girvs.Aspire）。
 
 ## 关键扩展点
 
