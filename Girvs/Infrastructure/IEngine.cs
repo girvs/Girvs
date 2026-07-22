@@ -26,6 +26,8 @@ public interface IEngine
 
     IGirvsClaimManager ClaimManager { get; }
 
+    IGirvsPrincipalAccessor PrincipalAccessor { get; }
+
     TConfig GetAppModuleConfig<TConfig>()
         where TConfig : class, IAppModuleConfig;
 

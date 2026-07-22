@@ -233,6 +233,8 @@ public class GirvsEngine : IEngine
         }
     }
 
+    public IGirvsPrincipalAccessor PrincipalAccessor => Resolve<IGirvsPrincipalAccessor>();
+
     public TConfig GetAppModuleConfig<TConfig>()
         where TConfig : class, IAppModuleConfig
     {
