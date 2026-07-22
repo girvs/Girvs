@@ -1,7 +1,7 @@
-using Girvs.Aspire.Gateway;
-using Girvs.Aspire.Gateway.Configuration;
-using Girvs.Aspire.Gateway.Discovery;
-using Girvs.Aspire.Gateway.FlowProtection;
+using Girvs.Gateway;
+using Girvs.Gateway.Configuration;
+using Girvs.Gateway.Discovery;
+using Girvs.Gateway.FlowProtection;
 
 // kind 集群 watch 动态路由验证用最小网关：
 // - AddGirvsGateway(K8s) 注册 KubernetesGatewayServiceSource + YARP 反向代理

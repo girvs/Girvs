@@ -1,7 +1,7 @@
 using Girvs;
-using Girvs.Aspire.Gateway;
-using Girvs.Aspire.Gateway.Configuration;
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway;
+using Girvs.Gateway.Configuration;
+using Girvs.Gateway.Discovery;
 using Microsoft.OpenApi;
 
 namespace Sample.Gateway;

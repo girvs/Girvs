@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Girvs.Aspire.Gateway\Girvs.Aspire.Gateway.csproj" />
+    <ProjectReference Include="..\..\Girvs.Gateway\Girvs.Gateway.csproj" />
     <ProjectReference Include="..\..\Girvs.OpenApi\Girvs.OpenApi.csproj" />
   </ItemGroup>
 </Project>

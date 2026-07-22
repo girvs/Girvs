@@ -1,4 +1,4 @@
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Sample.Gateway;

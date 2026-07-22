@@ -5,6 +5,6 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Girvs.Aspire.Gateway\Girvs.Aspire.Gateway.csproj" />
+    <ProjectReference Include="..\..\..\Girvs.Gateway\Girvs.Gateway.csproj" />
   </ItemGroup>
 </Project>

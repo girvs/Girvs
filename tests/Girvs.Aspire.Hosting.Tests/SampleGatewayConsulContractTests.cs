@@ -13,7 +13,7 @@ public class SampleGatewayConsulContractTests
         var gatewaySwaggerEndpointEnumerator = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.Gateway", "SwaggerEndpointEnumerator.cs"));
         var gatewaySwaggerFilterMiddleware = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.Gateway", "SwaggerFilterMiddleware.cs"));
         var sampleGatewayProject = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.Gateway", "Sample.Gateway.csproj"));
-        var gatewayProject = File.ReadAllText(Path.Combine(repoRoot, "Girvs.Aspire.Gateway", "Girvs.Aspire.Gateway.csproj"));
+        var gatewayProject = File.ReadAllText(Path.Combine(repoRoot, "Girvs.Gateway", "Girvs.Gateway.csproj"));
         var openApiProject = File.ReadAllText(Path.Combine(repoRoot, "Girvs.OpenApi", "Girvs.OpenApi.csproj"));
         var serviceAProject = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.ServiceA", "Sample.ServiceA.csproj"));
         var serviceBProject = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.ServiceB", "Sample.ServiceB.csproj"));
@@ -50,6 +50,8 @@ public class SampleGatewayConsulContractTests
         Assert.Contains("GetServices()", gatewaySwaggerEndpointEnumerator);
         Assert.Contains("girvs_openapi/girvs_api.json", gatewaySwaggerEndpointEnumerator);
         Assert.Contains("Yarp.ReverseProxy\" Version=\"2.3.0\"", gatewayProject);
+        Assert.Contains("Girvs.Gateway.csproj", sampleGatewayProject);
+        Assert.Contains("Girvs.Gateway", gatewayProject);
         Assert.Contains("Girvs.OpenApi.csproj", sampleGatewayProject);
         Assert.DoesNotContain("PackageReference Include=\"Swashbuckle.AspNetCore\"", sampleGatewayProject);
         Assert.Contains("PackageReference Include=\"Swashbuckle.AspNetCore\"", openApiProject);

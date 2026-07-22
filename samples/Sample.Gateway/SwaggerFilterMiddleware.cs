@@ -1,4 +1,4 @@
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 
 namespace Sample.Gateway;
 
