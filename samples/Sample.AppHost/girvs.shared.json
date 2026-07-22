@@ -11,11 +11,12 @@
         "Host": "192.168.51.183",
         "Port": "3306",
         "UserName": "root",
-        "Password": "zhuofan168"
+        "Password": "zhuofan168",
+        "Database": "girvs_event_test"
       }
     },
     "sample-redis": {
-      "Type": "redis-synchronized-memory",
+      "Type": "redis",
       "Settings": {
         "Endpoints": "192.168.51.183:6379,ssl=False,defaultdatabase=1"
       }
