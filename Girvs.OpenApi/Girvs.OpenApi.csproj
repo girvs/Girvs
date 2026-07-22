@@ -1,12 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
-        <!-- 本模块为类库，无入口点；OpenApi 文档由运行时 MapOpenApi 生成，
-             禁用 ApiDescription.Server 的构建期 dotnet-getdocument 生成以避免 "no entry point" 失败 -->
-        <OpenApiGenerateDocumentsOnBuild>false</OpenApiGenerateDocumentsOnBuild>
-    </PropertyGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj" />
     </ItemGroup>

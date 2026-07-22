@@ -4,40 +4,43 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 public static class ServiceCollectionExtension
 {
-    public static void RegisterNotificationHandlerType(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        var typeFinder = new WebAppTypeFinder();
-        var types = typeFinder.FindOfType(typeof(INotificationHandler<>));
-        foreach (var type in types)
+        public void RegisterNotificationHandlerType()
         {
-            services.TryAddScoped(type);
-            foreach (var implementedInterface in type.GetInterfaces()
-                         .Where(x => x.IsGenericType &&
-                                     x.GetGenericTypeDefinition() == typeof(INotificationHandler<>)))
+            var typeFinder = new WebAppTypeFinder();
+            var types = typeFinder.FindOfType(typeof(INotificationHandler<>));
+            foreach (var type in types)
             {
-                for (var index = services.Count - 1; index >= 0; index--)
+                services.TryAddScoped(type);
+                foreach (var implementedInterface in type.GetInterfaces()
+                             .Where(x => x.IsGenericType &&
+                                         x.GetGenericTypeDefinition() == typeof(INotificationHandler<>)))
                 {
-                    var descriptor = services[index];
-                    if (descriptor.ServiceType == implementedInterface && descriptor.ImplementationType == type)
-                        services.RemoveAt(index);
-                }
+                    for (var index = services.Count - 1; index >= 0; index--)
+                    {
+                        var descriptor = services[index];
+                        if (descriptor.ServiceType == implementedInterface && descriptor.ImplementationType == type)
+                            services.RemoveAt(index);
+                    }
 
-                services.AddScoped(implementedInterface, provider => provider.GetRequiredService(type));
+                    services.AddScoped(implementedInterface, provider => provider.GetRequiredService(type));
+                }
             }
         }
-    }
 
-    public static void RegisterCommandHandlerType(this IServiceCollection services)
-    {
-        var typeFinder = new WebAppTypeFinder();
-        var commandHandlerTypes = typeFinder.FindOfType<CommandHandler>()
-            .Where(x => x.Name != nameof(CommandHandler));
-
-        foreach (var commandHandlerType in commandHandlerTypes)
+        public void RegisterCommandHandlerType()
         {
-            foreach (var @interface in commandHandlerType.GetInterfaces())
+            var typeFinder = new WebAppTypeFinder();
+            var commandHandlerTypes = typeFinder.FindOfType<CommandHandler>()
+                .Where(x => x.Name != nameof(CommandHandler));
+
+            foreach (var commandHandlerType in commandHandlerTypes)
             {
-                services.AddScoped(@interface, commandHandlerType);
+                foreach (var @interface in commandHandlerType.GetInterfaces())
+                {
+                    services.AddScoped(@interface, commandHandlerType);
+                }
             }
         }
     }

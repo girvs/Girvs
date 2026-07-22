@@ -35,8 +35,7 @@ public class JwtConfig
 public class OAuth2Config
 {
     public string Authority { get; set; } = "http://localhost:5001";
-    public string Audience { get; set; } = AppDomain.CurrentDomain.FriendlyName
-        .Replace(".", "_");
+    public string Audience { get; set; } = ServiceNameResolver.FromAssemblyName();
     public bool RequireHttpsMetadata { get; set; } = false;
 
     public bool ValidateIssuerSigningKey { get; set; } = false;
