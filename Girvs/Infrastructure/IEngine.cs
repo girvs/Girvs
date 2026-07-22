@@ -24,8 +24,6 @@ public interface IEngine
 
     bool IsAuthenticated { get; }
 
-    IGirvsClaimManager ClaimManager { get; }
-
     IGirvsPrincipalAccessor PrincipalAccessor { get; }
 
     TConfig GetAppModuleConfig<TConfig>()

@@ -18,6 +18,9 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Girvs.AuthorizePermission\Girvs.AuthorizePermission.csproj" />
+        <ProjectReference Include="..\..\Girvs.Cache\Girvs.Cache.csproj" />
+        <ProjectReference Include="..\..\Girvs.Driven\Girvs.Driven.csproj" />
+        <ProjectReference Include="..\..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
         <ProjectReference Include="..\..\Girvs.EventBus\Girvs.EventBus.csproj" />
         <ProjectReference Include="..\..\Girvs\Girvs.csproj" />
     </ItemGroup>

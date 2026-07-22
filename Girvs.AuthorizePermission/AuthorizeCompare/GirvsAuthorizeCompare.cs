@@ -25,8 +25,7 @@ public abstract class GirvsAuthorizeCompare
     /// <returns></returns>
     public virtual bool IsLogin()
     {
-        var httpContext = EngineContext.Current.HttpContext;
-        return httpContext?.User.Identity != null && httpContext.User.Identity.IsAuthenticated;
+        return EngineContext.Current.PrincipalAccessor.Principal.Identity?.IsAuthenticated == true;
     }
 
     public override Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>()
@@ -47,14 +46,14 @@ public abstract class GirvsAuthorizeCompare
         }
 
         //如果是前台或者事件，只添加租户判断
-        var identityType = EngineContext.Current.ClaimManager.IdentityClaim.IdentityType;
+        var identityType = EngineContext.Current.PrincipalAccessor.Principal.GetIdentityType();
         if (identityType is IdentityType.RegisterUser or IdentityType.EventMessageUser)
         {
             return expression;
         }
 
         //如果登陆的是系统管理员或者是租户管理员，则只返回租户条件，默认为所有的数据权限
-        var userType = EngineContext.Current.ClaimManager.GetUserType();
+        var userType = EngineContext.Current.PrincipalAccessor.Principal.GetUserType();
         if (userType is UserType.AdminUser or UserType.TenantAdminUser)
         {
             return expression;

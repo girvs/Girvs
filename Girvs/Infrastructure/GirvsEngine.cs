@@ -223,16 +223,6 @@ public class GirvsEngine : IEngine
         }
     }
 
-    public IGirvsClaimManager ClaimManager
-    {
-        get
-        {
-            var claimManager = Resolve<IGirvsClaimManager>();
-            claimManager?.SetFromHttpRequestToken();
-            return claimManager;
-        }
-    }
-
     public IGirvsPrincipalAccessor PrincipalAccessor => Resolve<IGirvsPrincipalAccessor>();
 
     public TConfig GetAppModuleConfig<TConfig>()

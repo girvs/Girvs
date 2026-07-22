@@ -16,13 +16,13 @@ public record Message<TResponse>
         MessageType = GetType().Name;
         try
         {
-            var identityClaim = EngineContext.Current.ClaimManager.IdentityClaim;
+            var principal = EngineContext.Current.PrincipalAccessor.Principal;
             var ipAddress = EngineContext.Current is {HttpContext: { }}
                 ? EngineContext.Current.HttpContext?.Request.Headers["X-Forwarded-For"].ToString()
                 : "localhost";
 
-            MessageSource = new MessageSource(identityClaim.UserName, ipAddress, identityClaim.UserId,
-                identityClaim.TenantId, identityClaim.TenantName);
+            MessageSource = new MessageSource(principal.GetUserName(), ipAddress, principal.GetUserId(),
+                principal.GetTenantId(), principal.GetTenantName());
         }
         catch
         {
