@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
+using Girvs.AuthorizePermission.Middleware;
 
 namespace Girvs.AuthorizePermission;
 
@@ -88,6 +89,7 @@ public class GirvsAuthorizeModule : IAppModuleStartup
     public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
     {
         application.UseAuthentication();
+        application.UseMiddleware<GirvsTenantClaimsMiddleware>();
         application.UseAuthorization();
     }
 

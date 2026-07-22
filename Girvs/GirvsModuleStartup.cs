@@ -4,6 +4,8 @@ public class GirvsModuleStartup : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
+        services.AddHttpContextAccessor();
+        services.AddSingleton<IGirvsPrincipalAccessor, GirvsPrincipalAccessor>();
         services.RegisterRepository();
         services.RegisterUow();
         services.RegisterManager();

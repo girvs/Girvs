@@ -1,0 +1,16 @@
+global using System.Security.Claims;
+global using System.IdentityModel.Tokens.Jwt;
+global using Girvs.Extensions;
+global using Girvs.Infrastructure;
+global using Girvs.AuthorizePermission;
+global using Girvs.AuthorizePermission.Configuration;
+global using Girvs.AuthorizePermission.Enumerations;
+global using Girvs.AuthorizePermission.Extensions;
+global using Girvs.AuthorizePermission.Middleware;
+global using Girvs.Configuration;
+global using Girvs.EventBus.Identity;
+global using Girvs.EventBus;
+global using DotNetCore.CAP;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.Extensions.DependencyInjection;
+global using Xunit;

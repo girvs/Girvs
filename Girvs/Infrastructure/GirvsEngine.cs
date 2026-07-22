@@ -223,15 +223,7 @@ public class GirvsEngine : IEngine
         }
     }
 
-    public IGirvsClaimManager ClaimManager
-    {
-        get
-        {
-            var claimManager = Resolve<IGirvsClaimManager>();
-            claimManager?.SetFromHttpRequestToken();
-            return claimManager;
-        }
-    }
+    public IGirvsPrincipalAccessor PrincipalAccessor => Resolve<IGirvsPrincipalAccessor>();
 
     public TConfig GetAppModuleConfig<TConfig>()
         where TConfig : class, IAppModuleConfig
@@ -267,7 +259,7 @@ public class GirvsEngine : IEngine
     }
 
     public bool IsAuthenticated =>
-        HttpContext?.User.Identity != null && HttpContext.User.Identity.IsAuthenticated;
+        PrincipalAccessor.Principal.Identity?.IsAuthenticated == true;
 
     private static readonly AsyncLocal<IServiceProvider> AsyncLocalServiceProvider =
         new AsyncLocal<IServiceProvider>();

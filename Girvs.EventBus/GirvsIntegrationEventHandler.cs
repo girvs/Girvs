@@ -49,5 +49,62 @@ public abstract class GirvsIntegrationEventHandler<TIntegrationEvent>(
         await body(scope.ServiceProvider, cancellationToken);
     }
 
+    /// <summary>
+    /// 在独立作用域内恢复 CAP 消息携带的身份后执行消费逻辑。
+    /// </summary>
+    protected Task HandleInScopeAsync(
+        CapHeader header,
+        Func<CancellationToken, Task> body,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(body);
+        return HandleInScopeAsync(header, (_, token) => body(token), cancellationToken);
+    }
+
+    /// <summary>
+    /// 在独立作用域内恢复 CAP 消息携带的身份后执行消费逻辑。
+    /// </summary>
+    protected async Task HandleInScopeAsync(
+        CapHeader header,
+        Func<IServiceProvider, CancellationToken, Task> body,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(header);
+        ArgumentNullException.ThrowIfNull(body);
+
+        using var scope = serviceProvider.CreateScope();
+        using var serviceProviderScope = EngineContext.Current.ChangeCurrentThreadServiceProvider(
+            scope.ServiceProvider);
+        var principalAccessor = scope.ServiceProvider
+            .GetRequiredService<IGirvsPrincipalAccessor>();
+        var principal = BuildPrincipal(header);
+        using var principalScope = principalAccessor.Change(principal);
+        await body(scope.ServiceProvider, cancellationToken);
+    }
+
+    private static ClaimsPrincipal BuildPrincipal(CapHeader header)
+    {
+        if (!header.TryGetValue(
+                Identity.IntegrationIdentityContextSerializer.HeaderName,
+                out var json) || string.IsNullOrEmpty(json))
+        {
+            return new ClaimsPrincipal();
+        }
+
+        var context = Identity.IntegrationIdentityContextSerializer.Deserialize(json);
+        var claims = context.Claims
+            .Where(x => x.Type != GirvsClaimTypes.ExecutionSource)
+            .Select(x => new Claim(
+                x.Type,
+                x.Value,
+                string.IsNullOrEmpty(x.ValueType) ? ClaimValueTypes.String : x.ValueType,
+                string.IsNullOrEmpty(x.Issuer) ? ClaimsIdentity.DefaultIssuer : x.Issuer))
+            .ToList();
+        claims.Add(new Claim(
+            GirvsClaimTypes.ExecutionSource,
+            ExecutionSource.EventBus.ToString()));
+        return new ClaimsPrincipal(new ClaimsIdentity(claims, "Girvs.EventBus"));
+    }
+
     public virtual void Dispose() { }
 }
