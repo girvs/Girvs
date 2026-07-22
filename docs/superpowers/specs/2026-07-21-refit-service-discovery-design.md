@@ -48,6 +48,8 @@
 
 `RefitModule` 注册的 Refit 客户端和 `IEngine.RestServiceAsync<T>()` 都必须从依赖注入容器取得同一接口实例，确保共享 `HttpClientFactory` 的服务发现、弹性、认证请求处理器和可观测性。
 
+在 Aspire 编排部署中，`Girvs.Aspire` 已通过 `ConfigureHttpClientDefaults()` 为所有 `HttpClient` 添加 `AddServiceDiscovery()`。普通命名 `HttpClient` 可以不设置 `BaseAddress`，并在调用时使用 `http://{serviceName}/path` 形式的绝对逻辑服务地址。Refit 接口通常以相对路径声明 API，因此 Refit 注册期必须将 `BaseAddress` 设为 `http://{serviceName}`；请求仍由同一个服务发现处理器解析，接口调用方无需改写为完整 URL。该模式要求应用加载 `Girvs.Aspire` 模块。
+
 Consul 专用处理器只在 Consul 模式且没有固定端点覆盖时查询实例、改写主机地址，并透传当前请求头。无法发现健康实例时抛出包含服务名和发现模式的 `GirvsException`。日志使用结构化模板，避免记录不必要的敏感请求头。
 
 ## 测试
