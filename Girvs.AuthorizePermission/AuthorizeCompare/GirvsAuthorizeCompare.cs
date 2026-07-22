@@ -23,18 +23,14 @@ public abstract class GirvsAuthorizeCompare
     /// 判断当前用户是否登陆
     /// </summary>
     /// <returns></returns>
-    public virtual bool IsLogin()
-    {
-        return EngineContext.Current.PrincipalAccessor.Principal.Identity?.IsAuthenticated == true;
-    }
+    public virtual bool IsLogin() =>
+        EngineContext.Current.PrincipalAccessor.Principal.Identity?.IsAuthenticated == true;
 
     public override Expression<Func<TEntity, bool>> GetOtherQueryCondition<TEntity>()
     {
         //如果当前用户没有登陆，则跳过
         if (!IsLogin())
-        {
             return x => true;
-        }
 
         //默认判断如果存
         var expression = base.GetOtherQueryCondition<TEntity>();
@@ -119,22 +115,26 @@ public abstract class GirvsAuthorizeCompare
 
     #region 获取实体中所有带Or的条件字段
 
-    private static readonly ConcurrentDictionary<string, string[]> EntityDataRuleOrFieldsCache = new();
+    private static readonly ConcurrentDictionary<string, string[]> EntityDataRuleOrFieldsCache =
+        new();
 
     private string[] GetEntityDataRuleOrFields(Type entityType)
     {
-        return EntityDataRuleOrFieldsCache.GetOrAdd(entityType.Name, _ =>
-        {
-            return entityType
-                .GetProperties()
-                .Where(x =>
-                {
-                    var dataRule = x.GetCustomAttribute<DataRuleAttribute>();
-                    return dataRule != null && dataRule.ConditionType == ConditionType.Or;
-                })
-                .Select(x => x.Name)
-                .ToArray();
-        });
+        return EntityDataRuleOrFieldsCache.GetOrAdd(
+            entityType.Name,
+            _ =>
+            {
+                return entityType
+                    .GetProperties()
+                    .Where(x =>
+                    {
+                        var dataRule = x.GetCustomAttribute<DataRuleAttribute>();
+                        return dataRule != null && dataRule.ConditionType == ConditionType.Or;
+                    })
+                    .Select(x => x.Name)
+                    .ToArray();
+            }
+        );
     }
 
     #endregion
