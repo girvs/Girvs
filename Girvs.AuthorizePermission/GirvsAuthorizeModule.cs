@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Girvs.AuthorizePermission.Middleware;
 
 namespace Girvs.AuthorizePermission;
@@ -61,25 +60,24 @@ public class GirvsAuthorizeModule : IAppModuleStartup
         }
 
         if (
-            (authorizeConfig.AuthorizationModel & AuthorizationModel.IdentityServer4)
-            == AuthorizationModel.IdentityServer4
+            (authorizeConfig.AuthorizationModel & AuthorizationModel.OAuth2)
+            == AuthorizationModel.OAuth2
         )
         {
             authenticationBuilder.AddJwtBearer(
-                GirvsAuthenticationScheme.GirvsIdentityServer4,
+                GirvsAuthenticationScheme.GirvsOAuth2,
                 options =>
                 {
-                    options.Authority = authorizeConfig.IdentityServer4Config.ServerHost;
-                    options.Audience = authorizeConfig.IdentityServer4Config.ApiResourceName;
-                    options.RequireHttpsMetadata = authorizeConfig.IdentityServer4Config.UseHttps;
+                    options.Authority = authorizeConfig.OAuth2Config.Authority;
+                    options.Audience = authorizeConfig.OAuth2Config.Audience;
+                    options.RequireHttpsMetadata = authorizeConfig.OAuth2Config.RequireHttpsMetadata;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = authorizeConfig
-                            .IdentityServer4Config
+                            .OAuth2Config
                             .ValidateIssuerSigningKey,
-                        ValidateIssuer = authorizeConfig.IdentityServer4Config.ValidateIssuer,
-                        ValidateAudience = authorizeConfig.IdentityServer4Config.ValidateAudience,
-                        SignatureValidator = (token, _) => new JsonWebToken(token),
+                        ValidateIssuer = authorizeConfig.OAuth2Config.ValidateIssuer,
+                        ValidateAudience = authorizeConfig.OAuth2Config.ValidateAudience,
                     };
                 }
             );
