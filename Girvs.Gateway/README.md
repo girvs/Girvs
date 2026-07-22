@@ -1,6 +1,6 @@
 # Girvs.Gateway
 
-Girvs 自建 YARP 网关的**服务发现与路由生成**：可插拔 Aspire 本地配置源 / K8s（watch）两种发现源，按约定生成 YARP 路由与集群配置，替代各业务网关里重复的 `CustomProxyConfigProvider`/`KubernetesClientService`。
+Girvs 自建 YARP 网关的**服务发现与路由生成**：可插拔 Aspire 本地配置源 / Consul / K8s（watch）三种发现源，按约定生成 YARP 路由与集群配置，替代各业务网关里重复的 `CustomProxyConfigProvider`/`ConsulClientService`/`KubernetesClientService`。
 
 ## 用途
 
@@ -9,11 +9,12 @@ Girvs 自建 YARP 网关的**服务发现与路由生成**：可插拔 Aspire �
 1. 持续发现当前有哪些后端服务（及其地址）；
 2. 服务集变化时，让 YARP 的路由/集群配置跟着热更新（不重启网关、不轮询等待）。
 
-本包把这两件事抽成 `IGatewayServiceDiscoverySource`（发现）+ `IProxyConfigProvider`（YARP 配置生成），并提供两个开箱即用的发现源实现，覆盖两类常见部署形态：
+本包把这两件事抽成 `IGatewayServiceDiscoverySource`（发现）+ `IProxyConfigProvider`（YARP 配置生成），并提供三个开箱即用的发现源实现，覆盖三类常见部署形态：
 
 | 部署形态 | `GatewayDiscoveryType` | 发现源 | 机制 |
 |---|---|---|---|
 | 本地 AppHost | `Aspire` | `AspireGatewayServiceSource` | 读取 Aspire 注入的 `services:{name}:...` 端点配置 |
+| 传统服务注册中心 | `Consul` | `ConsulGatewayServiceSource` | 读取 Consul Agent Service 快照并生成目标地址 |
 | Kubernetes | `Kubernetes` | `KubernetesGatewayServiceSource` | relist 建初态 + watch K8s Service 增量事件，事件驱动、无轮询等待 |
 
 ## 用法
@@ -54,7 +55,7 @@ app.Run();
 - 客户端请求 `GET /echo-a/foo`
 - 网关匹配到路由 `echo-a`，去掉 `echo-a` 前缀后转发 `GET /foo` 到该服务的地址
 
-Aspire 模式下地址来自 AppHost 注入给网关项目的 `services:{ServiceName}:...` 配置。K8s 模式下地址固定为集群内 DNS：`http://<ServiceName>.<Namespace>.svc.cluster.local:<Port>`（K8s Service 声明几个端口就生成几个 Destination）。
+Aspire 模式下地址来自 AppHost 注入给网关项目的 `services:{ServiceName}:...` 配置。Consul 模式下地址来自 Consul Agent Service 的 `Address`/`Port`。K8s 模式下地址固定为集群内 DNS：`http://<ServiceName>.<Namespace>.svc.cluster.local:<Port>`（K8s Service 声明几个端口就生成几个 Destination）。
 
 不支持基于 Label/Annotation 的分流或自定义路由规则——这类需求留给网关侧自行叠加中间件，本包只负责"服务名 → 约定路由"这一层。
 

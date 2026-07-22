@@ -4,7 +4,7 @@
 - 状态：已确认
 - 前置文档：`docs/superpowers/specs/2026-07-13-aspire-integration-design.md`（框架基础能力，状态"已确认"，本文档不改动其内容，属于增量补充）
 - 关联业务落地文档：`docs/aspire/升级方案.md`（业务系统整体迁移指南，依赖本文档描述的框架能力）
-- 相关模块：新增 `Girvs.Aspire.Gateway`；扩展 `Girvs.Aspire`、`Girvs.Aspire.Hosting`
+- 相关模块：新增 `Girvs.Gateway`；扩展 `Girvs.Aspire`、`Girvs.Aspire.Hosting`
 
 ## 0. 实施策略（2026-07-14 补充）：参照实现优先
 
@@ -14,7 +14,7 @@
 
 由此，实施计划的组织从"按三个缺口切"调整为"按参照实现的分步搭建切"：
 - 计划 1（`2026-07-14-aspire-reference-implementation.md`）：参照实现搭建 + 分步验证，把本文档 3.2（共享配置）、3.3（外部资源引用）两项能力融入其中端到端验证；
-- 计划 2：`Girvs.Aspire.Gateway`（本文档 3.1），在计划 1 的参照系统之上叠加；
+- 计划 2：`Girvs.Gateway`（本文档 3.1），在计划 1 的参照系统之上叠加；
 - 计划 3：真实业务 NewOnlineRegistration 迁移（`docs/aspire/升级方案.md`），照参照实现改。
 
 ## 1. 背景与目标
@@ -31,15 +31,15 @@
 
 | 决策点 | 结论 |
 |--------|------|
-| 网关服务发现来源 | 新增 `Girvs.Aspire.Gateway` 包，提供 `KubernetesProxyConfigProvider`，通过 K8s API watch Service/EndpointSlice 动态生成 YARP 路由配置，替代 Consul Catalog 轮询 |
+| 网关服务发现来源 | 新增 `Girvs.Gateway` 包，提供 `KubernetesProxyConfigProvider`，通过 K8s API watch Service/EndpointSlice 动态生成 YARP 路由配置，替代 Consul Catalog 轮询 |
 | 路由元数据来源 | K8s Service 的 Annotation（`girvs.io/route-prefix` 等），由 `AddGirvsProject` 在发布阶段按 `GirvsProjectOptions` 声明自动写入 |
 | 共享配置注入 | `Girvs.Aspire.Hosting` 新增 `AddGirvsSharedConfiguration`；非敏感值走 K8s ConfigMap，敏感值走 K8s Secret；服务端由 `Girvs.Aspire` 新增读取逻辑覆盖 AppSettings |
 | 生产基础设施资源形态 | 本地 Run 模式沿用现有容器语义不变；Publish 模式下 Cache/EventBus/EFCore 三个资源贡献器改为 `AddConnectionString(...)` 引用外部参数（阿里云托管实例），不在集群内新建资源 |
-| 与已确认文档的关系 | 增量补充，不修改 2026-07-13 文档任何内容；`Girvs.Aspire`/`Girvs.Aspire.Hosting` 版本号随之提升，`Girvs.Aspire.Gateway` 为全新包 |
+| 与已确认文档的关系 | 增量补充，不修改 2026-07-13 文档任何内容；`Girvs.Aspire`/`Girvs.Aspire.Hosting` 版本号随之提升，`Girvs.Gateway` 为全新包 |
 
 ## 3. 架构设计
 
-### 3.1 `Girvs.Aspire.Gateway`（新包，仅 net10.0，服务端）
+### 3.1 `Girvs.Gateway`（新包，仅 net10.0，服务端）
 
 **（2026-07-15 依现有 YarpGateway 代码现实重写）**
 
@@ -50,7 +50,7 @@
 - **双网关分流靠中间件、不靠 Label**：两网关拉同一份全量服务列表，`RequestFilterMiddleware` 按 URL 前缀 allow/deny（管理端前缀 `/api/wb_management`）区分。
 - **变更令牌有潜在 bug**：YARP 监听的 `CustomProxyConfig.ChangeToken` 包装的 `_cts` 从不 Cancel；Provider 里 Cancel 的是另一个无关 `_cts`。当前靠 30s 新建 `_config` + YARP 自身周期重读兜底，热更新信号实际未接通。
 
-**修正后的职责（比原设计窄）**：把分散在两网关里的 K8s/Consul 发现 + YARP 路由生成逻辑提取为可复用的 `Girvs.Aspire.Gateway` 包；提供一个**可插拔的服务发现抽象**，其中 K8s 来源从"30s 轮询"升级为 **watch 事件驱动**；Consul 来源保留原样。**不引入 Label 分流、不引入 Annotation 路由**（现实里分流在中间件、路由是约定式，无需要）。
+**修正后的职责（比原设计窄）**：把分散在两网关里的 K8s/Consul 发现 + YARP 路由生成逻辑提取为可复用的 `Girvs.Gateway` 包；提供一个**可插拔的服务发现抽象**，其中 K8s 来源从"30s 轮询"升级为 **watch 事件驱动**；Consul 来源保留原样。**不引入 Label 分流、不引入 Annotation 路由**（现实里分流在中间件、路由是约定式，无需要）。
 
 **多部署形态（回应"兼顾 CentOS/docker 部署"）**：服务发现来源由 `ServiceDiscoveryType` 选择，同一份网关代码适配三种部署——
 
@@ -107,9 +107,9 @@ else
 
 ## 4. 工程约束
 
-- `Girvs.Aspire.Gateway` 仅 `net10.0`，依赖 `Yarp.ReverseProxy`、`KubernetesClient`（官方 `k8s` 包）；不引用 `Girvs.Aspire.Hosting`（服务端包与 AppHost 端包保持既有的单向依赖约束不变）。
+- `Girvs.Gateway` 仅 `net10.0`，依赖 `Yarp.ReverseProxy`、`KubernetesClient`（官方 `k8s` 包）；不引用 `Girvs.Aspire.Hosting`（服务端包与 AppHost 端包保持既有的单向依赖约束不变）。
 - `Girvs.Aspire.Hosting` 新增依赖 Aspire K8s publisher 的清单自定义扩展点（`Aspire.Hosting.Kubernetes` 的 manifest customization API，具体 API 面在实现阶段以当时 Aspire 13.x 稳定版为准，若接口有出入以实现时的实际签名为准）。
-- `nugetpublish.ps1` 增加 `Girvs.Aspire.Gateway` 推送行。
+- `nugetpublish.ps1` 增加 `Girvs.Gateway` 推送行。
 
 ## 5. 业务方使用方式
 
@@ -117,7 +117,7 @@ else
 
 ## 6. 测试策略
 
-- `Girvs.Aspire.Gateway`：`KubernetesProxyConfigProvider` 对 Service/EndpointSlice 变更事件到 YARP RouteConfig/ClusterConfig 的映射逻辑，用 K8s Fake Client（`KubernetesClient` 测试替身或内存 watch 事件回放）覆盖增删改场景；Annotation 缺失/格式错误时的跳过与警告行为。
+- `Girvs.Gateway`：`KubernetesProxyConfigProvider` 对 Service/EndpointSlice 变更事件到 YARP RouteConfig/ClusterConfig 的映射逻辑，用 K8s Fake Client（`KubernetesClient` 测试替身或内存 watch 事件回放）覆盖增删改场景；Annotation 缺失/格式错误时的跳过与警告行为。
 - 共享配置：ConfigMap/Secret 拆分逻辑、服务端 `SharedConfigurationModule` 的覆盖优先级（共享配置 > 服务本地配置）。
 - 外部资源引用模式：`IsPublishMode` 分支下生成的资源图（用 Aspire 的 manifest 快照测试，验证 Publish 模式下不产生容器资源、只产生 `AddConnectionString` 引用）。
 - 手工验证：至少一个网关 + 两个业务服务的最小拓扑，`aspire publish` 生成清单后部署到测试 K8s 命名空间，验证路由随服务上下线动态更新、共享配置正确落到 ConfigMap/Secret、外部连接串正确注入。
@@ -125,7 +125,7 @@ else
 ## 7. 明确不做的事（YAGNI）
 
 - 不实现 K8s 之外的其他生产发布目标（Docker Swarm、裸机等）；
-- 不在 `Girvs.Aspire.Gateway` 里重新实现 K8s Ingress Controller 的完整能力（如 TLS 证书自动签发），只做路由发现这一层，TLS/证书仍由现有基础设施（阿里云 SLB 等）承担；
+- 不在 `Girvs.Gateway` 里重新实现 K8s Ingress Controller 的完整能力（如 TLS 证书自动签发），只做路由发现这一层，TLS/证书仍由现有基础设施（阿里云 SLB 等）承担；
 - 共享配置机制不支持运行时热更新（与业务方已确认的"改配置重新发布可接受"一致）；
 - 不负责阿里云 RDS/Redis/消息队列实例本身的创建与运维，只负责连接串的声明与注入；
 - 不改动已确认的 2026-07-13 文档所覆盖的能力（本地资源自动编排、连接串映射逻辑本身）。

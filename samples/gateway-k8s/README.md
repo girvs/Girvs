@@ -1,10 +1,10 @@
 # gateway-k8s：K8s watch 动态路由验证
 
-在 kind 集群里跑通 `Girvs.Aspire.Gateway`（K8s 发现源）的最小验证系统：一个网关 + 两个 dummy 后端服务（`echo-a`、`echo-b`），验证 watch 能感知 Service 增删、YARP 路由随之秒级热更新。
+在 kind 集群里跑通 `Girvs.Gateway`（K8s 发现源）的最小验证系统：一个网关 + 两个 dummy 后端服务（`echo-a`、`echo-b`），验证 watch 能感知 Service 增删、YARP 路由随之秒级热更新。
 
 ## 组成
 
-- `Gateway/`：最小 ASP.NET Core 网关项目，`ProjectReference` 直接引 `Girvs.Aspire.Gateway`（独立于 `GirvsAspireSample.slnx`，不用 Aspire 服务发现）。
+- `Gateway/`：最小 ASP.NET Core 网关项目，`ProjectReference` 直接引 `Girvs.Gateway`（独立于 `GirvsAspireSample.slnx`，不用 Aspire 服务发现）。
 - `Dockerfile`：runtime-only 镜像（`mcr.microsoft.com/dotnet/aspnet:10.0` + 宿主 `dotnet publish` 产物），避免在 docker 内构建全仓库。
 - `k8s.yaml`：ServiceAccount + ClusterRole（`services` 的 `list`/`watch`，注意是集群范围，非命名空间级 `Role`）+ ClusterRoleBinding；`gateway` Deployment/Service；`echo-a`/`echo-b`（`hashicorp/http-echo`）Deployment/Service。
 

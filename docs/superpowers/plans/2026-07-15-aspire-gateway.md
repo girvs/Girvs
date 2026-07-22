@@ -1,8 +1,8 @@
-# Girvs.Aspire.Gateway 实施计划（计划 2）
+# Girvs.Gateway 实施计划（计划 2）
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 新增 `Girvs.Aspire.Gateway` 包，把分散在两个 YarpGateway 里的服务发现 + YARP 路由生成逻辑提取为可复用组件；提供可插拔服务发现抽象——K8s 源从 30 秒轮询升级为 watch 事件驱动，Consul 源保留给非 K8s（CentOS/docker）部署；修掉现有变更令牌未接通的 bug。
+**Goal:** 新增 `Girvs.Gateway` 包，把分散在两个 YarpGateway 里的服务发现 + YARP 路由生成逻辑提取为可复用组件；提供可插拔服务发现抽象——K8s 源从 30 秒轮询升级为 watch 事件驱动，Consul 源保留给非 K8s（CentOS/docker）部署；修掉现有变更令牌未接通的 bug。
 
 **Architecture:** `IGatewayServiceDiscoverySource`（抽象，产出服务端点快照 + `ServicesChanged` 事件）有两个实现——`ConsulGatewayServiceSource`（30s 轮询 Consul Agent.Services）与 `KubernetesGatewayServiceSource`（K8s watch + relist/重连）。`GirvsGatewayProxyConfigProvider : IProxyConfigProvider` 消费选定 source，按现有约定（服务名 → `/{name}/{**catch-all}` + `PathRemovePrefix`）生成 YARP 路由，并**正确接通 `CancellationChangeToken`** 通知 YARP 热重载。`AddGirvsGateway()` 按 `ServiceDiscoveryType` 选择 source 并注册 Provider + 反向代理。验证：K8s watch 源在本地 kind 集群真跑通，其余逻辑单测覆盖。
 
@@ -10,12 +10,12 @@
 
 ## Global Constraints
 
-- 新包 `Girvs.Aspire.Gateway`：`<TargetFramework>net10.0</TargetFramework>`（单一，覆盖根 props 复数 `TargetFrameworks`，写法同 `Girvs.Aspire`）；测试工程 `tests/Girvs.Aspire.Gateway.Tests` 亦 net10.0、`IsPackable=false`。
+- 新包 `Girvs.Gateway`：`<TargetFramework>net10.0</TargetFramework>`（单一，覆盖根 props 复数 `TargetFrameworks`，写法同 `Girvs.Aspire`）；测试工程 `tests/Girvs.Gateway.Tests` 亦 net10.0、`IsPackable=false`。
 - 依赖：`Yarp.ReverseProxy`、`KubernetesClient`、`Consul`；`ProjectReference` 引 `..\Girvs\Girvs.csproj`（用 `IAppModuleConfig`/`IAppModuleStartup`/`EngineContext`/`Singleton<AppSettings>`）。KubernetesClient 与 Consul 版本对齐现有 `ZhuoFan.Wb.YarpGateway.csproj`（实现时核对该 csproj 的 `<PackageReference>` 版本）。
 - **保留现有行为，不得改变**：① 约定路由——每个服务名生成 `RouteConfig{ RouteId=ClusterId=服务名, Match.Path="/{服务名}/{**catch-all}", Transforms=[{PathRemovePrefix:服务名}] }` + `ClusterConfig{ ClusterId=服务名, Destinations }`；② YARP 转换——`AddOriginalHost(false)` + `CopyRequestHeaders=true` + `AddXForwarded(Append)` + `AddXForwardedFor("X-Forwarded-For", Append)`；③ 不读 Tag/Meta/Annotation，不引入 Label 分流（分流仍在网关侧 `RequestFilterMiddleware`，不进本包）。
 - **修 bug**：现有 `CustomProxyConfig.ChangeToken` 包装的 `_cts` 从不被 Cancel，Provider Cancel 的是另一个无关 `_cts`（`ZhuoFan.Wb.YarpGateway/Services/CustomProxyConfig.cs:12-16`、`CustomProxyConfigProvider.cs:78-79`）。新实现须：Provider 持有 CTS，`GirvsGatewayProxyConfig.ChangeToken` 用**同一个** CTS 的 `CancellationChangeToken`；服务变化时先建新 config（新 CTS），再 Cancel 旧 CTS。
 - 服务端点 DTO 用 `Yarp.ReverseProxy.Configuration.DestinationConfig`；YARP 类型（`IProxyConfig`/`IProxyConfigProvider`/`RouteConfig`/`ClusterConfig`/`RouteMatch`）均来自 `Yarp.ReverseProxy.Configuration`。
-- 版本号随根 `Directory.Build.props`（当前 `10.0.0-rc.2`，不单独改）。`nugetpublish.ps1` 增 `Girvs.Aspire.Gateway` 推送行。
+- 版本号随根 `Directory.Build.props`（当前 `10.0.0-rc.2`，不单独改）。`nugetpublish.ps1` 增 `Girvs.Gateway` 推送行。
 - 加入 `Girvs.slnx` 与测试工程。
 - **验证分层**：约定路由生成、变更令牌接通、Consul 源、K8s 服务→端点映射逻辑——单测覆盖；K8s **watch 连接 + 动态路由更新**——在本地 kind 集群真跑通（Task 1 搭建、Task 7 验证）。
 
@@ -60,12 +60,12 @@ Expected: 一个 `girvs-gw-control-plane` 节点 `Ready`。
 ### Task 2: 包骨架 + 服务发现抽象
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj`
-- Create: `Girvs.Aspire.Gateway/GlobalUsings.cs`
-- Create: `Girvs.Aspire.Gateway/GatewayServiceEndpoint.cs`
-- Create: `Girvs.Aspire.Gateway/Discovery/IGatewayServiceDiscoverySource.cs`
-- Create: `Girvs.Aspire.Gateway/Configuration/GatewayDiscoveryConfig.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj`
+- Create: `Girvs.Gateway/Girvs.Gateway.csproj`
+- Create: `Girvs.Gateway/GlobalUsings.cs`
+- Create: `Girvs.Gateway/GatewayServiceEndpoint.cs`
+- Create: `Girvs.Gateway/Discovery/IGatewayServiceDiscoverySource.cs`
+- Create: `Girvs.Gateway/Configuration/GatewayDiscoveryConfig.cs`
+- Create: `tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj`
 - Modify: `Girvs.slnx`
 
 **Interfaces:**
@@ -76,7 +76,7 @@ Expected: 一个 `girvs-gw-control-plane` 节点 `Ready`。
 
 - [ ] **Step 1: 创建包 csproj**
 
-`Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj`：
+`Girvs.Gateway/Girvs.Gateway.csproj`：
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -94,7 +94,7 @@ Expected: 一个 `girvs-gw-control-plane` 节点 `Ready`。
     <PackageReference Include="Consul" Version="1.7.14.7" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Girvs.Aspire.Gateway.Tests" />
+    <InternalsVisibleTo Include="Girvs.Gateway.Tests" />
   </ItemGroup>
 </Project>
 ```
@@ -103,7 +103,7 @@ Expected: 一个 `girvs-gw-control-plane` 节点 `Ready`。
 
 - [ ] **Step 2: GlobalUsings**
 
-`Girvs.Aspire.Gateway/GlobalUsings.cs`：
+`Girvs.Gateway/GlobalUsings.cs`：
 
 ```csharp
 global using System;
@@ -117,10 +117,10 @@ global using Yarp.ReverseProxy.Configuration;
 
 - [ ] **Step 3: 服务端点 DTO**
 
-`Girvs.Aspire.Gateway/GatewayServiceEndpoint.cs`：
+`Girvs.Gateway/GatewayServiceEndpoint.cs`：
 
 ```csharp
-namespace Girvs.Aspire.Gateway;
+namespace Girvs.Gateway;
 
 /// <summary>网关发现到的一个后端服务：服务名 + YARP 目的地集合。</summary>
 public sealed class GatewayServiceEndpoint
@@ -132,10 +132,10 @@ public sealed class GatewayServiceEndpoint
 
 - [ ] **Step 4: 服务发现抽象**
 
-`Girvs.Aspire.Gateway/Discovery/IGatewayServiceDiscoverySource.cs`：
+`Girvs.Gateway/Discovery/IGatewayServiceDiscoverySource.cs`：
 
 ```csharp
-namespace Girvs.Aspire.Gateway.Discovery;
+namespace Girvs.Gateway.Discovery;
 
 /// <summary>网关服务发现来源：产出当前服务快照，并在服务集变化时触发 ServicesChanged。</summary>
 public interface IGatewayServiceDiscoverySource
@@ -153,12 +153,12 @@ public interface IGatewayServiceDiscoverySource
 
 - [ ] **Step 5: 配置类**
 
-`Girvs.Aspire.Gateway/Configuration/GatewayDiscoveryConfig.cs`：
+`Girvs.Gateway/Configuration/GatewayDiscoveryConfig.cs`：
 
 ```csharp
 using Girvs.Configuration;
 
-namespace Girvs.Aspire.Gateway.Configuration;
+namespace Girvs.Gateway.Configuration;
 
 public enum GatewayDiscoveryType
 {
@@ -179,7 +179,7 @@ public class GatewayDiscoveryConfig : IAppModuleConfig
 
 - [ ] **Step 6: 测试工程**
 
-`tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj`：
+`tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj`：
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -194,32 +194,32 @@ public class GatewayDiscoveryConfig : IAppModuleConfig
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Girvs.Aspire.Gateway\Girvs.Aspire.Gateway.csproj" />
+    <ProjectReference Include="..\..\Girvs.Gateway\Girvs.Gateway.csproj" />
   </ItemGroup>
 </Project>
 ```
 
-`tests/Girvs.Aspire.Gateway.Tests/GlobalUsings.cs`：
+`tests/Girvs.Gateway.Tests/GlobalUsings.cs`：
 
 ```csharp
 global using Xunit;
-global using Girvs.Aspire.Gateway;
-global using Girvs.Aspire.Gateway.Discovery;
+global using Girvs.Gateway;
+global using Girvs.Gateway.Discovery;
 global using Yarp.ReverseProxy.Configuration;
 ```
 
 - [ ] **Step 7: 加入解决方案，构建**
 
-`Girvs.slnx` 增两行（`Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj` 与 `tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj`）。
+`Girvs.slnx` 增两行（`Girvs.Gateway/Girvs.Gateway.csproj` 与 `tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj`）。
 
-Run: `dotnet build Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj`
+Run: `dotnet build Girvs.Gateway/Girvs.Gateway.csproj`
 Expected: Build succeeded。
 
 - [ ] **Step 8: 提交**
 
 ```bash
-git add Girvs.Aspire.Gateway/ tests/Girvs.Aspire.Gateway.Tests/ Girvs.slnx
-git commit -m "feat: Girvs.Aspire.Gateway 包骨架与服务发现抽象"
+git add Girvs.Gateway/ tests/Girvs.Gateway.Tests/ Girvs.slnx
+git commit -m "feat: Girvs.Gateway 包骨架与服务发现抽象"
 ```
 
 ---
@@ -227,9 +227,9 @@ git commit -m "feat: Girvs.Aspire.Gateway 包骨架与服务发现抽象"
 ### Task 3: 路由生成 Provider + 正确变更令牌（核心）
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/GirvsGatewayProxyConfig.cs`
-- Create: `Girvs.Aspire.Gateway/GirvsGatewayProxyConfigProvider.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/GirvsGatewayProxyConfigProviderTests.cs`
+- Create: `Girvs.Gateway/GirvsGatewayProxyConfig.cs`
+- Create: `Girvs.Gateway/GirvsGatewayProxyConfigProvider.cs`
+- Create: `tests/Girvs.Gateway.Tests/GirvsGatewayProxyConfigProviderTests.cs`
 
 **Interfaces:**
 - Consumes: `IGatewayServiceDiscoverySource`、`GatewayServiceEndpoint`（Task 2）。
@@ -239,12 +239,12 @@ git commit -m "feat: Girvs.Aspire.Gateway 包骨架与服务发现抽象"
 
 - [ ] **Step 1: 写失败测试（路由生成 + 变更令牌接通）**
 
-`tests/Girvs.Aspire.Gateway.Tests/GirvsGatewayProxyConfigProviderTests.cs`：
+`tests/Girvs.Gateway.Tests/GirvsGatewayProxyConfigProviderTests.cs`：
 
 ```csharp
 using System.Collections.Generic;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class GirvsGatewayProxyConfigProviderTests
 {
@@ -311,15 +311,15 @@ public class GirvsGatewayProxyConfigProviderTests
 
 - [ ] **Step 2: 运行确认失败**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj`
 Expected: 编译失败（`GirvsGatewayProxyConfigProvider`/`GirvsGatewayProxyConfig` 不存在）。
 
 - [ ] **Step 3: 实现 IProxyConfig**
 
-`Girvs.Aspire.Gateway/GirvsGatewayProxyConfig.cs`：
+`Girvs.Gateway/GirvsGatewayProxyConfig.cs`：
 
 ```csharp
-namespace Girvs.Aspire.Gateway;
+namespace Girvs.Gateway;
 
 public sealed class GirvsGatewayProxyConfig(
     IReadOnlyList<RouteConfig> routes,
@@ -335,12 +335,12 @@ public sealed class GirvsGatewayProxyConfig(
 
 - [ ] **Step 4: 实现 Provider（正确接通变更令牌）**
 
-`Girvs.Aspire.Gateway/GirvsGatewayProxyConfigProvider.cs`：
+`Girvs.Gateway/GirvsGatewayProxyConfigProvider.cs`：
 
 ```csharp
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 
-namespace Girvs.Aspire.Gateway;
+namespace Girvs.Gateway;
 
 public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDisposable
 {
@@ -420,13 +420,13 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
 
 - [ ] **Step 5: 运行确认通过**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj`
 Expected: 3 个测试全绿。
 
 - [ ] **Step 6: 提交**
 
 ```bash
-git add Girvs.Aspire.Gateway/ tests/Girvs.Aspire.Gateway.Tests/
+git add Girvs.Gateway/ tests/Girvs.Gateway.Tests/
 git commit -m "feat: 网关路由生成 Provider 与正确的变更令牌接通（修旧 bug）"
 ```
 
@@ -435,8 +435,8 @@ git commit -m "feat: 网关路由生成 Provider 与正确的变更令牌接通�
 ### Task 4: Consul 服务发现源（非 K8s 部署）
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/Discovery/ConsulGatewayServiceSource.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/ConsulMappingTests.cs`
+- Create: `Girvs.Gateway/Discovery/ConsulGatewayServiceSource.cs`
+- Create: `tests/Girvs.Gateway.Tests/ConsulMappingTests.cs`
 
 **Interfaces:**
 - Consumes: `IGatewayServiceDiscoverySource`、`GatewayServiceEndpoint`。
@@ -444,14 +444,14 @@ git commit -m "feat: 网关路由生成 Provider 与正确的变更令牌接通�
 
 - [ ] **Step 1: 写失败测试（Consul agent 服务 → 端点映射）**
 
-`tests/Girvs.Aspire.Gateway.Tests/ConsulMappingTests.cs`：
+`tests/Girvs.Gateway.Tests/ConsulMappingTests.cs`：
 
 ```csharp
 using System.Collections.Generic;
 using Consul;
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class ConsulMappingTests
 {
@@ -487,17 +487,17 @@ public class ConsulMappingTests
 
 - [ ] **Step 2: 运行确认失败**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~ConsulMappingTests"`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~ConsulMappingTests"`
 Expected: 编译失败（`ConsulGatewayServiceSource` 不存在）。
 
 - [ ] **Step 3: 实现 Consul 源**
 
-`Girvs.Aspire.Gateway/Discovery/ConsulGatewayServiceSource.cs`（映射逻辑照搬现有 `ConsulClientService.GetConsulClientServices`，见 `ZhuoFan.Wb.YarpGateway/Services/ConsulClientService.cs`，改为轮询 + 事件）：
+`Girvs.Gateway/Discovery/ConsulGatewayServiceSource.cs`（映射逻辑照搬现有 `ConsulClientService.GetConsulClientServices`，见 `ZhuoFan.Wb.YarpGateway/Services/ConsulClientService.cs`，改为轮询 + 事件）：
 
 ```csharp
 using Consul;
 
-namespace Girvs.Aspire.Gateway.Discovery;
+namespace Girvs.Gateway.Discovery;
 
 public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
     : IGatewayServiceDiscoverySource, IDisposable
@@ -525,7 +525,7 @@ public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[Girvs.Aspire.Gateway] Consul 刷新失败：{ex.Message}");
+            Console.Error.WriteLine($"[Girvs.Gateway] Consul 刷新失败：{ex.Message}");
         }
     }
 
@@ -565,13 +565,13 @@ public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
 
 - [ ] **Step 4: 运行确认通过**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~ConsulMappingTests"`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~ConsulMappingTests"`
 Expected: 2 个测试通过。
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add Girvs.Aspire.Gateway/ tests/Girvs.Aspire.Gateway.Tests/
+git add Girvs.Gateway/ tests/Girvs.Gateway.Tests/
 git commit -m "feat: Consul 网关服务发现源（轮询，非 K8s 部署）"
 ```
 
@@ -580,8 +580,8 @@ git commit -m "feat: Consul 网关服务发现源（轮询，非 K8s 部署）"
 ### Task 5: K8s watch 服务发现源
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/Discovery/KubernetesGatewayServiceSource.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/KubernetesMappingTests.cs`
+- Create: `Girvs.Gateway/Discovery/KubernetesGatewayServiceSource.cs`
+- Create: `tests/Girvs.Gateway.Tests/KubernetesMappingTests.cs`
 
 **Interfaces:**
 - Consumes: `IGatewayServiceDiscoverySource`、`GatewayServiceEndpoint`。
@@ -589,14 +589,14 @@ git commit -m "feat: Consul 网关服务发现源（轮询，非 K8s 部署）"
 
 - [ ] **Step 1: 写失败测试（K8s Service → 端点映射，纯函数）**
 
-`tests/Girvs.Aspire.Gateway.Tests/KubernetesMappingTests.cs`：
+`tests/Girvs.Gateway.Tests/KubernetesMappingTests.cs`：
 
 ```csharp
 using System.Collections.Generic;
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 using k8s.Models;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class KubernetesMappingTests
 {
@@ -635,19 +635,19 @@ public class KubernetesMappingTests
 
 - [ ] **Step 2: 运行确认失败**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~KubernetesMappingTests"`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~KubernetesMappingTests"`
 Expected: 编译失败（`KubernetesGatewayServiceSource` 不存在）。
 
 - [ ] **Step 3: 实现 K8s watch 源**
 
-`Girvs.Aspire.Gateway/Discovery/KubernetesGatewayServiceSource.cs`（映射逻辑照搬现有 `KubernetesClientService`，见 `ZhuoFan.Wb.YarpGateway/Services/KubernetesClientService.cs`；发现方式从一次性 list 改为 watch + relist）：
+`Girvs.Gateway/Discovery/KubernetesGatewayServiceSource.cs`（映射逻辑照搬现有 `KubernetesClientService`，见 `ZhuoFan.Wb.YarpGateway/Services/KubernetesClientService.cs`；发现方式从一次性 list 改为 watch + relist）：
 
 ```csharp
 using System.Collections.Immutable;
 using k8s;
 using k8s.Models;
 
-namespace Girvs.Aspire.Gateway.Discovery;
+namespace Girvs.Gateway.Discovery;
 
 public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySource, IDisposable
 {
@@ -703,7 +703,7 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"[Girvs.Aspire.Gateway] K8s watch 中断，2s 后重连：{ex.Message}");
+                Console.Error.WriteLine($"[Girvs.Gateway] K8s watch 中断，2s 后重连：{ex.Message}");
                 await Task.Delay(TimeSpan.FromSeconds(2), ct);
             }
         }
@@ -748,13 +748,13 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
 
 - [ ] **Step 4: 运行确认通过（映射纯函数）**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~KubernetesMappingTests"`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~KubernetesMappingTests"`
 Expected: 2 个测试通过。（watch 连接逻辑在 Task 7 的 kind 集群真验证。）
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add Girvs.Aspire.Gateway/ tests/Girvs.Aspire.Gateway.Tests/
+git add Girvs.Gateway/ tests/Girvs.Gateway.Tests/
 git commit -m "feat: K8s watch 网关服务发现源（relist+watch+重连）"
 ```
 
@@ -763,8 +763,8 @@ git commit -m "feat: K8s watch 网关服务发现源（relist+watch+重连）"
 ### Task 6: AddGirvsGateway 注册扩展
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/GirvsGatewayExtensions.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/GirvsGatewayExtensionsTests.cs`
+- Create: `Girvs.Gateway/GirvsGatewayExtensions.cs`
+- Create: `tests/Girvs.Gateway.Tests/GirvsGatewayExtensionsTests.cs`
 
 **Interfaces:**
 - Consumes: `GatewayDiscoveryConfig`/`GatewayDiscoveryType`、`ConsulGatewayServiceSource`、`KubernetesGatewayServiceSource`、`GirvsGatewayProxyConfigProvider`。
@@ -772,14 +772,14 @@ git commit -m "feat: K8s watch 网关服务发现源（relist+watch+重连）"
 
 - [ ] **Step 1: 写失败测试（按类型注册对应 source）**
 
-`tests/Girvs.Aspire.Gateway.Tests/GirvsGatewayExtensionsTests.cs`：
+`tests/Girvs.Gateway.Tests/GirvsGatewayExtensionsTests.cs`：
 
 ```csharp
-using Girvs.Aspire.Gateway.Configuration;
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Configuration;
+using Girvs.Gateway.Discovery;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class GirvsGatewayExtensionsTests
 {
@@ -811,22 +811,22 @@ public class GirvsGatewayExtensionsTests
 
 - [ ] **Step 2: 运行确认失败**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~GirvsGatewayExtensionsTests"`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~GirvsGatewayExtensionsTests"`
 Expected: 编译失败（`AddGirvsGateway` 不存在）。
 
 - [ ] **Step 3: 实现注册扩展**
 
-`Girvs.Aspire.Gateway/GirvsGatewayExtensions.cs`（转换照搬现有 `YarpGatewayModule.ConfigureServices`，见 `ZhuoFan.Wb.YarpGateway/YarpGatewayModule.cs:21-35`）：
+`Girvs.Gateway/GirvsGatewayExtensions.cs`（转换照搬现有 `YarpGatewayModule.ConfigureServices`，见 `ZhuoFan.Wb.YarpGateway/YarpGatewayModule.cs:21-35`）：
 
 ```csharp
 using Consul;
-using Girvs.Aspire.Gateway.Configuration;
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Configuration;
+using Girvs.Gateway.Discovery;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
-namespace Girvs.Aspire.Gateway;
+namespace Girvs.Gateway;
 
 public static class GirvsGatewayExtensions
 {
@@ -868,13 +868,13 @@ public static class GirvsGatewayExtensions
 
 - [ ] **Step 4: 运行确认通过 + 整包回归**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj`
 Expected: 全部测试通过（路由 3 + Consul 2 + K8s 2 + 注册 2）。
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add Girvs.Aspire.Gateway/ tests/Girvs.Aspire.Gateway.Tests/
+git add Girvs.Gateway/ tests/Girvs.Gateway.Tests/
 git commit -m "feat: AddGirvsGateway 注册扩展（按类型选源 + 反向代理转换）"
 ```
 
@@ -882,11 +882,11 @@ git commit -m "feat: AddGirvsGateway 注册扩展（按类型选源 + 反向代�
 
 ### Task 7: kind 集群真验证 K8s watch 动态路由 + 文档收尾
 
-**目标交付物**：在 kind 集群里部署一个用 `Girvs.Aspire.Gateway` 的最小网关 + 两个 dummy 后端服务，验证 watch 能感知服务上下线、YARP 路由动态更新；补文档；把包纳入发布。
+**目标交付物**：在 kind 集群里部署一个用 `Girvs.Gateway` 的最小网关 + 两个 dummy 后端服务，验证 watch 能感知服务上下线、YARP 路由动态更新；补文档；把包纳入发布。
 
 **Files:**
 - Create: `samples/gateway-k8s/`（kind 验证用：Dockerfile、K8s manifest、最小网关项目或复用 samples 网关）
-- Create: `Girvs.Aspire.Gateway/README.md`
+- Create: `Girvs.Gateway/README.md`
 - Modify: `nugetpublish.ps1`
 - Modify: `docs/aspire/apphost-guide.md`（补网关一节）
 
@@ -895,7 +895,7 @@ git commit -m "feat: AddGirvsGateway 注册扩展（按类型选源 + 反向代�
 
 - [ ] **Step 1: 建最小网关验证项目**
 
-在 `samples/gateway-k8s/` 建一个最小 ASP.NET Core 网关：`Program.cs` 用 `services.AddGirvsGateway(new GatewayDiscoveryConfig { DiscoveryType = GatewayDiscoveryType.Kubernetes })`，`app.MapReverseProxy()`，启动时 `app.Services.GetRequiredService<IGatewayServiceDiscoverySource>().StartAsync(default)`。`ProjectReference` 引 `Girvs.Aspire.Gateway`。给它一个 `Dockerfile`（`mcr.microsoft.com/dotnet/aspnet:10.0` 基镜像）。
+在 `samples/gateway-k8s/` 建一个最小 ASP.NET Core 网关：`Program.cs` 用 `services.AddGirvsGateway(new GatewayDiscoveryConfig { DiscoveryType = GatewayDiscoveryType.Kubernetes })`，`app.MapReverseProxy()`，启动时 `app.Services.GetRequiredService<IGatewayServiceDiscoverySource>().StartAsync(default)`。`ProjectReference` 引 `Girvs.Gateway`。给它一个 `Dockerfile`（`mcr.microsoft.com/dotnet/aspnet:10.0` 基镜像）。
 
 > 该验证网关独立于 `GirvsAspireSample.slnx`（那套走 Aspire 服务发现、非 K8s），单独构建镜像加载进 kind。
 
@@ -941,17 +941,17 @@ Expected: 删除后 404、恢复后 200——证明 watch 事件驱动的动态�
 
 - [ ] **Step 6: 写包 README + 更新 apphost-guide + nugetpublish**
 
-`Girvs.Aspire.Gateway/README.md`：用途、`AddGirvsGateway` 用法、`GatewayDiscoveryType` 三部署形态（CentOS/docker→Consul、K8s→watch）、需在启动调 `StartAsync`、K8s RBAC 清单示例、约定路由说明。
+`Girvs.Gateway/README.md`：用途、`AddGirvsGateway` 用法、`GatewayDiscoveryType` 三部署形态（CentOS/docker→Consul、K8s→watch）、需在启动调 `StartAsync`、K8s RBAC 清单示例、约定路由说明。
 `docs/aspire/apphost-guide.md` 补"网关"一节指向本包与 `samples/gateway-k8s`。
-`nugetpublish.ps1` 增 `Girvs.Aspire.Gateway` 推送行。
+`nugetpublish.ps1` 增 `Girvs.Gateway` 推送行。
 
 - [ ] **Step 7: 全量验证 + 提交 + 清理集群**
 
-Run: `dotnet build Girvs.slnx -c Release`（三 TFM 整体可编译）且 `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj`
+Run: `dotnet build Girvs.slnx -c Release`（三 TFM 整体可编译）且 `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj`
 Expected: 构建成功、测试全绿。
 
 ```bash
-git add Girvs.Aspire.Gateway/ samples/gateway-k8s/ nugetpublish.ps1 docs/aspire/apphost-guide.md
+git add Girvs.Gateway/ samples/gateway-k8s/ nugetpublish.ps1 docs/aspire/apphost-guide.md
 git commit -m "test: kind 集群验证 K8s watch 动态路由 + 网关包文档与发布收尾"
 kind delete cluster --name girvs-gw   # 清理（可选）
 ```
@@ -977,4 +977,4 @@ kind delete cluster --name girvs-gw   # 清理（可选）
 **范围检查**：单一子系统（网关服务发现 + 路由），聚焦，无需再拆。真业务网关（两个 YarpGateway）改用本包属业务迁移计划 3，不在本计划。
 
 ## 后续
-- 计划 3：NewOnlineRegistration 两个 YarpGateway 改用 `Girvs.Aspire.Gateway`（删除各自重复的 `CustomProxyConfigProvider`/`ConsulClientService`/`KubernetesClientService`），并把 20+ 业务服务整体迁移到 Aspire。
+- 计划 3：NewOnlineRegistration 两个 YarpGateway 改用 `Girvs.Gateway`（删除各自重复的 `CustomProxyConfigProvider`/`ConsulClientService`/`KubernetesClientService`），并把 20+ 业务服务整体迁移到 Aspire。

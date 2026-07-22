@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 在 `Girvs.Aspire.Gateway` 中实现基于 Girvs.Cache Redis Lua 状态机的严格线性流程防护。
+**Goal:** 在 `Girvs.Gateway` 中实现基于 Girvs.Cache Redis Lua 状态机的严格线性流程防护。
 
 **Architecture:** 注册表从独立 `FlowProtection` 配置构建下游步骤索引；中间件在转发前 Reserve，YARP 2.1 响应 Transform 在下游响应后 Commit 或 Release。所有状态转换通过 `IRedisConnectionWrapper` 执行 Lua，流程定义不写入 YARP Route Metadata。
 
@@ -23,30 +23,30 @@
 
 | 路径 | 职责 |
 | --- | --- |
-| `Girvs.Aspire.Gateway/FlowProtection/Configuration/FlowProtectionOptions.cs` | 配置对象 |
-| `Girvs.Aspire.Gateway/FlowProtection/FlowModels.cs` | 不可变定义、匹配和状态请求/结果 |
-| `Girvs.Aspire.Gateway/FlowProtection/FlowDefinitionRegistry.cs` | 配置验证和索引 |
-| `Girvs.Aspire.Gateway/FlowProtection/IFlowStateStore.cs` | 原子状态转换契约 |
-| `Girvs.Aspire.Gateway/FlowProtection/RedisFlowStateStore.cs` | Lua 实现 |
-| `Girvs.Aspire.Gateway/FlowProtection/FlowTicketService.cs` | 票据和状态机门面 |
-| `Girvs.Aspire.Gateway/FlowProtection/FlowAttemptContext.cs` | 单请求上下文 |
-| `Girvs.Aspire.Gateway/FlowProtection/DownstreamPathResolver.cs` | 入口/下游路径映射 |
-| `Girvs.Aspire.Gateway/FlowProtection/FlowTicketMiddleware.cs` | 入站 Reserve 与拒绝 |
-| `Girvs.Aspire.Gateway/FlowProtection/FlowResponseTransform.cs` | YARP 响应 Commit/Release |
-| `Girvs.Aspire.Gateway/FlowProtection/FlowProtectionErrors.cs` | RFC 7807 错误 |
-| `Girvs.Aspire.Gateway/FlowProtection/FlowProtectionServiceCollectionExtensions.cs` | DI 和 Redis 配置校验 |
-| `tests/Girvs.Aspire.Gateway.Tests/*FlowProtection*.cs` | 单元、Redis、YARP 集成测试 |
+| `Girvs.Gateway/FlowProtection/Configuration/FlowProtectionOptions.cs` | 配置对象 |
+| `Girvs.Gateway/FlowProtection/FlowModels.cs` | 不可变定义、匹配和状态请求/结果 |
+| `Girvs.Gateway/FlowProtection/FlowDefinitionRegistry.cs` | 配置验证和索引 |
+| `Girvs.Gateway/FlowProtection/IFlowStateStore.cs` | 原子状态转换契约 |
+| `Girvs.Gateway/FlowProtection/RedisFlowStateStore.cs` | Lua 实现 |
+| `Girvs.Gateway/FlowProtection/FlowTicketService.cs` | 票据和状态机门面 |
+| `Girvs.Gateway/FlowProtection/FlowAttemptContext.cs` | 单请求上下文 |
+| `Girvs.Gateway/FlowProtection/DownstreamPathResolver.cs` | 入口/下游路径映射 |
+| `Girvs.Gateway/FlowProtection/FlowTicketMiddleware.cs` | 入站 Reserve 与拒绝 |
+| `Girvs.Gateway/FlowProtection/FlowResponseTransform.cs` | YARP 响应 Commit/Release |
+| `Girvs.Gateway/FlowProtection/FlowProtectionErrors.cs` | RFC 7807 错误 |
+| `Girvs.Gateway/FlowProtection/FlowProtectionServiceCollectionExtensions.cs` | DI 和 Redis 配置校验 |
+| `tests/Girvs.Gateway.Tests/*FlowProtection*.cs` | 单元、Redis、YARP 集成测试 |
 
 ---
 
 ### Task 1: 配置模型与启动期注册表
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/FlowProtection/Configuration/FlowProtectionOptions.cs`
-- Create: `Girvs.Aspire.Gateway/FlowProtection/FlowModels.cs`
-- Create: `Girvs.Aspire.Gateway/FlowProtection/FlowDefinitionRegistry.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/FlowDefinitionRegistryTests.cs`
-- Modify: `Girvs.Aspire.Gateway/GlobalUsings.cs`
+- Create: `Girvs.Gateway/FlowProtection/Configuration/FlowProtectionOptions.cs`
+- Create: `Girvs.Gateway/FlowProtection/FlowModels.cs`
+- Create: `Girvs.Gateway/FlowProtection/FlowDefinitionRegistry.cs`
+- Create: `tests/Girvs.Gateway.Tests/FlowDefinitionRegistryTests.cs`
+- Modify: `Girvs.Gateway/GlobalUsings.cs`
 
 **Interfaces:**
 - Produces: `bool TryGetStep(string method, PathString path, out FlowStepMatch match)`。
@@ -71,7 +71,7 @@ public void 不同流程重复MethodPath_构造注册表时抛出配置异常()
 
 - [ ] **Step 2: 运行失败测试**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter FullyQualifiedName~FlowDefinitionRegistryTests --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter FullyQualifiedName~FlowDefinitionRegistryTests --no-restore --nologo`
 
 Expected: FAIL，缺少注册表及配置类型。
 
@@ -99,23 +99,23 @@ public sealed class FlowDefinitionRegistry
 
 - [ ] **Step 4: 运行通过测试并提交**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter FullyQualifiedName~FlowDefinitionRegistryTests --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter FullyQualifiedName~FlowDefinitionRegistryTests --no-restore --nologo`
 
 Expected: PASS，新增成功匹配、重复、空步骤和非法 TTL 测试。
 
 ```bash
-git add Girvs.Aspire.Gateway/FlowProtection/Configuration/FlowProtectionOptions.cs Girvs.Aspire.Gateway/FlowProtection/FlowModels.cs Girvs.Aspire.Gateway/FlowProtection/FlowDefinitionRegistry.cs Girvs.Aspire.Gateway/GlobalUsings.cs tests/Girvs.Aspire.Gateway.Tests/FlowDefinitionRegistryTests.cs
+git add Girvs.Gateway/FlowProtection/Configuration/FlowProtectionOptions.cs Girvs.Gateway/FlowProtection/FlowModels.cs Girvs.Gateway/FlowProtection/FlowDefinitionRegistry.cs Girvs.Gateway/GlobalUsings.cs tests/Girvs.Gateway.Tests/FlowDefinitionRegistryTests.cs
 git commit -m "feat: 增加流程保护配置注册表"
 ```
 
 ### Task 2: 状态契约、随机票据和统一错误
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/FlowProtection/IFlowStateStore.cs`
-- Create: `Girvs.Aspire.Gateway/FlowProtection/FlowTicketService.cs`
-- Create: `Girvs.Aspire.Gateway/FlowProtection/FlowAttemptContext.cs`
-- Create: `Girvs.Aspire.Gateway/FlowProtection/FlowProtectionErrors.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/FlowTicketServiceTests.cs`
+- Create: `Girvs.Gateway/FlowProtection/IFlowStateStore.cs`
+- Create: `Girvs.Gateway/FlowProtection/FlowTicketService.cs`
+- Create: `Girvs.Gateway/FlowProtection/FlowAttemptContext.cs`
+- Create: `Girvs.Gateway/FlowProtection/FlowProtectionErrors.cs`
+- Create: `tests/Girvs.Gateway.Tests/FlowTicketServiceTests.cs`
 
 **Interfaces:**
 - Produces: `CreateAndReserveAsync`、`ReserveAsync`、`CommitAsync`、`ReleaseAsync`、`DeleteAsync`。
@@ -143,7 +143,7 @@ public async Task Reserve跳步_映射为FLOW_STEP_NOT_ALLOWED()
 
 - [ ] **Step 2: 运行失败测试**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter FullyQualifiedName~FlowTicketServiceTests --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter FullyQualifiedName~FlowTicketServiceTests --no-restore --nologo`
 
 Expected: FAIL，缺少状态机接口。
 
@@ -172,22 +172,22 @@ Ticket/AttemptId 使用 `RandomNumberGenerator.GetBytes(32)` 与 `WebEncoders.Ba
 
 - [ ] **Step 4: 运行通过测试并提交**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter FullyQualifiedName~FlowTicketServiceTests --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter FullyQualifiedName~FlowTicketServiceTests --no-restore --nologo`
 
 Expected: PASS，含第一步创建、下一步 Reserve 和请求模型无主体字段断言。
 
 ```bash
-git add Girvs.Aspire.Gateway/FlowProtection/IFlowStateStore.cs Girvs.Aspire.Gateway/FlowProtection/FlowTicketService.cs Girvs.Aspire.Gateway/FlowProtection/FlowAttemptContext.cs Girvs.Aspire.Gateway/FlowProtection/FlowProtectionErrors.cs tests/Girvs.Aspire.Gateway.Tests/FlowTicketServiceTests.cs
+git add Girvs.Gateway/FlowProtection/IFlowStateStore.cs Girvs.Gateway/FlowProtection/FlowTicketService.cs Girvs.Gateway/FlowProtection/FlowAttemptContext.cs Girvs.Gateway/FlowProtection/FlowProtectionErrors.cs tests/Girvs.Gateway.Tests/FlowTicketServiceTests.cs
 git commit -m "feat: 定义流程票据状态机契约"
 ```
 
 ### Task 3: Redis Lua 原子状态存储
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/FlowProtection/RedisFlowStateStore.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/RedisFlowStateStoreTests.cs`
-- Modify: `Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj`
-- Modify: `tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj`
+- Create: `Girvs.Gateway/FlowProtection/RedisFlowStateStore.cs`
+- Create: `tests/Girvs.Gateway.Tests/RedisFlowStateStoreTests.cs`
+- Modify: `Girvs.Gateway/Girvs.Gateway.csproj`
+- Modify: `tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj`
 
 **Interfaces:**
 - Consumes: Task 2 的 `IFlowStateStore` 和 `IRedisConnectionWrapper.GetDatabaseAsync()`。
@@ -213,7 +213,7 @@ public async Task 两个同步骤Reserve_只有一个成功()
 
 - [ ] **Step 2: 运行失败测试**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter FullyQualifiedName~RedisFlowStateStoreTests --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter FullyQualifiedName~RedisFlowStateStoreTests --nologo`
 
 Expected: FAIL，缺少 Redis 存储实现；若 Docker 未运行，报告容器前置条件而非伪造成功。
 
@@ -233,23 +233,23 @@ CreateAndReserve 原子写入 Hash/TTL；Commit 先匹配 AttemptId，非最后�
 
 - [ ] **Step 4: 运行通过测试并提交**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter FullyQualifiedName~RedisFlowStateStoreTests --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter FullyQualifiedName~RedisFlowStateStoreTests --nologo`
 
 Expected: PASS，覆盖并发、跳步、businessId 不符、Release 重试、完成重放、锁超时、AttemptId 不符和 60 秒完成 TTL。
 
 ```bash
-git add Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj Girvs.Aspire.Gateway/FlowProtection/RedisFlowStateStore.cs tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj tests/Girvs.Aspire.Gateway.Tests/RedisFlowStateStoreTests.cs
+git add Girvs.Gateway/Girvs.Gateway.csproj Girvs.Gateway/FlowProtection/RedisFlowStateStore.cs tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj tests/Girvs.Gateway.Tests/RedisFlowStateStoreTests.cs
 git commit -m "feat: 使用 Redis Lua 管理流程状态"
 ```
 
 ### Task 4: DI、Redis 前置校验与下游路径解析
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/FlowProtection/FlowProtectionServiceCollectionExtensions.cs`
-- Create: `Girvs.Aspire.Gateway/FlowProtection/DownstreamPathResolver.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/FlowProtectionRegistrationTests.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/DownstreamPathResolverTests.cs`
-- Modify: `Girvs.Aspire.Gateway/GirvsGatewayExtensions.cs`
+- Create: `Girvs.Gateway/FlowProtection/FlowProtectionServiceCollectionExtensions.cs`
+- Create: `Girvs.Gateway/FlowProtection/DownstreamPathResolver.cs`
+- Create: `tests/Girvs.Gateway.Tests/FlowProtectionRegistrationTests.cs`
+- Create: `tests/Girvs.Gateway.Tests/DownstreamPathResolverTests.cs`
+- Modify: `Girvs.Gateway/GirvsGatewayExtensions.cs`
 
 **Interfaces:**
 - Produces: `AddFlowProtection(this IServiceCollection, IConfiguration)` 与 `PathString? Resolve(HttpContext)`。
@@ -275,7 +275,7 @@ public void 入口路径含服务名前缀_还原下游路径()
 
 - [ ] **Step 2: 运行失败测试**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~FlowProtectionRegistrationTests|FullyQualifiedName~DownstreamPathResolverTests" --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~FlowProtectionRegistrationTests|FullyQualifiedName~DownstreamPathResolverTests" --no-restore --nologo`
 
 Expected: FAIL，缺少注册扩展和解析器。
 
@@ -285,23 +285,23 @@ Expected: FAIL，缺少注册扩展和解析器。
 
 - [ ] **Step 4: 运行通过测试并提交**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~FlowProtectionRegistrationTests|FullyQualifiedName~DownstreamPathResolverTests|FullyQualifiedName~GirvsGatewayExtensionsTests" --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~FlowProtectionRegistrationTests|FullyQualifiedName~DownstreamPathResolverTests|FullyQualifiedName~GirvsGatewayExtensionsTests" --no-restore --nologo`
 
 Expected: PASS，既有网关注册测试保持通过。
 
 ```bash
-git add Girvs.Aspire.Gateway/GirvsGatewayExtensions.cs Girvs.Aspire.Gateway/FlowProtection/FlowProtectionServiceCollectionExtensions.cs Girvs.Aspire.Gateway/FlowProtection/DownstreamPathResolver.cs tests/Girvs.Aspire.Gateway.Tests/FlowProtectionRegistrationTests.cs tests/Girvs.Aspire.Gateway.Tests/DownstreamPathResolverTests.cs
+git add Girvs.Gateway/GirvsGatewayExtensions.cs Girvs.Gateway/FlowProtection/FlowProtectionServiceCollectionExtensions.cs Girvs.Gateway/FlowProtection/DownstreamPathResolver.cs tests/Girvs.Gateway.Tests/FlowProtectionRegistrationTests.cs tests/Girvs.Gateway.Tests/DownstreamPathResolverTests.cs
 git commit -m "feat: 注册网关流程保护服务"
 ```
 
 ### Task 5: 入站中间件、ProblemDetails 与响应 Transform
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/FlowProtection/FlowTicketMiddleware.cs`
-- Create: `Girvs.Aspire.Gateway/FlowProtection/FlowResponseTransform.cs`
-- Modify: `Girvs.Aspire.Gateway/FlowProtection/FlowProtectionErrors.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/FlowTicketMiddlewareTests.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/FlowProtectionYarpIntegrationTests.cs`
+- Create: `Girvs.Gateway/FlowProtection/FlowTicketMiddleware.cs`
+- Create: `Girvs.Gateway/FlowProtection/FlowResponseTransform.cs`
+- Modify: `Girvs.Gateway/FlowProtection/FlowProtectionErrors.cs`
+- Create: `tests/Girvs.Gateway.Tests/FlowTicketMiddlewareTests.cs`
+- Create: `tests/Girvs.Gateway.Tests/FlowProtectionYarpIntegrationTests.cs`
 
 **Interfaces:**
 - Consumes: Task 1 的索引、Task 2 门面、Task 4 解析器、YARP `ITransformProvider`。
@@ -334,7 +334,7 @@ public async Task 两个同步骤请求_只有一个到达测试下游()
 
 - [ ] **Step 2: 运行失败测试**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~FlowTicketMiddlewareTests|FullyQualifiedName~FlowProtectionYarpIntegrationTests" --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~FlowTicketMiddlewareTests|FullyQualifiedName~FlowProtectionYarpIntegrationTests" --nologo`
 
 Expected: FAIL，缺少中间件和 Transform。
 
@@ -354,22 +354,22 @@ await Results.Problem(
 
 - [ ] **Step 4: 运行通过测试并提交**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~FlowTicketMiddlewareTests|FullyQualifiedName~FlowProtectionYarpIntegrationTests" --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~FlowTicketMiddlewareTests|FullyQualifiedName~FlowProtectionYarpIntegrationTests" --nologo`
 
 Expected: PASS，覆盖完整流程、跳步、500 后重试、超时 Release、businessId 回填、另一流程 Ticket 串用、完成重放、Header 不泄漏。
 
 ```bash
-git add Girvs.Aspire.Gateway/FlowProtection/FlowTicketMiddleware.cs Girvs.Aspire.Gateway/FlowProtection/FlowResponseTransform.cs Girvs.Aspire.Gateway/FlowProtection/FlowProtectionErrors.cs tests/Girvs.Aspire.Gateway.Tests/FlowTicketMiddlewareTests.cs tests/Girvs.Aspire.Gateway.Tests/FlowProtectionYarpIntegrationTests.cs
+git add Girvs.Gateway/FlowProtection/FlowTicketMiddleware.cs Girvs.Gateway/FlowProtection/FlowResponseTransform.cs Girvs.Gateway/FlowProtection/FlowProtectionErrors.cs tests/Girvs.Gateway.Tests/FlowTicketMiddlewareTests.cs tests/Girvs.Gateway.Tests/FlowProtectionYarpIntegrationTests.cs
 git commit -m "feat: 根据下游响应推进流程步骤"
 ```
 
 ### Task 6: CORS、示例配置、README 与最终验证
 
 **Files:**
-- Modify: `Girvs.Aspire.Gateway/README.md`
+- Modify: `Girvs.Gateway/README.md`
 - Modify: `samples/gateway-k8s/Gateway/Program.cs`
 - Create: `samples/gateway-k8s/Gateway/appsettings.FlowProtection.json`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/FlowProtectionCorsTests.cs`
+- Create: `tests/Girvs.Gateway.Tests/FlowProtectionCorsTests.cs`
 
 **Interfaces:**
 - Consumes: Tasks 1-5 的配置与 Header 协议。
@@ -390,7 +390,7 @@ public async Task 成功响应_CORS暴露流程Header()
 
 - [ ] **Step 2: 运行失败测试**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter FullyQualifiedName~FlowProtectionCorsTests --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter FullyQualifiedName~FlowProtectionCorsTests --nologo`
 
 Expected: FAIL，样例尚未公开流程 Header。
 
@@ -408,18 +408,18 @@ README 说明前端按 `flowId + businessId` 仅以内存保存 Ticket，后续�
 
 - [ ] **Step 4: 运行测试、构建、回归与安全检查**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --nologo`
 
 Expected: PASS，含 CORS、Redis 与既有网关测试。
 
-Run: `dotnet build Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj --no-restore --nologo && dotnet test Girvs.slnx --no-restore --nologo && git diff --check`
+Run: `dotnet build Girvs.Gateway/Girvs.Gateway.csproj --no-restore --nologo && dotnet test Girvs.slnx --no-restore --nologo && git diff --check`
 
 Expected: 构建与全部测试通过，且无空白错误。若 Docker 不可用，Redis 集成测试必须明确 Skip 原因，交付时不可宣称完整集成测试通过。
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add Girvs.Aspire.Gateway/README.md samples/gateway-k8s/Gateway/Program.cs samples/gateway-k8s/Gateway/appsettings.FlowProtection.json tests/Girvs.Aspire.Gateway.Tests/FlowProtectionCorsTests.cs
+git add Girvs.Gateway/README.md samples/gateway-k8s/Gateway/Program.cs samples/gateway-k8s/Gateway/appsettings.FlowProtection.json tests/Girvs.Gateway.Tests/FlowProtectionCorsTests.cs
 git commit -m "docs: 补充网关流程防护接入说明"
 ```
 

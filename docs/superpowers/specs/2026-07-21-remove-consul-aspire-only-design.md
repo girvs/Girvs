@@ -2,14 +2,14 @@
 
 ## 背景
 
-Girvs 新架构已经引入 `Girvs.Aspire`、`Girvs.Aspire.Hosting` 与 `Girvs.Aspire.Gateway`。当前仓库仍保留 `Girvs.Consul`，样例 AppHost 也会在本地 Run 模式启动 Consul 容器，并让业务服务通过 `ConsulConfig` 注册服务。这会让框架同时暴露 Aspire 与 Consul 两套服务发现模型，使用者难以判断推荐路径。
+Girvs 新架构已经引入 `Girvs.Aspire`、`Girvs.Aspire.Hosting` 与 `Girvs.Gateway`。当前仓库仍保留 `Girvs.Consul`，样例 AppHost 也会在本地 Run 模式启动 Consul 容器，并让业务服务通过 `ConsulConfig` 注册服务。这会让框架同时暴露 Aspire 与 Consul 两套服务发现模型，使用者难以判断推荐路径。
 
 本变更选择彻底移除 Consul 路线：本地开发、Docker 基础设施、网关路由与生产 K8s 都统一走 Aspire/K8s 模型。
 
 ## 目标
 
 1. 从框架主线删除 `Girvs.Consul` 项目、包引用、样例引用、文档推荐与测试契约。
-2. `Girvs.Aspire.Gateway` 不再支持 `GatewayDiscoveryType.Consul`。
+2. `Girvs.Gateway` 不再支持 `GatewayDiscoveryType.Consul`。
 3. 本地 AppHost Run 模式下，网关从 Aspire 注入的服务端点配置生成 YARP 路由。
 4. 生产 Publish/K8s 模式下，网关继续通过 K8s Service/EndpointSlice 与 Annotation 生成 YARP 路由。
 5. 业务服务不再执行“注册到服务中心”的动作，只声明自身和依赖，由 AppHost/K8s 负责服务发现数据来源。
@@ -98,7 +98,7 @@ public enum GatewayDiscoveryType
 - `Girvs.slnx`：移除 `Girvs.Consul` 项目。
 - `Girvs.Consul/`：删除项目目录。
 - `Girvs.Aspire/`：移除 Consul 共存告警。
-- `Girvs.Aspire.Gateway/`：删除 Consul 发现源，新增 Aspire 发现源。
+- `Girvs.Gateway/`：删除 Consul 发现源，新增 Aspire 发现源。
 - `Girvs.Aspire.Hosting/`：补齐本地网关元数据注入能力。
 - `samples/`：移除 Consul 容器、`ConsulConfig`、服务项目中的 `Girvs.Consul` 引用。
 - `tests/`：删除 Consul 发现测试，新增 Aspire 本地发现、K8s 发现与样例契约测试。
@@ -112,7 +112,7 @@ public enum GatewayDiscoveryType
 
 ## 测试策略
 
-1. `Girvs.Aspire.Gateway.Tests`：
+1. `Girvs.Gateway.Tests`：
    - `AddGirvsGateway_默认使用Aspire发现源`；
    - `AddGirvsGateway_使用Kubernetes发现源_注册K8s发现源`；
    - `AspireGatewayServiceSource_读取Aspire注入端点_生成服务快照`；
@@ -123,7 +123,7 @@ public enum GatewayDiscoveryType
    - Publish 模式仍设置 Kubernetes 发现。
 3. 构建验证：
    - `dotnet build Girvs.slnx --no-restore --nologo`；
-   - `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --no-restore --nologo`；
+   - `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --no-restore --nologo`；
    - `dotnet test tests/Girvs.Aspire.Hosting.Tests/Girvs.Aspire.Hosting.Tests.csproj --no-restore --nologo`。
 
 ## 迁移结果

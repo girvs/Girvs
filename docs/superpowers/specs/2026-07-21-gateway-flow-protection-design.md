@@ -2,7 +2,7 @@
 
 ## 目标
 
-在 `Girvs.Aspire.Gateway` 中提供配置驱动的严格线性流程防护。网关在请求转发前验证当前步骤，在下游响应成功后才推进状态；流程状态只存于 Redis，防止跳步、并发重复执行与已完成流程重放。
+在 `Girvs.Gateway` 中提供配置驱动的严格线性流程防护。网关在请求转发前验证当前步骤，在下游响应成功后才推进状态；流程状态只存于 Redis，防止跳步、并发重复执行与已完成流程重放。
 
 本设计只覆盖严格线性流程。接口参与多个流程、路由模板/通配符、从 Query 或 JSON Body 提取业务标识、分支与并行节点均不在范围内。
 
@@ -112,7 +112,7 @@ Cache-Control: no-store
 
 ## 文件与职责边界
 
-实现放入 `Girvs.Aspire.Gateway/FlowProtection/`：
+实现放入 `Girvs.Gateway/FlowProtection/`：
 
 - `Configuration/FlowProtectionOptions.cs`：配置模型。
 - `FlowDefinitionRegistry.cs`：启动校验、规范化和步骤索引。

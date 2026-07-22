@@ -756,5 +756,5 @@ git commit -m "docs: 补齐 Worker 样例与参照实现使用文档"
 **类型一致性**：`GirvsSharedConfiguration` 成员、`AddGirvsSharedConfiguration`/`GetShared`、`ApplySharedConfiguration`/`ToEnvKey`、外部连接串参数命名（`girvs-cache-connection-string` 等）、资源注入名（`girvs-cache`/`girvs-db-<name>`）跨 Task 4/5 与设计文档 Global Constraints 一致。
 
 ## 后续计划
-- **计划 2**：`Girvs.Aspire.Gateway`（K8s watch/informer + YARP `IProxyConfigProvider` + 双网关 Label 分流 + RBAC），在本参照系统上叠加网关。
+- **计划 2**：`Girvs.Gateway`（K8s watch/informer + YARP `IProxyConfigProvider` + 双网关 Label 分流 + RBAC），在本参照系统上叠加网关。
 - **计划 3**：NewOnlineRegistration 20+ 服务迁移，照本参照实现改。

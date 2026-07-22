@@ -4,7 +4,7 @@
 
 **Goal:** 删除 Girvs 主线中的 Consul 服务发现，统一为本地 Aspire 发现源与生产 Kubernetes 发现源。
 
-**Architecture:** `Girvs.Aspire` 继续负责服务端 `HttpClient` 服务发现；`Girvs.Aspire.Gateway` 删除 Consul 源，新增 `AspireGatewayServiceSource` 从 AppHost 注入的配置构建 YARP 服务快照；生产保留 `KubernetesGatewayServiceSource`。样例 AppHost 不再启动 Consul 容器，文档和测试同步改成纯 Aspire 路线。
+**Architecture:** `Girvs.Aspire` 继续负责服务端 `HttpClient` 服务发现；`Girvs.Gateway` 删除 Consul 源，新增 `AspireGatewayServiceSource` 从 AppHost 注入的配置构建 YARP 服务快照；生产保留 `KubernetesGatewayServiceSource`。样例 AppHost 不再启动 Consul 容器，文档和测试同步改成纯 Aspire 路线。
 
 **Tech Stack:** .NET 10、xUnit、Microsoft.Extensions.Configuration、Microsoft.Extensions.ServiceDiscovery、YARP、Aspire.Hosting、KubernetesClient。
 
@@ -21,11 +21,11 @@
 
 ## Files
 
-- Modify: `Girvs.Aspire.Gateway/Configuration/GatewayDiscoveryConfig.cs`，删除 Consul 配置，默认 `Aspire`。
-- Modify: `Girvs.Aspire.Gateway/GirvsGatewayExtensions.cs`，按 `Aspire`/`Kubernetes` 注册发现源。
-- Create: `Girvs.Aspire.Gateway/Discovery/AspireGatewayServiceSource.cs`，读取本地 AppHost 注入端点。
-- Delete: `Girvs.Aspire.Gateway/Discovery/ConsulGatewayServiceSource.cs`。
-- Modify: `Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj`，删除 `Consul` 包引用。
+- Modify: `Girvs.Gateway/Configuration/GatewayDiscoveryConfig.cs`，删除 Consul 配置，默认 `Aspire`。
+- Modify: `Girvs.Gateway/GirvsGatewayExtensions.cs`，按 `Aspire`/`Kubernetes` 注册发现源。
+- Create: `Girvs.Gateway/Discovery/AspireGatewayServiceSource.cs`，读取本地 AppHost 注入端点。
+- Delete: `Girvs.Gateway/Discovery/ConsulGatewayServiceSource.cs`。
+- Modify: `Girvs.Gateway/Girvs.Gateway.csproj`，删除 `Consul` 包引用。
 - Modify: `Girvs.Aspire/AspireModule.cs`，删除 Consul 共存告警。
 - Modify: `Girvs.slnx`，移除 `Girvs.Consul` 项目。
 - Delete: `Girvs.Consul/`。
@@ -33,17 +33,17 @@
 - Modify: `samples/Sample.ServiceA/Sample.ServiceA.csproj`、`samples/Sample.ServiceB/Sample.ServiceB.csproj`，删除 `Girvs.Consul` 引用。
 - Modify: `samples/Sample.ServiceA/appsettings.json`、`samples/Sample.ServiceB/appsettings.json`，删除 `ConsulConfig`。
 - Modify: `samples/README.md`、`docs/aspire/apphost-guide.md`、`docs/aspire/升级方案.md`、`CLAUDE.md`，删除 Consul 推荐和共存描述。
-- Modify/Delete/Create tests under `tests/Girvs.Aspire.Gateway.Tests/` and `tests/Girvs.Aspire.Hosting.Tests/`。
+- Modify/Delete/Create tests under `tests/Girvs.Gateway.Tests/` and `tests/Girvs.Aspire.Hosting.Tests/`。
 
 ---
 
 ### Task 1: Gateway 配置与 DI 移除 Consul
 
 **Files:**
-- Modify: `Girvs.Aspire.Gateway/Configuration/GatewayDiscoveryConfig.cs`
-- Modify: `Girvs.Aspire.Gateway/GirvsGatewayExtensions.cs`
-- Modify: `Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj`
-- Modify: `tests/Girvs.Aspire.Gateway.Tests/GirvsGatewayExtensionsTests.cs`
+- Modify: `Girvs.Gateway/Configuration/GatewayDiscoveryConfig.cs`
+- Modify: `Girvs.Gateway/GirvsGatewayExtensions.cs`
+- Modify: `Girvs.Gateway/Girvs.Gateway.csproj`
+- Modify: `tests/Girvs.Gateway.Tests/GirvsGatewayExtensionsTests.cs`
 
 **Interfaces:**
 - Produces: `GatewayDiscoveryType.Aspire` and `GatewayDiscoveryType.Kubernetes`
@@ -51,7 +51,7 @@
 
 - [ ] **Step 1: Write failing tests**
 
-Update `tests/Girvs.Aspire.Gateway.Tests/GirvsGatewayExtensionsTests.cs`:
+Update `tests/Girvs.Gateway.Tests/GirvsGatewayExtensionsTests.cs`:
 
 ```csharp
 [Fact]
@@ -79,7 +79,7 @@ public void GatewayDiscoveryConfig_不再暴露Consul配置()
 
 - [ ] **Step 2: Verify red**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~GirvsGatewayExtensionsTests" --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~GirvsGatewayExtensionsTests" --no-restore --nologo`
 
 Expected: FAIL because `AspireGatewayServiceSource` and `GatewayDiscoveryType.Aspire` do not exist yet.
 
@@ -104,7 +104,7 @@ public class GatewayDiscoveryConfig : IAppModuleConfig
 
 Change `GirvsGatewayExtensions.cs` to register `AspireGatewayServiceSource` for `Aspire`, `KubernetesGatewayServiceSource` for `Kubernetes`, and remove `using Consul;` plus `IConsulClient` registration.
 
-Remove `<PackageReference Include="Consul" ... />` from `Girvs.Aspire.Gateway.csproj`.
+Remove `<PackageReference Include="Consul" ... />` from `Girvs.Gateway.csproj`.
 
 - [ ] **Step 4: Verify green**
 
@@ -113,7 +113,7 @@ Run the same filtered test. Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add Girvs.Aspire.Gateway/Configuration/GatewayDiscoveryConfig.cs Girvs.Aspire.Gateway/GirvsGatewayExtensions.cs Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj tests/Girvs.Aspire.Gateway.Tests/GirvsGatewayExtensionsTests.cs
+git add Girvs.Gateway/Configuration/GatewayDiscoveryConfig.cs Girvs.Gateway/GirvsGatewayExtensions.cs Girvs.Gateway/Girvs.Gateway.csproj tests/Girvs.Gateway.Tests/GirvsGatewayExtensionsTests.cs
 git commit -m "feat: 网关默认使用 Aspire 服务发现"
 ```
 
@@ -122,10 +122,10 @@ git commit -m "feat: 网关默认使用 Aspire 服务发现"
 ### Task 2: 新增本地 Aspire 网关发现源
 
 **Files:**
-- Create: `Girvs.Aspire.Gateway/Discovery/AspireGatewayServiceSource.cs`
-- Create: `tests/Girvs.Aspire.Gateway.Tests/AspireGatewayServiceSourceTests.cs`
-- Delete: `tests/Girvs.Aspire.Gateway.Tests/ConsulMappingTests.cs`
-- Delete: `Girvs.Aspire.Gateway/Discovery/ConsulGatewayServiceSource.cs`
+- Create: `Girvs.Gateway/Discovery/AspireGatewayServiceSource.cs`
+- Create: `tests/Girvs.Gateway.Tests/AspireGatewayServiceSourceTests.cs`
+- Delete: `tests/Girvs.Gateway.Tests/ConsulMappingTests.cs`
+- Delete: `Girvs.Gateway/Discovery/ConsulGatewayServiceSource.cs`
 
 **Interfaces:**
 - Consumes: `GatewayServiceEndpoint`
@@ -134,14 +134,14 @@ git commit -m "feat: 网关默认使用 Aspire 服务发现"
 
 - [ ] **Step 1: Write failing tests**
 
-Create `tests/Girvs.Aspire.Gateway.Tests/AspireGatewayServiceSourceTests.cs`:
+Create `tests/Girvs.Gateway.Tests/AspireGatewayServiceSourceTests.cs`:
 
 ```csharp
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class AspireGatewayServiceSourceTests
 {
@@ -195,7 +195,7 @@ public class AspireGatewayServiceSourceTests
 
 - [ ] **Step 2: Verify red**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~AspireGatewayServiceSourceTests" --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~AspireGatewayServiceSourceTests" --no-restore --nologo`
 
 Expected: FAIL because `AspireGatewayServiceSource` does not exist.
 
@@ -208,7 +208,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Girvs.Aspire.Gateway.Discovery;
+namespace Girvs.Gateway.Discovery;
 
 public sealed class AspireGatewayServiceSource : IGatewayServiceDiscoverySource
 {
@@ -267,14 +267,14 @@ Delete Consul source and tests.
 
 - [ ] **Step 4: Verify green**
 
-Run: `dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --filter "FullyQualifiedName~AspireGatewayServiceSourceTests|FullyQualifiedName~GirvsGatewayExtensionsTests" --no-restore --nologo`
+Run: `dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --filter "FullyQualifiedName~AspireGatewayServiceSourceTests|FullyQualifiedName~GirvsGatewayExtensionsTests" --no-restore --nologo`
 
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add Girvs.Aspire.Gateway tests/Girvs.Aspire.Gateway.Tests
+git add Girvs.Gateway tests/Girvs.Gateway.Tests
 git commit -m "feat: 新增 Aspire 网关发现源"
 ```
 
@@ -378,7 +378,7 @@ git commit -m "refactor: 移除 Girvs Consul 模块"
 Run:
 
 ```bash
-rg -n "Girvs\\.Consul|ConsulConfig|GatewayDiscoveryType\\.Consul|继续使用 Girvs\\.Consul|共存告警" CLAUDE.md docs/aspire samples tests Girvs.Aspire Girvs.Aspire.Gateway --glob '!**/bin/**' --glob '!**/obj/**'
+rg -n "Girvs\\.Consul|ConsulConfig|GatewayDiscoveryType\\.Consul|继续使用 Girvs\\.Consul|共存告警" CLAUDE.md docs/aspire samples tests Girvs.Aspire Girvs.Gateway --glob '!**/bin/**' --glob '!**/obj/**'
 ```
 
 Expected: output contains stale references.
@@ -404,7 +404,7 @@ Run:
 
 ```bash
 dotnet build Girvs.slnx --no-restore --nologo
-dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj --no-restore --nologo
+dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj --no-restore --nologo
 dotnet test tests/Girvs.Aspire.Hosting.Tests/Girvs.Aspire.Hosting.Tests.csproj --no-restore --nologo
 ```
 

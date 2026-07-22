@@ -144,10 +144,10 @@ AppHost 目录下的 `girvs.shared.json` 既是手写文件也是运行产物:�
 - **控制器需在 `Startup.Configure` 显式映射**:`CreateGirvsWebApplicationBuilder` 模型下,框架的 `ConfigureEndpointRouteBuilder` 只映射模块端点(如 `/health`),普通 MVC 控制器需 `if (app is IEndpointRouteBuilder e) e.MapControllers();`。
 - **事件总线(CAP)**:CAP 存储需一个库,`EventBusConfig.PersistenceConnectionRef` 通常与业务库指向同一个 mysql 资源;订阅者的 `CapHeader` 参数必须标 `[FromCap]`;发布依赖 `IGirvsClaimManager`(真实服务由 `Girvs.AuthorizePermission` 提供)。
 
-## 8. 网关(Girvs.Aspire.Gateway)
+## 8. 网关(Girvs.Gateway)
 
 自建 YARP 网关的服务发现与路由生成,与 Aspire AppHost 编排是两个独立话题:AppHost 负责本地/CI 环境编排各服务与基础设施,网关面向本地 Aspire 与生产 K8s 两种部署做流量入口。两者可以同时使用:AppHost 跑参照实现验证接入,网关包直接用于生产网关进程。
 
-- 用法、约定路由规则、K8s RBAC 清单示例见 `Girvs.Aspire.Gateway/README.md`;
+- 用法、约定路由规则、K8s RBAC 清单示例见 `Girvs.Gateway/README.md`;
 - 端到端可跑通的验证系统(kind 集群 + 网关 + 两个 dummy 后端,验证过 K8s watch 动态路由的秒级增删)见 `samples/gateway-k8s/`(`Gateway/` 最小网关项目 + `Dockerfile` + `k8s.yaml`);
 - 部署形态与发现源对应关系:本地 AppHost → `GatewayDiscoveryType.Aspire`(读取 Aspire 注入端点);K8s → `GatewayDiscoveryType.Kubernetes`(watch,事件驱动,秒级感知)。
