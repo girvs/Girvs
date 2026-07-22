@@ -13,6 +13,6 @@
     <PackageReference Include="Consul" Version="1.7.14.9" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Girvs.Aspire.Gateway.Tests" />
+    <InternalsVisibleTo Include="Girvs.Gateway.Tests" />
   </ItemGroup>
 </Project>

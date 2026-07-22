@@ -6,7 +6,7 @@
     <Project Path="samples/Sample.ServiceA/Sample.ServiceA.csproj" />
     <Project Path="samples/Sample.ServiceB/Sample.ServiceB.csproj" />
   </Folder>
-  <Project Path="Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj" />
+  <Project Path="Girvs.Gateway/Girvs.Gateway.csproj" />
   <Project Path="Girvs.Aspire.Hosting/Girvs.Aspire.Hosting.csproj" />
   <Project Path="Girvs.AuthorizePermission/Girvs.AuthorizePermission.csproj" />
   <Project Path="Girvs.AutoMapper/Girvs.AutoMapper.csproj" />
@@ -23,6 +23,6 @@
   <Project Path="Girvs.SignalR/Girvs.SignalR.csproj" />
   <Project Path="Girvs/Girvs.csproj" />
   <Project Path="tests/Girvs.Aspire.Tests/Girvs.Aspire.Tests.csproj" />
-  <Project Path="tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj" />
+  <Project Path="tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj" />
   <Project Path="tests/Girvs.Aspire.Hosting.Tests/Girvs.Aspire.Hosting.Tests.csproj" />
 </Solution>

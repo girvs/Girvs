@@ -12,6 +12,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Girvs.Aspire.Gateway\Girvs.Aspire.Gateway.csproj" />
+    <ProjectReference Include="..\..\Girvs.Gateway\Girvs.Gateway.csproj" />
   </ItemGroup>
 </Project>
