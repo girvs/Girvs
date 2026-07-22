@@ -10,12 +10,13 @@ public sealed class SwaggerEndpointEnumerator : List<UrlDescriptor>
         Clear();
 
         AddRange(
-            source.GetServices()
+            source
+                .GetServices()
                 .OrderBy(service => service.ServiceName, StringComparer.OrdinalIgnoreCase)
                 .Select(service => new UrlDescriptor
                 {
                     Url = $"/{service.ServiceName}/girvs_openapi/girvs_api.json",
-                    Name = $"{service.ServiceName} API"
+                    Name = $"{service.ServiceName} API",
                 })
         );
     }
