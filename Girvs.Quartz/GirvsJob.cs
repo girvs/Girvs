@@ -2,7 +2,7 @@ namespace Girvs.Quartz;
 
 public abstract class GirvsJob : IJob
 {
-    public abstract Task Execute(IJobExecutionContext context);
+    public abstract Task Execute(IJobExecutionContext context)
     // {
     //     // 不依赖 Quartz 传入的作用域是否被复用；每次触发都建立独立作用域，
     //     // 并在整个异步执行期桥接到 EngineContext，结束后自动还原。
@@ -11,5 +11,6 @@ public abstract class GirvsJob : IJob
     //     await GirvsExecuteAsync(context);
     // }
     //
-    // public abstract Task GirvsExecuteAsync(IJobExecutionContext context);
+    // public abstract Task GirvsExecuteAsync(IJobExecutionContext context)
+    ;
 }
