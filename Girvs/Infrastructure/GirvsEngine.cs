@@ -259,7 +259,7 @@ public class GirvsEngine : IEngine
     }
 
     public bool IsAuthenticated =>
-        HttpContext?.User.Identity != null && HttpContext.User.Identity.IsAuthenticated;
+        PrincipalAccessor.Principal.Identity?.IsAuthenticated == true;
 
     private static readonly AsyncLocal<IServiceProvider> AsyncLocalServiceProvider =
         new AsyncLocal<IServiceProvider>();

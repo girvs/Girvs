@@ -5,6 +5,23 @@ namespace Girvs.Claims.Tests;
 public class IdentityConsumerMigrationTests
 {
     [Fact]
+    public void IsAuthenticated_EventBusPrincipal_返回True()
+    {
+        var services = new ServiceCollection();
+        services.AddHttpContextAccessor();
+        services.AddSingleton<IGirvsPrincipalAccessor, GirvsPrincipalAccessor>();
+        var provider = services.BuildServiceProvider();
+        var engine = new TestEngine();
+        engine.UseProvider(provider);
+        var accessor = provider.GetRequiredService<IGirvsPrincipalAccessor>();
+        var principal = new ClaimsPrincipal(new ClaimsIdentity([], "Girvs.EventBus"));
+
+        using var _ = accessor.Change(principal);
+
+        Assert.True(engine.IsAuthenticated);
+    }
+
+    [Fact]
     public void BaseEntity_显式Principal_填充创建人与租户字段()
     {
         var services = new ServiceCollection();
