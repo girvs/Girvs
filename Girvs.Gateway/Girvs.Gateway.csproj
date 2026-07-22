@@ -1,8 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Description>Girvs 自建 YARP 网关的服务发现与路由生成：可插拔 Consul/K8s(watch) 源。</Description>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Girvs\Girvs.csproj" />
     <ProjectReference Include="..\Girvs.Cache\Girvs.Cache.csproj" />

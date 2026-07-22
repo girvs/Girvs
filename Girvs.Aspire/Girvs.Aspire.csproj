@@ -1,14 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <Description>Girvs 框架的 .NET Aspire 集成模块：OpenTelemetry 可观测性、健康检查、Aspire 服务发现、HttpClient 弹性与 Aspire 连接串配置适配。</Description>
-    </PropertyGroup>
-
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
     </ItemGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
     </ItemGroup>
