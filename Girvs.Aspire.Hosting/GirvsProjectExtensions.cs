@@ -3,6 +3,19 @@ namespace Girvs.Aspire.Hosting;
 public static class GirvsProjectExtensions
 {
     /// <summary>
+    /// 添加 Girvs 服务项目，并按项目元数据类型名生成与服务发现一致的资源名。
+    /// </summary>
+    public static IResourceBuilder<ProjectResource> AddGirvsProject<TProject>(
+        this IDistributedApplicationBuilder builder
+    )
+        where TProject : IProjectMetadata, new()
+    {
+        return builder.AddGirvsProject<TProject>(
+            ServiceNameResolver.FromProjectMetadataName(typeof(TProject).Name)
+        );
+    }
+
+    /// <summary>
     /// 添加 Girvs 服务项目:注入 GIRVS_SHARED_CONFIG 共享配置文件路径,
     /// 并对所有已通过 AsGirvsResource 登记的资源 WaitFor。
     /// 约定:先编排基础资源(AsGirvsResource),再 AddGirvsProject。

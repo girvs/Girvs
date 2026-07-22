@@ -20,10 +20,10 @@ var builder = DistributedApplication.CreateBuilder(args);
 // 官方集成包容器资源:提取逻辑由上面注册的 MongoSettingsProvider 完成
 // builder.AddMongoDB("sample-mongo").AsGirvsResource();
 
-var serviceB = builder.AddGirvsProject<Projects.Sample_ServiceB>("service-b");
+var serviceB = builder.AddGirvsProject<Projects.Sample_ServiceB>();
 
-// service-a 引用 service-b:注入其发现地址,供 service-a 用 http://service-b 通过服务发现调用
-var serviceA = builder.AddGirvsProject<Projects.Sample_ServiceA>("service-a")
+// ServiceA 引用 ServiceB：注入其发现地址，供 ServiceA 用 http://sample-serviceb 通过服务发现调用。
+var serviceA = builder.AddGirvsProject<Projects.Sample_ServiceA>()
     .WithReference(serviceB);
 
 var gateway = builder.AddProject<Projects.Sample_Gateway>("gateway")

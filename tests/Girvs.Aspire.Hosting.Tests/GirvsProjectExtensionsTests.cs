@@ -34,6 +34,26 @@ public class GirvsProjectExtensionsTests : IDisposable
     }
 
     [Fact]
+    public void 无参AddGirvsProject_项目元数据类型名_使用统一服务名()
+    {
+        var builder = CreateBuilder();
+        var projectPath = Path.Combine(_tempRoot, "Sample.ServiceA.csproj");
+        File.WriteAllText(projectPath, "<Project Sdk=\"Microsoft.NET.Sdk.Web\"></Project>");
+        Sample_ServiceA.ProjectFilePath = projectPath;
+
+        var project = builder.AddGirvsProject<Sample_ServiceA>();
+
+        Assert.Equal("sample-servicea", project.Resource.Name);
+    }
+
+    private sealed class Sample_ServiceA : IProjectMetadata
+    {
+        public static string ProjectFilePath { get; set; } = "";
+
+        public string ProjectPath => ProjectFilePath;
+    }
+
+    [Fact]
     public void 服务对已登记资源自动WaitFor()
     {
         var builder = CreateBuilder();

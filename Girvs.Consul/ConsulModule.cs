@@ -52,7 +52,7 @@ public class ConsulModule : IAppModuleStartup
     internal static AgentServiceRegistration CreateGrpcRegistration(ConsulConfig consulConfig)
     {
         consulConfig.ServerName = string.IsNullOrEmpty(consulConfig.ServerName)
-            ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "-").ToLower()
+            ? ServiceNameResolver.FromAssemblyName(AppDomain.CurrentDomain.FriendlyName)
             : consulConfig.ServerName;
 
         var uri = new Uri(consulConfig.HealthAddress);

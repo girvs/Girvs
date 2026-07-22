@@ -35,14 +35,14 @@ public class SelfCheckController(IDistributedCache cache, IServiceBRefit service
         });
 
     /// <summary>
-    /// 服务发现自检：用服务发现地址 http://service-b 调用 ServiceB 的 /ping，
+    /// 服务发现自检：用服务发现地址 http://sample-serviceb 调用 ServiceB 的 /ping，
     /// 验证 Aspire 服务发现 + HttpClient 弹性在真实拓扑下工作（无硬编码地址）
     /// </summary>
     [HttpGet("callb")]
     public async Task<IActionResult> CallB([FromServices] IHttpClientFactory factory)
     {
         var client = factory.CreateClient();
-        var pong = await client.GetStringAsync("http://service-b/ping");
+        var pong = await client.GetStringAsync("http://sample-serviceb/ping");
         return Ok(new { fromServiceB = pong });
     }
 

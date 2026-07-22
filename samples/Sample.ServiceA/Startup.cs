@@ -10,7 +10,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment env) : IG
     {
         services.AddControllers();
         // HttpClient 工厂：AspireModule 已通过 ConfigureHttpClientDefaults 为所有客户端
-        // 启用服务发现与标准弹性，故此处普通客户端即可用 http://service-b 解析
+        // 启用服务发现与标准弹性，故此处普通客户端即可用 http://sample-serviceb 解析
         services.AddHttpClient();
     }
 
