@@ -17,13 +17,7 @@ public class SampleMessageHandler(IServiceProvider serviceProvider)
         [FromCap] CapHeader header,
         CancellationToken cancellationToken)
     {
-        return HandleInScopeAsync(
-            header,
-            _ =>
-            {
-                LastReceived = @event.Text;
-                return Task.CompletedTask;
-            },
-            cancellationToken);
+        LastReceived = @event.Text;
+        return Task.CompletedTask;
     }
 }

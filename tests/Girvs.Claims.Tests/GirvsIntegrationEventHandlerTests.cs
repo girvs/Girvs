@@ -3,6 +3,19 @@ namespace Girvs.Claims.Tests;
 public class GirvsIntegrationEventHandlerTests
 {
     [Fact]
+    public void HandleInScopeAsync_兼容方法保留并标记过时()
+    {
+        var methods = typeof(GirvsIntegrationEventHandler<IntegrationEvent>)
+            .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+            .Where(x => x.Name == "HandleInScopeAsync")
+            .ToArray();
+
+        Assert.Equal(4, methods.Length);
+        Assert.All(methods, method =>
+            Assert.NotNull(method.GetCustomAttribute<ObsoleteAttribute>()));
+    }
+
+    [Fact]
     public async Task HandleInScopeAsync_合法身份头_恢复身份并设置EventBus来源()
     {
         var (handler, accessor) = CreateHandler();
