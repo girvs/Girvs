@@ -19,7 +19,7 @@ public static class ClaimManagerExtensions
         claimdic.Remove(Headers.CallbackName);
         claimdic.Remove(Headers.SentTime);
         claimdic.Remove(Headers.Exception);
-        claimdic.SetDictionaryKeyValue(GirvsIdentityClaimTypes.IdentityType,
+        claimdic.SetDictionaryKeyValue(GirvsClaimTypes.IdentityType,
             IdentityType.EventMessageUser.ToString());
         claimManager.SetFromDictionary(claimdic);
     }
