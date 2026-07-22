@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Girvs.AuthorizePermission\Girvs.AuthorizePermission.csproj" />
         <ProjectReference Include="..\..\Girvs\Girvs.csproj" />
     </ItemGroup>
 

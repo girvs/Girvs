@@ -27,7 +27,7 @@ public class IdentityClaimManager : IGirvsClaimManager
             var claims = httpContext.User.Claims
                 .DistinctBy(x => x.Type)
                 .ToDictionary(x => x.Type, v => v.Value);
-            var identityType = claims.GetDictionaryValueByKey(GirvsIdentityClaimTypes.IdentityType)
+            var identityType = claims.GetDictionaryValueByKey(GirvsClaimTypes.IdentityType)
                 .ToEnum<IdentityType>();
 
             if (identityType == IdentityType.RegisterUser)
@@ -35,8 +35,8 @@ public class IdentityClaimManager : IGirvsClaimManager
                 var tenantId = httpContext.Request.Headers[nameof(GirvsIdentityClaim.TenantId)];
                 var tenantName = httpContext.Request.Headers[nameof(GirvsIdentityClaim.TenantName)];
 
-                claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantId, tenantId);
-                claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
+                claims.SetDictionaryKeyValue(GirvsClaimTypes.TenantId, tenantId);
+                claims.SetDictionaryKeyValue(GirvsClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
             }
 
             SetFromDictionary(claims);
@@ -48,9 +48,9 @@ public class IdentityClaimManager : IGirvsClaimManager
             if (requestHeaders.TryGetValue(nameof(GirvsIdentityClaim.TenantId), out var tenantId))
             {
                 var tenantName = requestHeaders[nameof(GirvsIdentityClaim.TenantName)];
-                claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantId, tenantId);
-                claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
-                claims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.IdentityType,
+                claims.SetDictionaryKeyValue(GirvsClaimTypes.TenantId, tenantId);
+                claims.SetDictionaryKeyValue(GirvsClaimTypes.TenantName, HttpUtility.UrlDecode(tenantName));
+                claims.SetDictionaryKeyValue(GirvsClaimTypes.IdentityType,
                     IdentityType.RegisterUser.ToString());
             }
 
@@ -69,25 +69,25 @@ public class IdentityClaimManager : IGirvsClaimManager
         };
 
         IdentityClaim.UserId =
-            dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.UserId);
+            dictionary.GetDictionaryValueByKey(GirvsClaimTypes.UserId);
 
         IdentityClaim.UserName =
-            dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.UserName);
+            dictionary.GetDictionaryValueByKey(GirvsClaimTypes.UserName);
 
         IdentityClaim.TenantId =
-            dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.TenantId);
+            dictionary.GetDictionaryValueByKey(GirvsClaimTypes.TenantId);
 
         IdentityClaim.TenantName =
-            dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.TenantName);
+            dictionary.GetDictionaryValueByKey(GirvsClaimTypes.TenantName);
 
-        var identityType = dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.IdentityType);
+        var identityType = dictionary.GetDictionaryValueByKey(GirvsClaimTypes.IdentityType);
         if (!identityType.IsNullOrEmpty())
         {
             IdentityClaim.IdentityType =
                 identityType.ToEnum<IdentityType>();
         }
 
-        var systemModule = dictionary.GetDictionaryValueByKey(GirvsIdentityClaimTypes.ClaimSystemModule);
+        var systemModule = dictionary.GetDictionaryValueByKey(GirvsClaimTypes.SystemModule);
 
         if (!systemModule.IsNullOrEmpty())
         {
@@ -97,17 +97,17 @@ public class IdentityClaimManager : IGirvsClaimManager
 
     public ClaimsIdentity BuildClaimsIdentity(GirvsIdentityClaim girvsIdentityClaim)
     {
-        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.UserId,
+        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsClaimTypes.UserId,
             girvsIdentityClaim.UserId);
-        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.UserName,
+        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsClaimTypes.UserName,
             girvsIdentityClaim.UserName);
-        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantId,
+        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsClaimTypes.TenantId,
             girvsIdentityClaim.TenantId);
-        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.TenantName,
+        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsClaimTypes.TenantName,
             girvsIdentityClaim.TenantName);
-        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.IdentityType,
+        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsClaimTypes.IdentityType,
             girvsIdentityClaim.IdentityType.ToString());
-        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsIdentityClaimTypes.ClaimSystemModule,
+        girvsIdentityClaim.OtherClaims.SetDictionaryKeyValue(GirvsClaimTypes.SystemModule,
             girvsIdentityClaim.SystemModule.ToString());
 
         var claims = girvsIdentityClaim.OtherClaims.Select(x => new Claim(
