@@ -3,6 +3,10 @@ namespace Girvs;
 /// <summary>统一生成服务发现与网关使用的服务名。</summary>
 public static class ServiceNameResolver
 {
+    /// <summary>根据当前应用程序域的程序集名生成服务名。</summary>
+    public static string FromAssemblyName() =>
+        FromAssemblyName(AppDomain.CurrentDomain.FriendlyName);
+
     /// <summary>根据服务程序集名生成服务名。</summary>
     public static string FromAssemblyName(string assemblyName) =>
         assemblyName.Replace(".", "-").ToLowerInvariant();

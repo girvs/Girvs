@@ -14,7 +14,7 @@ public static class WebApiApplicationExtensions
             );
 
             config.ServerName = string.IsNullOrEmpty(config.ServerName)
-                ? ServiceNameResolver.FromAssemblyName(AppDomain.CurrentDomain.FriendlyName)
+                ? ServiceNameResolver.FromAssemblyName()
                 : config.ServerName;
 
             var uri = new Uri(config.HealthAddress);
