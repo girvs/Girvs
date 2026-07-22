@@ -1,11 +1,11 @@
 using System.Net;
-using Girvs.Aspire.Gateway.FlowProtection;
+using Girvs.Gateway.FlowProtection;
 using Girvs.Cache.CacheImps;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class FlowProtectionRegistrationTests
 {

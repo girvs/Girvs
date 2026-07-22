@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class GirvsGatewayProxyConfigProviderTests
 {

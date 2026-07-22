@@ -3,7 +3,7 @@ using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Girvs.Aspire.Gateway.Discovery;
+namespace Girvs.Gateway.Discovery;
 
 /// <summary>基于 K8s Service 的网关服务发现源：relist 建初态 + watch 增量触发重拉映射，断线自动重连。</summary>
 public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySource, IDisposable

@@ -1,7 +1,7 @@
 using Girvs;
-using Girvs.Aspire.Gateway.FlowProtection.Configuration;
+using Girvs.Gateway.FlowProtection.Configuration;
 
-namespace Girvs.Aspire.Gateway.FlowProtection;
+namespace Girvs.Gateway.FlowProtection;
 
 public sealed class FlowDefinitionRegistry
 {

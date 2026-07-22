@@ -1,4 +1,4 @@
-namespace Girvs.Aspire.Gateway.Discovery;
+namespace Girvs.Gateway.Discovery;
 
 /// <summary>网关服务发现来源：产出当前服务快照，并在服务集变化时触发 ServicesChanged。</summary>
 public interface IGatewayServiceDiscoverySource

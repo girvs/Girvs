@@ -1,8 +1,8 @@
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class AspireGatewayServiceSourceTests
 {

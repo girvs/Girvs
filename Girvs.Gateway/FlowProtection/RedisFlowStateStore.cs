@@ -1,7 +1,7 @@
 using Girvs.Cache.CacheImps;
 using StackExchange.Redis;
 
-namespace Girvs.Aspire.Gateway.FlowProtection;
+namespace Girvs.Gateway.FlowProtection;
 
 public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowStateStore
 {

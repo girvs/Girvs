@@ -1,6 +1,6 @@
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 
-namespace Girvs.Aspire.Gateway;
+namespace Girvs.Gateway;
 
 /// <summary>
 /// 依据 <see cref="IGatewayServiceDiscoverySource"/> 的服务快照生成约定式 YARP 路由/集群配置。

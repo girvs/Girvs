@@ -1,8 +1,8 @@
-using Girvs.Aspire.Gateway.FlowProtection.Configuration;
+using Girvs.Gateway.FlowProtection.Configuration;
 using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Transforms.Builder;
 
-namespace Girvs.Aspire.Gateway.FlowProtection;
+namespace Girvs.Gateway.FlowProtection;
 
 public sealed class FlowResponseTransform(
     FlowProtectionOptions options,

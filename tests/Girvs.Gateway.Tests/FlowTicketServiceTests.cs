@@ -1,8 +1,8 @@
 using System.Reflection;
-using Girvs.Aspire.Gateway.FlowProtection;
-using Girvs.Aspire.Gateway.FlowProtection.Configuration;
+using Girvs.Gateway.FlowProtection;
+using Girvs.Gateway.FlowProtection.Configuration;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class FlowTicketServiceTests
 {

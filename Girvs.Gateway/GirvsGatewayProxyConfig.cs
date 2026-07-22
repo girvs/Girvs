@@ -1,4 +1,4 @@
-namespace Girvs.Aspire.Gateway;
+namespace Girvs.Gateway;
 
 /// <summary>Girvs 网关的一份代理配置快照：路由 + 集群 + 变更令牌。</summary>
 public sealed class GirvsGatewayProxyConfig(

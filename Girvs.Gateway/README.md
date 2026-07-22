@@ -1,4 +1,4 @@
-# Girvs.Aspire.Gateway
+# Girvs.Gateway
 
 Girvs 自建 YARP 网关的**服务发现与路由生成**：可插拔 Aspire 本地配置源 / K8s（watch）两种发现源，按约定生成 YARP 路由与集群配置，替代各业务网关里重复的 `CustomProxyConfigProvider`/`KubernetesClientService`。
 

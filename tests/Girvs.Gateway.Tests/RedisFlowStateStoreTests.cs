@@ -1,10 +1,10 @@
 using System.Net;
-using Girvs.Aspire.Gateway.FlowProtection;
+using Girvs.Gateway.FlowProtection;
 using Girvs.Cache.CacheImps;
 using StackExchange.Redis;
 using Testcontainers.Redis;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture>
 {

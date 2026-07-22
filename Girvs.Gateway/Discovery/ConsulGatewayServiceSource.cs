@@ -1,7 +1,7 @@
 using Consul;
 using DestinationConfig = Yarp.ReverseProxy.Configuration.DestinationConfig;
 
-namespace Girvs.Aspire.Gateway.Discovery;
+namespace Girvs.Gateway.Discovery;
 
 /// <summary>基于 Consul Agent 服务目录的网关服务发现源：30 秒轮询，适用于非 K8s 部署。</summary>
 public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
@@ -30,7 +30,7 @@ public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[Girvs.Aspire.Gateway] Consul 刷新失败：{ex.Message}");
+            Console.Error.WriteLine($"[Girvs.Gateway] Consul 刷新失败：{ex.Message}");
         }
     }
 

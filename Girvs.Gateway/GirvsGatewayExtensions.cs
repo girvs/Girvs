@@ -1,13 +1,13 @@
 using Consul;
-using Girvs.Aspire.Gateway.Configuration;
-using Girvs.Aspire.Gateway.Discovery;
-using Girvs.Aspire.Gateway.FlowProtection;
+using Girvs.Gateway.Configuration;
+using Girvs.Gateway.Discovery;
+using Girvs.Gateway.FlowProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
-namespace Girvs.Aspire.Gateway;
+namespace Girvs.Gateway;
 
 /// <summary>按配置的 <see cref="GatewayDiscoveryType"/> 选择服务发现源，并注册 YARP 反向代理与请求转换。</summary>
 public static class GirvsGatewayExtensions

@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace Girvs.Aspire.Gateway.FlowProtection;
+namespace Girvs.Gateway.FlowProtection;
 
 public sealed class FlowTicketService
 {

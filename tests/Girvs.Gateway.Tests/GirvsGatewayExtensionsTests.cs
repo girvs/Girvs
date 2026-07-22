@@ -1,8 +1,8 @@
-using Girvs.Aspire.Gateway.Configuration;
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Configuration;
+using Girvs.Gateway.Discovery;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class GirvsGatewayExtensionsTests
 {

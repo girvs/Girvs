@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 using k8s.Models;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class KubernetesMappingTests
 {

@@ -1,5 +1,5 @@
 using Girvs;
-using Girvs.Aspire.Gateway.FlowProtection.Configuration;
+using Girvs.Gateway.FlowProtection.Configuration;
 using Girvs.Cache.CacheImps;
 using Girvs.Cache.Configuration;
 using Girvs.Configuration.Resources;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Transforms.Builder;
 
-namespace Girvs.Aspire.Gateway.FlowProtection;
+namespace Girvs.Gateway.FlowProtection;
 
 public static class FlowProtectionServiceCollectionExtensions
 {

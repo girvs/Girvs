@@ -1,9 +1,9 @@
-using Girvs.Aspire.Gateway.FlowProtection;
+using Girvs.Gateway.FlowProtection;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Model;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class DownstreamPathResolverTests
 {

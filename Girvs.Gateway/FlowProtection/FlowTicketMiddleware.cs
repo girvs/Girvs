@@ -1,7 +1,7 @@
-using Girvs.Aspire.Gateway.FlowProtection.Configuration;
+using Girvs.Gateway.FlowProtection.Configuration;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Girvs.Aspire.Gateway.FlowProtection;
+namespace Girvs.Gateway.FlowProtection;
 
 public sealed class FlowTicketMiddleware(
     RequestDelegate next,

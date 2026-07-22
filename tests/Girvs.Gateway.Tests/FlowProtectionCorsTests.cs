@@ -1,6 +1,6 @@
-using Girvs.Aspire.Gateway.FlowProtection;
+using Girvs.Gateway.FlowProtection;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class FlowProtectionCorsTests
 {

@@ -1,6 +1,6 @@
 using Girvs.Configuration;
 
-namespace Girvs.Aspire.Gateway.Configuration;
+namespace Girvs.Gateway.Configuration;
 
 public enum GatewayDiscoveryType
 {

@@ -1,11 +1,11 @@
 using System.Text.Json;
-using Girvs.Aspire.Gateway.FlowProtection;
-using Girvs.Aspire.Gateway.FlowProtection.Configuration;
+using Girvs.Gateway.FlowProtection;
+using Girvs.Gateway.FlowProtection.Configuration;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Model;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class FlowTicketMiddlewareTests
 {

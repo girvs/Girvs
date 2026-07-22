@@ -1,7 +1,7 @@
 using Consul;
-using Girvs.Aspire.Gateway.Discovery;
+using Girvs.Gateway.Discovery;
 
-namespace Girvs.Aspire.Gateway.Tests;
+namespace Girvs.Gateway.Tests;
 
 public class ConsulMappingTests
 {

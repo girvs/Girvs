@@ -1,6 +1,6 @@
 using Yarp.ReverseProxy.Model;
 
-namespace Girvs.Aspire.Gateway.FlowProtection;
+namespace Girvs.Gateway.FlowProtection;
 
 public sealed class DownstreamPathResolver
 {

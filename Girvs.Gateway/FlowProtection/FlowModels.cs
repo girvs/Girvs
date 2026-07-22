@@ -1,4 +1,4 @@
-namespace Girvs.Aspire.Gateway.FlowProtection;
+namespace Girvs.Gateway.FlowProtection;
 
 public sealed record FlowDefinition(
     string FlowId,

@@ -1,4 +1,4 @@
-namespace Girvs.Aspire.Gateway.FlowProtection.Configuration;
+namespace Girvs.Gateway.FlowProtection.Configuration;
 
 /// <summary>
 /// 网关流程防护配置。
