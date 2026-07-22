@@ -46,22 +46,38 @@
 2. `DiscoveryType = Consul`，在每次请求前查询健康实例并选择一个地址。
 3. `DiscoveryType = ServiceDiscovery`，使用 `http://{serviceName}` 作为基地址，由 `HttpClientFactory` 服务发现处理器解析为 Aspire 注入端点或 Kubernetes Service DNS。
 
-`RefitModule` 注册的 Refit 客户端和 `IEngine.RestServiceAsync<T>()` 都必须从依赖注入容器取得同一接口实例，确保共享 `HttpClientFactory` 的服务发现、弹性、认证请求处理器和可观测性。
+`Girvs.Refit` 定义内部服务端点解析契约：
+
+```csharp
+public interface IRefitServiceEndpointResolver
+{
+    Task<Uri?> ResolveAsync(string serviceName, CancellationToken cancellationToken);
+}
+```
+
+- `ConsulRefitServiceEndpointResolver`：固定端点优先；否则查询 Consul 健康实例并返回实际服务地址。
+- `ServiceDiscoveryRefitServiceEndpointResolver`：固定端点优先；未命中时返回 `null`，表示保留逻辑服务地址并交给 .NET 服务发现。
+- `RefitServiceEndpointHandler`：透传当前请求头，调用解析器；有返回地址时替换请求主机，无返回地址时保留原请求地址。
+- `RefitModule` 根据全局 `DiscoveryType` 注册唯一的解析器实现，并为 Refit 客户端设置逻辑基地址 `http://{serviceName}`。
+
+`RefitModule` 注册的 Refit 客户端和 `IEngine.RestServiceAsync<T>()` 都必须从依赖注入容器取得同一接口实例，确保共享 `HttpClientFactory` 的服务发现、弹性、认证请求处理器和可观测性。业务接口、`RefitServiceAttribute`、构造器注入和 `RestServiceAsync<T>()` 调用代码均不因 Consul、Aspire 或 Kubernetes 部署方式变化而修改。
 
 在 Aspire 编排部署中，`Girvs.Aspire` 已通过 `ConfigureHttpClientDefaults()` 为所有 `HttpClient` 添加 `AddServiceDiscovery()`。普通命名 `HttpClient` 可以不设置 `BaseAddress`，并在调用时使用 `http://{serviceName}/path` 形式的绝对逻辑服务地址。Refit 接口通常以相对路径声明 API，因此 Refit 注册期必须将 `BaseAddress` 设为 `http://{serviceName}`；请求仍由同一个服务发现处理器解析，接口调用方无需改写为完整 URL。该模式要求应用加载 `Girvs.Aspire` 模块。
 
-Consul 专用处理器只在 Consul 模式且没有固定端点覆盖时查询实例、改写主机地址，并透传当前请求头。无法发现健康实例时抛出包含服务名和发现模式的 `GirvsException`。日志使用结构化模板，避免记录不必要的敏感请求头。
+Consul 解析器无法发现健康实例时抛出包含服务名和发现模式的 `GirvsException`。日志使用结构化模板，避免记录不必要的敏感请求头。
 
 ## 测试
 
 增加 `Girvs.Refit.Tests`，覆盖：
 
 - 固定端点优先于全局发现模式。
+- 根据 `DiscoveryType` 注册正确的服务端点解析器实现。
 - Consul 模式的地址解析与无健康实例错误。
 - `ServiceDiscovery` 模式使用逻辑服务地址 `http://{serviceName}`。
 - 历史 `inConsul` 参数不影响全局 `DiscoveryType`。
 - 缺少必要端点配置时的明确错误。
 - `RestServiceAsync<T>()` 从依赖注入获取已注册的 Refit 客户端。
+- 业务 Refit 接口与调用代码不依赖具体发现实现。
 
 ## 兼容性与迁移
 
