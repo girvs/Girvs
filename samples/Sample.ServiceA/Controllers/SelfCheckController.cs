@@ -2,13 +2,14 @@ using Girvs.BusinessBasis.Repositories;
 using Girvs.BusinessBasis.UoW;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Sample.ServiceA.Clients;
 using Sample.ServiceA.Entities;
 
 namespace Sample.ServiceA.Controllers;
 
 [ApiController]
 [Route("selfcheck")]
-public class SelfCheckController(IDistributedCache cache) : ControllerBase
+public class SelfCheckController(IDistributedCache cache, IServiceBRefit serviceBRefit) : ControllerBase
 {
     /// <summary>
     /// 缓存自检：写入一个键再读回，验证 Aspire 注入的 Redis 连接串在运行时真实可用
@@ -42,6 +43,17 @@ public class SelfCheckController(IDistributedCache cache) : ControllerBase
     {
         var client = factory.CreateClient();
         var pong = await client.GetStringAsync("http://service-b/ping");
+        return Ok(new { fromServiceB = pong });
+    }
+
+    /// <summary>
+    /// Refit 自检：通过构造器注入的 ServiceB 契约调用内部服务。
+    /// 服务发现提供者由 RefitConfig 决定，业务调用代码无需区分 Consul 或 Aspire。
+    /// </summary>
+    [HttpGet("refit-callb")]
+    public async Task<IActionResult> RefitCallB()
+    {
+        var pong = await serviceBRefit.PingAsync();
         return Ok(new { fromServiceB = pong });
     }
 

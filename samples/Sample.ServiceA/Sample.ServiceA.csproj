@@ -13,5 +13,6 @@
     <ProjectReference Include="..\..\Girvs.Cache\Girvs.Cache.csproj" />
     <ProjectReference Include="..\..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\Girvs.OpenApi\Girvs.OpenApi.csproj" />
+    <ProjectReference Include="..\..\Girvs.Refit\Girvs.Refit.csproj" />
   </ItemGroup>
 </Project>
