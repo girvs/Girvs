@@ -6,6 +6,7 @@ public class AuthenticatedHttpClientHandler(
     IHttpContextAccessor httpContextAccessor,
     ILogger<AuthenticatedHttpClientHandler> logger) : DelegatingHandler
 {
+    // 这些头属于连接级语义或由 HttpClient 管理，转发会导致下游请求无效。
     private static readonly HashSet<string> ExcludedHeaders = new(StringComparer.OrdinalIgnoreCase)
     {
         "Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailer",
@@ -16,13 +17,16 @@ public class AuthenticatedHttpClientHandler(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
+        // 仅内部服务调用转发当前身份、租户和链路上下文；避免泄漏到第三方静态地址。
         if (refitServiceAttribute.AddressType == RefitServiceAddressType.ServiceDiscovery)
             CopyRequestHeaders(request, httpContextAccessor.HttpContext);
 
+        // 地址来源决定解析器，发现提供者在模块启动时已由配置固定。
         var resolver = resolvers.Single(x => x.CanResolve(refitServiceAttribute.AddressType));
         var endpoint = await resolver.ResolveAsync(refitServiceAttribute.ServiceName, cancellationToken);
         if (endpoint is not null)
         {
+            // 保留 Refit 生成的路径和查询参数，只替换目标服务的主机部分。
             var builder = new UriBuilder(request.RequestUri)
             {
                 Scheme = endpoint.Scheme,
