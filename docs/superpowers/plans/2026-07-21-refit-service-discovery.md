@@ -14,7 +14,8 @@
 - 静态接口只能从 `ServiceEndpoints`（兼容读取 `ServiceAddress`）取得绝对地址。
 - 内部发现提供者只由 `RefitConfig.DiscoveryProvider` 决定；业务 Refit 接口和调用点不得据此分支。
 - Aspire 解析器不得解析网络地址，必须保留 `http://{serviceName}` 给 `Girvs.Aspire` 注册的 `AddServiceDiscovery()`。
-- 日志使用结构化模板，且不得记录认证请求头。
+- `ServiceDiscovery` 请求必须透传当前请求的端到端头，以支持身份验证、租户、用户上下文和链路追踪；`Static` 请求默认不透传当前请求头。
+- 头透传必须跳过 hop-by-hop 头、`Host`、`Content-Length` 等受限头；日志使用结构化模板，且不得记录认证请求头。
 
 ---
 
@@ -187,6 +188,8 @@ git commit -m "feat: 新增 Refit 服务端点解析器"
 
 以带 `[RefitService("ordersservice", RefitServiceAddressType.ServiceDiscovery)]` 的测试接口调用 `RefitModule.ConfigureServices`。断言永远注册静态解析器；当 `DiscoveryProvider=Consul` 时注册 Consul 解析器，`Aspire` 时注册 Aspire 解析器。使用记录请求 URI 的主处理器断言静态调用变为 `https://partner.example/api/orders/1`，Aspire 调用保留 `http://ordersservice/orders/1`。
 
+使用 `DefaultHttpContext` 设定当前请求的 `Authorization: Bearer token`、`X-Tenant-Id: tenant-a`、`Host` 与 `Connection`。断言 ServiceDiscovery 下游请求保留 `Authorization` 和 `X-Tenant-Id`，但不包含 `Host` 或 `Connection`；断言 Static 下游请求不包含 `Authorization` 和 `X-Tenant-Id`。
+
 - [ ] **Step 2: 确认失败**
 
 Run: `dotnet test tests/Girvs.Refit.Tests/Girvs.Refit.Tests.csproj --no-restore --filter FullyQualifiedName~RefitModuleTests --nologo`
@@ -195,7 +198,9 @@ Expected: 旧处理器仍以 `InConsul` 分支处理，断言失败。
 
 - [ ] **Step 3: 最小实现**
 
-处理器构造器接收接口特性、`IEnumerable<IRefitServiceEndpointResolver>` 与 `ILogger<AuthenticatedHttpClientHandler>`。以 `CanResolve(attribute.AddressType)` 选择唯一解析器；返回非空 URI 时使用 `UriBuilder` 只替换 scheme、host、port，保留路径和查询；空 URI 保留逻辑地址。透传当前请求头时跳过 `Host`、`Content-Length` 等受限头，使用结构化日志。
+处理器构造器接收接口特性、`IEnumerable<IRefitServiceEndpointResolver>`、`IHttpContextAccessor` 与 `ILogger<AuthenticatedHttpClientHandler>`。以 `CanResolve(attribute.AddressType)` 选择唯一解析器；返回非空 URI 时使用 `UriBuilder` 只替换 scheme、host、port，保留路径和查询；空 URI 保留逻辑地址。
+
+仅当 `attribute.AddressType == RefitServiceAddressType.ServiceDiscovery` 且存在当前 `HttpContext` 时，遍历当前请求头复制到下游请求。必须跳过 `Connection`、`Keep-Alive`、`Proxy-Authenticate`、`Proxy-Authorization`、`TE`、`Trailer`、`Transfer-Encoding`、`Upgrade`、`Host`、`Content-Length`；其余端到端头（包括 `Authorization`）使用 `TryAddWithoutValidation` 透传。`Static` 请求不读取或复制当前请求头。测试必须验证 `Authorization` 在 ServiceDiscovery 请求中保留，并验证 Static 请求不包含该头。
 
 模块注册静态解析器和由 `DiscoveryProvider` 选择的一个内部解析器；Refit 客户端统一设置逻辑基地址：
 

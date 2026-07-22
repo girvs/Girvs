@@ -87,7 +87,9 @@ public interface IRefitServiceEndpointResolver
 
 在 Aspire 编排部署中，`Girvs.Aspire` 已通过 `ConfigureHttpClientDefaults()` 为所有 `HttpClient` 添加 `AddServiceDiscovery()`。普通命名 `HttpClient` 可以不设置 `BaseAddress`，并在调用时使用 `http://{serviceName}/path` 形式的绝对逻辑服务地址。Refit 接口通常以相对路径声明 API，因此 Refit 注册期必须将 `BaseAddress` 设为 `http://{serviceName}`；请求仍由同一个服务发现处理器解析，接口调用方无需改写为完整 URL。该模式要求应用加载 `Girvs.Aspire` 模块。
 
-Consul 解析器无法发现健康实例时抛出包含服务名和发现模式的 `GirvsException`。日志使用结构化模板，避免记录不必要的敏感请求头。
+仅当 `RefitServiceAddressType = ServiceDiscovery` 时，`RefitServiceEndpointHandler` 才从 `IHttpContextAccessor.HttpContext` 读取当前请求，并透传端到端请求头，以保留内部服务调用所需的 `Authorization`、租户、用户上下文与链路追踪信息。`Static` 请求默认不透传当前请求头，防止内部认证信息泄漏到第三方固定地址。处理器必须跳过 hop-by-hop 头，以及由 `HttpClient` 管理的 `Host`、`Content-Length` 等受限头。日志使用结构化模板，且不得记录认证请求头或其值。
+
+Consul 解析器无法发现健康实例时抛出包含服务名和发现模式的 `GirvsException`。
 
 ## 测试
 
@@ -97,6 +99,7 @@ Consul 解析器无法发现健康实例时抛出包含服务名和发现模式�
 - 根据 `DiscoveryProvider` 注册正确的内部服务端点解析器实现。
 - Consul 模式的地址解析与无健康实例错误。
 - Aspire 模式的内部服务使用逻辑服务地址 `http://{serviceName}`。
+- ServiceDiscovery 请求透传认证及业务上下文头；Static 请求不透传当前请求头。
 - 历史 `inConsul` 参数映射为地址来源，但不影响全局 `DiscoveryProvider`。
 - `RestServiceAsync<T>()` 从依赖注入获取已注册的 Refit 客户端。
 - 业务 Refit 接口与调用代码不依赖具体发现实现。
