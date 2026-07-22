@@ -1,91 +1,49 @@
-﻿namespace Girvs.Refit.HttpClientHandlers;
+namespace Girvs.Refit.HttpClientHandlers;
 
-public class AuthenticatedHttpClientHandler : DelegatingHandler
+public class AuthenticatedHttpClientHandler(
+    RefitServiceAttribute refitServiceAttribute,
+    IEnumerable<IRefitServiceEndpointResolver> resolvers,
+    IHttpContextAccessor httpContextAccessor,
+    ILogger<AuthenticatedHttpClientHandler> logger) : DelegatingHandler
 {
-    private readonly RefitServiceAttribute _refitServiceAttribute;
-    private readonly RefitConfig _refitConfig;
-    private readonly ILogger<AuthenticatedHttpClientHandler> _logger;
-
-    public AuthenticatedHttpClientHandler(RefitServiceAttribute refitServiceAttribute)
+    private static readonly HashSet<string> ExcludedHeaders = new(StringComparer.OrdinalIgnoreCase)
     {
-        _refitConfig = EngineContext.Current.GetAppModuleConfig<RefitConfig>();
-        _refitServiceAttribute =
-            refitServiceAttribute ?? throw new ArgumentNullException(nameof(refitServiceAttribute));
-        _logger = EngineContext.Current.Resolve<ILogger<AuthenticatedHttpClientHandler>>();
-    }
+        "Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailer",
+        "Transfer-Encoding", "Upgrade", "Host", "Content-Length"
+    };
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        var headers = EngineContext.Current.HttpContext?.Request.Headers.ToList();
+        if (refitServiceAttribute.AddressType == RefitServiceAddressType.ServiceDiscovery)
+            CopyRequestHeaders(request, httpContextAccessor.HttpContext);
 
-        if (headers != null && headers.Any())
+        var resolver = resolvers.Single(x => x.CanResolve(refitServiceAttribute.AddressType));
+        var endpoint = await resolver.ResolveAsync(refitServiceAttribute.ServiceName, cancellationToken);
+        if (endpoint is not null)
         {
-            foreach (var (key, value) in headers)
+            var builder = new UriBuilder(request.RequestUri)
             {
-                request.Headers.TryAddWithoutValidation(key, value.ToString());
-            }
+                Scheme = endpoint.Scheme,
+                Host = endpoint.Host,
+                Port = endpoint.IsDefaultPort ? -1 : endpoint.Port
+            };
+            request.RequestUri = builder.Uri;
         }
 
-        var current = request.RequestUri;
-        // Consul 服务发现改为异步等待，消除请求管道中的线程阻塞
-        var serverUrl = _refitServiceAttribute.InConsul
-            ? await LookupServiceAsync(_refitServiceAttribute.ServiceName)
-            : _refitConfig[_refitServiceAttribute.ServiceName];
-
-        _logger.LogInformation($"Girvs开始请求，请求ServerUrl地址为：{serverUrl}");
-            
-            
-        if (serverUrl.IsNullOrEmpty()) throw new GirvsException("GirvsRefit请求地址不能为空！");
-        string requestUriStr; 
-        if (_refitServiceAttribute.InConsul)
-        {
-            requestUriStr = $"{current.Scheme}://{serverUrl}{current.PathAndQuery}";
-        }
-        else
-        {
-            requestUriStr = $"{serverUrl}{current.PathAndQuery}";
-        }
-            
-
-        _logger.LogInformation($"Girvs开始请求，请求地址为：{requestUriStr}");
-        request.RequestUri = new Uri(requestUriStr);
-
+        logger.LogInformation("Refit 请求服务 {ServiceName}，地址来源 {AddressType}，请求地址 {RequestUri}",
+            refitServiceAttribute.ServiceName, refitServiceAttribute.AddressType, request.RequestUri);
         return await base.SendAsync(request, cancellationToken);
     }
 
-    private async Task<string> LookupServiceAsync(string serviceName)
+    private static void CopyRequestHeaders(HttpRequestMessage request, HttpContext context)
     {
-        var consulAddress = GetConsulAddress();
-        // using 确保 ConsulClient 及时释放
-        using var consulClient = new ConsulClient(configuration =>
+        if (context is null) return;
+        foreach (var header in context.Request.Headers)
         {
-            configuration.Address = new Uri(consulAddress);
-        });
-
-        var servicesEntry = (await consulClient.Health.Service(serviceName, string.Empty, true)).Response;
-        if (servicesEntry != null && servicesEntry.Any())
-        {
-            int index = new Random().Next(servicesEntry.Count());
-            var entry = servicesEntry.ElementAt(index);
-            return $"{entry.Service.Address}:{entry.Service.Port}";
-        }
-
-        return null;
-    }
-
-    private string GetConsulAddress()
-    {
-        try
-        {
-            const string ConfigNodeName = "ConsulConfig";
-            var config = Singleton<AppSettings>.Instance.Get(ConfigNodeName);
-            return config?.ConsulAddress;
-        }
-        catch 
-        {
-            return _refitConfig.ConsulServiceHost;
+            if (!ExcludedHeaders.Contains(header.Key))
+                request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
         }
     }
-        
 }
