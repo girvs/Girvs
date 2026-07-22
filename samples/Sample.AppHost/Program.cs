@@ -40,7 +40,4 @@ if (builder.ExecutionContext.IsPublishMode)
     gateway.WithEnvironment("GatewayDiscovery__DiscoveryType", "Kubernetes");
 }
 
-// 后台工作服务:AddGirvsProject 对含 BackgroundService 的服务同样适用
-builder.AddGirvsProject<Projects.Sample_Worker>("worker");
-
 builder.Build().Run();

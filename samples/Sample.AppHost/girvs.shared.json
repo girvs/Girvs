@@ -3,5 +3,48 @@
     "LogLevel": {
       "Default": "Information"
     }
+  },
+  "Resources": {
+    "sample-redis": {
+      "Type": "redis-synchronized-memory",
+      "Settings": {
+        "Endpoints": "localhost:46215,password=kPCj8gsVMfnRDq2kY2jz29"
+      }
+    },
+    "sample-mysql": {
+      "Type": "mysql",
+      "Settings": {
+        "Host": "localhost",
+        "Port": "46033",
+        "UserName": "root",
+        "Password": "5te1jX}fwbB}A9QaRbmF8p",
+        "Database": "sample"
+      }
+    },
+    "sample-rabbitmq": {
+      "Type": "rabbitmq",
+      "Settings": {
+        "HostName": "localhost",
+        "Port": "45925",
+        "UserName": "guest",
+        "Password": "GfX28HCqmgN2Xd5PvWN2t1",
+        "VirtualHost": "/"
+      }
+    },
+    "sample-sqlite": {
+      "Type": "sqlite",
+      "Settings": {
+        "DataSource": "/mnt/e/CompanyWork/Work/Girvs/samples/Sample.AppHost/obj/sample.db"
+      }
+    },
+    "sample-mongo": {
+      "Type": "mongodb",
+      "Settings": {
+        "Host": "localhost",
+        "Port": "46073",
+        "UserName": "admin",
+        "Password": "3u9Jar88pnQ2KyFBTCkNcm"
+      }
+    }
   }
 }

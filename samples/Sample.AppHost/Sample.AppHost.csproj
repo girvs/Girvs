@@ -19,6 +19,5 @@
     <ProjectReference Include="..\Sample.ServiceA\Sample.ServiceA.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\Sample.ServiceB\Sample.ServiceB.csproj" IsAspireProjectResource="true" />
     <ProjectReference Include="..\Sample.Gateway\Sample.Gateway.csproj" IsAspireProjectResource="true" />
-    <ProjectReference Include="..\Sample.Worker\Sample.Worker.csproj" IsAspireProjectResource="true" />
   </ItemGroup>
 </Project>

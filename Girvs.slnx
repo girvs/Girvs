@@ -5,7 +5,6 @@
     <Project Path="samples/Sample.Gateway/Sample.Gateway.csproj" />
     <Project Path="samples/Sample.ServiceA/Sample.ServiceA.csproj" />
     <Project Path="samples/Sample.ServiceB/Sample.ServiceB.csproj" />
-    <Project Path="samples/Sample.Worker/Sample.Worker.csproj" />
   </Folder>
   <Project Path="Girvs.Aspire.Gateway/Girvs.Aspire.Gateway.csproj" />
   <Project Path="Girvs.Aspire.Hosting/Girvs.Aspire.Hosting.csproj" />
