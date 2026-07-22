@@ -1,4 +1,4 @@
-using GirvsResource = Girvs.Configuration.Resources.Resource;
+
 
 namespace Girvs.Aspire.Hosting.Tests;
 
@@ -120,11 +120,11 @@ public class GirvsResourceEntryBuilderTests
     /// <summary>自定义提供程序:定义即生效(反射自动发现),把名为 search 的容器识别为 elasticsearch。</summary>
     private sealed class ElasticsearchSettingsProvider : IGirvsResourceSettingsProvider
     {
-        public Task<GirvsResource> TryBuildAsync(IResource resource, CancellationToken ct)
+        public Task<GirvsInfrastructureResource> TryBuildAsync(IResource resource, CancellationToken ct)
         {
             if (resource is not ContainerResource { Name: "search" })
-                return Task.FromResult<GirvsResource>(null);
-            return Task.FromResult(new GirvsResource
+                return Task.FromResult<GirvsInfrastructureResource>(null);
+            return Task.FromResult(new GirvsInfrastructureResource
             {
                 Type = "elasticsearch",
                 Settings = new Dictionary<string, string> { ["Url"] = "http://localhost:9200" },
@@ -138,9 +138,9 @@ public class GirvsResourceEntryBuilderTests
     /// </summary>
     private sealed class RedisTakeoverProvider : IGirvsResourceSettingsProvider
     {
-        public Task<GirvsResource> TryBuildAsync(IResource resource, CancellationToken ct) =>
+        public Task<GirvsInfrastructureResource> TryBuildAsync(IResource resource, CancellationToken ct) =>
             Task.FromResult(resource is RedisResource { Name: "takeover-redis" }
-                ? new GirvsResource
+                ? new GirvsInfrastructureResource
                 {
                     Type = "redis-custom",
                     Settings = new Dictionary<string, string> { ["Endpoints"] = "custom:1" },

@@ -21,17 +21,17 @@ public class GirvsCacheModule : IAppModuleStartup
             var resource = Singleton<AppSettings>.Instance.Resources[distributedCacheConfig.ConnectionRef];
             switch (resource.Type.ToLowerInvariant())
             {
-                case "sqlserver":
-                    var sqlServerConnectionString = GetConnectionString(cacheConfig);
-                    services.AddScoped<IStaticCacheManager, MsSqlServerCacheManager>();
-                    services.AddScoped<ICacheKeyService, MsSqlServerCacheManager>();
-                    services.AddDistributedSqlServerCache(options =>
-                    {
-                        options.ConnectionString = sqlServerConnectionString;
-                        options.SchemaName = distributedCacheConfig.SchemaName;
-                        options.TableName = distributedCacheConfig.TableName;
-                    });
-                    break;
+                // case "sqlserver":
+                //     var sqlServerConnectionString = GetConnectionString(cacheConfig);
+                //     services.AddScoped<IStaticCacheManager, MsSqlServerCacheManager>();
+                //     services.AddScoped<ICacheKeyService, MsSqlServerCacheManager>();
+                //     services.AddDistributedSqlServerCache(options =>
+                //     {
+                //         options.ConnectionString = sqlServerConnectionString;
+                //         options.SchemaName = distributedCacheConfig.SchemaName;
+                //         options.TableName = distributedCacheConfig.TableName;
+                //     });
+                //     break;
 
                 case "redis":
                     var redisConnectionString = GetConnectionString(cacheConfig);

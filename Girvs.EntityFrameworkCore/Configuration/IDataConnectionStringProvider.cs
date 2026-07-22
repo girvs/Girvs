@@ -14,7 +14,7 @@ public sealed class DataConnectionStringProvider : IDataConnectionStringProvider
 
     public DataConnectionStringProvider(
         IEnumerable<DataConnectionConfig> configurations,
-        IReadOnlyDictionary<string, Resource> resources
+        IReadOnlyDictionary<string, GirvsInfrastructureResource> resources
     )
     {
         foreach (var config in configurations)
@@ -37,7 +37,7 @@ public sealed class DataConnectionStringProvider : IDataConnectionStringProvider
         return connection.Reads[SecureRandomNumberGenerator.GetInt32(0, connection.Reads.Count)];
     }
 
-    private static Resource GetResource(IReadOnlyDictionary<string, Resource> resources, string name) =>
+    private static GirvsInfrastructureResource GetResource(IReadOnlyDictionary<string, GirvsInfrastructureResource> resources, string name) =>
         resources.TryGetValue(name, out var resource)
             ? resource
             : throw new GirvsException($"Resources:{name} 未配置");

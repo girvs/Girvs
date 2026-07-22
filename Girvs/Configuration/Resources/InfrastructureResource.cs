@@ -1,6 +1,6 @@
 namespace Girvs.Configuration.Resources;
 
-public class Resource
+public class GirvsInfrastructureResource
 {
     public string Type { get; set; }
 

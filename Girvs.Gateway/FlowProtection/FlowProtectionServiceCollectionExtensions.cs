@@ -62,7 +62,7 @@ public static class FlowProtectionServiceCollectionExtensions
             throw new GirvsException("FlowProtection 启用时 CacheConfig.DistributedCacheConfig.ConnectionRef 不能为空");
         }
 
-        var resources = configuration.GetSection("Resources").Get<Dictionary<string, Resource>>() ?? [];
+        var resources = configuration.GetSection("Resources").Get<Dictionary<string, GirvsInfrastructureResource>>() ?? [];
         if (!resources.TryGetValue(distributedCache.ConnectionRef, out var resource))
         {
             throw new GirvsException($"Resources:{distributedCache.ConnectionRef} 未配置");

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using GirvsResource = Girvs.Configuration.Resources.Resource;
+
 
 namespace Girvs.Aspire.Hosting;
 
@@ -14,7 +14,7 @@ internal static class GirvsSharedConfigMerger
 
     public static string Merge(
         string handWrittenJson,
-        IEnumerable<KeyValuePair<string, GirvsResource>> entries
+        IEnumerable<KeyValuePair<string, GirvsInfrastructureResource>> entries
     )
     {
         var root = string.IsNullOrWhiteSpace(handWrittenJson)

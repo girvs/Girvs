@@ -1,6 +1,6 @@
-using Aspire.Hosting.ApplicationModel;
 using Girvs.Aspire.Hosting;
-using GirvsResource = Girvs.Configuration.Resources.Resource;
+using Girvs.Configuration.Resources;
+
 
 namespace Sample.AppHost;
 
@@ -32,13 +32,13 @@ public static class SqliteResourceExtensions
 /// </summary>
 public sealed class SqliteSettingsProvider : IGirvsResourceSettingsProvider
 {
-    public Task<GirvsResource> TryBuildAsync(IResource resource, CancellationToken ct)
+    public Task<GirvsInfrastructureResource> TryBuildAsync(IResource resource, CancellationToken ct)
     {
         if (resource is not SqliteResource sqlite)
-            return Task.FromResult<GirvsResource>(null);
+            return Task.FromResult<GirvsInfrastructureResource>(null);
 
         return Task.FromResult(
-            new GirvsResource
+            new GirvsInfrastructureResource
             {
                 Type = "sqlite",
                 Settings = new Dictionary<string, string> { ["DataSource"] = sqlite.DatabasePath },

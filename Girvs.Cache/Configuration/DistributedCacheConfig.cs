@@ -44,37 +44,37 @@ public partial class DistributedCacheConfig
     /// </summary>
     public int PublishIntervalMs { get; set; } = 500;
 
-    public string BuildConnectionString(Resource resource)
+    public string BuildConnectionString(GirvsInfrastructureResource resource)
     {
         ArgumentNullException.ThrowIfNull(resource);
         return resource.Type.ToLowerInvariant() switch
         {
-            "sqlserver" => BuildSqlServerConnectionString(resource),
+            // "sqlserver" => BuildSqlServerConnectionString(resource),
             "redis" or "redis-synchronized-memory" => BuildRedisConnectionString(resource),
             _ => throw new GirvsException($"Resources:{ConnectionRef}:Type 不支持缓存"),
         };
     }
 
-    private string BuildSqlServerConnectionString(Resource resource)
-    {
-        if (!string.Equals(resource.Type, "sqlserver", StringComparison.OrdinalIgnoreCase))
-            throw new GirvsException($"Resources:{ConnectionRef}:Type 必须为 sqlserver");
-        if (!resource.Settings.TryGetValue("Host", out var host) || string.IsNullOrWhiteSpace(host))
-            throw new GirvsException($"Resources:{ConnectionRef}:Settings:Host 未配置");
-        if (!resource.Settings.TryGetValue("Database", out var database) || string.IsNullOrWhiteSpace(database))
-            throw new GirvsException($"Resources:{ConnectionRef}:Settings:Database 未配置");
+    // private string BuildSqlServerConnectionString(Resource resource)
+    // {
+    //     if (!string.Equals(resource.Type, "sqlserver", StringComparison.OrdinalIgnoreCase))
+    //         throw new GirvsException($"Resources:{ConnectionRef}:Type 必须为 sqlserver");
+    //     if (!resource.Settings.TryGetValue("Host", out var host) || string.IsNullOrWhiteSpace(host))
+    //         throw new GirvsException($"Resources:{ConnectionRef}:Settings:Host 未配置");
+    //     if (!resource.Settings.TryGetValue("Database", out var database) || string.IsNullOrWhiteSpace(database))
+    //         throw new GirvsException($"Resources:{ConnectionRef}:Settings:Database 未配置");
+    //
+    //     var builder = new System.Data.Common.DbConnectionStringBuilder
+    //     {
+    //         ["Data Source"] = int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port) ? $"{host},{port}" : host,
+    //         ["Initial Catalog"] = database,
+    //     };
+    //     if (resource.Settings.TryGetValue("UserName", out var userName) && !string.IsNullOrWhiteSpace(userName)) builder["User ID"] = userName;
+    //     if (resource.Settings.TryGetValue("Password", out var password) && !string.IsNullOrWhiteSpace(password)) builder["Password"] = password;
+    //     return builder.ConnectionString;
+    // }
 
-        var builder = new System.Data.Common.DbConnectionStringBuilder
-        {
-            ["Data Source"] = int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port) ? $"{host},{port}" : host,
-            ["Initial Catalog"] = database,
-        };
-        if (resource.Settings.TryGetValue("UserName", out var userName) && !string.IsNullOrWhiteSpace(userName)) builder["User ID"] = userName;
-        if (resource.Settings.TryGetValue("Password", out var password) && !string.IsNullOrWhiteSpace(password)) builder["Password"] = password;
-        return builder.ConnectionString;
-    }
-
-    private string BuildRedisConnectionString(Resource resource)
+    private string BuildRedisConnectionString(GirvsInfrastructureResource resource)
     {
         if (!resource.Settings.TryGetValue("Endpoints", out var endpoints) || string.IsNullOrWhiteSpace(endpoints))
             throw new GirvsException($"Resources:{ConnectionRef}:Settings:Endpoints 未配置");

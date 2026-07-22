@@ -1,5 +1,5 @@
 using Girvs.TypeFinder;
-using GirvsResource = Girvs.Configuration.Resources.Resource;
+
 
 namespace Girvs.Aspire.Hosting;
 
@@ -27,7 +27,7 @@ internal static class GirvsResourceEntryBuilder
             .ToArray()
     );
 
-    public static async Task<KeyValuePair<string, GirvsResource>> BuildAsync(
+    public static async Task<KeyValuePair<string, GirvsInfrastructureResource>> BuildAsync(
         IResource resource,
         GirvsResourceAnnotation annotation,
         CancellationToken ct
@@ -37,7 +37,7 @@ internal static class GirvsResourceEntryBuilder
             await TryBuildFromProvidersAsync(Providers.Value, resource, ct)
             ?? (
                 annotation.TypeOverride is not null
-                    ? new GirvsResource { Type = annotation.TypeOverride }
+                    ? new GirvsInfrastructureResource { Type = annotation.TypeOverride }
                     : throw new InvalidOperationException(
                         $"AsGirvsResource 不支持资源类型 {resource.GetType().Name}:"
                             + "请实现 IGirvsResourceSettingsProvider(自动发现,无需注册),"
@@ -51,10 +51,10 @@ internal static class GirvsResourceEntryBuilder
         foreach (var (key, value) in annotation.ExtraSettings)
             built.Settings[key] = value;
 
-        return new KeyValuePair<string, GirvsResource>(resource.Name, built);
+        return new KeyValuePair<string, GirvsInfrastructureResource>(resource.Name, built);
     }
 
-    private static async Task<GirvsResource> TryBuildFromProvidersAsync(
+    private static async Task<GirvsInfrastructureResource> TryBuildFromProvidersAsync(
         IReadOnlyList<IGirvsResourceSettingsProvider> providers,
         IResource resource,
         CancellationToken ct

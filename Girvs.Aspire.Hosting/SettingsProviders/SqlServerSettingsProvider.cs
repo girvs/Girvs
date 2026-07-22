@@ -1,11 +1,11 @@
-using GirvsResource = Girvs.Configuration.Resources.Resource;
+
 
 namespace Girvs.Aspire.Hosting.SettingsProviders;
 
 /// <summary>内置预设:SQL Server 服务器/数据库资源 → Type=sqlserver,Settings.Host/Port/UserName/Password/Database。</summary>
 public class SqlServerSettingsProvider : IGirvsResourceSettingsProvider
 {
-    public virtual async Task<GirvsResource> TryBuildAsync(IResource resource, CancellationToken ct)
+    public virtual async Task<GirvsInfrastructureResource> TryBuildAsync(IResource resource, CancellationToken ct)
     {
         var (server, databaseName) = resource switch
         {
@@ -26,6 +26,6 @@ public class SqlServerSettingsProvider : IGirvsResourceSettingsProvider
         };
         if (databaseName is not null)
             settings["Database"] = databaseName;
-        return new GirvsResource { Type = "sqlserver", Settings = settings };
+        return new GirvsInfrastructureResource { Type = "sqlserver", Settings = settings };
     }
 }

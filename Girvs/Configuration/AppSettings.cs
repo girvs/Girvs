@@ -5,7 +5,7 @@ namespace Girvs.Configuration;
 
 public class AppSettings
 {
-    public Dictionary<string, Resource> Resources { get; set; } = new();
+    public Dictionary<string, GirvsInfrastructureResource> Resources { get; set; } = new();
 
     public CommonConfig CommonConfig { get; set; } = new CommonConfig();
 

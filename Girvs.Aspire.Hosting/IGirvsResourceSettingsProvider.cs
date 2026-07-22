@@ -1,5 +1,3 @@
-using GirvsResource = Girvs.Configuration.Resources.Resource;
-
 namespace Girvs.Aspire.Hosting;
 
 /// <summary>
@@ -15,5 +13,5 @@ public interface IGirvsResourceSettingsProvider
     /// 尝试从 Aspire 资源提取 Girvs Resource(Type + Settings);
     /// 不能处理该资源时返回 null,交由后续提供程序处理。
     /// </summary>
-    Task<GirvsResource> TryBuildAsync(IResource resource, CancellationToken ct);
+    Task<GirvsInfrastructureResource> TryBuildAsync(IResource resource, CancellationToken ct);
 }

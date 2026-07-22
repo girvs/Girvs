@@ -92,7 +92,7 @@ public class DataConnectionConfig
     // public DbHostServerPort MasterDatabaseHost { get; set; } = new DbHostServerPort();
     // public IList<DbHostServerPort> SlaveDatabaseHost { get; set; } = new List<DbHostServerPort>();
 
-    public string BuildConnectionString(Resource resource)
+    public string BuildConnectionString(GirvsInfrastructureResource resource)
     {
         ArgumentNullException.ThrowIfNull(resource);
 
@@ -104,11 +104,18 @@ public class DataConnectionConfig
 
         var builder = new System.Data.Common.DbConnectionStringBuilder { ["Server"] = host };
 
+        //如果资源中未指定数据库名称，则使用name为数据库名称
         if (
             resource.Settings.TryGetValue("Database", out var database)
             && !string.IsNullOrWhiteSpace(database)
         )
+        {
             builder["Database"] = database;
+        }
+        else
+        {
+            builder["Database"] = Name;
+        }
 
         if (int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port))
             builder["Port"] = port;

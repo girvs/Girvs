@@ -1,6 +1,6 @@
-using Aspire.Hosting.ApplicationModel;
 using Girvs.Aspire.Hosting;
-using GirvsResource = Girvs.Configuration.Resources.Resource;
+using Girvs.Configuration.Resources;
+
 
 namespace Sample.AppHost;
 
@@ -12,7 +12,7 @@ namespace Sample.AppHost;
 /// </summary>
 public sealed class MongoSettingsProvider : IGirvsResourceSettingsProvider
 {
-    public async Task<GirvsResource> TryBuildAsync(IResource resource, CancellationToken ct)
+    public async Task<GirvsInfrastructureResource> TryBuildAsync(IResource resource, CancellationToken ct)
     {
         var (server, databaseName) = resource switch
         {
@@ -38,6 +38,6 @@ public sealed class MongoSettingsProvider : IGirvsResourceSettingsProvider
         if (databaseName is not null)
             settings["Database"] = databaseName;
 
-        return new GirvsResource { Type = "mongodb", Settings = settings };
+        return new GirvsInfrastructureResource { Type = "mongodb", Settings = settings };
     }
 }

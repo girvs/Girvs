@@ -38,7 +38,7 @@ internal static class GirvsSharedConfigFile
         CancellationToken ct
     )
     {
-        var entries = new List<KeyValuePair<string, Girvs.Configuration.Resources.Resource>>();
+        var entries = new List<KeyValuePair<string, GirvsInfrastructureResource>>();
         foreach (var resource in builder.Resources)
         {
             var annotation = resource.Annotations.OfType<GirvsResourceAnnotation>().LastOrDefault();

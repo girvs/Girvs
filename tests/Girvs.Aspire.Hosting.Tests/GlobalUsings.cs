@@ -7,4 +7,5 @@ global using Aspire.Hosting;
 global using Aspire.Hosting.ApplicationModel;
 global using Girvs;
 global using Girvs.Aspire.Hosting;
+global using Girvs.Configuration.Resources;
 global using Xunit;

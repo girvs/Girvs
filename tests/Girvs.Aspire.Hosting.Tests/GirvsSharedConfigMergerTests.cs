@@ -1,13 +1,13 @@
 using System.Text.Json;
-using GirvsResource = Girvs.Configuration.Resources.Resource;
+
 
 namespace Girvs.Aspire.Hosting.Tests;
 
 public class GirvsSharedConfigMergerTests
 {
-    private static KeyValuePair<string, GirvsResource> Entry(
+    private static KeyValuePair<string, GirvsInfrastructureResource> Entry(
         string name, string type, params (string Key, string Value)[] settings) =>
-        new(name, new GirvsResource
+        new(name, new GirvsInfrastructureResource
         {
             Type = type,
             Settings = settings.ToDictionary(x => x.Key, x => x.Value),
