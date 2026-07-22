@@ -56,7 +56,7 @@ CAP 已为每次消费建立依赖注入作用域，因此过滤器不再额外�
 
 转换规则保持不变：
 
-- Header 缺失、为空、版本不支持或内容非法时使用空 `ClaimsPrincipal`。
+- Header 缺失或为空时使用空 `ClaimsPrincipal`；版本不支持、内容非法或超过大小限制时抛出 `GirvsException`，交由 CAP 失败与重试机制处理。
 - 保留白名单内原始 Claims。
 - 移除消息中的旧 `ExecutionSource`，统一写入 `ExecutionSource.EventBus`。
 - 恢复后的 `ClaimsIdentity.AuthenticationType` 为 `Girvs.EventBus`。
@@ -92,7 +92,7 @@ CAP 已为每次消费建立依赖注入作用域，因此过滤器不再额外�
 ## 错误处理
 
 - 无身份 Header：以空 Principal 执行业务处理器。
-- 非法身份 Header：沿用现有反序列化策略，降级为空 Principal，不记录 Claim 值。
+- 非法身份 Header：沿用现有反序列化策略抛出 `GirvsException`，不记录 Claim 值，并由 CAP 失败与重试机制处理。
 - 处理器异常：不吞掉异常，过滤器只负责记录并恢复上下文。
 - 上下文初始化失败：让异常进入 CAP 的失败和重试机制，同时清理已经成功建立的句柄。
 - 普通 CAP 处理器：不解析身份 Header，也不修改 `EngineContext` 或 Principal。

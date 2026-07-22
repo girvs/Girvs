@@ -42,13 +42,13 @@ var source = new ClaimsPrincipal(new ClaimsIdentity(
 [
     new Claim(GirvsClaimTypes.UserId, "user-1"),
     new Claim(GirvsClaimTypes.IdentityType, IdentityType.ManagerUser.ToString()),
-    new Claim("permission", "read"),
-    new Claim("permission", "write")
+    new Claim(GirvsClaimTypes.ClientId, "client-a"),
+    new Claim(GirvsClaimTypes.ClientId, "client-b")
 ], "Test"));
 
 Assert.Equal(
-    ["read", "write"],
-    accessor.Principal.FindAll("permission").Select(x => x.Value));
+    ["client-a", "client-b"],
+    accessor.Principal.FindAll(GirvsClaimTypes.ClientId).Select(x => x.Value));
 ```
 
 - [ ] **Step 2: 运行测试确认当前行为基线通过**

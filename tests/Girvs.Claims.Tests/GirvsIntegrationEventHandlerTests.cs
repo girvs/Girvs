@@ -9,7 +9,9 @@ public class GirvsIntegrationEventHandlerTests
         var source = new ClaimsPrincipal(new ClaimsIdentity(
         [
             new Claim(GirvsClaimTypes.UserId, "user-1"),
-            new Claim(GirvsClaimTypes.IdentityType, IdentityType.ManagerUser.ToString())
+            new Claim(GirvsClaimTypes.IdentityType, IdentityType.ManagerUser.ToString()),
+            new Claim(GirvsClaimTypes.ClientId, "client-a"),
+            new Claim(GirvsClaimTypes.ClientId, "client-b")
         ], "Test"));
         var header = CreateHeader(source);
 
@@ -19,6 +21,9 @@ public class GirvsIntegrationEventHandlerTests
             Assert.Equal(IdentityType.ManagerUser, accessor.Principal.GetIdentityType());
             Assert.Equal(ExecutionSource.EventBus, accessor.Principal.GetExecutionSource());
             Assert.True(accessor.Principal.Identity?.IsAuthenticated);
+            Assert.Equal(
+                ["client-a", "client-b"],
+                accessor.Principal.FindAll(GirvsClaimTypes.ClientId).Select(x => x.Value));
             return Task.CompletedTask;
         });
     }

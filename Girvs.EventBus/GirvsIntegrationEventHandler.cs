@@ -77,33 +77,9 @@ public abstract class GirvsIntegrationEventHandler<TIntegrationEvent>(
             scope.ServiceProvider);
         var principalAccessor = scope.ServiceProvider
             .GetRequiredService<IGirvsPrincipalAccessor>();
-        var principal = BuildPrincipal(header);
+        var principal = Identity.IntegrationEventPrincipalFactory.Create(header);
         using var principalScope = principalAccessor.Change(principal);
         await body(scope.ServiceProvider, cancellationToken);
-    }
-
-    private static ClaimsPrincipal BuildPrincipal(CapHeader header)
-    {
-        if (!header.TryGetValue(
-                Identity.IntegrationIdentityContextSerializer.HeaderName,
-                out var json) || string.IsNullOrEmpty(json))
-        {
-            return new ClaimsPrincipal();
-        }
-
-        var context = Identity.IntegrationIdentityContextSerializer.Deserialize(json);
-        var claims = context.Claims
-            .Where(x => x.Type != GirvsClaimTypes.ExecutionSource)
-            .Select(x => new Claim(
-                x.Type,
-                x.Value,
-                string.IsNullOrEmpty(x.ValueType) ? ClaimValueTypes.String : x.ValueType,
-                string.IsNullOrEmpty(x.Issuer) ? ClaimsIdentity.DefaultIssuer : x.Issuer))
-            .ToList();
-        claims.Add(new Claim(
-            GirvsClaimTypes.ExecutionSource,
-            ExecutionSource.EventBus.ToString()));
-        return new ClaimsPrincipal(new ClaimsIdentity(claims, "Girvs.EventBus"));
     }
 
     public virtual void Dispose() { }
