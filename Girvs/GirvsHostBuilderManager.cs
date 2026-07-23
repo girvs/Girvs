@@ -20,10 +20,9 @@ public static class GirvsHostBuilderManager
         builder.ConfigureWebHostDefaults(webBuilder =>
         {
             webBuilder
-                .ConfigureAppConfiguration(
-                    (hostingContext, appConfigBuilder) =>
-                        //清除源有的源
-                        appConfigBuilder.HostUseGirvsConfig(hostingContext.HostingEnvironment, args)
+                .ConfigureAppConfiguration((hostingContext, appConfigBuilder) =>
+                    //清除源有的源
+                    appConfigBuilder.HostUseGirvsConfig(hostingContext.HostingEnvironment, args)
                 )
                 .UseStartup<TStartup>();
         });
@@ -33,8 +32,7 @@ public static class GirvsHostBuilderManager
 
     public static void HostUseSerilog(this IHostBuilder hostBuilder)
     {
-        hostBuilder.UseSerilog(
-            (context, configuration) =>
+        hostBuilder.UseSerilog((context, configuration) =>
             {
                 configuration.ReadFrom.Configuration(context.Configuration);
                 TryAddGirvsAspireOtlpSink(configuration);
@@ -56,8 +54,8 @@ public static class GirvsHostBuilderManager
             return;
 
         var hookType = Type.GetType("Girvs.Aspire.GirvsAspireSerilogHook, Girvs.Aspire");
-        var method = hookType?.GetMethod("AddOtlpSink", new[] { typeof(LoggerConfiguration) });
-        method?.Invoke(null, new object[] { loggerConfiguration });
+        var method = hookType?.GetMethod("AddOtlpSink", new[] {typeof(LoggerConfiguration)});
+        method?.Invoke(null, new object[] {loggerConfiguration});
     }
 
     public static void HostUseGirvsConfig(
@@ -73,12 +71,15 @@ public static class GirvsHostBuilderManager
         // 共享配置文件(GIRVS_SHARED_CONFIG 指向,由 Aspire AppHost 注入或 K8s ConfigMap 挂载):
         // 作为最低优先级配置源,服务本地 appsettings*.json 与环境变量天然覆盖其中的同名键。
         var sharedConfigPath = Environment.GetEnvironmentVariable("GIRVS_SHARED_CONFIG");
-        if (!string.IsNullOrWhiteSpace(sharedConfigPath))
-            config.AddJsonFile(sharedConfigPath, optional: true, reloadOnChange: true);
+
+        if (string.IsNullOrWhiteSpace(sharedConfigPath))
+            sharedConfigPath = "girvs.shared.json";
+
+        config.AddJsonFile(sharedConfigPath, optional: true, reloadOnChange: true);
 
         config.AddJsonFile(ConfigurationDefaults.AppSettingsFilePath, true, true);
         config.AddJsonFile(ConfigurationDefaults.SerilogSettingFilePath, true, true);
-        if (otherJsonFiles is { Length: > 0 })
+        if (otherJsonFiles is {Length: > 0})
         {
             foreach (var otherJsonFile in otherJsonFiles)
             {
@@ -94,7 +95,7 @@ public static class GirvsHostBuilderManager
 
         if (
             webHostEnvironment.IsDevelopment()
-            && webHostEnvironment.ApplicationName is { Length: > 0 }
+            && webHostEnvironment.ApplicationName is {Length: > 0}
         )
         {
             try
@@ -111,7 +112,7 @@ public static class GirvsHostBuilderManager
         }
 
         config.AddEnvironmentVariables();
-        if (args is { Length: > 0 })
+        if (args is {Length: > 0})
             config.AddCommandLine(args);
 
         if (config is IConfiguration configuration)
@@ -156,7 +157,7 @@ public static class GirvsHostBuilderManager
 
             if (constructor != null)
             {
-                var parameters = new object[] { builder.Configuration, builder.Environment };
+                var parameters = new object[] {builder.Configuration, builder.Environment};
 
                 if (constructor.Invoke(parameters) is not IGirvsStartup startup)
                     continue;
