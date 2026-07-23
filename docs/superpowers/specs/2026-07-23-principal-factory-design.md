@@ -79,9 +79,9 @@ public static class GirvsPrincipalFactory
 - **`FromClaims` 把字典键原样作为 claim type 写入**，随后以 `source` 参数写入 `GirvsClaimTypes.ExecutionSource`，覆盖字典中的同名项。
 - 字段到 claim type 的映射一律走 `GirvsClaimTypes`（`UserId` = `zf_sib` 等）。**不做 `System.Security.Claims.ClaimTypes.Sid` 一类的别名映射**——已删除的 `SetFromDictionary` 同样只认 `GirvsClaimTypes`，业务代码里传 `ClaimTypes.Sid` 的写法在旧版就未被识别，改用 `GirvsClaimTypes` 是修复而非回归。
 
-### 2. `Girvs/Infrastructure/Extensions/PrincipalAccessorExtensions.cs`（新增）
+### 2. `Girvs/Infrastructure/PrincipalAccessorExtensions.cs`（新增）
 
-对 `IGirvsPrincipalAccessor` 的薄封装，把"构造 + 切换"合成一步。内部即 `GirvsPrincipalFactory` 加现有的 `Change(principal)`，不新增任何状态。
+对 `IGirvsPrincipalAccessor` 的薄封装，把"构造 + 切换"合成一步。内部即 `GirvsPrincipalFactory` 加现有的 `Change(principal)`，不新增任何状态。命名空间为 `Girvs.Infrastructure`，与被扩展的 `IGirvsPrincipalAccessor` 保持一致，业务无需额外 using。
 
 ```csharp
 public static IDisposable ChangeTo(
