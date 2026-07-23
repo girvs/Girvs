@@ -84,14 +84,48 @@ public class ModuleConnectionReferenceTests
             },
         };
 
-        var provider = new DataConnectionStringProvider([db], resources);
+        db.ResolveConnectionStrings(resources);
 
-        Assert.Contains("Server=mysql", provider.GetMasterConnectionString("Ailynx"));
-        Assert.Contains("Server=mysql-read", provider.GetReadConnectionString("Ailynx"));
+        Assert.Contains("Server=mysql", db.GetMasterDataConnectionString());
+        Assert.Contains("Server=mysql-read", db.GetSecureRandomReadDataConnectionString());
         Assert.Equal(
-            provider.GetMasterConnectionString("Ailynx"),
+            db.GetMasterDataConnectionString(),
             eventBus.BuildPersistenceConnectionString(resources["ailynx"])
         );
+    }
+
+    [Fact]
+    public void EF未配置读库时读连接回退到主库()
+    {
+        var db = new DataConnectionConfig { Name = "Ailynx", ConnectionRef = "ailynx" };
+
+        db.ResolveConnectionStrings(
+            new Dictionary<string, GirvsInfrastructureResource>
+            {
+                ["ailynx"] = new GirvsInfrastructureResource
+                {
+                    Type = "mysql",
+                    Settings = new Dictionary<string, string> { ["Host"] = "mysql" },
+                },
+            }
+        );
+
+        Assert.Equal(
+            db.GetMasterDataConnectionString(),
+            db.GetSecureRandomReadDataConnectionString()
+        );
+    }
+
+    [Fact]
+    public void EF引用的资源不存在时立即抛出()
+    {
+        var db = new DataConnectionConfig { Name = "Ailynx", ConnectionRef = "missing" };
+
+        var exception = Assert.Throws<GirvsException>(() =>
+            db.ResolveConnectionStrings(new Dictionary<string, GirvsInfrastructureResource>())
+        );
+
+        Assert.Contains("Resources:missing", exception.Message);
     }
 
     [Fact]

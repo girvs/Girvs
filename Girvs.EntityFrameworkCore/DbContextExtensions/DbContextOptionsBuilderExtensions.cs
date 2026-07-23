@@ -106,8 +106,7 @@ public static class DbContextOptionsBuilderExtensions
         where TDbContext : GirvsDbContext
     {
         var dataConnectionConfig = config;
-        connStr ??= EngineContext.Current.Resolve<IDataConnectionStringProvider>()
-            .GetMasterConnectionString(config.Name);
+        connStr ??= dataConnectionConfig.GetMasterDataConnectionString();
 
         var resourceType = Singleton<AppSettings>.Instance.Resources[dataConnectionConfig.ConnectionRef]
             .Type.ToLowerInvariant();

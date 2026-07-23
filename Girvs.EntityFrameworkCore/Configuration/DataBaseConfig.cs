@@ -40,10 +40,26 @@ public class DbConfig : IAppModuleConfig
 
         return dataBaseConfig;
     }
+
+    /// <summary>
+    /// 为所有数据连接配置解析主库/读库连接串。应在模块注册时调用一次，缺失资源会立即抛出。
+    /// </summary>
+    public void ResolveConnectionStrings(
+        IReadOnlyDictionary<string, GirvsInfrastructureResource> resources
+    )
+    {
+        foreach (var connectionConfig in DataConnectionConfigs)
+            connectionConfig.ResolveConnectionStrings(resources);
+    }
 }
 
 public class DataConnectionConfig
 {
+    /// <summary>已解析的连接串。整体替换，避免懒解析并发时读到半成品。</summary>
+    private sealed record ResolvedConnections(string Master, IReadOnlyList<string> Reads);
+
+    private ResolvedConnections _connections;
+
     /// <summary>引用 Resources 中的 MySQL 资源键。</summary>
     public string ConnectionRef { get; set; }
 
@@ -91,6 +107,59 @@ public class DataConnectionConfig
 
     // public DbHostServerPort MasterDatabaseHost { get; set; } = new DbHostServerPort();
     // public IList<DbHostServerPort> SlaveDatabaseHost { get; set; } = new List<DbHostServerPort>();
+
+    /// <summary>
+    /// 从资源字典解析并缓存主库与读库连接串，资源缺失时抛出 <see cref="GirvsException"/>。
+    /// </summary>
+    public void ResolveConnectionStrings(
+        IReadOnlyDictionary<string, GirvsInfrastructureResource> resources
+    )
+    {
+        ArgumentNullException.ThrowIfNull(resources);
+
+        var master = BuildConnectionString(GetResource(resources, ConnectionRef));
+        var reads = ReadConnectionRefs
+            .Select(reference => BuildConnectionString(GetResource(resources, reference)))
+            .ToList();
+
+        _connections = new ResolvedConnections(master, reads);
+    }
+
+    /// <summary>
+    /// 获取主库连接串。
+    /// </summary>
+    public string GetMasterDataConnectionString() => GetConnections().Master;
+
+    /// <summary>
+    /// 随机获取一个读库连接串；未配置读库时返回主库连接串。
+    /// </summary>
+    public string GetSecureRandomReadDataConnectionString()
+    {
+        var connections = GetConnections();
+
+        return connections.Reads.Count switch
+        {
+            0 => connections.Master,
+            1 => connections.Reads[0],
+            var count => connections.Reads[SecureRandomNumberGenerator.GetInt32(0, count)],
+        };
+    }
+
+    private ResolvedConnections GetConnections()
+    {
+        if (_connections == null)
+            ResolveConnectionStrings(Singleton<AppSettings>.Instance.Resources);
+
+        return _connections;
+    }
+
+    private static GirvsInfrastructureResource GetResource(
+        IReadOnlyDictionary<string, GirvsInfrastructureResource> resources,
+        string name
+    ) =>
+        resources.TryGetValue(name ?? string.Empty, out var resource)
+            ? resource
+            : throw new GirvsException($"Resources:{name} 未配置");
 
     public string BuildConnectionString(GirvsInfrastructureResource resource)
     {
