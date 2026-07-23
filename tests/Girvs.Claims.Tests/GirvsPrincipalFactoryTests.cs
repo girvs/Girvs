@@ -76,4 +76,42 @@ public class GirvsPrincipalFactoryTests
 
         Assert.Equal("t-additional", principal.GetTenantId());
     }
+
+    [Fact]
+    public void FromClaims_保留字典原有键_并写入ExecutionSource()
+    {
+        var principal = GirvsPrincipalFactory.FromClaims(
+            new Dictionary<string, string>
+            {
+                [GirvsClaimTypes.TenantId] = "t1",
+                [GirvsClaimTypes.IdentityType] = IdentityType.ManagerUser.ToString(),
+                ["custom-key"] = "custom-value",
+            },
+            ExecutionSource.BackgroundJob);
+
+        Assert.True(principal.Identity?.IsAuthenticated);
+        Assert.Equal("t1", principal.GetTenantId());
+        Assert.Equal(IdentityType.ManagerUser, principal.GetIdentityType());
+        Assert.Equal("custom-value", principal.GetClaimValue("custom-key"));
+        Assert.Equal(ExecutionSource.BackgroundJob, principal.GetExecutionSource());
+    }
+
+    [Fact]
+    public void FromClaims_字典中的ExecutionSource_被参数覆盖()
+    {
+        var principal = GirvsPrincipalFactory.FromClaims(
+            new Dictionary<string, string>
+            {
+                [GirvsClaimTypes.ExecutionSource] = ExecutionSource.Http.ToString(),
+            },
+            ExecutionSource.EventBus);
+
+        Assert.Equal(ExecutionSource.EventBus, principal.GetExecutionSource());
+    }
+
+    [Fact]
+    public void FromClaims_传入null_抛出ArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => GirvsPrincipalFactory.FromClaims(null));
+    }
 }

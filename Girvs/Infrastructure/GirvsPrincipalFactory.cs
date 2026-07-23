@@ -46,6 +46,30 @@ public static class GirvsPrincipalFactory
         return Build(claims);
     }
 
+    /// <summary>
+    /// 按 claim 字典构造身份。字典键即 claim 类型，原样写入；
+    /// <paramref name="source"/> 会覆盖字典中的 ExecutionSource 项。
+    /// </summary>
+    public static ClaimsPrincipal FromClaims(
+        IDictionary<string, string> claims,
+        ExecutionSource source = ExecutionSource.Http)
+    {
+        ArgumentNullException.ThrowIfNull(claims);
+
+        var merged = new Dictionary<string, string>();
+        foreach (var claim in claims)
+        {
+            if (!string.IsNullOrEmpty(claim.Key) && claim.Value != null)
+            {
+                merged[claim.Key] = claim.Value;
+            }
+        }
+
+        merged[GirvsClaimTypes.ExecutionSource] = source.ToString();
+
+        return Build(merged);
+    }
+
     private static void SetIfNotEmpty(
         IDictionary<string, string> claims,
         string claimType,
