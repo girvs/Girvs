@@ -17,18 +17,22 @@ public static class PrincipalAccessorExtensions
         string tenantName = null,
         IdentityType identityType = IdentityType.ManagerUser,
         ExecutionSource source = ExecutionSource.Http,
-        IDictionary<string, string> additionalClaims = null)
+        IDictionary<string, string> additionalClaims = null
+    )
     {
         ArgumentNullException.ThrowIfNull(accessor);
 
-        return accessor.Change(GirvsPrincipalFactory.Create(
-            userId,
-            tenantId,
-            userName,
-            tenantName,
-            identityType,
-            source,
-            additionalClaims));
+        return accessor.Change(
+            GirvsPrincipalFactory.Create(
+                userId,
+                tenantId,
+                userName,
+                tenantName,
+                identityType,
+                source,
+                additionalClaims
+            )
+        );
     }
 
     /// <summary>
@@ -38,7 +42,8 @@ public static class PrincipalAccessorExtensions
     public static IDisposable ChangeTo(
         this IGirvsPrincipalAccessor accessor,
         IDictionary<string, string> claims,
-        ExecutionSource source = ExecutionSource.Http)
+        ExecutionSource source = ExecutionSource.Http
+    )
     {
         ArgumentNullException.ThrowIfNull(accessor);
 
