@@ -43,7 +43,7 @@ public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
         var result = new List<GatewayServiceEndpoint>();
         foreach (var agentService in agentServices)
         {
-            var serviceName = ServiceNameResolver.FromAssemblyName();
+            var serviceName = agentService.Value.Service;
             if (result.Exists(x => x.ServiceName == serviceName))
             {
                 continue;
