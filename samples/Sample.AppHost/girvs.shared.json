@@ -12,7 +12,7 @@
         "Port": "3306",
         "UserName": "root",
         "Password": "zhuofan168",
-        "Database": "girvs_event_test"
+        "Database": "wb_girvs_event_test"
       }
     },
     "sample-redis": {

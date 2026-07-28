@@ -5,20 +5,12 @@ using Microsoft.Extensions.Logging;
 namespace Girvs.Gateway.Discovery;
 
 /// <summary>基于 Aspire AppHost 注入配置的本地网关服务发现源。</summary>
-public sealed class AspireGatewayServiceSource : IGatewayServiceDiscoverySource
+public sealed class AspireGatewayServiceSource(
+    IConfiguration configuration,
+    ILogger<AspireGatewayServiceSource> logger
+) : IGatewayServiceDiscoverySource
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<AspireGatewayServiceSource> _logger;
     private volatile IReadOnlyList<GatewayServiceEndpoint> _services = [];
-
-    public AspireGatewayServiceSource(
-        IConfiguration configuration,
-        ILogger<AspireGatewayServiceSource> logger
-    )
-    {
-        _configuration = configuration;
-        _logger = logger;
-    }
 
     public event Action? ServicesChanged;
 
@@ -26,7 +18,7 @@ public sealed class AspireGatewayServiceSource : IGatewayServiceDiscoverySource
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _services = MapConfiguration(_configuration, _logger);
+        _services = MapConfiguration(configuration, logger);
         ServicesChanged?.Invoke();
         return Task.CompletedTask;
     }

@@ -5,9 +5,11 @@ namespace Girvs.Gateway.Discovery;
 
 /// <summary>基于 Consul Agent 服务目录的网关服务发现源：30 秒轮询，适用于非 K8s 部署。</summary>
 public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
-    : IGatewayServiceDiscoverySource, IDisposable
+    : IGatewayServiceDiscoverySource,
+        IDisposable
 {
-    private volatile IReadOnlyList<GatewayServiceEndpoint> _services = new List<GatewayServiceEndpoint>();
+    private volatile IReadOnlyList<GatewayServiceEndpoint> _services =
+        new List<GatewayServiceEndpoint>();
     private Timer? _timer;
 
     public event Action? ServicesChanged;
@@ -41,7 +43,7 @@ public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
         var result = new List<GatewayServiceEndpoint>();
         foreach (var agentService in agentServices)
         {
-            var serviceName = agentService.Value.Service.Replace("-", "_");
+            var serviceName = ServiceNameResolver.FromAssemblyName();
             if (result.Exists(x => x.ServiceName == serviceName))
             {
                 continue;
@@ -57,9 +59,9 @@ public sealed class ConsulGatewayServiceSource(IConsulClient consulClient)
                     {
                         [$"{serviceName}-{port}"] = new DestinationConfig
                         {
-                            Address = $"http://{address}:{port}"
-                        }
-                    }
+                            Address = $"http://{address}:{port}",
+                        },
+                    },
                 }
             );
         }

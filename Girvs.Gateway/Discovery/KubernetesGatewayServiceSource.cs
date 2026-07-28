@@ -6,20 +6,19 @@ using Microsoft.Extensions.Logging;
 namespace Girvs.Gateway.Discovery;
 
 /// <summary>基于 K8s Service 的网关服务发现源：relist 建初态 + watch 增量触发重拉映射，断线自动重连。</summary>
-public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySource, IDisposable
+public sealed class KubernetesGatewayServiceSource(
+    ILogger<KubernetesGatewayServiceSource> logger,
+    IKubernetes? client = null
+) : IGatewayServiceDiscoverySource, IDisposable
 {
-    private readonly ILogger<KubernetesGatewayServiceSource> _logger;
-    private readonly IKubernetes _client;
-    private volatile IReadOnlyList<GatewayServiceEndpoint> _services = new List<GatewayServiceEndpoint>();
+    private readonly IKubernetes _client =
+        client ?? new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
+    private volatile IReadOnlyList<GatewayServiceEndpoint> _services =
+        new List<GatewayServiceEndpoint>();
     private readonly CancellationTokenSource _stop = new();
     private Task? _watchLoop;
 
-    public KubernetesGatewayServiceSource(ILogger<KubernetesGatewayServiceSource> logger, IKubernetes? client = null)
-    {
-        _logger = logger;
-        // 集群内运行用 InClusterConfig；client 参数便于测试替身注入
-        _client = client ?? new Kubernetes(KubernetesClientConfiguration.InClusterConfig());
-    }
+    // 集群内运行用 InClusterConfig；client 参数便于测试替身注入
 
     public event Action? ServicesChanged;
 
@@ -38,7 +37,9 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
             try
             {
                 // 全量 relist 建立当前状态
-                var list = await _client.CoreV1.ListServiceForAllNamespacesAsync(cancellationToken: ct);
+                var list = await _client.CoreV1.ListServiceForAllNamespacesAsync(
+                    cancellationToken: ct
+                );
                 _services = MapServices(list.Items);
                 ServicesChanged?.Invoke();
 
@@ -48,10 +49,16 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
                     resourceVersion: list.Metadata.ResourceVersion,
                     cancellationToken: ct
                 );
-                await foreach (var (_, _) in watcher.WatchAsync<V1Service, V1ServiceList>(cancellationToken: ct))
+                await foreach (
+                    var (_, _) in watcher.WatchAsync<V1Service, V1ServiceList>(
+                        cancellationToken: ct
+                    )
+                )
                 {
                     // 任一 Service 变化后重新全量拉取并映射（简单可靠，服务数量级下开销可接受）
-                    var current = await _client.CoreV1.ListServiceForAllNamespacesAsync(cancellationToken: ct);
+                    var current = await _client.CoreV1.ListServiceForAllNamespacesAsync(
+                        cancellationToken: ct
+                    );
                     _services = MapServices(current.Items);
                     ServicesChanged?.Invoke();
                 }
@@ -66,7 +73,7 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
                 // 不打重连日志、不进 Delay，避免关闭噪声与无人观察的 faulted task
                 if (ct.IsCancellationRequested)
                     break;
-                _logger.LogWarning(ex, "K8s watch 中断，{Delay}s 后重连", 2);
+                logger.LogWarning(ex, "K8s watch 中断，{Delay}s 后重连", 2);
                 await Task.Delay(TimeSpan.FromSeconds(2), ct);
             }
         }
@@ -87,12 +94,16 @@ public sealed class KubernetesGatewayServiceSource : IGatewayServiceDiscoverySou
                 builder[$"{serviceName}-{port.Port}"] = new DestinationConfig
                 {
                     Address =
-                        $"http://{serviceName}.{service.Metadata.NamespaceProperty}.svc.cluster.local:{port.Port}"
+                        $"http://{serviceName}.{service.Metadata.NamespaceProperty}.svc.cluster.local:{port.Port}",
                 };
             }
 
             result.Add(
-                new GatewayServiceEndpoint { ServiceName = serviceName, Destinations = builder.ToImmutable() }
+                new GatewayServiceEndpoint
+                {
+                    ServiceName = serviceName,
+                    Destinations = builder.ToImmutable(),
+                }
             );
         }
         return result;
