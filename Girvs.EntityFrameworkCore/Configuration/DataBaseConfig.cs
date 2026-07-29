@@ -201,6 +201,8 @@ public class DataConnectionConfig
         )
             builder["Password"] = password;
 
+        builder["Allow User Variables"] = true;
+
         return builder.ConnectionString;
     }
 }

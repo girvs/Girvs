@@ -87,8 +87,8 @@ public class GirvsAuthorizeModule : IAppModuleStartup
     public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
     {
         application.UseAuthentication();
-        application.UseMiddleware<GirvsTenantClaimsMiddleware>();
         application.UseAuthorization();
+        application.UseMiddleware<GirvsTenantClaimsMiddleware>();
     }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }

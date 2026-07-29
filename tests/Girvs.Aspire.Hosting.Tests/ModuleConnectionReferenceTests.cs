@@ -88,8 +88,10 @@ public class ModuleConnectionReferenceTests
 
         Assert.Contains("Server=mysql", db.GetMasterDataConnectionString());
         Assert.Contains("Server=mysql-read", db.GetSecureRandomReadDataConnectionString());
-        Assert.Equal(
-            db.GetMasterDataConnectionString(),
+        Assert.Contains("Allow User Variables=True", db.GetMasterDataConnectionString());
+        Assert.Contains("Allow User Variables=True", db.GetSecureRandomReadDataConnectionString());
+        Assert.Contains(
+            "Server=mysql",
             eventBus.BuildPersistenceConnectionString(resources["ailynx"])
         );
     }
