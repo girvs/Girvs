@@ -1,16 +1,16 @@
-using Girvs.Gateway.Discovery;
+using Girvs.ServiceGovernance.Discovery;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Sample.Gateway;
 
 public sealed class SwaggerEndpointEnumerator : List<UrlDescriptor>
 {
-    public void Refresh(IGatewayServiceDiscoverySource source)
+    public void Refresh(IServiceDirectory directory)
     {
         Clear();
 
         AddRange(
-            source
+            directory
                 .GetServices()
                 .OrderBy(service => service.ServiceName, StringComparer.OrdinalIgnoreCase)
                 .Select(service => new UrlDescriptor

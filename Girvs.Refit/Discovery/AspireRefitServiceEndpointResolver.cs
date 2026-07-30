@@ -6,6 +6,6 @@ public sealed class AspireRefitServiceEndpointResolver : IRefitServiceEndpointRe
         addressType == RefitServiceAddressType.ServiceDiscovery;
 
     // 返回空表示不改写逻辑地址，让 AddServiceDiscovery 在 HttpClient 管道中解析。
-    public Task<Uri> ResolveAsync(string serviceName, CancellationToken cancellationToken) =>
+    public Task<Uri> ResolveAsync(string serviceName, string? endpointName, CancellationToken cancellationToken) =>
         Task.FromResult<Uri>(null);
 }

@@ -13,10 +13,12 @@ public class RefitServiceAttribute : Attribute
 {
     public RefitServiceAttribute(
         string serviceName,
-        RefitServiceAddressType addressType = RefitServiceAddressType.ServiceDiscovery)
+        RefitServiceAddressType addressType = RefitServiceAddressType.ServiceDiscovery,
+        string? endpointName = null)
     {
         ServiceName = serviceName;
         AddressType = addressType;
+        EndpointName = endpointName;
     }
 
     [Obsolete("请使用 RefitServiceAddressType 指定接口地址来源")]
@@ -29,6 +31,9 @@ public class RefitServiceAttribute : Attribute
     public string ServiceName { get; }
 
     public RefitServiceAddressType AddressType { get; }
+
+    /// <summary>服务发现服务中要调用的命名端点；未指定时仅允许唯一 HTTP(S) 端点。</summary>
+    public string? EndpointName { get; }
 
     [Obsolete("请使用 AddressType")]
     // 供未升级的业务代码读取，内部实现不再依赖该属性选择 Consul。

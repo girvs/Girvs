@@ -15,7 +15,7 @@ public class ServiceEndpointResolverTests
             }
         });
 
-        var endpoint = await resolver.ResolveAsync("partner", CancellationToken.None);
+        var endpoint = await resolver.ResolveAsync("partner", null, CancellationToken.None);
 
         Assert.Equal(new Uri("https://partner.example/api"), endpoint);
         Assert.True(resolver.CanResolve(RefitServiceAddressType.Static));
@@ -26,7 +26,7 @@ public class ServiceEndpointResolverTests
     {
         var resolver = new AspireRefitServiceEndpointResolver();
 
-        var endpoint = await resolver.ResolveAsync("ordersservice", CancellationToken.None);
+        var endpoint = await resolver.ResolveAsync("ordersservice", null, CancellationToken.None);
 
         Assert.Null(endpoint);
         Assert.True(resolver.CanResolve(RefitServiceAddressType.ServiceDiscovery));

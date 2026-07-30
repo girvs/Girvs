@@ -25,7 +25,7 @@ public sealed class ConsulRefitServiceEndpointResolver : IRefitServiceEndpointRe
     public bool CanResolve(RefitServiceAddressType addressType) =>
         addressType == RefitServiceAddressType.ServiceDiscovery;
 
-    public async Task<Uri> ResolveAsync(string serviceName, CancellationToken cancellationToken)
+    public async Task<Uri> ResolveAsync(string serviceName, string? endpointName, CancellationToken cancellationToken)
     {
         // Consul 模式在每次请求时选择健康实例，实例变更无需重启调用方。
         using var client = new ConsulClient(options =>

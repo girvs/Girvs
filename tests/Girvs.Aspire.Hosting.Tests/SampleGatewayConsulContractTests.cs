@@ -3,7 +3,7 @@ namespace Girvs.Aspire.Hosting.Tests;
 public class SampleGatewayConsulContractTests
 {
     [Fact]
-    public void 样例AppHost_不再启动Consul_网关Run模式使用Aspire()
+    public void 样例网关使用统一服务目录()
     {
         var repoRoot = FindRepoRoot();
         var appHostProgram = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.AppHost", "Program.cs"));
@@ -20,21 +20,15 @@ public class SampleGatewayConsulContractTests
         var serviceASettings = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.ServiceA", "appsettings.json"));
         var serviceBSettings = File.ReadAllText(Path.Combine(repoRoot, "samples", "Sample.ServiceB", "appsettings.json"));
 
-        Assert.Contains("builder.ExecutionContext.IsRunMode", appHostProgram);
-        Assert.Contains("builder.ExecutionContext.IsPublishMode", appHostProgram);
         Assert.DoesNotContain("AddContainer(\"consul\"", appHostProgram);
         Assert.Contains("Projects.Sample_Gateway", appHostProgram);
         Assert.DoesNotContain("ConsulConfig", appHostProgram);
-        Assert.Contains("GatewayDiscovery__DiscoveryType", appHostProgram);
-        Assert.Contains("GatewayDiscovery__DiscoveryType\", \"Aspire\"", appHostProgram);
-        Assert.Contains("\"Kubernetes\"", appHostProgram);
+        Assert.DoesNotContain("GatewayDiscovery__DiscoveryType", appHostProgram);
         Assert.Contains("GirvsHostBuilderManager.CreateGirvsWebApplicationBuilder(args)", gatewayProgram);
         Assert.Contains("app.Run()", gatewayProgram);
         Assert.DoesNotContain("WebApplication.CreateBuilder", gatewayProgram);
         Assert.Contains(": IGirvsStartup", gatewayStartup);
-        Assert.Contains("GetSection(\"GatewayDiscovery\")", gatewayStartup);
-        Assert.Contains("Get<GatewayDiscoveryConfig>()", gatewayStartup);
-        Assert.DoesNotContain("DiscoveryType = GatewayDiscoveryType.Consul", gatewayProgram);
+        Assert.Contains("AddGirvsGateway(_configuration)", gatewayStartup);
         Assert.DoesNotContain("ConsulAddress", gatewayStartup);
         Assert.Contains("UseSwaggerUI", gatewayStartup);
         Assert.Contains("AddEndpointsApiExplorer", gatewayStartup);
@@ -50,6 +44,8 @@ public class SampleGatewayConsulContractTests
         Assert.Contains("GetServices()", gatewaySwaggerEndpointEnumerator);
         Assert.Contains("girvs_openapi/girvs_api.json", gatewaySwaggerEndpointEnumerator);
         Assert.Contains("Yarp.ReverseProxy\" Version=\"2.3.0\"", gatewayProject);
+        Assert.DoesNotContain("KubernetesClient", gatewayProject);
+        Assert.DoesNotContain("PackageReference Include=\"Consul\"", gatewayProject);
         Assert.Contains("Girvs.Gateway.csproj", sampleGatewayProject);
         Assert.Contains("Girvs.Gateway", gatewayProject);
         Assert.Contains("Girvs.OpenApi.csproj", sampleGatewayProject);

@@ -30,14 +30,4 @@ var gateway = builder.AddProject<Projects.Sample_Gateway>("gateway")
     .WithReference(serviceA)
     .WithReference(serviceB);
 
-if (builder.ExecutionContext.IsRunMode)
-{
-    gateway.WithEnvironment("GatewayDiscovery__DiscoveryType", "Aspire");
-}
-
-if (builder.ExecutionContext.IsPublishMode)
-{
-    gateway.WithEnvironment("GatewayDiscovery__DiscoveryType", "Kubernetes");
-}
-
 builder.Build().Run();

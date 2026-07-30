@@ -7,6 +7,7 @@ public enum ServiceDiscoveryProvider
 {
     Aspire,
     Consul,
+    Kubernetes,
 }
 
 /// <summary>
@@ -28,6 +29,21 @@ public class ServiceGovernanceConfig : IAppModuleConfig
 
     public string ConsulAddress { get; set; } = "http://127.0.0.1:8500";
 
+    /// <summary>目录刷新间隔（秒）。</summary>
+    public int DiscoveryRefreshInterval { get; set; } = 30;
+
+    /// <summary>最后一次成功刷新后的最大可接受陈旧时间（秒）。</summary>
+    public int MaxStaleDuration { get; set; } = 90;
+
+    /// <summary>Kubernetes 服务发现的命名空间；为空时查询全部命名空间。</summary>
+    public string? KubernetesNamespace { get; set; }
+
+    /// <summary>用于筛选业务 Kubernetes Service 的 Label Selector。</summary>
+    public string KubernetesLabelSelector { get; set; } = "girvs.io/business=true";
+
+    /// <summary>Aspire 注入端点的服务元数据，未配置服务默认不通过网关公开。</summary>
+    public Dictionary<string, ServiceGovernanceServiceConfig> Services { get; set; } = new();
+
     public string HealthAddress { get; set; } = "http://127.0.0.1/health";
 
     public string ServerName { get; set; } = "";
@@ -41,4 +57,12 @@ public class ServiceGovernanceConfig : IAppModuleConfig
     public ConsulServerModel CurrentServerModel { get; set; } = ConsulServerModel.WebApi;
 
     public void Init() { }
+}
+
+/// <summary>服务目录中的业务服务元数据。</summary>
+public class ServiceGovernanceServiceConfig
+{
+    public bool GatewayEnabled { get; set; }
+
+    public string? GatewayEndpointName { get; set; }
 }

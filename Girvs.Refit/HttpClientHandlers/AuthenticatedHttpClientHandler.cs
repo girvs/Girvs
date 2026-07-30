@@ -23,7 +23,11 @@ public class AuthenticatedHttpClientHandler(
 
         // 地址来源决定解析器，发现提供者在模块启动时已由配置固定。
         var resolver = resolvers.Single(x => x.CanResolve(refitServiceAttribute.AddressType));
-        var endpoint = await resolver.ResolveAsync(refitServiceAttribute.ServiceName, cancellationToken);
+        var endpoint = await resolver.ResolveAsync(
+            refitServiceAttribute.ServiceName,
+            refitServiceAttribute.EndpointName,
+            cancellationToken
+        );
         if (endpoint is not null)
         {
             // 保留 Refit 生成的路径和查询参数，只替换目标服务的主机部分。

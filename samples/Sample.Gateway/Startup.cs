@@ -1,7 +1,6 @@
 using Girvs;
 using Girvs.Gateway;
-using Girvs.Gateway.Configuration;
-using Girvs.Gateway.Discovery;
+using Girvs.ServiceGovernance.Discovery;
 using Microsoft.OpenApi;
 
 namespace Sample.Gateway;
@@ -18,12 +17,7 @@ public class Startup : IGirvsStartup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        var gatewayDiscovery = _configuration
-            .GetSection("GatewayDiscovery")
-            .Get<GatewayDiscoveryConfig>()
-            ?? new GatewayDiscoveryConfig();
-
-        services.AddGirvsGateway(gatewayDiscovery, _configuration);
+        services.AddGirvsGateway(_configuration);
         services.AddSingleton<SwaggerEndpointEnumerator>();
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
@@ -37,13 +31,11 @@ public class Startup : IGirvsStartup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        var gatewayServiceDiscoverySource =
-            app.ApplicationServices.GetRequiredService<IGatewayServiceDiscoverySource>();
+        var serviceDirectory = app.ApplicationServices.GetRequiredService<IServiceDirectory>();
         var swaggerEndpoints =
             app.ApplicationServices.GetRequiredService<SwaggerEndpointEnumerator>();
 
-        gatewayServiceDiscoverySource.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
-        swaggerEndpoints.Refresh(gatewayServiceDiscoverySource);
+        swaggerEndpoints.Refresh(serviceDirectory);
 
         app.UseMiddleware<SwaggerFilterMiddleware>();
         app.UseSwagger();

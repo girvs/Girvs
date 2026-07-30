@@ -11,8 +11,7 @@ public class RefitModule : IAppModuleStartup
         services.AddHttpContextAccessor();
 
 #if NET10_0
-        var serviceGovernanceConfig = Singleton<AppSettings>.Instance.Get<ServiceGovernanceConfig>();
-        RegisterEndpointResolvers(services, config, serviceGovernanceConfig);
+        RegisterEndpointResolvers(services, config);
 #else
         RegisterEndpointResolvers(services, config);
 #endif
@@ -34,15 +33,11 @@ public class RefitModule : IAppModuleStartup
 #if NET10_0
     internal static void RegisterEndpointResolvers(
         IServiceCollection services,
-        RefitConfig config,
-        ServiceGovernanceConfig serviceGovernanceConfig
+        RefitConfig config
     )
     {
         services.AddSingleton<IRefitServiceEndpointResolver, StaticRefitServiceEndpointResolver>();
-        if (serviceGovernanceConfig.ServiceDiscoveryProvider == ServiceDiscoveryProvider.Consul)
-            services.AddSingleton<IRefitServiceEndpointResolver, ConsulRefitServiceEndpointResolver>();
-        else
-            services.AddSingleton<IRefitServiceEndpointResolver, AspireRefitServiceEndpointResolver>();
+        services.AddSingleton<IRefitServiceEndpointResolver, ServiceDirectoryRefitServiceEndpointResolver>();
     }
 #else
     internal static void RegisterEndpointResolvers(

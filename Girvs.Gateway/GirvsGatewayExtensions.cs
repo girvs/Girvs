@@ -1,6 +1,3 @@
-using Consul;
-using Girvs.Gateway.Configuration;
-using Girvs.Gateway.Discovery;
 using Girvs.Gateway.FlowProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,35 +6,14 @@ using Yarp.ReverseProxy.Transforms;
 
 namespace Girvs.Gateway;
 
-/// <summary>按配置的 <see cref="GatewayDiscoveryType"/> 选择服务发现源，并注册 YARP 反向代理与请求转换。</summary>
+/// <summary>注册基于统一服务目录的 YARP 反向代理与请求转换。</summary>
 public static class GirvsGatewayExtensions
 {
     public static IServiceCollection AddGirvsGateway(
         this IServiceCollection services,
-        GatewayDiscoveryConfig config,
         IConfiguration configuration = default
     )
     {
-        if (config.DiscoveryType == GatewayDiscoveryType.Kubernetes)
-        {
-            services.AddSingleton<IGatewayServiceDiscoverySource, KubernetesGatewayServiceSource>();
-        }
-        else if (config.DiscoveryType == GatewayDiscoveryType.Consul)
-        {
-            services.AddSingleton<IConsulClient>(
-                _ =>
-                    new ConsulClient(consulConfig =>
-                    {
-                        consulConfig.Address = new Uri(config.ConsulAddress);
-                    })
-            );
-            services.AddSingleton<IGatewayServiceDiscoverySource, ConsulGatewayServiceSource>();
-        }
-        else
-        {
-            services.AddSingleton<IGatewayServiceDiscoverySource, AspireGatewayServiceSource>();
-        }
-
         services.AddSingleton<IProxyConfigProvider, GirvsGatewayProxyConfigProvider>();
 
         services

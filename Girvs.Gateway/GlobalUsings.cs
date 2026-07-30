@@ -6,3 +6,4 @@ global using System.Threading.Tasks;
 global using Microsoft.Extensions.Primitives;
 global using Microsoft.AspNetCore.Http;
 global using Yarp.ReverseProxy.Configuration;
+global using Girvs.ServiceGovernance.Discovery;

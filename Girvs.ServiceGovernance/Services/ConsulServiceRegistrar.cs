@@ -73,16 +73,33 @@ internal sealed class ConsulServiceRegistrar(
         Uri healthUri,
         string tag,
         AgentServiceCheck check
-    ) =>
-        new()
+        )
+    {
+        var serverName = GetServerName(config);
+        config.Services.TryGetValue(serverName, out var metadata);
+        var tags = new List<string>
+        {
+            tag,
+            "girvs.business=true",
+            "girvs.endpoint=http",
+        };
+        if (metadata?.GatewayEnabled == true)
+        {
+            tags.Add("girvs.gateway-enabled=true");
+            if (!string.IsNullOrWhiteSpace(metadata.GatewayEndpointName))
+                tags.Add($"girvs.gateway-endpoint={metadata.GatewayEndpointName}");
+        }
+
+        return new AgentServiceRegistration
         {
             ID = Guid.NewGuid().ToString(),
-            Tags = [tag],
-            Name = GetServerName(config),
+            Tags = tags.ToArray(),
+            Name = serverName,
             Address = healthUri.Host,
             Port = healthUri.Port,
             Check = check,
         };
+    }
 
     private void Register(
         IConsulClient client,

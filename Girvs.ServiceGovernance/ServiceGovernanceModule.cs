@@ -1,4 +1,5 @@
 using Girvs.ServiceGovernance.Services;
+using Girvs.ServiceGovernance.Discovery;
 
 namespace Girvs.ServiceGovernance;
 
@@ -12,7 +13,7 @@ public class ServiceGovernanceModule : IAppModuleStartup
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var config = Singleton<AppSettings>.Instance.Get<ServiceGovernanceConfig>();
-        services.AddSingleton(config);
+        services.AddGirvsServiceDirectory(config);
         if (config.ServiceDiscoveryProvider == ServiceDiscoveryProvider.Aspire)
         {
             services.AddServiceDiscovery();

@@ -25,4 +25,5 @@ global using Refit;
 
 #if NET10_0
 global using Girvs.ServiceGovernance.Configuration;
+global using Girvs.ServiceGovernance.Discovery;
 #endif
