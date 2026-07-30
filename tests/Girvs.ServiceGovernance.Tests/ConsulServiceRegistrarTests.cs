@@ -1,5 +1,6 @@
 using Consul;
 using Girvs.ServiceGovernance.Configuration;
+using Girvs.ServiceGovernance.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 

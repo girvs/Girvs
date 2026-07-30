@@ -1,4 +1,4 @@
-namespace Girvs.ServiceGovernance;
+namespace Girvs.ServiceGovernance.Services;
 
 internal interface IConsulServiceRegistrar
 {

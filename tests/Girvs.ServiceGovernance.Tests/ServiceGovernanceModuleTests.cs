@@ -1,9 +1,10 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.ServiceDiscovery;
 using Girvs.ServiceGovernance.Configuration;
 using Consul;
+using Girvs.ServiceGovernance.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using HealthCheckService = Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService;
 
 namespace Girvs.ServiceGovernance.Tests;
 

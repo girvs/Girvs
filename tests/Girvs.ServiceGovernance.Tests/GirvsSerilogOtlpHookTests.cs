@@ -1,3 +1,4 @@
+using Girvs.ServiceGovernance.Logging;
 using Serilog;
 
 namespace Girvs.ServiceGovernance.Tests;

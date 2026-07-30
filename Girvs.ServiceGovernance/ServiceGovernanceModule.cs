@@ -1,3 +1,5 @@
+using Girvs.ServiceGovernance.Services;
+
 namespace Girvs.ServiceGovernance;
 
 /// <summary>

@@ -1,6 +1,6 @@
 using Serilog.Sinks.OpenTelemetry;
 
-namespace Girvs.ServiceGovernance;
+namespace Girvs.ServiceGovernance.Logging;
 
 /// <summary>
 /// 由 Girvs 核心的 HostUseSerilog 通过反射调用。
