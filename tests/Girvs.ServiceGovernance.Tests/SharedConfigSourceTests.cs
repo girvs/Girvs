@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
 
-namespace Girvs.Aspire.Tests;
+namespace Girvs.ServiceGovernance.Tests;
 
 /// <summary>
 /// 验证 GIRVS_SHARED_CONFIG 共享配置源:作为最低优先级加载,服务本地配置覆盖共享值。

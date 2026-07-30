@@ -1,17 +1,23 @@
 namespace Girvs.Refit.Configuration;
 
+#if NET10_0
+[Obsolete("net10.0 下请使用 ServiceGovernanceConfig.ServiceDiscoveryProvider")]
+#endif
 public enum RefitDiscoveryProvider
 {
     // 兼容历史 Consul 注册与健康实例查询。
     Consul,
 
-    // 交由 Girvs.Aspire 配置的 .NET 服务发现解析逻辑服务地址。
+    // 交由 Girvs.ServiceGovernance 配置的 .NET 服务发现解析逻辑服务地址。
     Aspire
 }
 
 public class RefitConfig : IAppModuleConfig
 {
     // 只影响 ServiceDiscovery 类型接口；Static 类型始终读取固定地址。
+#if NET10_0
+    [Obsolete("net10.0 下此属性不再生效，由 ServiceGovernanceConfig.ServiceDiscoveryProvider 统一控制")]
+#endif
     public RefitDiscoveryProvider DiscoveryProvider { get; set; } = RefitDiscoveryProvider.Aspire;
 
     public string ConsulAddress { get; set; }

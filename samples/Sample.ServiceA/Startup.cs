@@ -9,7 +9,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment env) : IG
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
-        // HttpClient 工厂：AspireModule 已通过 ConfigureHttpClientDefaults 为所有客户端
+        // HttpClient 工厂：ServiceGovernanceModule 已通过 ConfigureHttpClientDefaults 为所有客户端
         // 启用服务发现与标准弹性，故此处普通客户端即可用 http://sample-serviceb 解析
         services.AddHttpClient();
     }
@@ -23,7 +23,7 @@ public class Startup(IConfiguration configuration, IWebHostEnvironment env) : IG
             db.Database.EnsureCreated();
         }
 
-        // 模块端点（AspireModule /health 等）由框架 ConfigureEndpointRouteBuilder 映射；控制器需在此显式映射
+        // 模块端点（ServiceGovernanceModule /health 等）由框架 ConfigureEndpointRouteBuilder 映射；控制器需在此显式映射
         if (app is IEndpointRouteBuilder endpoints)
             endpoints.MapControllers();
     }

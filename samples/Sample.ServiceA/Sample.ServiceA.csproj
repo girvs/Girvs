@@ -9,7 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Girvs\Girvs.csproj" />
-    <ProjectReference Include="..\..\Girvs.Aspire\Girvs.Aspire.csproj" />
+    <ProjectReference Include="..\..\Girvs.ServiceGovernance\Girvs.ServiceGovernance.csproj" />
     <ProjectReference Include="..\..\Girvs.Cache\Girvs.Cache.csproj" />
     <ProjectReference Include="..\..\Girvs.EntityFrameworkCore\Girvs.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\Girvs.OpenApi\Girvs.OpenApi.csproj" />

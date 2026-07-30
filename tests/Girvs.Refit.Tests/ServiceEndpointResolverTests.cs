@@ -1,5 +1,7 @@
 namespace Girvs.Refit.Tests;
 
+using Girvs.ServiceGovernance.Configuration;
+
 public class ServiceEndpointResolverTests
 {
     [Fact]
@@ -28,5 +30,27 @@ public class ServiceEndpointResolverTests
 
         Assert.Null(endpoint);
         Assert.True(resolver.CanResolve(RefitServiceAddressType.ServiceDiscovery));
+    }
+
+    [Fact]
+    public void Consul解析器优先使用ServiceGovernanceConfig地址()
+    {
+        var resolver = new ConsulRefitServiceEndpointResolver(
+            new RefitConfig { ConsulAddress = "http://legacy-consul:8500" },
+            new ServiceGovernanceConfig { ConsulAddress = "http://governance-consul:8500" }
+        );
+
+        Assert.Equal("http://governance-consul:8500", resolver.GetConsulAddress());
+    }
+
+    [Fact]
+    public void ServiceGovernanceConfig地址为空时回退RefitConfig()
+    {
+        var resolver = new ConsulRefitServiceEndpointResolver(
+            new RefitConfig { ConsulAddress = "http://legacy-consul:8500" },
+            new ServiceGovernanceConfig { ConsulAddress = "" }
+        );
+
+        Assert.Equal("http://legacy-consul:8500", resolver.GetConsulAddress());
     }
 }

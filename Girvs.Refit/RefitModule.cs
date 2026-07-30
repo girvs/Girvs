@@ -10,12 +10,12 @@ public class RefitModule : IAppModuleStartup
         services.AddSingleton(config);
         services.AddHttpContextAccessor();
 
-        // 固定地址始终可用；内部发现实现仅在启动时按部署配置二选一注册。
-        services.AddSingleton<IRefitServiceEndpointResolver, StaticRefitServiceEndpointResolver>();
-        if (config.DiscoveryProvider == RefitDiscoveryProvider.Consul)
-            services.AddSingleton<IRefitServiceEndpointResolver, ConsulRefitServiceEndpointResolver>();
-        else
-            services.AddSingleton<IRefitServiceEndpointResolver, AspireRefitServiceEndpointResolver>();
+#if NET10_0
+        var serviceGovernanceConfig = Singleton<AppSettings>.Instance.Get<ServiceGovernanceConfig>();
+        RegisterEndpointResolvers(services, config, serviceGovernanceConfig);
+#else
+        RegisterEndpointResolvers(services, config);
+#endif
 
         // 只扫描显式标注 RefitServiceAttribute 的业务接口。
         var refits = new WebAppTypeFinder().FindOfType<IGirvsRefit>(findType: FindType.Interface)
@@ -30,6 +30,33 @@ public class RefitModule : IAppModuleStartup
                 .AddHttpMessageHandler(provider => ActivatorUtilities.CreateInstance<AuthenticatedHttpClientHandler>(provider, service));
         }
     }
+
+#if NET10_0
+    internal static void RegisterEndpointResolvers(
+        IServiceCollection services,
+        RefitConfig config,
+        ServiceGovernanceConfig serviceGovernanceConfig
+    )
+    {
+        services.AddSingleton<IRefitServiceEndpointResolver, StaticRefitServiceEndpointResolver>();
+        if (serviceGovernanceConfig.ServiceDiscoveryProvider == ServiceDiscoveryProvider.Consul)
+            services.AddSingleton<IRefitServiceEndpointResolver, ConsulRefitServiceEndpointResolver>();
+        else
+            services.AddSingleton<IRefitServiceEndpointResolver, AspireRefitServiceEndpointResolver>();
+    }
+#else
+    internal static void RegisterEndpointResolvers(
+        IServiceCollection services,
+        RefitConfig config
+    )
+    {
+        services.AddSingleton<IRefitServiceEndpointResolver, StaticRefitServiceEndpointResolver>();
+        if (config.DiscoveryProvider == RefitDiscoveryProvider.Consul)
+            services.AddSingleton<IRefitServiceEndpointResolver, ConsulRefitServiceEndpointResolver>();
+        else
+            services.AddSingleton<IRefitServiceEndpointResolver, AspireRefitServiceEndpointResolver>();
+    }
+#endif
 
     public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }

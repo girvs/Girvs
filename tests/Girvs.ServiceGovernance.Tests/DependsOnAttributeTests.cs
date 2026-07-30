@@ -1,4 +1,4 @@
-namespace Girvs.Aspire.Tests;
+namespace Girvs.ServiceGovernance.Tests;
 
 public class DependsOnAttributeTests
 {

@@ -1,9 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>net10.0</TargetFrameworks>
+    </PropertyGroup>
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
+        <ProjectReference Include="..\Girvs.Grpc\Girvs.Grpc.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -16,5 +20,11 @@
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0"/>
         <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0"/>
         <PackageReference Include="DotNetCore.Cap.OpenTelemetry" Version="10.0.1"/>
+        <PackageReference Include="Consul" Version="1.7.14.9"/>
+        <PackageReference Include="Grpc.HealthCheck" Version="2.80.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Girvs.ServiceGovernance.Tests"/>
     </ItemGroup>
 </Project>

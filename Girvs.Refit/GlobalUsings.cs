@@ -22,3 +22,7 @@ global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Consul;
 global using Refit;
+
+#if NET10_0
+global using Girvs.ServiceGovernance.Configuration;
+#endif

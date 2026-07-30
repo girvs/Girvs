@@ -35,16 +35,16 @@ public static class GirvsHostBuilderManager
         hostBuilder.UseSerilog((context, configuration) =>
             {
                 configuration.ReadFrom.Configuration(context.Configuration);
-                TryAddGirvsAspireOtlpSink(configuration);
+                TryAddGirvsOtlpSink(configuration);
             }
         );
     }
 
     /// <summary>
-    /// 反射探测 Girvs.Aspire（仅 net10 包），存在且处于 Aspire 环境时追加 OTLP sink，否则静默跳过。
-    /// 契约：Girvs.Aspire.GirvsAspireSerilogHook.AddOtlpSink(LoggerConfiguration)
+    /// 反射探测 Girvs.ServiceGovernance（仅 net10 包），存在且处于 Aspire 环境时追加 OTLP sink，否则静默跳过。
+    /// 契约：Girvs.ServiceGovernance.GirvsSerilogOtlpHook.AddOtlpSink(LoggerConfiguration)
     /// </summary>
-    private static void TryAddGirvsAspireOtlpSink(LoggerConfiguration loggerConfiguration)
+    private static void TryAddGirvsOtlpSink(LoggerConfiguration loggerConfiguration)
     {
         if (
             string.IsNullOrEmpty(
@@ -53,7 +53,9 @@ public static class GirvsHostBuilderManager
         )
             return;
 
-        var hookType = Type.GetType("Girvs.Aspire.GirvsAspireSerilogHook, Girvs.Aspire");
+        var hookType = Type.GetType(
+            "Girvs.ServiceGovernance.GirvsSerilogOtlpHook, Girvs.ServiceGovernance"
+        );
         var method = hookType?.GetMethod("AddOtlpSink", new[] {typeof(LoggerConfiguration)});
         method?.Invoke(null, new object[] {loggerConfiguration});
     }

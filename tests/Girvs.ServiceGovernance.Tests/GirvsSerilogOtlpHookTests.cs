@@ -1,13 +1,16 @@
 using Serilog;
 
-namespace Girvs.Aspire.Tests;
+namespace Girvs.ServiceGovernance.Tests;
 
-public class GirvsAspireSerilogHookTests
+[Collection(OtlpEnvironmentVariableCollection.Name)]
+public class GirvsSerilogOtlpHookTests
 {
     [Fact]
     public void 反射契约_核心能通过类型全名找到AddOtlpSink方法()
     {
-        var hookType = Type.GetType("Girvs.Aspire.GirvsAspireSerilogHook, Girvs.Aspire");
+        var hookType = Type.GetType(
+            "Girvs.ServiceGovernance.GirvsSerilogOtlpHook, Girvs.ServiceGovernance"
+        );
 
         Assert.NotNull(hookType);
         var method = hookType.GetMethod("AddOtlpSink", new[] { typeof(LoggerConfiguration) });
@@ -25,7 +28,7 @@ public class GirvsAspireSerilogHookTests
             var loggerConfiguration = new LoggerConfiguration();
 
             var exception = Record.Exception(
-                () => GirvsAspireSerilogHook.AddOtlpSink(loggerConfiguration)
+                () => GirvsSerilogOtlpHook.AddOtlpSink(loggerConfiguration)
             );
 
             Assert.Null(exception);
@@ -49,7 +52,7 @@ public class GirvsAspireSerilogHookTests
             var loggerConfiguration = new LoggerConfiguration();
 
             var exception = Record.Exception(
-                () => GirvsAspireSerilogHook.AddOtlpSink(loggerConfiguration)
+                () => GirvsSerilogOtlpHook.AddOtlpSink(loggerConfiguration)
             );
 
             Assert.Null(exception);

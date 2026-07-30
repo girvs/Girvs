@@ -17,9 +17,14 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <ProjectReference Include="..\Girvs.ServiceGovernance\Girvs.ServiceGovernance.csproj"/>
         <PackageReference Include="Consul" Version="1.7.14.9"/>
         <PackageReference Include="Refit" Version="12.1.0"/>
         <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Girvs.Refit.Tests"/>
     </ItemGroup>
 
 </Project>

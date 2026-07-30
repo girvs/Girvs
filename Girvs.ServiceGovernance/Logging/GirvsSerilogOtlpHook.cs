@@ -1,13 +1,13 @@
 using Serilog.Sinks.OpenTelemetry;
 
-namespace Girvs.Aspire;
+namespace Girvs.ServiceGovernance;
 
 /// <summary>
 /// 由 Girvs 核心的 HostUseSerilog 通过反射调用。
-/// 契约：类型全名 Girvs.Aspire.GirvsAspireSerilogHook 与方法签名 AddOtlpSink(LoggerConfiguration) 不可改动，
-/// 改动时必须同步修改 GirvsHostBuilderManager.TryAddGirvsAspireOtlpSink。
+/// 契约：类型全名 Girvs.ServiceGovernance.GirvsSerilogOtlpHook 与方法签名 AddOtlpSink(LoggerConfiguration) 不可改动，
+/// 改动时必须同步修改 GirvsHostBuilderManager.TryAddGirvsOtlpSink。
 /// </summary>
-public static class GirvsAspireSerilogHook
+public static class GirvsSerilogOtlpHook
 {
     public const string OtlpEndpointVariable = "OTEL_EXPORTER_OTLP_ENDPOINT";
 
