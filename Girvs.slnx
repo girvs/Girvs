@@ -28,4 +28,5 @@
   <Project Path="tests/Girvs.Claims.Tests/Girvs.Claims.Tests.csproj" />
   <Project Path="tests/Girvs.Aspire.Hosting.Tests/Girvs.Aspire.Hosting.Tests.csproj" />
   <Project Path="tests/Girvs.Core.Tests/Girvs.Core.Tests.csproj" />
+  <Project Path="tests/Sample.Gateway.Tests/Sample.Gateway.Tests.csproj" />
 </Solution>

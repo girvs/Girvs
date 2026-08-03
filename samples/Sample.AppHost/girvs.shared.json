@@ -29,6 +29,14 @@
         "UserName": "root",
         "Password": "zhuofan168"
       }
+    },
+    "elastic-search": {
+      "Type": "Elasticsearch",
+      "Settings": {
+        "NodeUrls": "http://192.168.51.183:9200/",
+        "UserName": null,
+        "PassWord": null
+      }
     }
   }
 }

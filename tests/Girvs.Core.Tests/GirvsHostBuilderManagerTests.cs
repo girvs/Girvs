@@ -1,10 +1,12 @@
 using System.IO;
 using Girvs;
+using Girvs.Infrastructure.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog.Events;
+using Serilog.Core;
 using Serilog.Sinks.TestCorrelator;
 using Xunit;
 
@@ -116,5 +118,67 @@ public class GirvsHostBuilderManagerTests
                 le => le.Level == LogEventLevel.Debug && le.MessageTemplate.Text == "业务调试消息"
             );
         }
+    }
+
+    [Fact]
+    public void HostUseSerilog_代码注册TestCorrelatorSink_Information日志被接收()
+    {
+        var sink = new CollectingSink();
+        var services = new ServiceCollection();
+        services.AddSerilogSink(
+            configuration => configuration.WriteTo.Sink(sink),
+            "CollectingSink"
+        );
+
+        var hostBuilder = new HostBuilder()
+            .ConfigureAppConfiguration((_, configuration) =>
+            {
+                configuration.Sources.Clear();
+                configuration.AddInMemoryCollection([]);
+            });
+        hostBuilder.HostUseSerilog();
+
+        using var host = hostBuilder.Build();
+        host.Services.GetRequiredService<ILogger<GirvsHostBuilderManagerTests>>()
+            .LogInformation("代码注册 Sink 日志");
+
+        Assert.Contains(sink.Events, logEvent => logEvent.MessageTemplate.Text == "代码注册 Sink 日志");
+    }
+
+    [Fact]
+    public void HostUseSerilog_代码声明覆盖TestCorrelator_配置Sink不接收日志()
+    {
+        var services = new ServiceCollection();
+        services.AddSerilogSink(_ => { }, "TestCorrelator");
+
+        var hostBuilder = new HostBuilder()
+            .ConfigureAppConfiguration((_, configuration) =>
+            {
+                configuration.Sources.Clear();
+                configuration.AddInMemoryCollection(
+                    new Dictionary<string, string?>
+                    {
+                        ["Serilog:WriteTo:0:Name"] = "TestCorrelator",
+                    }
+                );
+            });
+        hostBuilder.HostUseSerilog();
+
+        using var host = hostBuilder.Build();
+        using var context = TestCorrelator.CreateContext();
+        host.Services.GetRequiredService<ILogger<GirvsHostBuilderManagerTests>>()
+            .LogInformation("被覆盖的配置 Sink 不应接收");
+
+        Assert.DoesNotContain(
+            TestCorrelator.GetLogEventsFromCurrentContext(),
+            logEvent => logEvent.MessageTemplate.Text == "被覆盖的配置 Sink 不应接收"
+        );
+    }
+
+    private sealed class CollectingSink : ILogEventSink
+    {
+        public List<LogEvent> Events { get; } = [];
+
+        public void Emit(LogEvent logEvent) => Events.Add(logEvent);
     }
 }

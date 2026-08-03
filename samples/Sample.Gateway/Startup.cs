@@ -29,6 +29,8 @@ public class Startup : IGirvsStartup
         });
     }
 
+
+
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         var serviceDirectory = app.ApplicationServices.GetRequiredService<IServiceDirectory>();
@@ -65,4 +67,5 @@ public class Startup : IGirvsStartup
         endpoints.MapReverseProxy();
         endpoints.MapGet("/health", () => Results.Ok("ok"));
     }
+
 }

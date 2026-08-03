@@ -8,5 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Girvs.Gateway\Girvs.Gateway.csproj" />
     <ProjectReference Include="..\..\Girvs.OpenApi\Girvs.OpenApi.csproj" />
+    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
   </ItemGroup>
 </Project>
