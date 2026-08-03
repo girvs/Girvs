@@ -18,7 +18,6 @@
         <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.16.0"/>
         <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.16.0"/>
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0"/>
-        <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0"/>
         <PackageReference Include="DotNetCore.Cap.OpenTelemetry" Version="10.0.1"/>
         <PackageReference Include="Consul" Version="1.7.14.9"/>
         <PackageReference Include="KubernetesClient" Version="17.0.14"/>

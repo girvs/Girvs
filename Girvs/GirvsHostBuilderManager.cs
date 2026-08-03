@@ -1,5 +1,6 @@
 ﻿using Girvs.Infrastructure.Extensions;
 using Serilog;
+using Serilog.Events;
 
 namespace Girvs;
 
@@ -33,31 +34,16 @@ public static class GirvsHostBuilderManager
     public static void HostUseSerilog(this IHostBuilder hostBuilder)
     {
         hostBuilder.UseSerilog((context, configuration) =>
-            {
-                configuration.ReadFrom.Configuration(context.Configuration);
-                TryAddGirvsOtlpSink(configuration);
-            }
-        );
-    }
-
-    /// <summary>
-    /// 反射探测 Girvs.ServiceGovernance（仅 net10 包），存在且处于 Aspire 环境时追加 OTLP sink，否则静默跳过。
-    /// 契约：Girvs.ServiceGovernance.GirvsSerilogOtlpHook.AddOtlpSink(LoggerConfiguration)
-    /// </summary>
-    private static void TryAddGirvsOtlpSink(LoggerConfiguration loggerConfiguration)
-    {
-        if (
-            string.IsNullOrEmpty(
-                Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
-            )
-        )
-            return;
-
-        var hookType = Type.GetType(
-            "Girvs.ServiceGovernance.GirvsSerilogOtlpHook, Girvs.ServiceGovernance"
-        );
-        var method = hookType?.GetMethod("AddOtlpSink", new[] {typeof(LoggerConfiguration)});
-        method?.Invoke(null, new object[] {loggerConfiguration});
+        {
+            configuration
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("System", LogEventLevel.Warning)
+                .WriteTo.Console(
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception}{NewLine}"
+                )
+                .ReadFrom.Configuration(context.Configuration);
+        });
     }
 
     public static void HostUseGirvsConfig(
@@ -80,7 +66,6 @@ public static class GirvsHostBuilderManager
         config.AddJsonFile(sharedConfigPath, optional: true, reloadOnChange: true);
 
         config.AddJsonFile(ConfigurationDefaults.AppSettingsFilePath, true, true);
-        config.AddJsonFile(ConfigurationDefaults.SerilogSettingFilePath, true, true);
         if (otherJsonFiles is {Length: > 0})
         {
             foreach (var otherJsonFile in otherJsonFiles)

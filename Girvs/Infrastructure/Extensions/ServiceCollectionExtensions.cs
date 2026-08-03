@@ -12,7 +12,6 @@ public static class ServiceCollectionExtensions
 
         var appSettings = new AppSettings();
         services.AddBindAppModelConfiguation(configuration, appSettings);
-        services.AddBindSerilogConfiguation(configuration);
 
         var engine = EngineContext.Create();
 
@@ -30,14 +29,6 @@ public static class ServiceCollectionExtensions
         return config;
     }
 
-
-    public static void AddBindSerilogConfiguation(this IServiceCollection services, IConfiguration configuration)
-    {
-        if (!AppSettingsHelper.ExistSerilogConfigFile())
-        {
-            AppSettingsHelper.CreateSerilogConfig(SerilogInitConfig.GetJsonString());
-        }
-    }
 
     public static void AddBindAppModelConfiguation(this IServiceCollection services, IConfiguration configuration,
         AppSettings appSettings)
