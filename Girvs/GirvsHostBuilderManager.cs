@@ -137,6 +137,8 @@ public static class GirvsHostBuilderManager
         config.AddJsonFile(sharedConfigPath, optional: true, reloadOnChange: true);
 
         config.AddJsonFile(ConfigurationDefaults.AppSettingsFilePath, true, true);
+        // 临时兼容旧项目对 Serilog.json 的依赖，待业务全部迁移至 appsettings.json 的 Serilog 节后移除。
+        config.AddJsonFile(ConfigurationDefaults.SerilogSettingFilePath, true, true);
         if (otherJsonFiles is {Length: > 0})
         {
             foreach (var otherJsonFile in otherJsonFiles)
