@@ -45,8 +45,11 @@ public class EventBusModule : IAppModuleStartup
                     case "rabbitmq":
                         x.UseRabbitMQ(options =>
                         {
-                            options.HostName = transport.Settings.GetValueOrDefault("HostName") ?? transport.Settings.GetValueOrDefault("Host");
-                            options.Port = int.TryParse(transport.Settings.GetValueOrDefault("Port"), out var port) ? port : 5672;
+                            options.HostName = transport.Settings.GetValueOrDefault("HostName") ??
+                                               transport.Settings.GetValueOrDefault("Host");
+                            options.Port = int.TryParse(transport.Settings.GetValueOrDefault("Port"), out var port)
+                                ? port
+                                : 5672;
                             options.UserName = transport.Settings.GetValueOrDefault("UserName");
                             options.Password = transport.Settings.GetValueOrDefault("Password");
                             options.VirtualHost = transport.Settings.GetValueOrDefault("VirtualHost") ?? "/";
@@ -55,7 +58,8 @@ public class EventBusModule : IAppModuleStartup
                     case "kafka":
                         x.UseKafka(configure =>
                         {
-                            configure.Servers = transport.Settings.GetValueOrDefault("BootstrapServers") ?? transport.Settings.GetValueOrDefault("Endpoints");
+                            configure.Servers = transport.Settings.GetValueOrDefault("BootstrapServers") ??
+                                                transport.Settings.GetValueOrDefault("Endpoints");
                             configure.MainConfig.Add(
                                 "ssl.ca.location",
                                 transport.Settings.GetValueOrDefault("SslCaLocation")
@@ -90,11 +94,7 @@ public class EventBusModule : IAppModuleStartup
 #if DEBUG
                     //d.PathBase = "/cap";
 #else
-                    var virticalPath = System.AppDomain.CurrentDomain.FriendlyName.Replace(
-                        ".",
-                        "_"
-                    );
-                    d.PathBase = $"/{virticalPath}";
+                    d.PathBase = $"/{ServiceNameResolver.FromAssemblyName()}";
 #endif
                 });
                 x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
@@ -105,9 +105,13 @@ public class EventBusModule : IAppModuleStartup
             .AddSubscribeFilter<GirvsCapFilter>();
     }
 
-    public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
+    {
+    }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
+    {
+    }
 
     public int Order { get; } = 50000;
 }
