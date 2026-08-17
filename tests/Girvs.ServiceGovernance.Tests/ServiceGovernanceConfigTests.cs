@@ -12,7 +12,9 @@ public class ServiceGovernanceConfigTests
         Assert.Equal(ServiceDiscoveryProvider.Aspire, config.ServiceDiscoveryProvider);
         Assert.Equal(ConsulServerModel.WebApi, config.CurrentServerModel);
         Assert.Equal("http://127.0.0.1:8500", config.ConsulAddress);
-        Assert.Equal("http://127.0.0.1/health", config.HealthAddress);
+        Assert.Equal("http://127.0.0.1", config.ConsulRegistrationAddress);
+        Assert.Equal("/health", config.HealthCheckPath);
+        Assert.Equal("/alive", config.LivenessCheckPath);
     }
 
     [Fact]
@@ -28,6 +30,11 @@ public class ServiceGovernanceConfigTests
                         "GrpcService",
                     ["ModuleConfigurations:ServiceGovernanceConfig:ConsulAddress"] =
                         "http://consul:8500",
+                    ["ModuleConfigurations:ServiceGovernanceConfig:ConsulRegistrationAddress"] =
+                        "http://127.0.0.1:5080",
+                    ["ModuleConfigurations:ServiceGovernanceConfig:HealthCheckPath"] = "/healthz",
+                    ["ModuleConfigurations:ServiceGovernanceConfig:LivenessCheckPath"] =
+                        "/alivez",
                 }
             )
             .Build();
@@ -38,5 +45,8 @@ public class ServiceGovernanceConfigTests
         Assert.Equal(ServiceDiscoveryProvider.Consul, config.ServiceDiscoveryProvider);
         Assert.Equal(ConsulServerModel.GrpcService, config.CurrentServerModel);
         Assert.Equal("http://consul:8500", config.ConsulAddress);
+        Assert.Equal("http://127.0.0.1:5080", config.ConsulRegistrationAddress);
+        Assert.Equal("/healthz", config.HealthCheckPath);
+        Assert.Equal("/alivez", config.LivenessCheckPath);
     }
 }

@@ -4,18 +4,28 @@ public class AuthenticatedHttpClientHandler(
     RefitServiceAttribute refitServiceAttribute,
     IEnumerable<IRefitServiceEndpointResolver> resolvers,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<AuthenticatedHttpClientHandler> logger) : DelegatingHandler
+    ILogger<AuthenticatedHttpClientHandler> logger
+) : DelegatingHandler
 {
     // 这些头属于连接级语义或由 HttpClient 管理，转发会导致下游请求无效。
     private static readonly HashSet<string> ExcludedHeaders = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Connection", "Keep-Alive", "Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailer",
-        "Transfer-Encoding", "Upgrade", "Host", "Content-Length"
+        "Connection",
+        "Keep-Alive",
+        "Proxy-Authenticate",
+        "Proxy-Authorization",
+        "TE",
+        "Trailer",
+        "Transfer-Encoding",
+        "Upgrade",
+        "Host",
+        "Content-Length",
     };
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         // 仅内部服务调用转发当前身份、租户和链路上下文；避免泄漏到第三方静态地址。
         if (refitServiceAttribute.AddressType == RefitServiceAddressType.ServiceDiscovery)
@@ -35,19 +45,28 @@ public class AuthenticatedHttpClientHandler(
             {
                 Scheme = endpoint.Scheme,
                 Host = endpoint.Host,
-                Port = endpoint.IsDefaultPort ? -1 : endpoint.Port
+                Port = endpoint.IsDefaultPort ? -1 : endpoint.Port,
             };
+
+            if (refitServiceAttribute.AddressType == RefitServiceAddressType.Static)
+                builder.Path = $"{endpoint.AbsolutePath}{request.RequestUri.AbsolutePath}";
+
             request.RequestUri = builder.Uri;
         }
 
-        logger.LogInformation("Refit 请求服务 {ServiceName}，地址来源 {AddressType}，请求地址 {RequestUri}",
-            refitServiceAttribute.ServiceName, refitServiceAttribute.AddressType, request.RequestUri);
+        logger.LogInformation(
+            "Refit 请求服务 {ServiceName}，地址来源 {AddressType}，请求地址 {RequestUri}",
+            refitServiceAttribute.ServiceName,
+            refitServiceAttribute.AddressType,
+            request.RequestUri
+        );
         return await base.SendAsync(request, cancellationToken);
     }
 
     private static void CopyRequestHeaders(HttpRequestMessage request, HttpContext context)
     {
-        if (context is null) return;
+        if (context is null)
+            return;
         foreach (var header in context.Request.Headers)
         {
             if (!ExcludedHeaders.Contains(header.Key))

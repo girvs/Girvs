@@ -35,7 +35,7 @@ public class ConsulServiceRegistrarTests
         Assert.Equal("sample-service", registration.Name);
         Assert.Equal("127.0.0.1", registration.Address);
         Assert.Equal(5080, registration.Port);
-        Assert.Equal("127.0.0.1:5080/health", registration.Check.GRPC);
+        Assert.Equal("127.0.0.1:5080", registration.Check.GRPC);
         Assert.Null(registration.Check.HTTP);
     }
 
@@ -78,6 +78,73 @@ public class ConsulServiceRegistrarTests
         Assert.Equal(0, registrar.RegisterCount);
     }
 
+    [Fact]
+    public void 服务名使用ServerName归一化()
+    {
+        var config = CreateConfig(ConsulServerModel.WebApi);
+        config.ServerName = "Sample_ServiceA";
+
+        var registration = ConsulServiceRegistrar.CreateWebApiRegistration(config);
+
+        Assert.Equal("sample-servicea", registration.Name);
+    }
+
+    [Fact]
+    public void WebApi注册信息使用自定义HealthCheckPath()
+    {
+        var config = CreateConfig(ConsulServerModel.WebApi);
+        config.HealthCheckPath = "/healthz";
+
+        var registration = ConsulServiceRegistrar.CreateWebApiRegistration(config);
+
+        Assert.Equal("http://127.0.0.1:5080/healthz", registration.Check.HTTP);
+        Assert.Equal("127.0.0.1", registration.Address);
+        Assert.Equal(5080, registration.Port);
+    }
+
+    [Fact]
+    public void ConsulRegistrationAddress非法时抛出GirvsException()
+    {
+        var config = CreateConfig(ConsulServerModel.WebApi);
+        config.ConsulRegistrationAddress = "not-a-uri";
+
+        var exception = Record.Exception(
+            () => ConsulServiceRegistrar.CreateWebApiRegistration(config)
+        );
+
+        Assert.IsType<GirvsException>(exception);
+    }
+
+    [Fact]
+    public void ConsulRegistrationAddress为空时抛出GirvsException()
+    {
+        var config = CreateConfig(ConsulServerModel.WebApi);
+        config.ConsulRegistrationAddress = "";
+
+        var exception = Record.Exception(
+            () => ConsulServiceRegistrar.CreateWebApiRegistration(config)
+        );
+
+        Assert.IsType<GirvsException>(exception);
+    }
+
+    [Theory]
+    [InlineData("health")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void HealthCheckPath不以斜杠开头时抛出GirvsException(string? path)
+    {
+        var config = CreateConfig(ConsulServerModel.WebApi);
+        config.HealthCheckPath = path!;
+
+        var exception = Record.Exception(
+            () => ConsulServiceRegistrar.CreateWebApiRegistration(config)
+        );
+
+        Assert.IsType<GirvsException>(exception);
+        Assert.Contains("HealthCheckPath", exception.Message);
+    }
+
     private static ServiceGovernanceConfig CreateConfig(ConsulServerModel serverModel) =>
         new()
         {
@@ -85,7 +152,7 @@ public class ConsulServiceRegistrarTests
             CurrentServerModel = serverModel,
             ServerName = "sample-service",
             ConsulAddress = "http://127.0.0.1:8500",
-            HealthAddress = "http://127.0.0.1:5080/health",
+            ConsulRegistrationAddress = "http://127.0.0.1:5080",
             Interval = 10,
             Timeout = 30,
             DeregisterCriticalServiceAfter = 90,

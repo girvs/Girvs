@@ -12,36 +12,32 @@ public class GatewayModule : IAppModuleStartup
 
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        var girvsResource = Singleton<AppSettings>.Instance.Resources[EsResourceName];
-        var esNodeUrl = girvsResource.Settings["NodeUrl"];
-        if (Uri.TryCreate(esNodeUrl, UriKind.Absolute, out var nodeUri))
-        {
-            var deployName = Environment.GetEnvironmentVariable("DEPLOY_SYSTEM_NAME") ?? "girvs";
-            var serverName = Environment.GetEnvironmentVariable("CURRENT_SERVER_NAME") ?? "gateway";
-            var indexFormat = $"{deployName}-{serverName}-webapi-{{0:yyyy.MM.dd}}".ToLowerInvariant();
-
-            services.AddSerilogSink(
-                cfg =>
-                    cfg.WriteTo.Elasticsearch(
-                        new ElasticsearchSinkOptions(nodeUri)
-                        {
-                            IndexFormat = indexFormat,
-                            AutoRegisterTemplate = true,
-                            EmitEventFailure = EmitEventFailureHandling.WriteToSelfLog,
-                        }
-                    ),
-                "Elasticsearch"
-            );
-        }
+        // var girvsResource = Singleton<AppSettings>.Instance.Resources[EsResourceName];
+        // var esNodeUrl = girvsResource.Settings["NodeUrls"];
+        // if (Uri.TryCreate(esNodeUrl, UriKind.Absolute, out var nodeUri))
+        // {
+        //     var deployName = Environment.GetEnvironmentVariable("DEPLOY_SYSTEM_NAME") ?? "girvs";
+        //     var serverName = Environment.GetEnvironmentVariable("CURRENT_SERVER_NAME") ?? "gateway";
+        //     var indexFormat = $"{deployName}-{serverName}-webapi-{{0:yyyy.MM.dd}}".ToLowerInvariant();
+        //
+        //     services.AddSerilogSink(
+        //         cfg =>
+        //             cfg.WriteTo.Elasticsearch(
+        //                 new ElasticsearchSinkOptions(nodeUri)
+        //                 {
+        //                     IndexFormat = indexFormat,
+        //                     AutoRegisterTemplate = true,
+        //                     EmitEventFailure = EmitEventFailureHandling.WriteToSelfLog,
+        //                 }
+        //             ),
+        //         "Elasticsearch"
+        //     );
+        // }
     }
 
-    public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
-    {
-    }
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 10888;
 }

@@ -1,3 +1,5 @@
+using Girvs;
+
 namespace Girvs.Aspire.Hosting;
 
 public static class GirvsProjectExtensions
@@ -10,9 +12,12 @@ public static class GirvsProjectExtensions
     )
         where TProject : IProjectMetadata, new()
     {
-        return builder.AddGirvsProject<TProject>(
-            ServiceNameResolver.FromProjectMetadataName(typeof(TProject).Name)
-        );
+        var metadata = new TProject();
+        var settings = GirvsServiceProjectConfig.ReadFromAppSettings(metadata);
+        var name = string.IsNullOrWhiteSpace(settings.ServerName)
+            ? ServiceNameResolver.FromProjectMetadataName(typeof(TProject).Name)
+            : ServiceNameResolver.FromServerName(settings.ServerName);
+        return builder.AddGirvsProject(builder.AddProject<TProject>(name));
     }
 
     /// <summary>
@@ -35,6 +40,24 @@ public static class GirvsProjectExtensions
         IResourceBuilder<ProjectResource> project
     )
     {
+        var settings = GirvsServiceProjectConfig.ReadFromAppSettings(project);
+        // 探针必须挂到 http/https 端点;不自动新增 endpoint,缺少时明确报错,
+        // 提示通过 launchSettings.json 或显式 WithHttpEndpoint 声明。
+        var selectedEndpoint = project.Resource.Annotations
+            .OfType<EndpointAnnotation>()
+            .FirstOrDefault(endpoint => endpoint.UriScheme is "http" or "https");
+        if (selectedEndpoint is null)
+        {
+            throw new GirvsException(
+                $"项目 {project.Resource.Name} 没有可用的 HTTP/HTTPS endpoint，无法声明健康检查探针；请在项目中配置 launchSettings.json 的 http 端点或显式声明 WithHttpEndpoint"
+            );
+        }
+
+#pragma warning disable ASPIREPROBES001 // 实验性探针 API（Aspire 13 默认，K8s 发布器消费）
+        project.WithHttpProbe(ProbeType.Readiness, settings.HealthCheckPath, endpointName: selectedEndpoint.Name);
+        project.WithHttpProbe(ProbeType.Liveness, settings.LivenessCheckPath, endpointName: selectedEndpoint.Name);
+#pragma warning restore ASPIREPROBES001
+
         if (builder.ExecutionContext.IsPublishMode)
         {
             // 生产:共享文件由 K8s ConfigMap 挂载到约定路径,内容与地址由运维维护

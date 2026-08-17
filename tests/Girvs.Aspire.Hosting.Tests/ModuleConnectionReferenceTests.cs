@@ -29,26 +29,27 @@ public class ModuleConnectionReferenceTests
     }
 
     [Fact]
-    public void Cache连接引用SqlServer资源时组装连接串()
+    public void Cache连接引用SqlServer资源时抛出不支持异常()
     {
         var cache = new DistributedCacheConfig { ConnectionRef = "cache-db" };
 
-        var connectionString = cache.BuildConnectionString(
-            new GirvsInfrastructureResource
-            {
-                Type = "sqlserver",
-                Settings = new Dictionary<string, string>
+        var exception = Assert.Throws<GirvsException>(() =>
+            cache.BuildConnectionString(
+                new GirvsInfrastructureResource
                 {
-                    ["Host"] = "sqlserver",
-                    ["Database"] = "cache",
-                    ["UserName"] = "sa",
-                    ["Password"] = "password",
-                },
-            }
+                    Type = "sqlserver",
+                    Settings = new Dictionary<string, string>
+                    {
+                        ["Host"] = "sqlserver",
+                        ["Database"] = "cache",
+                        ["UserName"] = "sa",
+                        ["Password"] = "password",
+                    },
+                }
+            )
         );
 
-        Assert.Contains("Data Source=sqlserver", connectionString);
-        Assert.Contains("Initial Catalog=cache", connectionString);
+        Assert.Contains("Resources:cache-db:Type 不支持缓存", exception.Message);
     }
 
     [Fact]

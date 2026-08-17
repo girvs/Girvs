@@ -8,7 +8,7 @@ namespace Sample.Gateway.Tests;
 public class StartupElasticsearchLoggingTests
 {
     [Fact]
-    public void ConfigureServices_配置Elasticsearch地址时_注册ElasticsearchSink()
+    public void ConfigureServices_配置Elasticsearch地址时_不注册ElasticsearchSink()
     {
         GirvsSerilogSinkRegistry.SnapshotAndClear();
         var configuration = new ConfigurationBuilder()
@@ -24,7 +24,6 @@ public class StartupElasticsearchLoggingTests
         startup.ConfigureServices(new ServiceCollection());
 
         var registrations = GirvsSerilogSinkRegistry.SnapshotAndClear();
-        Assert.Single(registrations);
-        Assert.Contains("Elasticsearch", registrations[0].OverriddenSinkTypeNames);
+        Assert.DoesNotContain(registrations, registration => registration.OverriddenSinkTypeNames.Contains("Elasticsearch"));
     }
 }

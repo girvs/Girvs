@@ -1,3 +1,5 @@
+using Girvs;
+
 namespace Girvs.ServiceGovernance.Services;
 
 internal interface IConsulServiceRegistrar
@@ -30,7 +32,10 @@ internal sealed class ConsulServiceRegistrar(
         ServiceGovernanceConfig config
     )
     {
-        var healthUri = new Uri(config.HealthAddress);
+        var healthUri = ResolveRegistrationUri(config);
+        ValidateHealthCheckPath(config.HealthCheckPath);
+        var checkUrl =
+            $"{healthUri.GetComponents(UriComponents.SchemeAndServer, UriFormat.UriEscaped)}{config.HealthCheckPath}";
         return CreateRegistration(
             config,
             healthUri,
@@ -41,7 +46,7 @@ internal sealed class ConsulServiceRegistrar(
                     config.DeregisterCriticalServiceAfter
                 ),
                 Interval = TimeSpan.FromSeconds(config.Interval),
-                HTTP = config.HealthAddress,
+                HTTP = checkUrl,
                 Timeout = TimeSpan.FromSeconds(config.Timeout),
             }
         );
@@ -51,7 +56,7 @@ internal sealed class ConsulServiceRegistrar(
         ServiceGovernanceConfig config
     )
     {
-        var healthUri = new Uri(config.HealthAddress);
+        var healthUri = ResolveRegistrationUri(config);
         return CreateRegistration(
             config,
             healthUri,
@@ -62,10 +67,32 @@ internal sealed class ConsulServiceRegistrar(
                     config.DeregisterCriticalServiceAfter
                 ),
                 Interval = TimeSpan.FromSeconds(config.Interval),
-                GRPC = config.HealthAddress.Replace($"{healthUri.Scheme}://", ""),
+                GRPC = $"{healthUri.Host}:{healthUri.Port}",
                 Timeout = TimeSpan.FromSeconds(config.Timeout),
             }
         );
+    }
+
+    private static Uri ResolveRegistrationUri(ServiceGovernanceConfig config)
+    {
+        if (string.IsNullOrWhiteSpace(config.ConsulRegistrationAddress))
+            throw new GirvsException("ConsulRegistrationAddress 为空，无法生成 Consul 注册信息");
+        if (
+            !Uri.TryCreate(config.ConsulRegistrationAddress, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+        )
+            throw new GirvsException(
+                $"ConsulRegistrationAddress 必须为合法 http/https 绝对 URI：{config.ConsulRegistrationAddress}"
+            );
+        return uri;
+    }
+
+    private static void ValidateHealthCheckPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !path.StartsWith('/'))
+            throw new GirvsException(
+                $"HealthCheckPath 必须非空且以 / 开头，当前值：{path}"
+            );
     }
 
     private static AgentServiceRegistration CreateRegistration(
@@ -137,5 +164,5 @@ internal sealed class ConsulServiceRegistrar(
     private static string GetServerName(ServiceGovernanceConfig config) =>
         string.IsNullOrWhiteSpace(config.ServerName)
             ? ServiceNameResolver.FromAssemblyName()
-            : config.ServerName;
+            : ServiceNameResolver.FromServerName(config.ServerName);
 }

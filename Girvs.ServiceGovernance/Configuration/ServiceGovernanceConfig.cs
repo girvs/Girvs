@@ -44,7 +44,14 @@ public class ServiceGovernanceConfig : IAppModuleConfig
     /// <summary>Aspire 注入端点的服务元数据，未配置服务默认不通过网关公开。</summary>
     public Dictionary<string, ServiceGovernanceServiceConfig> Services { get; set; } = new();
 
-    public string HealthAddress { get; set; } = "http://127.0.0.1/health";
+    /// <summary>服务对外注册基址（仅 Consul 模式生效），如 http://127.0.0.1:8080，不含路径；为空时告警并跳过注册。</summary>
+    public string? ConsulRegistrationAddress { get; set; } = "http://127.0.0.1";
+
+    /// <summary>完整健康验证路径（readiness/部署后验证），默认 /health；Consul HTTP 检查、Aspire Readiness probe、K8s readinessProbe、框架端点映射共用。</summary>
+    public string HealthCheckPath { get; set; } = "/health";
+
+    /// <summary>存活探测路径（liveness），默认 /alive；Aspire Liveness probe、K8s livenessProbe、框架端点映射使用；Consul 模式忽略。</summary>
+    public string LivenessCheckPath { get; set; } = "/alive";
 
     public string ServerName { get; set; } = "";
 

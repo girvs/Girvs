@@ -27,4 +27,11 @@ public class ServiceNameResolverTests
     {
         Assert.Equal(expected, ServiceNameResolver.FromProjectMetadataName(projectMetadataName));
     }
+
+    [Theory]
+    [InlineData("Sample.ServiceA", "sample-servicea")]
+    [InlineData("My_Service_01", "my-service-01")]
+    [InlineData("sample-servicea", "sample-servicea")]
+    public void FromServerName_服务名配置_生成统一服务名(string serverName, string expected) =>
+        Assert.Equal(expected, ServiceNameResolver.FromServerName(serverName));
 }

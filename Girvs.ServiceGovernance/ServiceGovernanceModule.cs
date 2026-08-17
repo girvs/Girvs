@@ -79,6 +79,25 @@ public class ServiceGovernanceModule : IAppModuleStartup
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(config.ConsulRegistrationAddress))
+        {
+            logger.LogWarning("Consul 模式已启用但 ConsulRegistrationAddress 为空，跳过服务注册");
+            return;
+        }
+
+        if (
+            !Uri.TryCreate(config.ConsulRegistrationAddress, UriKind.Absolute, out var registrationUri)
+            || (registrationUri.Scheme != Uri.UriSchemeHttp && registrationUri.Scheme != Uri.UriSchemeHttps)
+        )
+        {
+            throw new GirvsException(
+                $"ConsulRegistrationAddress 必须为合法 http/https 绝对 URI：{config.ConsulRegistrationAddress}"
+            );
+        }
+
+        ValidateHealthPath(config.HealthCheckPath, nameof(config.HealthCheckPath));
+        ValidateHealthPath(config.LivenessCheckPath, nameof(config.LivenessCheckPath));
+
         try
         {
             application
@@ -98,9 +117,14 @@ public class ServiceGovernanceModule : IAppModuleStartup
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
     {
-        builder.MapHealthChecks("/health");
+        var config = Singleton<AppSettings>.Instance.Get<ServiceGovernanceConfig>();
+        // 无论 Provider（Aspire/Kubernetes/Consul）或 ConsulRegistrationAddress 是否为空，
+        // 端点映射前都必须保证路径合法，避免挂载无效健康检查路由
+        ValidateHealthPath(config.HealthCheckPath, nameof(config.HealthCheckPath));
+        ValidateHealthPath(config.LivenessCheckPath, nameof(config.LivenessCheckPath));
+        builder.MapHealthChecks(config.HealthCheckPath);
         builder.MapHealthChecks(
-            "/alive",
+            config.LivenessCheckPath,
             new HealthCheckOptions
             {
                 Predicate = registration => registration.Tags.Contains("live"),
@@ -112,5 +136,13 @@ public class ServiceGovernanceModule : IAppModuleStartup
 
     private static bool IsEventBusModuleLoaded() =>
         Type.GetType("Girvs.EventBus.EventBusModule, Girvs.EventBus") != null;
+
+    private static void ValidateHealthPath(string path, string name)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !path.StartsWith('/'))
+            throw new GirvsException(
+                $"{name} 必须非空且以 / 开头，当前值：{path}"
+            );
+    }
 
 }
