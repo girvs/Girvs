@@ -1,73 +1,210 @@
 # Girvs.Gateway
 
-Girvs 自建 YARP 网关的**服务发现与路由生成**：可插拔 Aspire 本地配置源 / Consul / K8s（watch）三种发现源，按约定生成 YARP 路由与集群配置，替代各业务网关里重复的 `CustomProxyConfigProvider`/`ConsulClientService`/`KubernetesClientService`。
+基于 [YARP](https://github.com/microsoft/reverse-proxy) 的 Girvs 网关：依据 `Girvs.ServiceGovernance` 提供的统一服务目录 `IServiceDirectory` 生成约定式路由，服务增删或端点变化时热更新 YARP 配置；可选启用基于 Redis Lua 的严格流程防护。
 
-## 用途
+目标框架：`net10.0`。依赖 `Girvs`、`Girvs.Cache`、`Girvs.ServiceGovernance`、`Yarp.ReverseProxy`。
 
-一个网关进程要把请求转发到后端一批动态变化的服务上（服务会上下线、扩缩容），需要：
+## 工作方式
 
-1. 持续发现当前有哪些后端服务（及其地址）；
-2. 服务集变化时，让 YARP 的路由/集群配置跟着热更新（不重启网关、不轮询等待）。
+```
+Aspire 配置 / Consul / Kubernetes
+            │  （ServiceGovernance 按 DiscoveryRefreshInterval 定时拉取）
+            ▼
+     IServiceDirectory（服务快照，变化时触发 ServicesChanged）
+            │
+            ▼
+GirvsGatewayProxyConfigProvider（IProxyConfigProvider，生成路由与集群）
+            │  ChangeToken 通知
+            ▼
+          YARP
+```
 
-本包把这两件事抽成 `IGatewayServiceDiscoverySource`（发现）+ `IProxyConfigProvider`（YARP 配置生成），并提供三个开箱即用的发现源实现，覆盖三类常见部署形态：
+网关本身不直接对接任何注册中心：服务发现统一由 `Girvs.ServiceGovernance` 完成，网关与 `Girvs.Refit` 共用同一份服务目录。发现源通过 `ServiceGovernanceConfig.ServiceDiscoveryProvider` 选择：
 
-| 部署形态 | `GatewayDiscoveryType` | 发现源 | 机制 |
+| 部署形态 | `ServiceDiscoveryProvider` | 服务来源 | 网关公开方式 |
 |---|---|---|---|
-| 本地 AppHost | `Aspire` | `AspireGatewayServiceSource` | 读取 Aspire 注入的 `services:{name}:...` 端点配置 |
-| 传统服务注册中心 | `Consul` | `ConsulGatewayServiceSource` | 读取 Consul Agent Service 快照并生成目标地址 |
-| Kubernetes | `Kubernetes` | `KubernetesGatewayServiceSource` | relist 建初态 + watch K8s Service 增量事件，事件驱动、无轮询等待 |
+| 本地 Aspire AppHost | `Aspire`（默认） | AppHost 注入的 `services:{name}:{endpoint}:{i}` 配置 | `ServiceGovernanceConfig.Services[name]` 中的 `GatewayEnabled` / `GatewayEndpointName` |
+| 传统注册中心 | `Consul` | 带 tag `girvs.business=true` 的健康实例 | tag `girvs.gateway-enabled=true`、`girvs.gateway-endpoint=<端点名>` |
+| Kubernetes | `Kubernetes` | 匹配 `KubernetesLabelSelector`（默认 `girvs.io/business=true`）的 Service | 注解 `girvs.io/gateway-enabled: "true"`、`girvs.io/gateway-endpoint: "<端口名>"` |
+
+服务目录按 `DiscoveryRefreshInterval`（默认 30 秒）轮询刷新，快照发生变化时才触发路由更新。单次刷新失败会保留上一次成功的快照，不影响已生效的路由。
 
 ## 用法
+
+### 在 Girvs 服务中使用
+
+引用 `Girvs.Gateway` 后，`ServiceGovernanceModule` 会随模块机制自动注册服务目录，只需在 Startup 中注册网关并映射反向代理：
+
+```csharp
+public class Startup(IConfiguration configuration, IWebHostEnvironment env) : IGirvsStartup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        // 传入 configuration 时会同时读取 FlowProtection 配置节
+        services.AddGirvsGateway(configuration);
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (app is IEndpointRouteBuilder endpoints)
+            endpoints.MapReverseProxy();
+    }
+}
+```
+
+`appsettings.json`（Aspire 模式需要显式声明哪些服务对网关公开）：
+
+```json
+{
+  "ModuleConfigurations": {
+    "ServiceGovernanceConfig": {
+      "ServiceDiscoveryProvider": "Aspire",
+      "Services": {
+        "sample-servicea": { "GatewayEnabled": true, "GatewayEndpointName": "http" },
+        "sample-serviceb": { "GatewayEnabled": true, "GatewayEndpointName": "http" }
+      }
+    }
+  }
+}
+```
+
+切换到 Kubernetes 或 Consul 时只需修改 `ServiceDiscoveryProvider`，并按上表在 Service 注解或 Consul tag 中声明网关公开信息。
+
+### 独立网关（不使用 Girvs 启动器）
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddGirvsGateway(new GatewayDiscoveryConfig
+builder.Services.AddGirvsServiceDirectory(new ServiceGovernanceConfig
 {
-    DiscoveryType = GatewayDiscoveryType.Kubernetes, // 本地 AppHost 可用 GatewayDiscoveryType.Aspire
+    ServiceDiscoveryProvider = ServiceDiscoveryProvider.Kubernetes,
+    DiscoveryRefreshInterval = 10,
 });
+builder.Services.AddGirvsGateway(builder.Configuration);
 
 var app = builder.Build();
-
-// 关键：AddGirvsGateway 只注册服务，不会自动开始发现，必须在启动时显式调用 StartAsync
-// （K8s 模式下这里会启动后台 relist+watch 循环；Aspire 模式下读取当前配置快照）
-await app.Services.GetRequiredService<IGatewayServiceDiscoverySource>().StartAsync(CancellationToken.None);
-
 app.MapReverseProxy();
 app.Run();
 ```
 
-`AddGirvsGateway` 做了什么：
+`AddGirvsServiceDirectory` 会注册服务目录、对应的发现源、后台刷新服务 `ServiceDirectoryRefreshService` 以及 `service-directory` 健康检查。刷新由 Hosted Service 自动启动，**无需手动调用任何启动方法**。
 
-- 按 `DiscoveryType` 注册对应的 `IGatewayServiceDiscoverySource`（单例）；
-- 注册 `GirvsGatewayProxyConfigProvider`（`IProxyConfigProvider`），依据发现源的服务快照生成约定式路由；
-- `AddReverseProxy().AddTransforms(...)`：追加 `X-Forwarded-*`、透传原始请求头。
+### `AddGirvsGateway` 做了什么
+
+- 注册 `GirvsGatewayProxyConfigProvider` 作为 `IProxyConfigProvider`；
+- `AddReverseProxy().AddTransforms(...)`：透传原始请求头，追加 `X-Forwarded-*`、`X-Forwarded-For`；
+- 传入 `configuration` 时调用 `AddFlowProtection(configuration)`（`FlowProtection:Enabled=false` 时不注册任何流程防护服务）。
+
+前提：容器中已存在 `IServiceDirectory`（由 `ServiceGovernanceModule` 或 `AddGirvsServiceDirectory` 提供）。
 
 ## 约定路由规则
 
-发现到一个后端服务（服务名 `ServiceName`，如 Aspire 项目名 / K8s Service 名），自动生成：
+只为 `GatewayEnabled = true` 且 `GatewayEndpointName` 非空的服务生成路由：
 
-- 路由：`RouteId=ServiceName`，`Match.Path = "/{ServiceName}/{**catch-all}"`，`Transforms: PathRemovePrefix=ServiceName`
-- 集群：`ClusterId=ServiceName`，`Destinations` 为该服务的实际地址
+- 路由：`RouteId = ServiceName`，`Match.Path = "/{ServiceName}/{**catch-all}"`，Transform `PathRemovePrefix = ServiceName`；
+- 集群：`ClusterId = ServiceName`，Destinations 为该服务所有端点名等于 `GatewayEndpointName` 的实例（key 为 `{服务名}-{端点名}-{序号}`）；
+- 没有匹配端点的服务不生成路由。
 
-即约定 **请求路径以服务名开头，转发时去掉该前缀**。例如集群中有一个名为 `echo-a` 的服务：
+即 **请求路径以服务名开头，转发时去掉该前缀**。例如：
 
-- 客户端请求 `GET /echo-a/foo`
-- 网关匹配到路由 `echo-a`，去掉 `echo-a` 前缀后转发 `GET /foo` 到该服务的地址
+```
+GET /sample-servicea/selfcheck/cache  →  sample-servicea 的 GET /selfcheck/cache
+```
 
-Aspire 模式下地址来自 AppHost 注入给网关项目的 `services:{ServiceName}:...` 配置。Consul 模式下地址来自 Consul Agent Service 的 `Address`/`Port`。K8s 模式下地址固定为集群内 DNS：`http://<ServiceName>.<Namespace>.svc.cluster.local:<Port>`（K8s Service 声明几个端口就生成几个 Destination）。
+各发现源的地址与端点名：
 
-不支持基于 Label/Annotation 的分流或自定义路由规则——这类需求留给网关侧自行叠加中间件，本包只负责"服务名 → 约定路由"这一层。
+| 发现源 | 地址 | 端点名 |
+|---|---|---|
+| Aspire | `services:{name}:{endpoint}:{i}` 中的 http / https 地址 | 配置中的 `{endpoint}` 键，如 `http`、`https` |
+| Consul | 实例的 `Address:Port` | tag `girvs.endpoint=<名称>`，缺省为 `http` |
+| Kubernetes | `http://{name}.{namespace}.svc.cluster.local:{port}` | Service 端口名；未命名端口为 `port-{port}` |
+
+服务名统一由 `ServiceNameResolver` 生成（小写连字符形式，如程序集 `Sample.ServiceA` → `sample-servicea`），网关路由前缀、Refit 服务名、Consul 注册名应保持一致。
+
+不支持基于 Header、权重等的自定义分流；这类需求请在网关侧叠加中间件或自定义 YARP 配置。
+
+## 变更令牌与热更新
+
+`GirvsGatewayProxyConfigProvider` 订阅 `IServiceDirectory.ServicesChanged`：每次触发，先构建携带新 `ChangeToken` 的配置，再取消旧配置的令牌，YARP 收到通知后重新调用 `GetConfig()`。整个过程无需重启网关，路由变化的延迟上限约为一个 `DiscoveryRefreshInterval`。
+
+## Kubernetes 部署要求
+
+### 1. 业务 Service 的标签与注解
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-api
+  labels:
+    girvs.io/business: "true"            # 匹配 KubernetesLabelSelector
+  annotations:
+    girvs.io/gateway-enabled: "true"     # 对网关公开
+    girvs.io/gateway-endpoint: "http"    # 使用名为 http 的端口
+spec:
+  selector:
+    app: order-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+```
+
+没有业务标签的 Service（包括网关自身、`kubernetes`、`kube-dns` 等）不会进入服务目录。
+
+### 2. RBAC
+
+发现源使用 `KubernetesClientConfiguration.InClusterConfig()` 读取 Pod 的 ServiceAccount 凭据，只需要 Service 的 `list` 权限：
+
+- `KubernetesNamespace` 为空（默认）：调用 `ListServiceForAllNamespacesAsync`，需要 **ClusterRole + ClusterRoleBinding**；
+- 指定 `KubernetesNamespace`：调用 `ListNamespacedServiceAsync`，命名空间级 `Role + RoleBinding` 即可（推荐，权限最小化）。
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: girvs-gateway
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: girvs-gateway-services-reader
+rules:
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: girvs-gateway-services-reader-binding
+subjects:
+  - kind: ServiceAccount
+    name: girvs-gateway
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: girvs-gateway-services-reader
+  apiGroup: rbac.authorization.k8s.io
+```
+
+网关 Deployment 的 Pod spec 需设置 `serviceAccountName: girvs-gateway`。权限不足时刷新会失败并记录警告日志，服务目录保持为空或上一次成功的快照。
+
+### 3. 健康检查
+
+在 Girvs 服务中使用时，`ServiceGovernanceModule` 暴露 `/health` 与 `/alive`；服务目录从未成功加载或超过 `MaxStaleDuration`（默认 90 秒）未成功刷新时，`/health` 返回 Unhealthy，可作为 Readiness 探针。
 
 ## 流程防护
 
-网关可选启用严格线性流程防护，阻止已登录用户跳过前置接口直接调用后续接口。流程定义独立放在 `FlowProtection` 配置节，不写入 YARP Route Metadata；状态只保存在 Redis，所有 Reserve/Commit/Release/Delete 都通过 Lua 原子执行。
+网关可选启用严格线性流程防护，阻止已登录用户跳过前置接口直接调用后续接口。流程定义独立放在顶层 `FlowProtection` 配置节，不写入 YARP Route Metadata；状态只保存在 Redis，所有 Reserve / Commit / Release / Delete 都通过 Lua 原子执行。
 
 启用前置条件：
 
-- Redis 配置使用 `Girvs.Cache`，并且 `CacheConfig.DistributedCacheConfig.ConnectionRef` 指向 `Resources` 中 `Type=redis` 的资源；
-- `redis-synchronized-memory`、memory、SQL Server 缓存都不接受；
-- 下游受保护接口不能绕过 YARP 暴露公网；
+- 使用 `Girvs.Cache`，且 `CacheConfig.DistributedCacheConfig.Enabled = true`、`ConnectionRef` 指向 `Resources` 中 `Type=redis` 的资源；
+- `redis-synchronized-memory`、内存缓存均不接受；
+- 调用 `AddGirvsGateway` 前容器中已注册 `IRedisConnectionWrapper`（由 `Girvs.Cache` 提供）；
+- 下游受保护接口不能绕过网关暴露；
 - 本功能不替代认证、授权、资源权限校验和业务幂等。
 
 示例配置：
@@ -112,12 +249,18 @@ Aspire 模式下地址来自 AppHost 注入给网关项目的 `services:{Service
 }
 ```
 
+配置校验（启动时失败即抛出）：
+
+- 每个流程至少 2 步，`FlowId` 与步骤不能重复，同一 `Method Path` 不能出现在多个流程中；
+- `Path` 必须以 `/` 开头；
+- 所有 TTL 在 1 ~ 1800 秒之间，`LockTtlSeconds` 不超过 `DefaultTtlSeconds`。
+
 接入代码：
 
 ```csharp
-builder.Services.AddGirvsGateway(
-    new GatewayDiscoveryConfig { DiscoveryType = GatewayDiscoveryType.Kubernetes },
-    builder.Configuration);
+builder.Services.AddGirvsServiceDirectory(
+    new ServiceGovernanceConfig { ServiceDiscoveryProvider = ServiceDiscoveryProvider.Kubernetes });
+builder.Services.AddGirvsGateway(builder.Configuration);
 
 builder.Services.AddCors(options => options.AddPolicy("gateway", policy => policy
     .AllowAnyOrigin()
@@ -137,13 +280,13 @@ app.MapReverseProxy(proxyPipeline =>
 });
 ```
 
-步骤 Path 使用下游服务路径。例如约定路由 `/{ServiceName}/{**catch-all}` 加 `PathRemovePrefix=order` 时，客户端请求 `/order/api/pay1`，流程配置写 `/api/pay1`。本期只支持精确 Path，不支持模板、通配符、Query 或 JSON Body 提取。
+步骤 Path 使用下游服务路径。例如约定路由 `/{ServiceName}/{**catch-all}` 加 `PathRemovePrefix=order` 时，客户端请求 `/order/api/pay1`，流程配置写 `/api/pay1`。仅支持精确 Path，不支持模板、通配符、Query 或 JSON Body 提取。
 
 响应 Header：
 
 - 未完成：`X-Flow-Ticket`、`X-Flow-Next-Index`、`Cache-Control: no-store`
 - 完成：`X-Flow-Completed: true`、`Cache-Control: no-store`
-- 下游可在第一步成功响应 `X-Flow-Business-Id`，网关会消费并写入 Redis，不透传给客户端。
+- 下游可在第一步成功响应中返回 `X-Flow-Business-Id`，网关会消费并写入 Redis，不透传给客户端。
 
 错误码均返回 RFC 7807 ProblemDetails，HTTP 403：
 
@@ -156,62 +299,11 @@ app.MapReverseProxy(proxyPipeline =>
 | `FLOW_IN_PROGRESS` | 同一步已有未过期处理锁 |
 | `FLOW_COMPLETED` | 流程已完成，重复调用被拒绝 |
 
-前端只保存服务端返回的 Ticket，建议以内存按 `flowId + businessId` 作为 key 保存；后续受保护请求自动附加 `X-Flow-Ticket` 和 `X-Business-Id`。收到 `FLOW_*` 403 后清除本地 Ticket 并提示用户重新开始。Ticket 是持有者凭据，本期明确不绑定 `userId/tenantId`，因此不要长期放入 LocalStorage，也不要记录到普通业务日志。
+受保护路由缺少唯一的 `PathRemovePrefix` 时返回 500"流程保护路由配置错误"。
 
-## 变更令牌与热更新
-
-`GirvsGatewayProxyConfigProvider` 订阅发现源的 `ServicesChanged` 事件：每次触发，先构建携带新 `ChangeToken` 的新配置、再取消旧配置持有的令牌，YARP 收到令牌取消通知后会重新调用 `GetConfig()` 拿到新路由——全程不重启进程、不轮询。K8s 模式下这意味着 Service 增删/端口变化能在**秒级**（watch 事件到达后）反映到网关路由，而不是等下一次轮询周期。
-
-## K8s 部署要求
-
-### 1. 启动时调用 `StartAsync`
-
-`KubernetesGatewayServiceSource` 的 relist+watch 循环由显式 `StartAsync` 触发（不在构造函数/DI 注册时自动启动），务必在 `app.Build()` 之后、`app.Run()` 之前调用，见上方用法示例。
-
-### 2. RBAC：ClusterRole，不是 Role
-
-`KubernetesGatewayServiceSource` 用 `ListServiceForAllNamespacesAsync`/watch 做**集群范围**的 Service 列表与监听（而非单一命名空间），因此网关 Pod 的 ServiceAccount 必须绑定 `ClusterRole`（命名空间级 `Role`会被拒绝，报 `... is forbidden: ... at the cluster scope`）：
-
-```yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: girvs-gateway
-  namespace: default
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: girvs-gateway-services-reader
-rules:
-  - apiGroups: [""]
-    resources: ["services"]
-    verbs: ["list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: girvs-gateway-services-reader-binding
-subjects:
-  - kind: ServiceAccount
-    name: girvs-gateway
-    namespace: default
-roleRef:
-  kind: ClusterRole
-  name: girvs-gateway-services-reader
-  apiGroup: rbac.authorization.k8s.io
-```
-
-Deployment 的 Pod spec 需 `serviceAccountName: girvs-gateway`。集群内运行时 `KubernetesGatewayServiceSource` 用 `KubernetesClientConfiguration.InClusterConfig()` 自动读取该 ServiceAccount 的挂载凭据，无需额外配置。
-
-### 3. 断线重连
-
-watch 连接异常（网络抖动、API Server 重启等）会被捕获，2 秒后自动重新 relist+watch，不需要外部干预；重连期间的错误只打到 stderr，不影响已生效的路由配置。
+前端只保存服务端返回的 Ticket，建议在内存中按 `flowId + businessId` 作为 key 保存；后续受保护请求自动附加 `X-Flow-Ticket` 和 `X-Business-Id`。收到 `FLOW_*` 403 后清除本地 Ticket 并提示用户重新开始。Ticket 是持有者凭据，当前不绑定 `userId/tenantId`，因此不要长期放入 LocalStorage，也不要记录到普通业务日志。
 
 ## 端到端验证
 
-`samples/gateway-k8s/` 是一个可在 kind 集群里跑通的最小验证系统（网关 + `echo-a`/`echo-b` 两个 dummy 后端），包含完整 K8s 清单（RBAC/Deployment/Service）与 Dockerfile，并验证过"删除 Service → 路由秒级消失（404）→ 重新创建 → 路由恢复（200）"的动态更新场景。可直接照抄用于验证自己的部署。
-
-## Aspire 与 K8s 模式的区别
-
-Aspire 模式面向本地 AppHost，网关启动时读取 AppHost 注入的端点配置，适合本地联调和参照样例；K8s 模式面向生产集群，watch Service 变化并通过变更令牌热更新 YARP 配置。两种模式共用同一套 `AddGirvsGateway` API 与约定路由规则，仅 `GatewayDiscoveryConfig.DiscoveryType` 不同。
+- 本地 Aspire：`samples/Sample.Gateway` 由 `samples/Sample.AppHost` 编排，经 Aspire 发现转发 ServiceA / ServiceB，并在 `/girvs_swagger` 聚合各服务 OpenAPI 文档，见 [samples/README.md](../samples/README.md)。
+- Kubernetes：`samples/gateway-k8s/` 是可在 kind 集群中跑通的最小验证系统（网关 + `echo-a` / `echo-b` 两个 dummy 后端），包含 RBAC、Deployment、Service 清单与 Dockerfile，验证"删除 Service → 路由消失（404）→ 重新创建 → 路由恢复（200）"，见 [samples/gateway-k8s/README.md](../samples/gateway-k8s/README.md)。
