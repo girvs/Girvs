@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Girvs.Gateway.FlowProtection;
 using Girvs.Gateway.FlowProtection.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Model;
@@ -61,6 +62,42 @@ public class FlowTicketMiddlewareTests
         var attempt = Assert.IsType<FlowAttemptContext>(context.Items[FlowAttemptContext.ItemsKey]);
         Assert.True(attempt.IsFirstStep);
         Assert.Equal("biz-1", attempt.BusinessId);
+    }
+
+    [Fact]
+    public async Task 未启用流程防护_DI激活时不解析流程依赖_请求直接放行()
+    {
+        using var provider = new ServiceCollection()
+            .AddSingleton(new FlowProtectionOptions { Enabled = false })
+            .BuildServiceProvider();
+        var context = CreateContext("POST", "/order/api/role1");
+        var called = false;
+
+        var middleware = ActivatorUtilities.CreateInstance<FlowTicketMiddleware>(
+            provider,
+            (RequestDelegate)(_ =>
+            {
+                called = true;
+                return Task.CompletedTask;
+            })
+        );
+        await middleware.InvokeAsync(context);
+
+        Assert.True(called);
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public void 启用流程防护但未注册依赖_DI激活_抛出异常()
+    {
+        using var provider = new ServiceCollection().AddSingleton(Options()).BuildServiceProvider();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            ActivatorUtilities.CreateInstance<FlowTicketMiddleware>(
+                provider,
+                (RequestDelegate)(_ => Task.CompletedTask)
+            )
+        );
     }
 
     private static FlowTicketMiddleware CreateMiddleware(

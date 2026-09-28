@@ -1,34 +1,67 @@
 using Girvs.Gateway.FlowProtection.Configuration;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Girvs.Gateway.FlowProtection;
 
-public sealed class FlowTicketMiddleware(
-    RequestDelegate next,
-    FlowProtectionOptions options,
-    FlowDefinitionRegistry registry,
-    DownstreamPathResolver pathResolver,
-    FlowTicketService ticketService
-)
+public sealed class FlowTicketMiddleware
 {
+    private readonly RequestDelegate _next;
+    private readonly FlowProtectionOptions _options;
+    private readonly FlowDefinitionRegistry _registry;
+    private readonly DownstreamPathResolver _pathResolver;
+    private readonly FlowTicketService _ticketService;
+
+    /// <summary>
+    /// DI 激活入口：未启用流程防护时不注册相关服务，此时不解析依赖，请求直接放行。
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public FlowTicketMiddleware(
+        RequestDelegate next,
+        FlowProtectionOptions options,
+        IServiceProvider serviceProvider
+    )
+        : this(
+            next,
+            options,
+            options.Enabled ? serviceProvider.GetRequiredService<FlowDefinitionRegistry>() : null,
+            options.Enabled ? serviceProvider.GetRequiredService<DownstreamPathResolver>() : null,
+            options.Enabled ? serviceProvider.GetRequiredService<FlowTicketService>() : null
+        ) { }
+
+    public FlowTicketMiddleware(
+        RequestDelegate next,
+        FlowProtectionOptions options,
+        FlowDefinitionRegistry registry,
+        DownstreamPathResolver pathResolver,
+        FlowTicketService ticketService
+    )
+    {
+        _next = next;
+        _options = options;
+        _registry = registry;
+        _pathResolver = pathResolver;
+        _ticketService = ticketService;
+    }
+
     public async Task InvokeAsync(HttpContext context)
     {
-        if (!options.Enabled)
+        if (!_options.Enabled)
         {
-            await next(context);
+            await _next(context);
             return;
         }
 
-        var downstreamPath = pathResolver.Resolve(context);
+        var downstreamPath = _pathResolver.Resolve(context);
         if (downstreamPath is null)
         {
             await WriteConfigurationErrorAsync(context);
             return;
         }
 
-        if (!registry.TryGetStep(context.Request.Method, downstreamPath.Value, out var step))
+        if (!_registry.TryGetStep(context.Request.Method, downstreamPath.Value, out var step))
         {
-            await next(context);
+            await _next(context);
             return;
         }
 
@@ -46,7 +79,7 @@ public sealed class FlowTicketMiddleware(
         context.Items[FlowAttemptContext.ItemsKey] = attempt;
         try
         {
-            await next(context);
+            await _next(context);
         }
         finally
         {
@@ -59,13 +92,13 @@ public sealed class FlowTicketMiddleware(
 
     private async Task<FlowAttemptContext> ReserveAsync(HttpContext context, FlowStepMatch step)
     {
-        var businessId = context.Request.Headers[options.BusinessIdHeaderName].FirstOrDefault() ?? string.Empty;
+        var businessId = context.Request.Headers[_options.BusinessIdHeaderName].FirstOrDefault() ?? string.Empty;
         if (step.IsFirstStep)
         {
-            return await ticketService.CreateFirstStepAttemptAsync(businessId, step, context.RequestAborted);
+            return await _ticketService.CreateFirstStepAttemptAsync(businessId, step, context.RequestAborted);
         }
 
-        var ticket = context.Request.Headers[options.TicketHeaderName].FirstOrDefault();
+        var ticket = context.Request.Headers[_options.TicketHeaderName].FirstOrDefault();
         if (string.IsNullOrWhiteSpace(ticket))
         {
             throw new FlowProtectionException(FlowProtectionErrors.NotFound);
@@ -76,7 +109,7 @@ public sealed class FlowTicketMiddleware(
             throw new FlowProtectionException(FlowProtectionErrors.BusinessMismatch);
         }
 
-        return await ticketService.ReserveNextStepAttemptAsync(ticket, businessId, step, context.RequestAborted);
+        return await _ticketService.ReserveNextStepAttemptAsync(ticket, businessId, step, context.RequestAborted);
     }
 
     private async Task FinalizeUncommittedAttemptAsync(
@@ -88,11 +121,11 @@ public sealed class FlowTicketMiddleware(
         {
             if (attempt.IsFirstStep)
             {
-                await ticketService.DeleteAsync(attempt, cancellationToken);
+                await _ticketService.DeleteAsync(attempt, cancellationToken);
             }
             else
             {
-                await ticketService.ReleaseAsync(attempt, cancellationToken);
+                await _ticketService.ReleaseAsync(attempt, cancellationToken);
             }
         }
         catch (FlowProtectionException)
