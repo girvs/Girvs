@@ -37,13 +37,13 @@ public static class DataProviderServiceExtensions
         where TContext : GirvsDbContext
     {
         return services.AddDbContext<TContext>(
-            (provider, builder) =>
+            builder =>
             {
                 builder
                     .AddInterceptors(new MySqlSyntaxInterceptor())
                     .ConfigDbContextOptionsBuilder<TContext>(
                         config,
-                        config?.GetSecureRandomReadDataConnectionString()
+                        config.GetSecureRandomReadDataConnectionString()
                     );
             },
             ServiceLifetime.Scoped,

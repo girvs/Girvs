@@ -1,4 +1,4 @@
-﻿namespace Girvs.Consul.Controllers;
+namespace Girvs.Consul.Controllers;
 
 [ApiController]
 [Route("Health")]

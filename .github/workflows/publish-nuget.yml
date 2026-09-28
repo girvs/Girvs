@@ -1,0 +1,63 @@
+name: 发布 NuGet 包
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - '[0-9]*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 解析版本号
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "发布版本：${VERSION}"
+
+      - name: 还原依赖
+        run: dotnet restore Girvs.slnx
+
+      - name: 构建
+        run: >
+          dotnet build Girvs.slnx -c Release --no-restore
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:PackageVersion=${{ steps.version.outputs.version }}
+          -p:GeneratePackageOnBuild=false
+
+      - name: 运行测试
+        run: dotnet test Girvs.slnx -c Release --no-build
+
+      - name: 打包
+        run: >
+          dotnet pack Girvs.slnx -c Release --no-build
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:PackageVersion=${{ steps.version.outputs.version }}
+          -o ./artifacts
+
+      - name: 推送至 NuGet
+        run: >
+          dotnet nuget push "./artifacts/*.nupkg"
+          --api-key "${{ secrets.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/*.nupkg

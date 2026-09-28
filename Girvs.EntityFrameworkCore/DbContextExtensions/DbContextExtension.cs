@@ -14,8 +14,8 @@ public static class DbContextExtension
 
         var logger = EngineContext.Current.Resolve<ILogger<object>>();
         var connStr = dataBaseWriteAndRead == DataBaseWriteAndRead.Write
-            ? currentDbContextConfig?.MasterDataConnectionString
-            : currentDbContextConfig?.GetSecureRandomReadDataConnectionString();
+            ? currentDbContextConfig.GetMasterDataConnectionString()
+            : currentDbContextConfig.GetSecureRandomReadDataConnectionString();
 
         var conn = dbContext.Database.GetDbConnection();
 
