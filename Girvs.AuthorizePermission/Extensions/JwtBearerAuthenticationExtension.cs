@@ -11,25 +11,23 @@ public static class JwtBearerAuthenticationExtension
         IdentityType identityType = IdentityType.ManagerUser,
         SystemModule claimSystemModule = SystemModule.All)
     {
-        var girvsIdentityClaim = new GirvsIdentityClaim()
+        var claims = new List<Claim>
         {
-            UserId = userId,
-            UserName = userName,
-            TenantId = tenantId,
-            TenantName = tenantName,
-            IdentityType = identityType,
-            SystemModule = claimSystemModule,
-            OtherClaims = new Dictionary<string, string>()
-            {
-                {GirvsClaimManagerExtensions.GirvsIdentityUserTypeClaimTypes, userType.ToString()}
-            }
+            new(GirvsClaimTypes.UserId, userId),
+            new(GirvsClaimTypes.UserName, userName),
+            new(GirvsClaimTypes.UserType, userType.ToString()),
+            new(GirvsClaimTypes.IdentityType, identityType.ToString()),
+            new(GirvsClaimTypes.SystemModule, claimSystemModule.ToString())
         };
-        return GenerateToken(girvsIdentityClaim);
+
+        AddClaimIfNotEmpty(claims, GirvsClaimTypes.TenantId, tenantId);
+        AddClaimIfNotEmpty(claims, GirvsClaimTypes.TenantName, tenantName);
+        return GenerateToken(new ClaimsIdentity(claims));
     }
 
-    public static string GenerateToken(GirvsIdentityClaim girvsIdentityClaim)
+    public static string GenerateToken(ClaimsIdentity claimsIdentity)
     {
-        var claimsIdentity = EngineContext.Current.ClaimManager.BuildClaimsIdentity(girvsIdentityClaim);
+        ArgumentNullException.ThrowIfNull(claimsIdentity);
         return GetJwtAccessToken(claimsIdentity);
     }
 
@@ -48,5 +46,13 @@ public static class JwtBearerAuthenticationExtension
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
+    }
+
+    private static void AddClaimIfNotEmpty(List<Claim> claims, string type, string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            claims.Add(new Claim(type, value));
+        }
     }
 }

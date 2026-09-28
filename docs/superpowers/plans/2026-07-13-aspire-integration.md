@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **执行后修订（2026-07-14）：** 本计划已全部执行完成。Task 2/4 中"通过反射把连接串映射进 EFCore/Cache/EventBus 配置对象"的方案，在代码评审后改为**各组件模块自己实现并调用** `ApplyAspireConnectionString(s)` 方法（如 `CacheConfig.ApplyAspireConnectionString`），移除了 `Girvs.Aspire.Configuration.AspireConnectionStringMapper`。本文件保留作为原始执行记录，当前设计以 `docs/superpowers/specs/2026-07-13-aspire-integration-design.md` 为准。
+
 **Goal:** 新增 `Girvs.Aspire`（服务端 ServiceDefaults + 连接串映射 + Serilog→OTLP 桥接）与 `Girvs.Aspire.Hosting`（AppHost 端：`AddGirvsProject` 依据 `[DependsOn]` 声明自动创建资源并接线）两个模块（均仅 net10.0）。
 
 **Architecture:** `Girvs.Aspire` 是标准 Girvs 模块（`AspireModule : IAppModuleStartup`，`Order = -10000`），引用即生效；连接串映射通过 `AppSettings.ModuleConfigurations` 字典 + 反射写入，避免对 EFCore/Cache/EventBus 的硬引用；唯一的核心侵入改动是 `GirvsHostBuilderManager.HostUseSerilog` 内反射探测 `GirvsAspireSerilogHook` 追加 OTLP sink，以及核心新增 `DependsOnAttribute`。`Girvs.Aspire.Hosting` 在 AppHost 进程内递归遍历根模块的 `DependsOn` 图，按"模块类型全名 → 资源贡献器"注册表惰性创建共享资源（Redis/RabbitMQ/MySql/SqlServer），资源形态取自服务的 appsettings.json；资源命名遵循 `girvs-*` 约定，与服务端连接串映射自动对齐。

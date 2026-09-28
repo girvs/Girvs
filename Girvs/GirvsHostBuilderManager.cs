@@ -1,5 +1,7 @@
 ﻿using Girvs.Infrastructure.Extensions;
 using Serilog;
+using Serilog.Debugging;
+using Serilog.Events;
 
 namespace Girvs;
 
@@ -20,10 +22,9 @@ public static class GirvsHostBuilderManager
         builder.ConfigureWebHostDefaults(webBuilder =>
         {
             webBuilder
-                .ConfigureAppConfiguration(
-                    (hostingContext, appConfigBuilder) =>
-                        //清除源有的源
-                        appConfigBuilder.HostUseGirvsConfig(hostingContext.HostingEnvironment, args)
+                .ConfigureAppConfiguration((hostingContext, appConfigBuilder) =>
+                    //清除源有的源
+                    appConfigBuilder.HostUseGirvsConfig(hostingContext.HostingEnvironment, args)
                 )
                 .UseStartup<TStartup>();
         });
@@ -33,12 +34,87 @@ public static class GirvsHostBuilderManager
 
     public static void HostUseSerilog(this IHostBuilder hostBuilder)
     {
-        hostBuilder.UseSerilog(
-            (context, configuration) =>
+        hostBuilder.UseSerilog((context, configuration) =>
+        {
+            configuration
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("System", LogEventLevel.Warning)
+                .WriteTo.Console(
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} || [{Level:u3}] || {SourceContext:l} || {Message:lj} || {Exception}{NewLine}"
+                );
+
+            var registrations = GirvsSerilogSinkRegistry.SnapshotAndClear();
+            var overrides = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var registration in registrations)
             {
-                configuration.ReadFrom.Configuration(context.Configuration);
+                try
+                {
+                    registration.Configure(configuration);
+                }
+                catch (Exception exception)
+                {
+                    SelfLog.WriteLine(
+                        "Girvs Serilog Sink 注册失败 [{0}]: {1}",
+                        string.Join(",", registration.OverriddenSinkTypeNames),
+                        exception
+                    );
+                }
+
+                overrides.UnionWith(registration.OverriddenSinkTypeNames);
             }
-        );
+
+            configuration.ReadFrom.Configuration(
+                BuildFilteredSerilogConfiguration(context.Configuration, overrides)
+            );
+        });
+    }
+
+    private static IConfiguration BuildFilteredSerilogConfiguration(
+        IConfiguration configuration,
+        ISet<string> overriddenSinkTypeNames
+    )
+    {
+        var data = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var serilogSection = configuration.GetSection("Serilog");
+
+        foreach (var section in serilogSection.GetChildren())
+        {
+            if (string.Equals(section.Key, "WriteTo", StringComparison.OrdinalIgnoreCase))
+            {
+                var index = 0;
+                foreach (var sink in section.GetChildren())
+                {
+                    if (overriddenSinkTypeNames.Contains(sink["Name"] ?? string.Empty))
+                        continue;
+
+                    CopyConfigurationSection(sink, $"Serilog:WriteTo:{index++}", data);
+                }
+            }
+            else
+            {
+                CopyConfigurationSection(section, $"Serilog:{section.Key}", data);
+            }
+        }
+
+        return new ConfigurationBuilder().AddInMemoryCollection(data).Build();
+    }
+
+    private static void CopyConfigurationSection(
+        IConfigurationSection section,
+        string key,
+        IDictionary<string, string?> data
+    )
+    {
+        var children = section.GetChildren().ToArray();
+        if (children.Length == 0)
+        {
+            data[key] = section.Value;
+            return;
+        }
+
+        foreach (var child in children)
+            CopyConfigurationSection(child, $"{key}:{child.Key}", data);
     }
 
     public static void HostUseGirvsConfig(
@@ -50,9 +126,20 @@ public static class GirvsHostBuilderManager
     {
         //清除原有的源
         config.Sources.Clear();
+
+        // 共享配置文件(GIRVS_SHARED_CONFIG 指向,由 Aspire AppHost 注入或 K8s ConfigMap 挂载):
+        // 作为最低优先级配置源,服务本地 appsettings*.json 与环境变量天然覆盖其中的同名键。
+        var sharedConfigPath = Environment.GetEnvironmentVariable("GIRVS_SHARED_CONFIG");
+
+        if (string.IsNullOrWhiteSpace(sharedConfigPath))
+            sharedConfigPath = "girvs.shared.json";
+
+        config.AddJsonFile(sharedConfigPath, optional: true, reloadOnChange: true);
+
         config.AddJsonFile(ConfigurationDefaults.AppSettingsFilePath, true, true);
+        // 临时兼容旧项目对 Serilog.json 的依赖，待业务全部迁移至 appsettings.json 的 Serilog 节后移除。
         config.AddJsonFile(ConfigurationDefaults.SerilogSettingFilePath, true, true);
-        if (otherJsonFiles is { Length: > 0 })
+        if (otherJsonFiles is {Length: > 0})
         {
             foreach (var otherJsonFile in otherJsonFiles)
             {
@@ -68,7 +155,7 @@ public static class GirvsHostBuilderManager
 
         if (
             webHostEnvironment.IsDevelopment()
-            && webHostEnvironment.ApplicationName is { Length: > 0 }
+            && webHostEnvironment.ApplicationName is {Length: > 0}
         )
         {
             try
@@ -85,7 +172,7 @@ public static class GirvsHostBuilderManager
         }
 
         config.AddEnvironmentVariables();
-        if (args is { Length: > 0 })
+        if (args is {Length: > 0})
             config.AddCommandLine(args);
 
         if (config is IConfiguration configuration)
@@ -130,7 +217,7 @@ public static class GirvsHostBuilderManager
 
             if (constructor != null)
             {
-                var parameters = new object[] { builder.Configuration, builder.Environment };
+                var parameters = new object[] {builder.Configuration, builder.Environment};
 
                 if (constructor.Invoke(parameters) is not IGirvsStartup startup)
                     continue;

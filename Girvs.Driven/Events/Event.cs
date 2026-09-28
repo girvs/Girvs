@@ -2,7 +2,6 @@
 
 public record Event(DateTime Timestamp) : Message, INotification
 {
-    public Event() : this(DateTime.Now)
-    {
-    }
+    public Event()
+        : this(DateTime.Now) { }
 }

@@ -1,21 +1,6 @@
-﻿namespace Girvs.EntityFrameworkCore.Configuration;
+﻿using Girvs.Configuration.Resources;
 
-public enum UseDataType
-{
-    [EnumMember(Value = "mssql")]
-    MsSql,
-
-    [EnumMember(Value = "mysql")]
-    MySql,
-
-#if NET8_0
-    [EnumMember(Value = "sqllite")]
-    SqlLite,
-
-    [EnumMember(Value = "oracle")]
-    Oracle
-#endif
-}
+namespace Girvs.EntityFrameworkCore.Configuration;
 
 public class DbConfig : IAppModuleConfig
 {
@@ -55,10 +40,29 @@ public class DbConfig : IAppModuleConfig
 
         return dataBaseConfig;
     }
+
+    /// <summary>
+    /// 为所有数据连接配置解析主库/读库连接串。应在模块注册时调用一次，缺失资源会立即抛出。
+    /// </summary>
+    public void ResolveConnectionStrings(
+        IReadOnlyDictionary<string, GirvsInfrastructureResource> resources
+    )
+    {
+        foreach (var connectionConfig in DataConnectionConfigs)
+            connectionConfig.ResolveConnectionStrings(resources);
+    }
 }
 
 public class DataConnectionConfig
 {
+    /// <summary>已解析的连接串。整体替换，避免懒解析并发时读到半成品。</summary>
+    private sealed record ResolvedConnections(string Master, IReadOnlyList<string> Reads);
+
+    private ResolvedConnections _connections;
+
+    /// <summary>引用 Resources 中的 MySQL 资源键。</summary>
+    public string ConnectionRef { get; set; }
+
     /// <summary>
     /// 数据库名称
     /// </summary>
@@ -68,12 +72,6 @@ public class DataConnectionConfig
     /// 启用自动还原数据库
     /// </summary>
     public bool EnableAutoMigrate { get; set; } = true;
-
-    /// <summary>
-    /// 数据库类型
-    /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public UseDataType UseDataType { get; set; } = UseDataType.MsSql;
 
     /// <summary>
     /// 数据库版本号
@@ -105,46 +103,106 @@ public class DataConnectionConfig
 
     public bool EnableShardingTable { get; set; } = true;
 
-    /// <summary>
-    /// 主数据库连接字符串
-    /// </summary>
-    public string MasterDataConnectionString { get; set; } =
-        "Server=192.168.51.166;database=Wb_BasicManagement;User ID=root;Password=123456;Character Set=utf8;";
-
-    /// <summary>
-    /// 从数据库字符串集,可以是多个
-    /// </summary>
-    public IList<string> ReadDataConnectionString { get; set; } = new List<string>();
+    public IList<string> ReadConnectionRefs { get; set; } = new List<string>();
 
     // public DbHostServerPort MasterDatabaseHost { get; set; } = new DbHostServerPort();
     // public IList<DbHostServerPort> SlaveDatabaseHost { get; set; } = new List<DbHostServerPort>();
 
+    /// <summary>
+    /// 从资源字典解析并缓存主库与读库连接串，资源缺失时抛出 <see cref="GirvsException"/>。
+    /// </summary>
+    public void ResolveConnectionStrings(
+        IReadOnlyDictionary<string, GirvsInfrastructureResource> resources
+    )
+    {
+        ArgumentNullException.ThrowIfNull(resources);
+
+        var master = BuildConnectionString(GetResource(resources, ConnectionRef));
+        var reads = ReadConnectionRefs
+            .Select(reference => BuildConnectionString(GetResource(resources, reference)))
+            .ToList();
+
+        _connections = new ResolvedConnections(master, reads);
+    }
+
+    /// <summary>
+    /// 获取主库连接串。
+    /// </summary>
+    public string GetMasterDataConnectionString() => GetConnections().Master;
+
+    /// <summary>
+    /// 随机获取一个读库连接串；未配置读库时返回主库连接串。
+    /// </summary>
     public string GetSecureRandomReadDataConnectionString()
     {
-        if (ReadDataConnectionString == null || !ReadDataConnectionString.Any())
+        var connections = GetConnections();
+
+        return connections.Reads.Count switch
         {
-            return MasterDataConnectionString;
+            0 => connections.Master,
+            1 => connections.Reads[0],
+            var count => connections.Reads[SecureRandomNumberGenerator.GetInt32(0, count)],
+        };
+    }
+
+    private ResolvedConnections GetConnections()
+    {
+        if (_connections == null)
+            ResolveConnectionStrings(Singleton<AppSettings>.Instance.Resources);
+
+        return _connections;
+    }
+
+    private static GirvsInfrastructureResource GetResource(
+        IReadOnlyDictionary<string, GirvsInfrastructureResource> resources,
+        string name
+    ) =>
+        resources.TryGetValue(name ?? string.Empty, out var resource)
+            ? resource
+            : throw new GirvsException($"Resources:{name} 未配置");
+
+    public string BuildConnectionString(GirvsInfrastructureResource resource)
+    {
+        ArgumentNullException.ThrowIfNull(resource);
+
+        if (!string.Equals(resource.Type, "mysql", StringComparison.OrdinalIgnoreCase))
+            throw new GirvsException($"Resources:{ConnectionRef}:Type 必须为 mysql");
+
+        if (!resource.Settings.TryGetValue("Host", out var host) || string.IsNullOrWhiteSpace(host))
+            throw new GirvsException($"Resources:{ConnectionRef}:Settings:Host 未配置");
+
+        var builder = new System.Data.Common.DbConnectionStringBuilder { ["Server"] = host };
+
+        //如果资源中未指定数据库名称，则使用name为数据库名称
+        if (
+            resource.Settings.TryGetValue("Database", out var database)
+            && !string.IsNullOrWhiteSpace(database)
+        )
+        {
+            builder["Database"] = database;
         }
         else
         {
-            if (ReadDataConnectionString.Count == 1)
-            {
-                return ReadDataConnectionString[0];
-            }
-            else
-            {
-                var index = SecureRandomNumberGenerator.GetInt32(0, ReadDataConnectionString.Count);
-                return ReadDataConnectionString[index];
-            }
+            builder["Database"] = Name;
         }
-    }
-}
 
-public class DbHostServerPort
-{
-    public string Server { get; set; } = "192.168.51.166";
-    public int Port { get; set; } = 3306;
-    public string DatabaseName { get; set; } = "Wb_BasicManagement";
-    public string UserId { get; set; } = "root";
-    public string Password { get; set; } = "123456";
+        if (int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port))
+            builder["Port"] = port;
+
+        if (
+            resource.Settings.TryGetValue("UserName", out var userName)
+            && !string.IsNullOrWhiteSpace(userName)
+        )
+            builder["User ID"] = userName;
+
+        if (
+            resource.Settings.TryGetValue("Password", out var password)
+            && !string.IsNullOrWhiteSpace(password)
+        )
+            builder["Password"] = password;
+
+        builder["Allow User Variables"] = true;
+
+        return builder.ConnectionString;
+    }
 }
