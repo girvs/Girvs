@@ -34,8 +34,8 @@ public static class DbContextOptionsBuilderExtensions
     )
         where TDbContext : GirvsDbContext
     {
-        // net8/net9 使用 Pomelo.EntityFrameworkCore.MySql，net10 使用其派生包 Microting.EntityFrameworkCore.MySql；
-        // 三者扩展方法 API 一致：UseMySql 需传入 ServerVersion
+        // net8/net9 使用 Pomelo.EntityFrameworkCore.MySql，net10/net11 使用其派生包 Microting.EntityFrameworkCore.MySql；
+        // 两种包的扩展方法 API 一致：UseMySql 需传入 ServerVersion
         optionsBuilder.UseMySql(
             connStr,
             ServerVersion.AutoDetect(connStr),

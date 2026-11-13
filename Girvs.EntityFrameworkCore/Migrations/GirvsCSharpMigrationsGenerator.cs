@@ -197,6 +197,8 @@ public class GirvsCSharpMigrationsGenerator(
         return builder.ToString();
     }
 
+    // EF Core 11 沿用基类快照生成器，以保留新增的最新迁移 ID 元数据。
+#if !NET11_0_OR_GREATER
     /// <summary>
     ///     Generates the model snapshot code.
     /// </summary>
@@ -286,4 +288,5 @@ public class GirvsCSharpMigrationsGenerator(
 
         return builder.ToString();
     }
+#endif
 }
