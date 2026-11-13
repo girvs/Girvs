@@ -60,7 +60,7 @@ public class OpenApiModule : IAppModuleStartup
         if (env.IsDevelopment())
         {
             builder.MapOpenApi(pattern: "/girvs_openapi/{documentName}.json");
-#if NET10_0
+#if NET10_0_OR_GREATER
             // Scalar.AspNetCore 2.x 移除 EndpointPathPrefix，端点路径改为 MapScalarApiReference 首参传入
             // Scalar 2.x 的端点前缀不能包含 {documentName}，文档名通过 AddDocument 绑定。
             builder.MapScalarApiReference("/girvs_scalar", options =>

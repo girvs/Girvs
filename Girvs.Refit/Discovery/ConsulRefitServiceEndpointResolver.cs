@@ -4,7 +4,7 @@ public sealed class ConsulRefitServiceEndpointResolver : IRefitServiceEndpointRe
 {
     private readonly RefitConfig _refitConfig;
 
-#if NET10_0
+#if NET10_0_OR_GREATER
     private readonly ServiceGovernanceConfig _serviceGovernanceConfig;
 
     public ConsulRefitServiceEndpointResolver(
@@ -46,7 +46,7 @@ public sealed class ConsulRefitServiceEndpointResolver : IRefitServiceEndpointRe
 
     internal string GetConsulAddress()
     {
-#if NET10_0
+#if NET10_0_OR_GREATER
         if (!string.IsNullOrWhiteSpace(_serviceGovernanceConfig.ConsulAddress))
             return _serviceGovernanceConfig.ConsulAddress;
 #endif

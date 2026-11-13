@@ -1,6 +1,6 @@
 namespace Girvs.Refit.Configuration;
 
-#if NET10_0
+#if NET10_0_OR_GREATER
 [Obsolete("net10.0 下请使用 ServiceGovernanceConfig.ServiceDiscoveryProvider")]
 #endif
 public enum RefitDiscoveryProvider
@@ -15,7 +15,7 @@ public enum RefitDiscoveryProvider
 public class RefitConfig : IAppModuleConfig
 {
     // 只影响 ServiceDiscovery 类型接口；Static 类型始终读取固定地址。
-#if NET10_0
+#if NET10_0_OR_GREATER
     [Obsolete("net10.0 下此属性不再生效，由 ServiceGovernanceConfig.ServiceDiscoveryProvider 统一控制")]
 #endif
     public RefitDiscoveryProvider DiscoveryProvider { get; set; } = RefitDiscoveryProvider.Aspire;

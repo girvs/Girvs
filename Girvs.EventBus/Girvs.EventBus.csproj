@@ -36,6 +36,18 @@
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.9"/>
     </ItemGroup>
 
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Include="DotNetCore.CAP" Version="10.0.1"/>
+        <PackageReference Include="DotNetCore.CAP.Dashboard" Version="10.0.1"/>
+        <PackageReference Include="DotNetCore.CAP.Kafka" Version="10.0.1"/>
+        <PackageReference Include="DotNetCore.CAP.MySql" Version="10.0.1"/>
+        <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="10.0.1"/>
+        <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="10.0.1"/>
+        <PackageReference Include="DotNetCore.CAP.Sqlite" Version="10.0.0"/>
+        <PackageReference Include="DotNetCore.CAP.SqlServer" Version="10.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="11.0.0"/>
+    </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
     </ItemGroup>

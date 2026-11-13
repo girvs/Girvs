@@ -19,4 +19,8 @@
         <PackageReference Include="Grpc.HealthCheck" Version="2.80.0"/>
         <PackageReference Include="Consul" Version="1.7.14.9"/>
     </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Include="Grpc.HealthCheck" Version="2.80.0"/>
+        <PackageReference Include="Consul" Version="1.7.14.9"/>
+    </ItemGroup>
 </Project>

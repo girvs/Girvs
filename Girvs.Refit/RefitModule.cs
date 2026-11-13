@@ -10,7 +10,7 @@ public class RefitModule : IAppModuleStartup
         services.AddSingleton(config);
         services.AddHttpContextAccessor();
 
-#if NET10_0
+#if NET10_0_OR_GREATER
         RegisterEndpointResolvers(services, config);
 #else
         RegisterEndpointResolvers(services, config);
@@ -30,7 +30,7 @@ public class RefitModule : IAppModuleStartup
         }
     }
 
-#if NET10_0
+#if NET10_0_OR_GREATER
     internal static void RegisterEndpointResolvers(
         IServiceCollection services,
         RefitConfig config

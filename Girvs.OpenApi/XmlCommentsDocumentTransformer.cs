@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.OpenApi;
-#if NET10_0
+#if NET10_0_OR_GREATER
 // .NET 10 使用 Microsoft.OpenApi v2，类型位于根命名空间
 using Microsoft.OpenApi;
 #else
@@ -105,7 +105,7 @@ public class XmlCommentsDocumentTransformer : IOpenApiDocumentTransformer
 
             if (apiDesc.HttpMethod is null)
                 continue;
-#if NET10_0
+#if NET10_0_OR_GREATER
             // Microsoft.OpenApi v2（.NET 10）将 Operations 的键由字符串改为 System.Net.Http.HttpMethod
             var httpMethod = new System.Net.Http.HttpMethod(apiDesc.HttpMethod);
             if (!pathItem.Operations.TryGetValue(httpMethod, out var operation))

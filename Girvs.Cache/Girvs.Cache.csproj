@@ -28,6 +28,14 @@
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.35.0" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Include="System.Linq.Async" Version="7.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="11.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="11.0.0" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.19.2" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
+    </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
         <!-- MsSqlServerCacheManager 直接使用 System.Data.SqlClient，原经 LogDashboard 传递，移除后需显式引用（4.8.6 修复 GHSA-8g2p-5pqh-5jmc） -->

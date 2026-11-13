@@ -3,8 +3,8 @@
 <div align="center">
 
 [![GitHub](https://img.shields.io/github/license/girvs/Girvs)](https://github.com/girvs/Girvs/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/version-9.0.8-blue.svg)](https://github.com/girvs/Girvs)
-[![.NET](https://img.shields.io/badge/.NET-8.0%20|%209.0%20|%2010.0-purple.svg)](https://dotnet.microsoft.com/)
+[![Version](https://img.shields.io/badge/dev-10.0.0--rc.4.0.3-blue.svg)](https://github.com/girvs/Girvs)
+[![.NET](https://img.shields.io/badge/.NET-8.0%20|%209.0%20|%2010.0%20|%2011.0-purple.svg)](https://dotnet.microsoft.com/)
 
 </div>
 
@@ -15,7 +15,7 @@ Girvs 是一个基于 .NET 的企业级快速开发框架,旨在提供一套完�
 ## ✨ 核心特性
 
 - 🎯 **模块化架构** - 松耦合的模块设计,按需引入
-- 🚀 **多版本支持** - 同时支持 .NET 8.0、9.0 和 10.0
+- 🚀 **多版本支持** - 通用库同时支持 .NET 8.0、9.0、10.0 和 11.0，具体模块见版本支持表
 - 🔧 **开箱即用** - 集成常用组件,减少重复开发
 - 📦 **NuGet 支持** - 所有模块均可通过 NuGet 包管理
 - 🔐 **安全可靠** - 内置权限认证、数据验证等安全机制
@@ -27,8 +27,8 @@ Girvs 是一个基于 .NET 的企业级快速开发框架,旨在提供一套完�
 ```
 Girvs/
 ├── Girvs                          # 核心框架模块
-├── Girvs.Aspire                   # .NET Aspire 服务端集成模块 (仅 net10.0)
-├── Girvs.Aspire.Hosting           # .NET Aspire AppHost 编排扩展模块 (仅 net10.0)
+├── Girvs.ServiceGovernance        # 统一服务治理模块 (net10.0/net11.0)
+├── Girvs.Aspire.Hosting           # .NET Aspire AppHost 编排扩展模块 (net8.0 至 net11.0)
 ├── Girvs.AuthorizePermission      # 权限认证模块
 ├── Girvs.AutoMapper               # 对象映射模块
 ├── Girvs.Cache                    # 缓存模块 (支持 Redis/SqlServer)
@@ -157,8 +157,8 @@ gRPC 服务支持模块。
 - 服务发现
 - 配置中心
 
-### Girvs.Aspire (.NET Aspire 服务端集成，仅 net10.0)
-为服务接入 .NET Aspire 提供 ServiceDefaults 能力，与 Girvs.Consul 互斥使用。
+### Girvs.ServiceGovernance（统一服务治理，net10.0/net11.0）
+为服务提供健康检查、服务发现和可观测性，Aspire 与 Consul 发现模式按配置互斥选择。
 
 **主要功能:**
 - OpenTelemetry 可观测性（追踪/指标/日志，通过 Serilog OTLP sink 桥接）
@@ -166,7 +166,7 @@ gRPC 服务支持模块。
 - Aspire 服务发现与 HttpClient 标准弹性策略
 - Aspire 注入连接串到 Girvs 各模块配置的自动映射
 
-### Girvs.Aspire.Hosting (.NET Aspire AppHost 编排扩展，仅 net10.0)
+### Girvs.Aspire.Hosting（.NET Aspire AppHost 编排扩展，net8.0 至 net11.0）
 供业务方 AppHost 项目引用，依据服务根模块的 `[DependsOn]` 声明自动创建/复用资源并接线。
 
 **主要功能:**
@@ -233,13 +233,13 @@ OpenAPI 3.0 文档生成。
 
 ### 环境要求
 
-- .NET SDK 8.0 或更高版本
+- 构建当前源码需要 .NET SDK 11.0.100（见 `global.json`）；使用库时按目标框架安装相应运行时
 - Visual Studio 2022 或 JetBrains Rider
 - (可选) Docker Desktop
 
 ### 安装
 
-通过 NuGet 包管理器安装所需模块:
+通过 NuGet 包管理器安装所需模块。以下保留原安装示例；本次新增的 .NET 11 支持需使用当前分支源码或自行构建的本地包，详见 [升级指南](docs/dotnet11-upgrade.md)。
 
 ```bash
 # 安装核心框架
@@ -367,11 +367,13 @@ public class OrderEventHandler : IIntegrationEventHandler<OrderCreatedEvent>
 
 ## 🔧 版本支持
 
-| 模块 | .NET 8.0 | .NET 9.0 | .NET 10.0 |
-|------|----------|----------|-----------|
-| 所有模块 | ✅ | ✅ | ✅ |
+| 模块 | .NET 8.0 | .NET 9.0 | .NET 10.0 | .NET 11.0 |
+|------|----------|----------|-----------|-----------|
+| 通用库（含 Girvs.Aspire.Hosting，共 14 个） | ✅ | ✅ | ✅ | ✅ |
+| Girvs.OpenApi | — | ✅ | ✅ | ✅ |
+| Girvs.Gateway、Girvs.ServiceGovernance | — | — | ✅ | ✅ |
 
-当前版本: **9.0.8**
+当前开发版本: **10.0.0-rc.4.0.3**。全部 17 个库均包含 `net11.0` 目标；包版本号以 `Directory.Build.props` 为准。新增目标的依赖和验证方式见 [升级指南](docs/dotnet11-upgrade.md)。
 
 ## 📚 学习资源
 

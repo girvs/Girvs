@@ -1,4 +1,4 @@
-#if NET10_0
+#if NET10_0_OR_GREATER
 namespace Girvs.Refit.Discovery;
 
 /// <summary>基于统一服务目录解析 Refit 的内部服务地址。</summary>

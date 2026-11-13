@@ -23,7 +23,7 @@ global using Microsoft.Extensions.Logging;
 global using Consul;
 global using Refit;
 
-#if NET10_0
+#if NET10_0_OR_GREATER
 global using Girvs.ServiceGovernance.Configuration;
 global using Girvs.ServiceGovernance.Discovery;
 #endif
