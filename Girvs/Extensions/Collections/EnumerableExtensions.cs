@@ -1,4 +1,6 @@
-﻿namespace Girvs.Extensions.Collections;
+﻿using System.Collections.Concurrent;
+
+namespace Girvs.Extensions.Collections;
 
 /// <summary> 
 /// Extension methods for <see cref="IEnumerable{T}"/>.
@@ -59,14 +61,36 @@ public static class EnumerableExtensions
     }
         
         
+    // 枚举描述属于静态元数据，按 (枚举类型, 成员名) 缓存，避免每次调用都走反射。
+    private static readonly ConcurrentDictionary<(Type, string), (bool Found, string Description)>
+        EnumDescriptionCache = new();
+
     /// <summary>
     /// 获取枚举中文描述
     /// </summary>
     /// <param name="enumInfo"></param>
     /// <returns></returns>
-    public static string GetEnumDescription(this Enum enumInfo) => enumInfo.GetType()
-        .GetMember(enumInfo.ToString())
-        .FirstOrDefault()?
-        .GetCustomAttribute<DescriptionAttribute>()?
-        .Description;
+    public static string GetEnumDescription(this Enum enumInfo)
+    {
+        if (enumInfo is null)
+            return null;
+
+        var type = enumInfo.GetType();
+        var memberName = enumInfo.ToString();
+
+        var cached = EnumDescriptionCache.GetOrAdd(
+            (type, memberName),
+            static key =>
+            {
+                var description = key.Item1
+                    .GetMember(key.Item2)
+                    .FirstOrDefault()?
+                    .GetCustomAttribute<DescriptionAttribute>()?
+                    .Description;
+
+                return (description is not null, description);
+            });
+
+        return cached.Found ? cached.Description : null;
+    }
 }

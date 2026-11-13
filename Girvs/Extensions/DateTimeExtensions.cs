@@ -73,14 +73,10 @@ public static class DateTimeExtensions
     /// <example>11/29/2011 would return 5, because it is the 5th Tuesday of each month</example>
     public static int WeekDayInstanceOfMonth(this DateTime dateTime)
     {
-        var y = 0;
-        return DaysOfMonth(dateTime.Year, dateTime.Month)
-            .Where(date => dateTime.DayOfWeek.Equals(date.DayOfWeek))
-            .Select(x => new { n = ++y, date = x })
-            .Where(x => x.date.Equals(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day)))
-            .Select(x => x.n).FirstOrDefault();
+        // 同一个月内同一星期几每隔 7 天出现一次，可直接由日期算出序号。
+        return ((dateTime.Day - 1) / 7) + 1;
     }
-        
+
     /// <summary>
     /// Gets the total days in a month
     /// </summary>
@@ -88,7 +84,8 @@ public static class DateTimeExtensions
     /// <returns></returns>
     public static int TotalDaysInMonth(this DateTime dateTime)
     {
-        return DaysOfMonth(dateTime.Year, dateTime.Month).Count();
+        // 直接查日历，无需枚举当月每一天。
+        return DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
     }
         
     /// <summary>

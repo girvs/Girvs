@@ -37,13 +37,26 @@ public class GirvsFileProvider : PhysicalFileProvider, IGirvsFileProvider
 
     public virtual string Combine(params string[] paths)
     {
-        var path = Path.Combine(paths.SelectMany(p => IsUncPath(p) ? new[] {p} : p.Split('\\', '/')).ToArray());
+        // 逐段处理，省去 SelectMany 产生的枚举器与中间数组。
+        var segments = new List<string>(paths.Length);
+        foreach (var path in paths)
+        {
+            if (IsUncPath(path) || (path.IndexOf('\\') < 0 && path.IndexOf('/') < 0))
+            {
+                segments.Add(path);
+                continue;
+            }
 
-        if (Environment.OSVersion.Platform == PlatformID.Unix && !IsUncPath(path))
+            segments.AddRange(path.Split('\\', '/'));
+        }
+
+        var combined = Path.Combine(segments.ToArray());
+
+        if (Environment.OSVersion.Platform == PlatformID.Unix && !IsUncPath(combined))
             //add leading slash to correctly form path in the UNIX system
-            path = "/" + path;
+            combined = "/" + combined;
 
-        return path;
+        return combined;
     }
 
     public virtual void CreateDirectory(string path)
@@ -143,9 +156,9 @@ public class GirvsFileProvider : PhysicalFileProvider, IGirvsFileProvider
 
     public virtual string GetAbsolutePath(params string[] paths)
     {
-        var allPaths = new List<string>();
+        var allPaths = new List<string>(paths.Length + 1);
 
-        if (paths.Any()
+        if (paths.Length > 0
             && !string.IsNullOrEmpty(WebRootPath)
             && !paths[0].Contains(WebRootPath, StringComparison.OrdinalIgnoreCase))
             allPaths.Add(WebRootPath);

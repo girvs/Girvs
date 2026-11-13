@@ -26,14 +26,17 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
     {
         var metadata = MetadataCache.GetOrAdd(GetType(), static type => CreateMetadata(type));
 
+        // 只取一次当前时间，避免 createTime/updateTime 出现微秒级差异，也少一次系统调用。
+        var now = DateTime.Now;
+
         if (this is IIncludeCreateTime createTimeObj)
         {
-            createTimeObj.CreateTime = DateTime.Now;
+            createTimeObj.CreateTime = now;
         }
 
         if (this is IIncludeUpdateTime updateTimeObj)
         {
-            updateTimeObj.UpdateTime = DateTime.Now;
+            updateTimeObj.UpdateTime = now;
         }
 
         if (this is IIncludeDeleteField deleteFieldObj)

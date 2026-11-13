@@ -19,6 +19,9 @@ public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : IType
     // 类型查找结果缓存
     private readonly ConcurrentDictionary<(Type, FindType), IEnumerable<Type>> _typeCache = new();
 
+    // 每个程序集的类型列表缓存：启动期会触发多次 FindOfType，原实现每次都要对所有程序集重新 GetTypes。
+    private readonly ConcurrentDictionary<Assembly, Type[]> _assemblyTypesCache = new();
+
     // 按需编译正则，复用实例
     protected Regex SkipPattern =>
         _skipPattern ??= new Regex(
@@ -183,24 +186,9 @@ public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : IType
         {
             foreach (var assembly in assemblies)
             {
-                Type[] types;
-                try
-                {
-                    types = assembly.GetTypes();
-                }
-                catch (ReflectionTypeLoadException ex)
-                {
-                    // 部分加载失败时取能加载的类型，不整个跳过程序集
-                    if (!_ignoreReflectionErrors)
-                        throw;
-                    types = ex.Types.Where(t => t != null).ToArray()!;
-                }
-                catch
-                {
-                    if (!_ignoreReflectionErrors)
-                        throw;
+                var types = GetAssemblyTypes(assembly);
+                if (types.Length == 0)
                     continue;
-                }
 
                 foreach (var type in types)
                 {
@@ -232,6 +220,38 @@ public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : IType
         return result;
     }
 
+    /// <summary>
+    /// 读取程序集类型列表并缓存。类型在程序集加载后即固定，因此可安全复用；
+    /// 动态加载新程序集时由 <see cref="InvalidateCache"/> 统一清理。
+    /// </summary>
+    private Type[] GetAssemblyTypes(Assembly assembly)
+    {
+        if (_assemblyTypesCache.TryGetValue(assembly, out var cachedTypes))
+            return cachedTypes;
+
+        Type[] types;
+        try
+        {
+            types = assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            // 部分加载失败时取能加载的类型，不整个跳过程序集
+            if (!_ignoreReflectionErrors)
+                throw;
+            types = ex.Types.Where(t => t != null).ToArray()!;
+        }
+        catch
+        {
+            if (!_ignoreReflectionErrors)
+                throw;
+            types = Type.EmptyTypes;
+        }
+
+        _assemblyTypesCache[assembly] = types;
+        return types;
+    }
+
     private bool IsTypeMatch(Type type, Type assignTypeFrom, bool isOpenGeneric)
     {
         if (assignTypeFrom.IsAssignableFrom(type))
@@ -251,6 +271,7 @@ public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : IType
             _assembliesCache = null;
         }
         _typeCache.Clear();
+        _assemblyTypesCache.Clear();
     }
 
     public virtual AppDomain App => AppDomain.CurrentDomain;

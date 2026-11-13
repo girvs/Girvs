@@ -1,13 +1,12 @@
-﻿namespace Girvs.BusinessBasis.Queries;
+﻿using System.Collections.Concurrent;
 
-public abstract class QueryBase<TEntity> : IQuery<TEntity> where TEntity : Entity
+namespace Girvs.BusinessBasis.Queries;
+
+public abstract class QueryBase<TEntity> : IQuery<TEntity>
+    where TEntity : Entity
 {
-    protected QueryBase()
-    {
-        OrderBy = string.Empty;
-        PageSize = 20;
-        PageIndex = 1;
-    }
+    // 参与缓存键的属性由特性静态决定，按查询类型缓存一次。
+    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> CacheKeyProperties = new();
 
     public int PageStart => (PageIndex - 1) * PageSize;
 
@@ -15,15 +14,18 @@ public abstract class QueryBase<TEntity> : IQuery<TEntity> where TEntity : Entit
     /// 当前页，从1开始
     /// </summary>
     [QueryCacheKey]
-    public int PageIndex { get; set; }
+    public int PageIndex { get; set; } = 1;
 
-    [QueryCacheKey] public int PageSize { get; set; }
+    [QueryCacheKey]
+    public int PageSize { get; set; } = 20;
     public int RecordCount { get; set; }
     public List<TEntity> Result { get; set; }
 
-    [QueryCacheKey] public string OrderBy { get; set; }
+    [QueryCacheKey]
+    public string OrderBy { get; set; } = string.Empty;
 
-    public int PageCount => (int) Math.Ceiling(RecordCount / (decimal) PageSize);
+    // 整数上取整，避免 decimal 除法与装箱。
+    public int PageCount => (RecordCount + PageSize - 1) / PageSize;
 
     public string[] QueryFields { get; set; }
 
@@ -32,24 +34,33 @@ public abstract class QueryBase<TEntity> : IQuery<TEntity> where TEntity : Entit
         //此处字符串为约定，请不要随意修改
         var sb = new StringBuilder(GetType().FullName);
 
-        var ps = GetType().GetProperties();
+        var ps = CacheKeyProperties.GetOrAdd(
+            GetType(),
+            static type =>
+                type.GetProperties()
+                    .Where(propertyInfo =>
+                        propertyInfo.IsDefined(typeof(QueryCacheKeyAttribute), true)
+                    )
+                    .ToArray()
+        );
+
         foreach (var propertyInfo in ps)
         {
-            if (propertyInfo.GetCustomAttributes(typeof(QueryCacheKeyAttribute), true).Length > 0)
-            {
-                sb.Append($":{propertyInfo.Name}={propertyInfo.GetValue(this)}");
-            }
+            // 用链式 Append 代替插值字符串，减少临时字符串分配。
+            sb.Append(':')
+                .Append(propertyInfo.Name)
+                .Append('=')
+                .Append(propertyInfo.GetValue(this));
         }
 
-        if (QueryFields != null && QueryFields.Any())
+        if (QueryFields is { Length: > 0 })
         {
-            var queryFieldStr = string.Join(',', QueryFields);
-            sb.Append($"QueryFields:{queryFieldStr}");
+            sb.Append("QueryFields:").AppendJoin(',', QueryFields);
         }
 
         if (!string.IsNullOrEmpty(OrderBy))
         {
-            sb.Append($"OrderBy:{OrderBy}");
+            sb.Append("OrderBy:").Append(OrderBy);
         }
 
         return sb.ToString().ToMd5();

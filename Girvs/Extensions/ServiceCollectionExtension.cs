@@ -2,9 +2,10 @@
 
 public static class ServiceCollectionExtension
 {
-    public static void RegisterRepository(this IServiceCollection services)
+    public static void RegisterRepository(this IServiceCollection services, ITypeFinder typeFinder = null)
     {
-        var typeFinder = new WebAppTypeFinder();
+        // 允许复用调用方已有的类型查找器，避免重复扫描程序集。
+        typeFinder ??= new WebAppTypeFinder();
 
         //获取所有继承IRepository<>的接口
         var repositoryTypes = typeFinder.FindOfType(typeof(IRepository<,>), FindType.Interface)
@@ -33,9 +34,10 @@ public static class ServiceCollectionExtension
         //     throw new GirvsException("未找到对应的IUnitOfWork或IUnitOfWork<Entity>实现");
     }
 
-    public static void RegisterManager(this IServiceCollection services)
+    public static void RegisterManager(this IServiceCollection services, ITypeFinder typeFinder = null)
     {
-        var typeFinder = new WebAppTypeFinder();
+        // 与 RegisterRepository 共享同一个查找器，命中其内部缓存。
+        typeFinder ??= new WebAppTypeFinder();
         var managerInterfaceTypes = typeFinder.FindOfType<IManager>(FindType.Interface)
             .Where(x => x.Name != nameof(IManager));
 

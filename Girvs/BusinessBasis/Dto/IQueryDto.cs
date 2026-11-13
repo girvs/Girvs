@@ -6,7 +6,8 @@ public interface IQueryDto
     int PageSize { get; set; }
     int RecordCount { get; set; }
     string[] QueryFields { get; set; }
-    int PageCount => (int) Math.Ceiling(RecordCount / (decimal) PageSize);
+    // 整数上取整，避免 decimal 除法与装箱。
+    int PageCount => (RecordCount + PageSize - 1) / PageSize;
     string OrderBy { get; set; }
 }
 

@@ -2,6 +2,13 @@
 
 public static class ApplicationBuilderExtensions
 {
+    // 复用同一份选项，让 JsonSerializer 的元数据缓存得以生效；
+    // 原实现每次异常都 new JsonSerializerOptions，等于每次重建序列化元数据。
+    private static readonly JsonSerializerOptions ExceptionJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public static void ConfigureRequestPipeline(
         this IApplicationBuilder application,
         IWebHostEnvironment env
@@ -123,13 +130,7 @@ public static class ApplicationBuilderExtensions
                 result.TraceId = context.TraceIdentifier;
                 result.StackTrace = useDetailedExceptionPage ? exception.StackTrace : string.Empty;
 
-                var resultContext = JsonSerializer.Serialize(
-                    result,
-                    new JsonSerializerOptions()
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                    }
-                );
+                var resultContext = JsonSerializer.Serialize(result, ExceptionJsonOptions);
 
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsync(resultContext, Encoding.UTF8);

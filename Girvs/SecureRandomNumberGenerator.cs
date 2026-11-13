@@ -22,9 +22,10 @@ public partial class SecureRandomNumberGenerator : RandomNumberGenerator
 
     public int Next()
     {
-        var data = new byte[sizeof(int)];
+        // 栈上缓冲，省去每次调用的小数组分配。
+        Span<byte> data = stackalloc byte[sizeof(int)];
         _rng.GetBytes(data);
-        return BitConverter.ToInt32(data, 0) & (int.MaxValue - 1);
+        return BitConverter.ToInt32(data) & (int.MaxValue - 1);
     }
 
     public int Next(int maxValue)
@@ -40,9 +41,9 @@ public partial class SecureRandomNumberGenerator : RandomNumberGenerator
 
     public double NextDouble()
     {
-        var data = new byte[sizeof(uint)];
+        Span<byte> data = stackalloc byte[sizeof(uint)];
         _rng.GetBytes(data);
-        var randUint = BitConverter.ToUInt32(data, 0);
+        var randUint = BitConverter.ToUInt32(data);
         return randUint / (uint.MaxValue + 1.0);
     }
 

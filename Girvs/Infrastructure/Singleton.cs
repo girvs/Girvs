@@ -6,15 +6,23 @@
 public class Singleton<T> : BaseSingleton
 {
     private static readonly object SyncRoot = new();
-    private static T _instance;
+
+    // 以 object 承载实例：既保留无约束的泛型 API，又能借助 Volatile 保证引用发布的可见性，
+    // 读取快路径无需进入 monitor。
+    private static object _instance;
 
     public static T Instance
     {
         get
         {
+            var instance = Volatile.Read(ref _instance);
+            if (instance is not null)
+                return (T)instance;
+
             lock (SyncRoot)
             {
-                return _instance;
+                // 值类型未设置时返回 default(T)，与原实现保持一致。
+                return _instance is null ? default : (T)_instance;
             }
         }
         set

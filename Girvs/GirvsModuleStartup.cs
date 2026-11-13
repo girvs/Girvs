@@ -6,9 +6,12 @@ public class GirvsModuleStartup : IAppModuleStartup
     {
         services.AddHttpContextAccessor();
         services.AddSingleton<IGirvsPrincipalAccessor, GirvsPrincipalAccessor>();
-        services.RegisterRepository();
+
+        // 复用同一个类型查找器，避免每个注册方法各自完整扫描一遍程序集。
+        var typeFinder = new WebAppTypeFinder();
+        services.RegisterRepository(typeFinder);
         services.RegisterUow();
-        services.RegisterManager();
+        services.RegisterManager(typeFinder);
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders =

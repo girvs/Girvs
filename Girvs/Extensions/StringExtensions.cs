@@ -3,8 +3,12 @@ namespace Girvs.Extensions;
 /// <summary>
 /// Extension methods for String class.
 /// </summary>
-public static class StringExtensions
+public static partial class StringExtensions
 {
+    // 编译期生成正则实现，避免运行期解析与重复编译。
+    [GeneratedRegex("[a-z][A-Z]")]
+    private static partial Regex SentenceCaseRegex();
+
     public static string Base64Encode(this string content)
     {
         if (content.IsNullOrWhiteSpace()) return content;
@@ -29,7 +33,13 @@ public static class StringExtensions
     /// </summary>
     public static string EnsureEndsWith(this string str, char c)
     {
-        return EnsureEndsWith(str, c, StringComparison.Ordinal);
+        if (str == null)
+        {
+            throw new ArgumentNullException(nameof(str));
+        }
+
+        // 直接使用 char 重载，避免 c.ToString() 的临时字符串分配。
+        return str.EndsWith(c) ? str : str + c;
     }
 
     /// <summary>
@@ -77,6 +87,12 @@ public static class StringExtensions
         if (str == null)
         {
             throw new ArgumentNullException(nameof(str));
+        }
+
+        // 序数比较走 char 重载，避免 c.ToString() 的临时字符串分配。
+        if (comparisonType == StringComparison.Ordinal)
+        {
+            return str.StartsWith(c) ? str : c + str;
         }
 
         if (str.StartsWith(c.ToString(), comparisonType))
@@ -274,7 +290,8 @@ public static class StringExtensions
     /// </summary>
     public static string[] Split(this string str, string separator)
     {
-        return str.Split(new[] {separator}, StringSplitOptions.None);
+        // 使用 string 重载，省去单元素分隔符数组的分配。
+        return str.Split(separator, StringSplitOptions.None);
     }
 
     /// <summary>
@@ -282,7 +299,7 @@ public static class StringExtensions
     /// </summary>
     public static string[] Split(this string str, string separator, StringSplitOptions options)
     {
-        return str.Split(new[] {separator}, options);
+        return str.Split(separator, options);
     }
 
     /// <summary>
@@ -356,9 +373,8 @@ public static class StringExtensions
             return str;
         }
 
-        return Regex.Replace(
+        return SentenceCaseRegex().Replace(
             str,
-            "[a-z][A-Z]",
             m => m.Value[0] + " " +
                  (invariantCulture ? char.ToLowerInvariant(m.Value[1]) : char.ToLower(m.Value[1]))
         );
@@ -377,7 +393,7 @@ public static class StringExtensions
             return str;
         }
 
-        return Regex.Replace(str, "[a-z][A-Z]", m => m.Value[0] + " " + char.ToLower(m.Value[1], culture));
+        return SentenceCaseRegex().Replace(str, m => m.Value[0] + " " + char.ToLower(m.Value[1], culture));
     }
 
     /// <summary>
@@ -419,11 +435,8 @@ public static class StringExtensions
     {
         using var md5Hash = MD5.Create();
         var data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(str));
-        //转换成字符串，并取9到25位
-        var sBuilder = BitConverter.ToString(data, 4, 8);
-        //BitConverter转换出来的字符串会在每个字符中间产生一个分隔符，需要去除掉
-        sBuilder = sBuilder.Replace("-", "");
-        return sBuilder.ToString().ToUpper();
+        // 直接取第 4 字节起 8 字节并转十六进制，省去 BitConverter + Replace 的中间字符串。
+        return Convert.ToHexString(data, 4, 8);
     }
 
     public static string ToMd5(this string str)
@@ -431,16 +444,10 @@ public static class StringExtensions
         if (string.IsNullOrEmpty(str)) return string.Empty;
 
         using var md5 = MD5.Create();
-        var inputBytes = Encoding.UTF8.GetBytes(str);
-        var hashBytes = md5.ComputeHash(inputBytes);
+        var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
 
-        var sb = new StringBuilder();
-        foreach (var hashByte in hashBytes)
-        {
-            sb.Append(hashByte.ToString("X2"));
-        }
-
-        return sb.ToString();
+        // ToHexString 一次完成转换，避免逐字节格式化与 StringBuilder 增长。
+        return Convert.ToHexString(hashBytes);
     }
 
     public static Guid? ToHasGuid(this string str)

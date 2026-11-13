@@ -36,22 +36,16 @@ public static class DayOfWeekExtensions
             throw new ArgumentOutOfRangeException(nameof(n));
         }
 
-        var y = 0;
-
-        var daysOfMonth = DateTimeExtensions.DaysOfMonth(year, month);
-
         // compensate for "last DayOfWeek in month"
         var totalInstances = dayOfWeek.TotalInstancesInMonth(year, month);
         if (n == 5 && n > totalInstances)
             n = 4;
 
-        var foundDate = daysOfMonth
-            .Where(date => dayOfWeek.Equals(date.DayOfWeek))
-            .OrderBy(date => date)
-            .Select(x => new { n = ++y, date = x })
-            .Where(x => x.n.Equals(n)).Select(x => x.date).First(); //black magic wizardry
+        // 第一个匹配日 + 7 天偏移即为第 n 个，直接构造日期。
+        var offset = GetFirstOccurrenceOffset(dayOfWeek, year, month);
+        var day = offset + 1 + (n - 1) * 7;
 
-        return foundDate;
+        return new DateTime(year, month, day);
     }
 
     /// <summary>
@@ -63,7 +57,19 @@ public static class DayOfWeekExtensions
     /// <returns></returns>
     public static int TotalInstancesInMonth(this DayOfWeek dayOfWeek, int year, int month)
     {
-        return DateTimeExtensions.DaysOfMonth(year, month).Count(date => dayOfWeek.Equals(date.DayOfWeek));
+        // O(1) 计算：从当月 1 日到第一个匹配日之间的偏移量决定总出现次数。
+        var offset = GetFirstOccurrenceOffset(dayOfWeek, year, month);
+        var daysInMonth = DateTime.DaysInMonth(year, month);
+        return (daysInMonth - 1 - offset) / 7 + 1;
+    }
+
+    /// <summary>
+    /// 当月第一天到第一个 <paramref name="dayOfWeek"/> 的偏移天数（0-6）。
+    /// </summary>
+    private static int GetFirstOccurrenceOffset(DayOfWeek dayOfWeek, int year, int month)
+    {
+        var firstDayOfWeek = new DateTime(year, month, 1).DayOfWeek;
+        return ((int)dayOfWeek - (int)firstDayOfWeek + 7) % 7;
     }
 
     /// <summary>

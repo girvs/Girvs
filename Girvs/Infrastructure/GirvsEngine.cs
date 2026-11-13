@@ -9,12 +9,18 @@ public class GirvsEngine : IEngine
     /// Get I
     /// </summary>
     /// <returns>IServiceProvider</returns>
+    // 访问器来自根容器且为单例，缓存一次即可；容器变更时由 ServiceProvider 的 setter 清空。
+    private IHttpContextAccessor _httpContextAccessor;
+
+    private IHttpContextAccessor HttpContextAccessor =>
+        _httpContextAccessor ??= ServiceProvider?.GetService<IHttpContextAccessor>();
+
     protected IServiceProvider GetServiceProvider(IServiceScope scope = null)
     {
         if (scope == null)
         {
-            var accessor = ServiceProvider?.GetService<IHttpContextAccessor>();
-            var context = accessor?.HttpContext;
+            // 原实现每次解析服务都走一次 GetService<IHttpContextAccessor>()，现已改为缓存读取。
+            var context = HttpContextAccessor?.HttpContext;
             return context?.RequestServices ?? AsyncLocalServiceProvider.Value ?? ServiceProvider;
         }
 
@@ -104,7 +110,8 @@ public class GirvsEngine : IEngine
         var logger = Resolve<ILogger<object>>();
         foreach (var instance in instances)
         {
-            logger.LogInformation($"开始配置-{instance.GetType().Name}-相关的映射节点EndpointRouteBuilder");
+            // 结构化模板：日志级别关闭时不再产生插值字符串。
+            logger.LogInformation("开始配置 {StartupName} 相关的映射节点 EndpointRouteBuilder", instance.GetType().Name);
             instance.ConfigureMapEndpointRoute(endpointRouteBuilder);
         }
     }
@@ -212,14 +219,7 @@ public class GirvsEngine : IEngine
         services.AddSingleton(services);
     }
 
-    public HttpContext HttpContext
-    {
-        get
-        {
-            var accessor = Resolve<IHttpContextAccessor>();
-            return accessor?.HttpContext;
-        }
-    }
+    public HttpContext HttpContext => HttpContextAccessor?.HttpContext;
 
     public IGirvsPrincipalAccessor PrincipalAccessor => Resolve<IGirvsPrincipalAccessor>();
 
@@ -262,7 +262,18 @@ public class GirvsEngine : IEngine
     private static readonly AsyncLocal<IServiceProvider> AsyncLocalServiceProvider =
         new AsyncLocal<IServiceProvider>();
 
-    public virtual IServiceProvider ServiceProvider { get; protected set; }
+    private IServiceProvider _serviceProvider;
+
+    public virtual IServiceProvider ServiceProvider
+    {
+        get => _serviceProvider;
+        protected set
+        {
+            _serviceProvider = value;
+            // 容器替换后，从新容器重新解析访问器。
+            _httpContextAccessor = null;
+        }
+    }
 
     /// <summary>
     /// 由主机构建完成后回填实际服务提供程序，避免在注册阶段创建第二套容器。

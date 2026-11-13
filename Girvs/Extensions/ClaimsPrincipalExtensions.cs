@@ -43,7 +43,8 @@ public static class ClaimsPrincipalExtensions
             return default;
         }
 
-        return (T)GirvsConvert.ToSpecifiedType(typeof(T).FullName, value);
+        // 直接按目标类型转换，省去 FullName 字符串比较链，并支持可空与枚举。
+        return (T)GirvsConvert.ToSpecifiedType(typeof(T), value);
     }
 
     private static TEnum ParseEnum<TEnum>(string value, TEnum defaultValue)

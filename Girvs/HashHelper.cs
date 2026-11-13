@@ -19,27 +19,23 @@ public class HashHelper
         if (string.IsNullOrEmpty(hashAlgorithm))
             throw new ArgumentNullException(nameof(hashAlgorithm));
 
-        using var algorithm = CreateHashAlgorithm(hashAlgorithm);
+        // 直接按区间取跨度，省去截取副本；ToHexString 一次成串，
+        // 不再经过 BitConverter + Replace 的两次分配。
+        ReadOnlySpan<byte> source = trimByteCount > 0 && data.Length > trimByteCount
+            ? data.AsSpan(0, trimByteCount)
+            : data.AsSpan();
 
-        if (trimByteCount > 0 && data.Length > trimByteCount)
+        // 静态 HashData 线程安全，且省去每次调用创建算法实例的开销。
+        var hash = hashAlgorithm.ToUpperInvariant() switch
         {
-            var newData = new byte[trimByteCount];
-            Array.Copy(data, newData, trimByteCount);
-
-            return BitConverter.ToString(algorithm.ComputeHash(newData)).Replace("-", string.Empty);
-        }
-
-        return BitConverter.ToString(algorithm.ComputeHash(data)).Replace("-", string.Empty);
-    }
-
-    private static HashAlgorithm CreateHashAlgorithm(string hashAlgorithm) =>
-        hashAlgorithm.ToUpperInvariant() switch
-        {
-            "SHA1" or "SHA-1" => SHA1.Create(),
-            "SHA256" or "SHA-256" => SHA256.Create(),
-            "SHA384" or "SHA-384" => SHA384.Create(),
-            "SHA512" or "SHA-512" => SHA512.Create(),
-            "MD5" => MD5.Create(),
+            "SHA1" or "SHA-1" => SHA1.HashData(source),
+            "SHA256" or "SHA-256" => SHA256.HashData(source),
+            "SHA384" or "SHA-384" => SHA384.HashData(source),
+            "SHA512" or "SHA-512" => SHA512.HashData(source),
+            "MD5" => MD5.HashData(source),
             _ => throw new ArgumentException($"Unrecognized hash name: {hashAlgorithm}", nameof(hashAlgorithm)),
         };
+
+        return Convert.ToHexString(hash);
+    }
 }
