@@ -6,7 +6,7 @@
 
 ## 构建、测试与本地开发
 
-项目使用 .NET SDK 10.0.100（见 `global.json`），库默认多目标编译为 `net8.0;net9.0;net10.0`；Aspire 相关模块仅支持 `net10.0`。
+项目使用 .NET SDK 11.0.100（见 `global.json`），库默认多目标编译为 `net8.0;net9.0;net10.0;net11.0`；各模块的具体目标以共享配置及其 `.csproj` 为准。.NET 11 迁移进度见 `.scratch/dotnet11-upgrade/issues/`。
 
 ```bash
 dotnet build Girvs.slnx                 # 构建全部模块
@@ -31,4 +31,15 @@ dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj
 
 ## 配置与兼容性
 
-所有包版本由 `Directory.Build.props` 统一管理，修改依赖时必须确认三个目标框架的兼容性。不要提交密钥、连接串或环境专属配置；示例配置应使用占位值。Aspire 与 Consul 服务发现互斥，修改两者接入逻辑前应验证目标部署模式。
+包版本由各项目引用和共享构建属性管理，修改依赖时必须确认各目标框架的兼容性。不要提交密钥、连接串或环境专属配置；示例配置应使用占位值。Aspire 与 Consul 服务发现互斥，修改两者接入逻辑前应验证目标部署模式。
+
+## Agent skills
+
+### Issue tracker
+任务与规格保存在 `.scratch/<feature>/`，规则见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+使用五个默认状态，映射见 `docs/agents/triage-labels.md`。
+
+### Domain docs
+使用根目录 `CONTEXT.md` 与 `docs/adr/`，规则见 `docs/agents/domain.md`。

@@ -16,4 +16,8 @@
         <PackageReference Include="Panda.DynamicWebApi" Version="1.2.2"/>
     </ItemGroup>
 
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Include="Panda.DynamicWebApi" Version="1.2.2"/>
+    </ItemGroup>
+
 </Project>
