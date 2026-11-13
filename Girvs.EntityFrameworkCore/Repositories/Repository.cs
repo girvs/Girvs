@@ -38,12 +38,7 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntit
     public bool CompareTenantId(TEntity entity)
     {
         if (entity is not IIncludeMultiTenant<TKey>) return true;
-        var tenantId = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
-        var identityType = EngineContext.Current.ClaimManager.IdentityClaim.IdentityType;
-        if (string.IsNullOrEmpty(tenantId) && identityType == IdentityType.EventMessageUser)
-        {
-            tenantId = Guid.Empty.ToString();
-        }
+        var tenantId = EngineContext.Current.PrincipalAccessor.Principal.GetTenantId();
 
         var propertyValue = CommonHelper.GetProperty(entity, nameof(IIncludeMultiTenant<TKey>.TenantId));
         return propertyValue != null && propertyValue.ToString() == tenantId;

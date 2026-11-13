@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Girvs.Consul;
 
@@ -8,33 +8,70 @@ public class ConsulModule : IAppModuleStartup
     {
         var consulConfig = Singleton<AppSettings>.Instance.Get<ConsulConfig>();
 
-        //需要添加判断是否存在GRPC服务
         if (consulConfig.CurrentServerModel == ServerModel.GrpcService)
         {
-            consulConfig.ServerName = string.IsNullOrEmpty(consulConfig.ServerName)
-                ? AppDomain.CurrentDomain.FriendlyName.Replace(".", "-").ToLower()
-                : consulConfig.ServerName;
-
-            var uri = new Uri(consulConfig.HealthAddress);
-            services
-                .AddConsul(new NConsulOptions { Address = consulConfig.ConsulAddress, })
-                .AddGRPCHealthCheck(consulConfig.HealthAddress.Replace($"{uri.Scheme}://", ""))
-                .RegisterService(
-                    consulConfig.ServerName,
-                    uri.Host,
-                    uri.Port,
-                    new[] { ".net Core GrpcService" }
-                );
+            services.AddSingleton<IConsulClient>(
+                _ =>
+                    new ConsulClient(consulClientConfig =>
+                    {
+                        consulClientConfig.Address = new Uri(consulConfig.ConsulAddress);
+                    })
+            );
         }
     }
 
     public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
     {
-        //需要添加判断是否存在WebApi服务
+        RegisterGrpcServiceIfNeeded(application);
         application.UseConsulByWebApi();
     }
 
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 99999;
+
+    private static void RegisterGrpcServiceIfNeeded(IApplicationBuilder application)
+    {
+        var consulConfig = Singleton<AppSettings>.Instance.Get<ConsulConfig>();
+        if (consulConfig.CurrentServerModel != ServerModel.GrpcService)
+        {
+            return;
+        }
+
+        var lifetime = EngineContext.Current.Resolve<IHostApplicationLifetime>();
+        var consulClient = application.ApplicationServices.GetRequiredService<IConsulClient>();
+        var registration = CreateGrpcRegistration(consulConfig);
+
+        consulClient.Agent.ServiceRegister(registration).GetAwaiter().GetResult();
+        lifetime.ApplicationStopping.Register(() =>
+        {
+            consulClient.Agent.ServiceDeregister(registration.ID).GetAwaiter().GetResult();
+        });
+    }
+
+    internal static AgentServiceRegistration CreateGrpcRegistration(ConsulConfig consulConfig)
+    {
+        consulConfig.ServerName = string.IsNullOrEmpty(consulConfig.ServerName)
+            ? ServiceNameResolver.FromAssemblyName()
+            : consulConfig.ServerName;
+
+        var uri = new Uri(consulConfig.HealthAddress);
+        return new AgentServiceRegistration
+        {
+            ID = Guid.NewGuid().ToString(),
+            Tags = new[] { ".net Core GrpcService" },
+            Name = consulConfig.ServerName,
+            Address = uri.Host,
+            Port = uri.Port,
+            Check = new AgentServiceCheck
+            {
+                DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(
+                    consulConfig.DeregisterCriticalServiceAfter
+                ),
+                Interval = TimeSpan.FromSeconds(consulConfig.Interval),
+                GRPC = consulConfig.HealthAddress.Replace($"{uri.Scheme}://", ""),
+                Timeout = TimeSpan.FromSeconds(consulConfig.Timeout)
+            }
+        };
+    }
 }

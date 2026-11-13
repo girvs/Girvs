@@ -10,41 +10,18 @@ public class AppSettingsHelper
 
         fileProvider ??= CommonHelper.DefaultFileProvider;
 
-        //create file if not exists
+        //文件已存在则不再回写,只有首次(文件不存在)才创建并写入
         var filePath = fileProvider.MapPath(ConfigurationDefaults.AppSettingsFilePath);
-        fileProvider.CreateFile(filePath);
+        if (fileProvider.FileExists(filePath))
+            return;
 
-        //check additional configuration parameters
-        // var additionalData = JsonConvert.DeserializeObject<AppSettings>(await fileProvider.ReadAllTextAsync(filePath, Encoding.UTF8))?.AdditionalData;
-        // appSettings.AdditionalData = additionalData;
+        fileProvider.CreateFile(filePath);
 
         //save app settings to the file
         var text = JsonConvert.SerializeObject(appSettings, Formatting.Indented);
         await fileProvider.WriteAllTextAsync(filePath, text, Encoding.UTF8);
     }
 
-    public static void CreateSerilogConfig(string configJson, IGirvsFileProvider fileProvider = null)
-    {
-        fileProvider ??= CommonHelper.DefaultFileProvider;
-        //create file if not exists
-        var filePath = fileProvider.MapPath(ConfigurationDefaults.SerilogSettingFilePath);
-        fileProvider.CreateFile(filePath);
-
-        //check additional configuration parameters
-        // var additionalData = JsonConvert.DeserializeObject<AppSettings>(fileProvider.ReadAllText(filePath, Encoding.UTF8))?.AdditionalData;
-        // appSettings.AdditionalData = additionalData;
-
-        //save app settings to the file
-        fileProvider.WriteAllText(filePath, configJson, Encoding.UTF8);
-    }
-
-    public static bool ExistSerilogConfigFile(IGirvsFileProvider fileProvider = null)
-    {
-        fileProvider ??= CommonHelper.DefaultFileProvider;
-        var filePath = fileProvider.MapPath(ConfigurationDefaults.SerilogSettingFilePath);
-        return File.Exists(filePath);
-    }
-        
     /// <summary>
     /// Save app settings to the file
     /// </summary>
@@ -56,13 +33,12 @@ public class AppSettingsHelper
 
         fileProvider ??= CommonHelper.DefaultFileProvider;
 
-        //create file if not exists
+        //文件已存在则不再回写,只有首次(文件不存在)才创建并写入
         var filePath = fileProvider.MapPath(ConfigurationDefaults.AppSettingsFilePath);
-        fileProvider.CreateFile(filePath);
+        if (fileProvider.FileExists(filePath))
+            return;
 
-        //check additional configuration parameters
-        // var additionalData = JsonConvert.DeserializeObject<AppSettings>(fileProvider.ReadAllText(filePath, Encoding.UTF8))?.AdditionalData;
-        // appSettings.AdditionalData = additionalData;
+        fileProvider.CreateFile(filePath);
 
         //save app settings to the file
         var text = JsonConvert.SerializeObject(appSettings, Formatting.Indented);

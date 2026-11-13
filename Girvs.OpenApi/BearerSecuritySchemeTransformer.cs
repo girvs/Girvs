@@ -28,7 +28,7 @@ internal sealed class BearerSecuritySchemeTransformer(
     private void ServicesManager(OpenApiDocument document)
     {
         document.Servers.Clear();
-        var serviceName = AppDomain.CurrentDomain.FriendlyName.Replace(".", "_");
+        var serviceName = ServiceNameResolver.FromAssemblyName();
         document.Servers.Add(new OpenApiServer() {Url = "/", Description = "默认访问"});
         document.Servers.Add(new OpenApiServer() {Url = "/" + serviceName, Description = "网关访问"});
     }

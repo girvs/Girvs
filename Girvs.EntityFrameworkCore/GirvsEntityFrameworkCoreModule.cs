@@ -6,6 +6,9 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
+        var dbConfig = Singleton<AppSettings>.Instance.Get<DbConfig>();
+        // 启动期一次性解析连接串，资源引用配错时立即失败，而不是等到第一次建连
+        dbConfig.ResolveConnectionStrings(Singleton<AppSettings>.Instance.Resources);
         services.AddGirvsObjectContext();
         // services.AddGirvsShardingCoreContext();
         services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));

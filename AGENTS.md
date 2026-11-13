@@ -1,135 +1,34 @@
-# Girvs 开发框架 Agent 开发指南
+# Repository Guidelines
 
-## 项目概述
+## 项目结构与模块组织
 
-- **框架类型**: 基于 .NET 8.0/9.0/10.0 的企业级快速开发框架
-- **解决方案**: `Girvs.slnx` (Solution Explorer 格式)
-- **模块数量**: 15+ 个独立模块
-- **目标框架**: `net8.0;net9.0;net10.0`
+`Girvs.slnx` 包含核心库 `Girvs/` 及各独立模块，如 `Girvs.Aspire/`、`Girvs.Aspire.Hosting/`、`Girvs.Aspire.Gateway/`、`Girvs.EntityFrameworkCore/` 和 `Girvs.Driven/`。示例应用位于 `samples/`；其中 `Sample.AppHost` 用于 Aspire 编排，`Sample.ServiceA`、`Sample.ServiceB` 和 `Sample.Worker` 用于端到端验证。单元测试位于 `tests/`，按被测模块分组。每个模块保持独立的 `.csproj` 与 `GlobalUsings.cs`。
 
-## 构建命令
+## 构建、测试与本地开发
 
-```bash
-# 构建整个解决方案
-dotnet build Girvs.slnx
-
-# 构建所有模块 (Release)
-dotnet build Girvs.slnx -c Release
-
-# 构建核心模块
-dotnet build Girvs/Girvs.csproj
-
-# 构建特定模块
-dotnet build Girvs.EntityFrameworkCore/Girvs.EntityFrameworkCore.csproj
-
-# 清理和重建
-dotnet clean Girvs.slnx
-dotnet build Girvs.slnx --no-incremental
-```
-
-## 测试命令
-
-**注意**: 当前项目未包含测试项目。
+项目使用 .NET SDK 10.0.100（见 `global.json`），库默认多目标编译为 `net8.0;net9.0;net10.0`；Aspire 相关模块仅支持 `net10.0`。
 
 ```bash
-# 创建测试项目
-dotnet new xunit -n Girvs.Tests -o tests/Girvs.Tests
-dotnet add tests/Girvs.Tests reference Girvs/Girvs.csproj
-
-# 运行所有测试
-dotnet test
-
-# 运行单个测试
-dotnet test --filter "FullyQualifiedName~YourTestClassName.YourTestMethodName"
+dotnet build Girvs.slnx                 # 构建全部模块
+dotnet build Girvs.slnx -c Release      # 发布配置构建
+dotnet test Girvs.slnx                  # 运行全部 xUnit 测试
+dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj
 ```
 
-## 代码风格指南
+仅修改一个模块时，优先构建其 `.csproj`。修改 Aspire 编排或网关逻辑时，同时运行对应的 `Girvs.Aspire.*.Tests` 项目。
 
-### 命名约定
+## 编码风格与命名
 
-- **类/接口/枚举**: `PascalCase`，接口必须以 `I` 开头
-- **方法/属性**: `PascalCase`
-- **私有字段**: `_camelCase` (推荐)
-- **局部变量/参数**: `camelCase`
+使用 4 空格缩进、文件作用域命名空间和 `ImplicitUsings`。类型、成员和枚举使用 `PascalCase`；接口以 `I` 开头；私有字段使用 `_camelCase`；参数与局部变量使用 `camelCase`。跨模块公共 using 放入 `GlobalUsings.cs`，文件专属 using 放在文件开头。异步 API 返回 `Task`/`Task<T>`，避免 `async void`。业务异常使用 `GirvsException`，日志使用 `ILogger<T>` 的结构化模板，例如 `"服务 {ServiceName} 已发现"`。
 
-### 导入规范
+## 测试指南
 
-- 使用 `GlobalUsings.cs` 定义全局 using 语句
-- 项目特定的 using 放在文件顶部，按字母顺序排列
+测试框架为 xUnit。测试类以 `Tests` 结尾，测试方法描述行为与预期，例如 `AddGirvsGateway_使用Consul源_注册服务发现提供程序`。新增功能或缺陷修复必须覆盖成功路径及关键边界条件；涉及资源编排、共享配置分发或服务发现时，补充相应 Aspire、Hosting 或 Gateway 测试。
 
-### 类型使用
+## 提交与 Pull Request
 
-- 优先使用接口而非具体实现进行依赖注入
-- 使用泛型 `IEnumerable<T>` 作为集合类型
-- 使用 `Task` 异步编程，避免 `async void`
+提交历史采用 Conventional Commits 风格，常见前缀为 `feat:`、`fix:`、`test:`、`docs:`，摘要使用简洁中文并说明模块，例如 `fix: 网关发现源改用结构化日志`。PR 应说明修改范围、验证命令及结果，并关联 Issue；变更示例应用、网关路由或配置行为时，附上必要的日志、截图或复现步骤。避免在同一 PR 混入无关格式化或重构。
 
-### 错误处理
+## 配置与兼容性
 
-- 使用 `GirvsException` 抛出业务异常
-- 带参数的异常消息: `throw new GirvsException("产品 {0} 不存在", statusCode: 404, error: null, productId);`
-
-### 日志记录
-
-使用 `ILogger<T>`，选择适当级别:
-```csharp
-_logger.LogInformation("获取产品 {ProductId} 成功", id);
-_logger.LogWarning("产品 {ProductId} 库存不足", id);
-_logger.LogError(ex, "产品 {ProductId} 查询失败", id);
-```
-
-### 实体定义
-
-```csharp
-public class Product : AggregateRoot<Guid>,
-    IIncludeCreatorId<Guid>,
-    IIncludeCreatorName,
-    IIncludeMultiTenant<Guid>,
-    IIncludeCreateTime,
-    ITenantShardingTable,
-    IIncludeMultiTenantName
-{
-    public string Name { get; set; }
-    public decimal Price { get; set; }
-}
-```
-
-### DDD 模式 (Girvs.Driven)
-
-- 使用 MediatR 处理 Command/Query
-- 使用 FluentValidation 进行输入验证
-
-```csharp
-// Command
-public class CreateOrderCommand : IRequest<Order>
-{
-    public string ProductName { get; set; }
-    public int Quantity { get; set; }
-}
-
-// Handler
-public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Order>
-{
-    public async Task<Order> Handle(CreateOrderCommand request, CancellationToken cancellationToken) { }
-}
-```
-
-### 依赖注入
-
-使用构造函数注入:
-```csharp
-services.AddScoped<IOrderService, OrderService>();
-services.AddSingleton<IConfigurationService, ConfigurationService>();
-services.AddTransient<IEmailService, EmailService>();
-```
-
-## 注意事项
-
-1. **ImplicitUsings**: 启用状态，全局 using 在 `GlobalUsings.cs` 中定义
-2. **多目标框架**: 所有模块同时支持 net8.0/9.0/10.0，添加包引用时需注意版本条件
-3. **版本号**: 所有模块保持一致 (当前 9.0.8.1)
-4. **许可证**: Apache License 2.0
-
-## 相关链接
-
-- GitHub: https://github.com/girvs/Girvs
-- NuGet: https://www.nuget.org/packages?q=Girvs
+所有包版本由 `Directory.Build.props` 统一管理，修改依赖时必须确认三个目标框架的兼容性。不要提交密钥、连接串或环境专属配置；示例配置应使用占位值。Aspire 与 Consul 服务发现互斥，修改两者接入逻辑前应验证目标部署模式。

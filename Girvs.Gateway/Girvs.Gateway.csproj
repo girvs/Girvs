@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Girvs\Girvs.csproj" />
+    <ProjectReference Include="..\Girvs.Cache\Girvs.Cache.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Girvs.ServiceGovernance\Girvs.ServiceGovernance.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Girvs.Gateway.Tests" />
+  </ItemGroup>
+</Project>

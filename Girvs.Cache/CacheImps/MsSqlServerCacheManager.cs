@@ -2,6 +2,8 @@
 using System.Data.SqlClient;
 using Girvs.Cache.Caching;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.SqlServer;
+using Microsoft.Extensions.Options;
 
 namespace Girvs.Cache.CacheImps;
 
@@ -13,6 +15,7 @@ public partial class MsSqlServerCacheManager : DistributedCacheManager
     #region Fields
 
     protected readonly DistributedCacheConfig _distributedCacheConfig;
+    private readonly SqlServerCacheOptions _sqlServerCacheOptions;
 
     #endregion
 
@@ -22,11 +25,13 @@ public partial class MsSqlServerCacheManager : DistributedCacheManager
         AppSettings appSettings,
         IDistributedCache distributedCache,
         ICacheKeyManager cacheKeyManager,
-        IConcurrentCollection<object> concurrentCollection
+        IConcurrentCollection<object> concurrentCollection,
+        IOptions<SqlServerCacheOptions> sqlServerCacheOptions
     )
         : base(appSettings, distributedCache, cacheKeyManager, concurrentCollection)
     {
         _distributedCacheConfig = appSettings.Get<CacheConfig>().DistributedCacheConfig;
+        _sqlServerCacheOptions = sqlServerCacheOptions.Value;
     }
 
     #endregion
@@ -44,7 +49,7 @@ public partial class MsSqlServerCacheManager : DistributedCacheManager
         params SqlParameter[] parameters
     )
     {
-        var conn = new SqlConnection(_distributedCacheConfig.ConnectionString);
+        var conn = new SqlConnection(_sqlServerCacheOptions.ConnectionString);
 
         try
         {

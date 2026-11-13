@@ -1,4 +1,4 @@
-﻿namespace Girvs.Consul.Configuration;
+namespace Girvs.Consul.Configuration;
 
 public class ConsulConfig : IAppModuleConfig
 {
@@ -11,11 +11,8 @@ public class ConsulConfig : IAppModuleConfig
 
     public ServerModel CurrentServerModel { get; set; } = ServerModel.WebApi;
 
-    public void Init()
-    {
-    }
+    public void Init() { }
 }
-
 
 public enum ServerModel
 {

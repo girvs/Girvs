@@ -50,7 +50,7 @@ public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQuery
             
         var data = new List<object>
         {
-            tenantId ?? EngineContext.Current.ClaimManager.IdentityClaim.TenantId
+            tenantId ?? EngineContext.Current.PrincipalAccessor.Principal.GetTenantId()
         };
 
         if (ContainsPublicData)

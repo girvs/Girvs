@@ -7,13 +7,9 @@
 public class DomainNotificationHandler : INotificationHandler<DomainNotification>
 {
     // 通知信息列表
-    private List<DomainNotification> _notifications;
+    private List<DomainNotification> _notifications = [];
 
     // 每次访问该处理程序的时候，实例化一个空集合
-    public DomainNotificationHandler()
-    {
-        _notifications = new List<DomainNotification>();
-    }
 
     // 处理方法，把全部的通知信息，添加到内存里
     public Task Handle(DomainNotification message, CancellationToken cancellationToken)

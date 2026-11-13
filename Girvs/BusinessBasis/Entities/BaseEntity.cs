@@ -37,13 +37,13 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
             initFieldObj.IsInitData = false;
         }
 
-        var identityClaim = EngineContext.Current.ClaimManager?.IdentityClaim;
+        var principal = EngineContext.Current.PrincipalAccessor?.Principal;
 
-        if (identityClaim != null)
+        if (principal != null)
         {
             if (this is IIncludeCreatorName creatorNameObj)
             {
-                var creatorName = EngineContext.Current.ClaimManager.IdentityClaim.UserName;
+                var creatorName = principal.GetUserName();
                 if (!string.IsNullOrEmpty(creatorName))
                 {
                     creatorNameObj.CreatorName = creatorName;
@@ -52,7 +52,7 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
 
             if (this is IIncludeMultiTenantName multiTenantNameObj)
             {
-                var tenantName = EngineContext.Current.ClaimManager.IdentityClaim.TenantName;
+                var tenantName = principal.GetTenantName();
                 if (!string.IsNullOrEmpty(tenantName))
                 {
                     multiTenantNameObj.TenantName = tenantName;
@@ -63,7 +63,7 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
                 .GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
             if (multiTenantPrperty != null)
             {
-                var tenantIdStr = EngineContext.Current.ClaimManager.IdentityClaim.TenantId;
+                var tenantIdStr = principal.GetTenantId();
                 if (!string.IsNullOrEmpty(tenantIdStr))
                 {
                     var value = GirvsConvert.ToSpecifiedType(
@@ -77,7 +77,7 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
             var creatorPrperty = GetType().GetProperty(nameof(IIncludeCreatorId<object>.CreatorId));
             if (creatorPrperty != null)
             {
-                var currentUserIdStr = EngineContext.Current.ClaimManager.IdentityClaim.UserId;
+                var currentUserIdStr = principal.GetUserId();
                 if (!string.IsNullOrEmpty(currentUserIdStr))
                 {
                     var value = GirvsConvert.ToSpecifiedType(

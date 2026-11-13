@@ -4,5 +4,5 @@ public static class GirvsAuthenticationScheme
 {
     public const string GirvsJwt = "GirvsJwt";
     public const string GirvsJwtWebFront = "GirvsJwtWebFront";
-    public const string GirvsIdentityServer4 = "GirvsIdentityServer4";
+    public const string GirvsOAuth2 = "GirvsOAuth2";
 }

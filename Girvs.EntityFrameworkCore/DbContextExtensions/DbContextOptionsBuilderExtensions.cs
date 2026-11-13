@@ -106,29 +106,28 @@ public static class DbContextOptionsBuilderExtensions
         where TDbContext : GirvsDbContext
     {
         var dataConnectionConfig = config;
-        connStr ??= config.MasterDataConnectionString;
+        connStr ??= dataConnectionConfig.GetMasterDataConnectionString();
 
-        switch (dataConnectionConfig.UseDataType)
+        var resourceType = Singleton<AppSettings>.Instance.Resources[dataConnectionConfig.ConnectionRef]
+            .Type.ToLowerInvariant();
+        switch (resourceType)
         {
-            case UseDataType.MsSql:
+            case "sqlserver":
                 optionsBuilder.UseSqlServerWithLazyLoading<TDbContext>(
                     dataConnectionConfig,
                     connStr
                 );
                 break;
 
-            case UseDataType.MySql:
+            case "mysql":
                 optionsBuilder.UseMySqlWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
                 break;
 
             // case UseDataType.SqlLite:
             //     optionsBuilder.UseSqlLiteWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
             //     break;
-#if NET8_0
-            case UseDataType.Oracle:
-                optionsBuilder.UseOracleWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
-                break;
-#endif
+            default:
+                throw new GirvsException($"Resources:{dataConnectionConfig.ConnectionRef}:Type '{resourceType}' 不支持 EntityFrameworkCore");
         }
 
         if (dataConnectionConfig.UseLazyLoading)

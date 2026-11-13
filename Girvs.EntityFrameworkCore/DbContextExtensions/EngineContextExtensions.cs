@@ -119,7 +119,7 @@ public static class EngineContextExtensions
 
         if (isIncludeCurrentTenantId)
         {
-            var tenantId = engine.ClaimManager.IdentityClaim.GetTenantId<Guid>();
+            var tenantId = engine.PrincipalAccessor.Principal.GetTenantId<Guid>();
             if (tenantId != Guid.Empty)
             {
                 var tenantIdStr = $"_{tenantId.ToString().Replace("-", "")}";
@@ -176,7 +176,7 @@ public static class EngineContextExtensions
     {
         try
         {
-            var tenantId = engine.ClaimManager.IdentityClaim.GetTenantId<Guid>();
+            var tenantId = engine.PrincipalAccessor.Principal.GetTenantId<Guid>();
             if (tenantId != Guid.Empty)
             {
                 return $"_{tenantId.ToString().Replace("-", "")}";

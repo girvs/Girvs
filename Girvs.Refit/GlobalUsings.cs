@@ -11,12 +11,19 @@ global using Girvs.Configuration;
 global using Girvs.Extensions;
 global using Girvs.Infrastructure;
 global using Girvs.Refit.Configuration;
+global using Girvs.Refit.Discovery;
 global using Girvs.Refit.HttpClientHandlers;
 global using Girvs.TypeFinder;
 global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Routing;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
-global using NConsul;
+global using Consul;
 global using Refit;
+
+#if NET10_0
+global using Girvs.ServiceGovernance.Configuration;
+global using Girvs.ServiceGovernance.Discovery;
+#endif

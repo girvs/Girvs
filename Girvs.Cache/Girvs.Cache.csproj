@@ -4,6 +4,8 @@
         <PackageReference Include="System.Linq.Async" Version="6.0.1" />
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.28" />
         <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="8.0.28" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.35.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.35.0" />
         <!-- 覆盖经 Microsoft.Data.SqlClient 传递引入的有漏洞版本 System.Drawing.Common 5.0.0（GHSA-rxg9-xrhp-64gj） -->
         <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     </ItemGroup>
@@ -12,6 +14,8 @@
         <PackageReference Include="System.Linq.Async" Version="6.0.1" />
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.17" />
         <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="9.0.17" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.35.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.35.0" />
         <!-- 覆盖经 Microsoft.Data.SqlClient 传递引入的有漏洞版本 System.Drawing.Common 5.0.0（GHSA-rxg9-xrhp-64gj） -->
         <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
     </ItemGroup>
@@ -20,6 +24,8 @@
         <PackageReference Include="System.Linq.Async" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.9" />
         <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="10.0.9" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="6.35.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.35.0" />
     </ItemGroup>
 
     <ItemGroup>

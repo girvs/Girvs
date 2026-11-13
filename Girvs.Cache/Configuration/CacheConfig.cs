@@ -1,4 +1,6 @@
-﻿namespace Girvs.Cache.Configuration;
+﻿using Girvs.Configuration.Resources;
+
+namespace Girvs.Cache.Configuration;
 
 /// <summary>
 /// 代表分布式缓存配置参数

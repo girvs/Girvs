@@ -18,7 +18,7 @@ public static partial class GirvsEntityCacheDefaults<TEntity>
             var property = typeof(TEntity).GetProperty("TenantId");
             return property == null
                 ? string.Empty
-                : $":TenantId_{EngineContext.Current.ClaimManager.IdentityClaim.TenantId}";
+                : $":TenantId_{EngineContext.Current.PrincipalAccessor.Principal.GetTenantId()}";
         }
     }
 
