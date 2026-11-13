@@ -1,38 +1,40 @@
-﻿namespace Girvs.EntityFrameworkCore.DbContextExtensions;
+﻿using System.Text;
+
+namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 internal static class RuntimeTypeBuilder
 {
     private static readonly ModuleBuilder ModuleBuilder;
-    private static readonly IDictionary<string, Type> BuiltTypes;
+    private static readonly Dictionary<string, Type> BuiltTypes;
+    private static readonly object SyncRoot = new();
 
     static RuntimeTypeBuilder()
     {
         var assemblyName = new AssemblyName {Name = "DynamicLinqTypes"};
 
         ModuleBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run).DefineDynamicModule(assemblyName.Name);
-        //moduleBuilder = Thread.GetDomain()
-        //        .DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run)
-        //        .DefineDynamicModule(assemblyName.Name);
         BuiltTypes = new Dictionary<string, Type>();
     }
 
     internal static Type GetRuntimeType(IDictionary<string, PropertyInfo> fields)
     {
         var typeKey = GetTypeKey(fields);
-        if (!BuiltTypes.ContainsKey(typeKey))
+        lock (SyncRoot)
         {
-            lock (ModuleBuilder)
+            if (!BuiltTypes.TryGetValue(typeKey, out var builtType))
             {
-                BuiltTypes[typeKey] = GetRuntimeType(typeKey, fields);
+                builtType = GetRuntimeType(typeKey, fields);
+                BuiltTypes[typeKey] = builtType;
             }
-        }
 
-        return BuiltTypes[typeKey];
+            return builtType;
+        }
     }
 
     private static Type GetRuntimeType(string typeName, IEnumerable<KeyValuePair<string, PropertyInfo>> properties)
     {
-        var typeBuilder = ModuleBuilder.DefineType(typeName, TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Serializable);
+        // 该动态类型只用于 LINQ 投影，不参与 Formatter 序列化；.NET 11 中 TypeAttributes.Serializable 已过时（SYSLIB0050）。
+        var typeBuilder = ModuleBuilder.DefineType(typeName, TypeAttributes.Public | TypeAttributes.Class);
         foreach (var property in properties)
         {
             typeBuilder.DefineField(property.Key, property.Value.PropertyType, FieldAttributes.Public);
@@ -43,6 +45,12 @@ internal static class RuntimeTypeBuilder
 
     private static string GetTypeKey(IEnumerable<KeyValuePair<string, PropertyInfo>> fields)
     {
-        return fields.Aggregate(string.Empty, (current, field) => current + (field.Key + ";" + field.Value.Name + ";"));
+        var builder = new StringBuilder();
+        foreach (var field in fields)
+        {
+            builder.Append(field.Key).Append(';').Append(field.Value.Name).Append(';');
+        }
+
+        return builder.ToString();
     }
 }

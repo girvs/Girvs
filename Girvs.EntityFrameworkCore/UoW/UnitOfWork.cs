@@ -21,7 +21,7 @@ public class UnitOfWork<TEntity> : IUnitOfWork<TEntity> where TEntity : Entity
         // _context.Dispose();
     }
 
-    public async Task<bool> Commit(CancellationToken cancellationToken = new CancellationToken())
+    public async Task<bool> Commit(CancellationToken cancellationToken = default)
     {
         var changeRowCount = await _context.SaveChangesAsync(cancellationToken);
         // 使用结构化模板，日志级别关闭时不产生插值字符串与装箱。

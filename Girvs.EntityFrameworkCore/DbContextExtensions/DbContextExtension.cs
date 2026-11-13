@@ -32,8 +32,9 @@ public static class DbContextExtension
     }
 
 
-    private static readonly IList<string> MigrationSuffixs = new List<string>();
-    private static object _async = new object();
+    // 分表后缀需要去重且高频查询，用 HashSet 保持 O(1)。
+    private static readonly HashSet<string> MigrationSuffixs = new();
+    private static readonly object MigrationLock = new();
 
     /// <summary>
     /// 在分表的情况下进行自动迁移
@@ -49,7 +50,7 @@ public static class DbContextExtension
         if (suffix.IsNullOrEmpty())
             return;
 
-        lock (_async)
+        lock (MigrationLock)
         {
             if (MigrationSuffixs.Contains(suffix)) return;
             if (GetNeedMigrationEntities().Count > 0)

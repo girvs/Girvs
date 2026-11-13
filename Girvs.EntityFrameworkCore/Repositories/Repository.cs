@@ -37,11 +37,11 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntit
 
     public bool CompareTenantId(TEntity entity)
     {
-        if (entity is not IIncludeMultiTenant<TKey>) return true;
+        // 直接访问接口属性，避免每次校验都走反射查找。
+        if (entity is not IIncludeMultiTenant<TKey> multiTenant) return true;
         var tenantId = EngineContext.Current.PrincipalAccessor.Principal.GetTenantId();
 
-        var propertyValue = CommonHelper.GetProperty(entity, nameof(IIncludeMultiTenant<TKey>.TenantId));
-        return propertyValue != null && propertyValue.ToString() == tenantId;
+        return multiTenant.TenantId is not null && multiTenant.TenantId.ToString() == tenantId;
     }
 
     public virtual async Task<TEntity> AddAsync(TEntity t)
@@ -153,7 +153,7 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntit
 
     public virtual Task<List<TEntity>> GetAllAsync(params string[] fields)
     {
-        return fields.Any()
+        return fields.Length > 0
             ? Queryable.SelectProperties(fields).ToListAsync()
             : Queryable.ToListAsync();
     }
@@ -161,7 +161,7 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntit
     public virtual Task<List<TEntity>> GetWhereAsync(Expression<Func<TEntity, bool>> predicate,
         params string[] fields)
     {
-        return fields.Any()
+        return fields.Length > 0
             ? Queryable.Where(predicate).SelectProperties(fields).ToListAsync()
             : Queryable.Where(predicate).ToListAsync();
     }
@@ -173,6 +173,11 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntit
         query.RecordCount = await DbSet.Where(queryCondition).CountAsync();
         if (query.RecordCount < 1)
         {
+            query.Result = new List<TEntity>();
+        }
+        else if (query.PageStart >= query.RecordCount)
+        {
+            // 页码越界时结果必为空，跳过无意义的数据库分页查询；负数 PageStart 仍交给 Skip 抛错，保持原行为。
             query.Result = new List<TEntity>();
         }
         else

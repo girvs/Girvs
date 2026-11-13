@@ -42,17 +42,17 @@ public class EntityShardingTableParameter
     /// <returns></returns>
     public string GetCurrentShrdingTableSuffix()
     {
-         var shardingTableSuffix = string.Empty;
-         if (IsAssignableTenantShardingTable)
-         {
-             shardingTableSuffix += EngineContext.Current.GetTenantShardingTableSuffix();
-         }
- 
-         if (IsAssignableYearShardingTable)
-         {
-             shardingTableSuffix += EngineContext.Current.GetYearShardingTableSuffix();
-         }
- 
-         return shardingTableSuffix;
+        var shardingTableSuffix = string.Empty;
+        if (IsAssignableTenantShardingTable)
+        {
+            shardingTableSuffix += EngineContext.Current.GetTenantShardingTableSuffix();
+        }
+
+        if (IsAssignableYearShardingTable)
+        {
+            shardingTableSuffix += EngineContext.Current.GetYearShardingTableSuffix();
+        }
+
+        return shardingTableSuffix;
     }
 }

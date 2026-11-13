@@ -102,9 +102,10 @@ public class DbContextEntityShardingTableRelated
         {
             return EngineContext.Current.Resolve(DbContextType) as GirvsDbContext;
         }
-        catch
+        catch (Exception e)
         {
-            throw new GirvsException("暂时不能获取相关的实例");
+            // 保留原始异常链，避免排查容器注册问题时丢失根因。
+            throw new GirvsException("暂时不能获取相关的实例", e);
         }
     }
 

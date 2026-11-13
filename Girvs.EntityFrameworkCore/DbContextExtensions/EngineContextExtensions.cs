@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Girvs.EntityFrameworkCore.TableManager;
 using Humanizer;
 
@@ -5,8 +6,12 @@ namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 public static class EngineContextExtensions
 {
-    private static readonly IList<DbContextEntityShardingTableRelated> DbContextEntityRelateds =
-        new List<DbContextEntityShardingTableRelated>();
+    // 仓储每次实例化都会按实体查找所属上下文，预建索引避免线性扫描。
+    private static readonly Dictionary<Type, DbContextEntityShardingTableRelated> DbContextRelatedMap =
+        new();
+
+    private static readonly Dictionary<Type, DbContextEntityShardingTableRelated> EntityRelatedMap =
+        new();
 
     static EngineContextExtensions()
     {
@@ -37,7 +42,13 @@ public static class EngineContextExtensions
                 }
             }
 
-            DbContextEntityRelateds.Add(related);
+            DbContextRelatedMap.TryAdd(dbContextType, related);
+
+            foreach (var entityType in related.EntityTypes.Select(x => x.EntityType))
+            {
+                // 与原 First(...) 语义一致：同一实体出现在多个上下文时保留最先发现的上下文。
+                EntityRelatedMap.TryAdd(entityType, related);
+            }
         }
     }
 
@@ -50,7 +61,13 @@ public static class EngineContextExtensions
     public static DbContextEntityShardingTableRelated GetShardingTableRelatedByDbContext(this IEngine engine,
         Type dbContextType)
     {
-        return DbContextEntityRelateds.First(x => x.DbContextType == dbContextType);
+        if (DbContextRelatedMap.TryGetValue(dbContextType, out var related))
+        {
+            return related;
+        }
+
+        // 保持原 First(...) 的异常类型与语义。
+        throw new InvalidOperationException("Sequence contains no matching element");
     }
 
     /// <summary>
@@ -76,22 +93,20 @@ public static class EngineContextExtensions
         var related = GetShardingTableRelatedByEntity<TEntity>(engine);
         var dbContext = engine.Resolve(related.DbContextType) as DbContext;
         var connectionString = dbContext.Database.GetConnectionString();
-        var beginStr1 = "database=";
-        var beginStr2 = "DataBase=";
-        var endStr = ";";
-        string result;
+        if (string.IsNullOrWhiteSpace(connectionString)) return string.Empty;
+
         try
         {
-            result = System.Text.RegularExpressions.Regex.Match(connectionString, $"{beginStr1}(.*?){endStr}")
-                .Result("$1");
+            // 用连接串构建器解析，大小写不敏感且兼容转义值；原正则只覆盖 database/DataBase 两种写法。
+            var builder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+            return builder.TryGetValue("Database", out var database)
+                ? database?.ToString() ?? string.Empty
+                : string.Empty;
         }
-        catch
+        catch (ArgumentException)
         {
-            result = System.Text.RegularExpressions.Regex.Match(connectionString, $"{beginStr2}(.*?){endStr}")
-                .Result("$1");
+            return string.Empty;
         }
-
-        return result;
     }
 
     /// <summary>
@@ -122,7 +137,7 @@ public static class EngineContextExtensions
             var tenantId = engine.PrincipalAccessor.Principal.GetTenantId<Guid>();
             if (tenantId != Guid.Empty)
             {
-                var tenantIdStr = $"_{tenantId.ToString().Replace("-", "")}";
+                var tenantIdStr = $"_{tenantId:N}";
                 return tableNames.Where(x => x.Contains(tenantIdStr)).ToList();
             }
         }
@@ -140,7 +155,13 @@ public static class EngineContextExtensions
     public static DbContextEntityShardingTableRelated GetShardingTableRelatedByEntity(this IEngine engine,
         Type entityType)
     {
-        return DbContextEntityRelateds.First(x => x.ExistEntity(entityType));
+        if (EntityRelatedMap.TryGetValue(entityType, out var related))
+        {
+            return related;
+        }
+
+        // 保持原 First(...) 的异常类型与语义。
+        throw new InvalidOperationException("Sequence contains no matching element");
     }
 
     /// <summary>
@@ -179,7 +200,7 @@ public static class EngineContextExtensions
             var tenantId = engine.PrincipalAccessor.Principal.GetTenantId<Guid>();
             if (tenantId != Guid.Empty)
             {
-                return $"_{tenantId.ToString().Replace("-", "")}";
+                return $"_{tenantId:N}";
             }
 
             return string.Empty;

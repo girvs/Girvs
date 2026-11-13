@@ -1,4 +1,5 @@
-﻿using Girvs.Configuration.Resources;
+﻿using System.Data.Common;
+using Girvs.Configuration.Resources;
 
 namespace Girvs.EntityFrameworkCore.Configuration;
 
@@ -60,7 +61,7 @@ public class DataConnectionConfig
 
     private ResolvedConnections _connections;
 
-    /// <summary>引用 Resources 中的 MySQL 资源键。</summary>
+    /// <summary>引用 Resources 中的数据库资源键（支持 mysql / sqlserver）。</summary>
     public string ConnectionRef { get; set; }
 
     /// <summary>
@@ -74,12 +75,7 @@ public class DataConnectionConfig
     public bool EnableAutoMigrate { get; set; } = true;
 
     /// <summary>
-    /// 数据库版本号
-    /// </summary>
-    public string VersionNumber { get; set; } = "2008";
-
-    /// <summary>
-    /// 数据库连接超时时间设置
+    /// 数据库命令超时时间（秒）
     /// </summary>
     public int SQLCommandTimeout { get; set; } = 30;
 
@@ -93,20 +89,11 @@ public class DataConnectionConfig
     /// </summary>
     public bool UseDataTracking { get; set; } = true;
 
-    /// <summary>
-    /// 启用行分页
-    /// 获取或设置一个值，该值指示是否使用与SQL Server 2008和SQL Server 2008R2的向后兼容性
-    /// </summary>
-    public bool UseRowNumberForPaging { get; set; } = true;
-
     public bool EnableSensitiveDataLogging { get; set; } = false;
 
     public bool EnableShardingTable { get; set; } = true;
 
     public IList<string> ReadConnectionRefs { get; set; } = new List<string>();
-
-    // public DbHostServerPort MasterDatabaseHost { get; set; } = new DbHostServerPort();
-    // public IList<DbHostServerPort> SlaveDatabaseHost { get; set; } = new List<DbHostServerPort>();
 
     /// <summary>
     /// 从资源字典解析并缓存主库与读库连接串，资源缺失时抛出 <see cref="GirvsException"/>。
@@ -161,34 +148,85 @@ public class DataConnectionConfig
             ? resource
             : throw new GirvsException($"Resources:{name} 未配置");
 
+    /// <summary>
+    /// 按资源类型构建连接串，Settings 键约定与 Aspire 编排端一致。
+    /// </summary>
     public string BuildConnectionString(GirvsInfrastructureResource resource)
     {
         ArgumentNullException.ThrowIfNull(resource);
 
-        if (!string.Equals(resource.Type, "mysql", StringComparison.OrdinalIgnoreCase))
-            throw new GirvsException($"Resources:{ConnectionRef}:Type 必须为 mysql");
-
-        if (!resource.Settings.TryGetValue("Host", out var host) || string.IsNullOrWhiteSpace(host))
-            throw new GirvsException($"Resources:{ConnectionRef}:Settings:Host 未配置");
-
-        var builder = new System.Data.Common.DbConnectionStringBuilder { ["Server"] = host };
-
-        //如果资源中未指定数据库名称，则使用name为数据库名称
-        if (
-            resource.Settings.TryGetValue("Database", out var database)
-            && !string.IsNullOrWhiteSpace(database)
-        )
+        return resource.Type?.ToLowerInvariant() switch
         {
-            builder["Database"] = database;
-        }
-        else
+            "mysql" => BuildMySqlConnectionString(resource),
+            "sqlserver" => BuildSqlServerConnectionString(resource),
+            _ => throw new GirvsException(
+                $"Resources:{ConnectionRef}:Type '{resource.Type}' 不支持 EntityFrameworkCore"
+            ),
+        };
+    }
+
+    private string BuildMySqlConnectionString(GirvsInfrastructureResource resource)
+    {
+        var builder = new DbConnectionStringBuilder
         {
-            builder["Database"] = Name;
-        }
+            ["Server"] = GetRequiredSetting(resource, "Host"),
+            ["Database"] = GetDatabaseName(resource),
+        };
 
         if (int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port))
             builder["Port"] = port;
 
+        AddCredentials(builder, resource);
+        builder["Allow User Variables"] = true;
+
+        return builder.ConnectionString;
+    }
+
+    private string BuildSqlServerConnectionString(GirvsInfrastructureResource resource)
+    {
+        var host = GetRequiredSetting(resource, "Host");
+
+        // SqlClient 不识别 Port 键，端口需并入 Data Source。
+        if (int.TryParse(resource.Settings.GetValueOrDefault("Port"), out var port))
+            host = $"{host},{port}";
+
+        var builder = new DbConnectionStringBuilder
+        {
+            ["Data Source"] = host,
+            ["Initial Catalog"] = GetDatabaseName(resource),
+        };
+
+        AddCredentials(builder, resource);
+
+        // Aspire 编排的 SQL Server 使用自签名证书，默认信任；可通过 Settings 显式关闭。
+        var trustServerCertificate =
+            !resource.Settings.TryGetValue("TrustServerCertificate", out var trust)
+            || !bool.TryParse(trust, out var configuredTrust)
+            || configuredTrust;
+        builder["TrustServerCertificate"] = trustServerCertificate;
+
+        return builder.ConnectionString;
+    }
+
+    /// <summary>
+    /// 资源未指定数据库名时回退到配置的 <see cref="Name"/>。
+    /// </summary>
+    private string GetDatabaseName(GirvsInfrastructureResource resource) =>
+        resource.Settings.TryGetValue("Database", out var database)
+        && !string.IsNullOrWhiteSpace(database)
+            ? database
+            : Name;
+
+    private string GetRequiredSetting(GirvsInfrastructureResource resource, string key) =>
+        resource.Settings.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value)
+            ? value
+            : throw new GirvsException($"Resources:{ConnectionRef}:Settings:{key} 未配置");
+
+    private static void AddCredentials(
+        DbConnectionStringBuilder builder,
+        GirvsInfrastructureResource resource
+    )
+    {
         if (
             resource.Settings.TryGetValue("UserName", out var userName)
             && !string.IsNullOrWhiteSpace(userName)
@@ -200,9 +238,5 @@ public class DataConnectionConfig
             && !string.IsNullOrWhiteSpace(password)
         )
             builder["Password"] = password;
-
-        builder["Allow User Variables"] = true;
-
-        return builder.ConnectionString;
     }
 }

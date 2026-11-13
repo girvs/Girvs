@@ -1,3 +1,7 @@
+// 分表租户需要在运行时替换迁移程序集。EF Core 11 仍未提供等价的公共 API，
+// 只能继续依赖 MigrationsAssembly；升级 EF Core 主版本时必须回归验证该构造函数签名。
+#pragma warning disable EF1001
+
 namespace Girvs.EntityFrameworkCore.Migrations;
 
 public class GirvsMigrationByTenantAssembly(
@@ -10,7 +14,7 @@ public class GirvsMigrationByTenantAssembly(
     public override Migration CreateMigration(TypeInfo migrationClass, string activeProvider)
     {
         if (activeProvider == null)
-            throw new ArgumentNullException($"{nameof(activeProvider)} argument is null");
+            throw new ArgumentNullException(nameof(activeProvider));
 
         var hasCtorWithSchema = migrationClass.GetConstructor([typeof(string)]) != null;
 
@@ -31,3 +35,5 @@ public class GirvsMigrationByTenantAssembly(
         return base.CreateMigration(migrationClass, activeProvider);
     }
 }
+
+#pragma warning restore EF1001

@@ -13,10 +13,14 @@ public static class DataProviderServiceExtensions
             .Where(x => !x.IsAbstract && !x.IsInterface)
             .ToList();
 
-        if (!dbContexts.Any())
+        if (dbContexts.Count == 0)
             return;
         var serviceType = typeof(DataProviderServiceExtensions);
-        var mi = serviceType.GetMethod(nameof(AddGirvsDbContext));
+        // 精确匹配参数类型，避免将来新增重载时 GetMethod 抛 AmbiguousMatchException。
+        var mi = serviceType.GetMethod(
+            nameof(AddGirvsDbContext),
+            [typeof(IServiceCollection), typeof(DataConnectionConfig)]
+        );
         if (mi == null)
             return;
         foreach (var dbContext in dbContexts)

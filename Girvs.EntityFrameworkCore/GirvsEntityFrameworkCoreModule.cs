@@ -32,8 +32,11 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
                 .FindOfType(typeof(GirvsDbContext))
                 .Where(x => !x.IsAbstract && !x.IsInterface)
                 .ToList();
-            if (!dbContextTypes.Any())
+            if (dbContextTypes.Count == 0)
                 return;
+
+            // 模块配置在循环外解析一次，避免每个 DbContext 重复获取。
+            var moduleConfig = EngineContext.Current.GetAppModuleConfig<DbConfig>();
 
             using (var scope = application.ApplicationServices.CreateScope())
             {
@@ -41,9 +44,7 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
                 {
                     var dbContext =
                         scope.ServiceProvider.GetRequiredService(dbContextType) as GirvsDbContext;
-                    var dbConfig = EngineContext
-                        .Current.GetAppModuleConfig<DbConfig>()
-                        .GetDataConnectionConfig(dbContextType);
+                    var dbConfig = moduleConfig.GetDataConnectionConfig(dbContextType);
 
                     if (dbConfig is { EnableAutoMigrate: true })
                     {

@@ -1,7 +1,13 @@
-﻿namespace Girvs.EntityFrameworkCore.DbContextExtensions;
+﻿using System.Collections.Concurrent;
+
+namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 public static class DbContextOptionsBuilderExtensions
 {
+    // ServerVersion.AutoDetect 会真实建立数据库连接；按连接串缓存后，每个库只在首次解析时探测一次。
+    private static readonly ConcurrentDictionary<string, ServerVersion> ServerVersions =
+        new(StringComparer.Ordinal);
+
     public static void UseSqlServerWithLazyLoading<TDbContext>(
         this DbContextOptionsBuilder optionsBuilder,
         DataConnectionConfig config,
@@ -13,6 +19,7 @@ public static class DbContextOptionsBuilderExtensions
             connStr,
             builder =>
             {
+                builder.CommandTimeout(config.SQLCommandTimeout);
                 if (config.EnableShardingTable)
                 {
                     var related =
@@ -36,11 +43,16 @@ public static class DbContextOptionsBuilderExtensions
     {
         // net8/net9 使用 Pomelo.EntityFrameworkCore.MySql，net10/net11 使用其派生包 Microting.EntityFrameworkCore.MySql；
         // 两种包的扩展方法 API 一致：UseMySql 需传入 ServerVersion
+        var serverVersion = ServerVersions.GetOrAdd(
+            connStr,
+            static connectionString => ServerVersion.AutoDetect(connectionString)
+        );
         optionsBuilder.UseMySql(
             connStr,
-            ServerVersion.AutoDetect(connStr),
+            serverVersion,
             builder =>
             {
+                builder.CommandTimeout(config.SQLCommandTimeout);
                 if (config.EnableShardingTable)
                 {
                     var related =
@@ -108,8 +120,17 @@ public static class DbContextOptionsBuilderExtensions
         var dataConnectionConfig = config;
         connStr ??= dataConnectionConfig.GetMasterDataConnectionString();
 
-        var resourceType = Singleton<AppSettings>.Instance.Resources[dataConnectionConfig.ConnectionRef]
-            .Type.ToLowerInvariant();
+        if (
+            !Singleton<AppSettings>.Instance.Resources.TryGetValue(
+                dataConnectionConfig.ConnectionRef ?? string.Empty,
+                out var resource
+            )
+        )
+        {
+            throw new GirvsException($"Resources:{dataConnectionConfig.ConnectionRef} 未配置");
+        }
+
+        var resourceType = resource.Type.ToLowerInvariant();
         switch (resourceType)
         {
             case "sqlserver":
