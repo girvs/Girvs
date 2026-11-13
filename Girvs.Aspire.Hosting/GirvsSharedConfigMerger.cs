@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Girvs;
 
 
 namespace Girvs.Aspire.Hosting;
@@ -19,7 +20,7 @@ internal static class GirvsSharedConfigMerger
     {
         var root = string.IsNullOrWhiteSpace(handWrittenJson)
             ? new JsonObject()
-            : JsonNode.Parse(handWrittenJson)!.AsObject();
+            : ParseRootObject(handWrittenJson);
 
         if (root["Resources"] is not JsonObject resources)
         {
@@ -40,5 +41,21 @@ internal static class GirvsSharedConfigMerger
         }
 
         return root.ToJsonString(WriteOptions);
+    }
+
+    private static JsonObject ParseRootObject(string json)
+    {
+        JsonNode? node;
+        try
+        {
+            node = JsonNode.Parse(json);
+        }
+        catch (JsonException ex)
+        {
+            throw new GirvsException($"共享配置 girvs.shared.json 不是合法 JSON：{ex.Message}", ex);
+        }
+
+        return node as JsonObject
+            ?? throw new GirvsException("共享配置 girvs.shared.json 顶层必须是 JSON 对象");
     }
 }

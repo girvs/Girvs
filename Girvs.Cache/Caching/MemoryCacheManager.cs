@@ -26,6 +26,9 @@ public partial class MemoryCacheManager(
 
     protected static CancellationTokenSource _clearToken = new();
 
+    // ClearAsync 可能被并发调用，令牌替换需要原子性。
+    private static readonly object ClearTokenLock = new();
+
     #endregion
 
     #region Ctor
@@ -254,9 +257,15 @@ public partial class MemoryCacheManager(
     /// <returns>A task that represents the asynchronous operation</returns>
     public Task ClearAsync()
     {
-        _clearToken.Cancel();
-        _clearToken.Dispose();
-        _clearToken = new CancellationTokenSource();
+        lock (ClearTokenLock)
+        {
+            // 取消旧令牌让所有缓存条目过期。旧令牌不 Dispose：
+            // 并发线程可能已读取引用并访问 Token，Dispose 会抛 ObjectDisposedException。
+            // CancellationTokenSource 未持有非托管资源，交由 GC 回收即可。
+            _clearToken.Cancel();
+            _clearToken = new CancellationTokenSource();
+        }
+
         _keyManager.Clear();
 
         return Task.CompletedTask;
@@ -316,10 +325,9 @@ public partial class MemoryCacheManager(
         if (_disposed)
             return;
 
-        if (disposing)
-            // don't dispose of the MemoryCache, as it is injected
-            _clearToken.Dispose();
-
+        // don't dispose of the MemoryCache, as it is injected.
+        // _clearToken 为进程级共享资源，也不能在实例 Dispose 时销毁：
+        // ICacheKeyService 以 Scoped 注册，每个请求结束都会触发本方法。
         _disposed = true;
     }
 

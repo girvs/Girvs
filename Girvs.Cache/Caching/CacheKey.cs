@@ -21,10 +21,20 @@ public class CacheKey
     public CacheKey(string key, int? cacheTime = null, params string[] prefixes)
         : this(key, prefixes)
     {
-        if (cacheTime == null)
-            CacheTime = Singleton<AppSettings>.Instance.Get<CacheConfig>().DefaultCacheTime;
-        else
-            this.CacheTime = cacheTime.Value;
+        CacheTime = cacheTime ?? GetDefaultCacheTime();
+    }
+
+    /// <summary>
+    /// 读取全局默认缓存时间。配置系统尚未初始化（如单元测试、工具类）时回退到 60 分钟，
+    /// 避免在构造缓存键时抛出空引用异常。
+    /// </summary>
+    private static int GetDefaultCacheTime()
+    {
+        var appSettings = Singleton<AppSettings>.Instance;
+
+        return appSettings is not null && appSettings.TryGet<CacheConfig>(out var cacheConfig)
+            ? cacheConfig.DefaultCacheTime
+            : 60;
     }
 
     #endregion
@@ -92,8 +102,7 @@ public class CacheKey
     /// <summary>
     /// Gets or sets a cache time in minutes
     /// </summary>
-    public int CacheTime { get; set; } =
-        Singleton<AppSettings>.Instance.Get<CacheConfig>().DefaultCacheTime;
+    public int CacheTime { get; set; } = GetDefaultCacheTime();
 
     #endregion
 }

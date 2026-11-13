@@ -1,7 +1,11 @@
+using Microsoft.Extensions.Logging;
+
 namespace Girvs.Consul.Infrastructure.ApplicationExtensions;
 
 public static class WebApiApplicationExtensions
 {
+    private const int ConsulOperationTimeoutSeconds = 5;
+
     public static void UseConsulByWebApi(this IApplicationBuilder app)
     {
         var config = Singleton<AppSettings>.Instance.Get<ConsulConfig>();
@@ -9,9 +13,8 @@ public static class WebApiApplicationExtensions
         if (config.CurrentServerModel == ServerModel.WebApi)
         {
             var lifetime = EngineContext.Current.Resolve<IHostApplicationLifetime>();
-            var consulClient = new ConsulClient(configuration =>
-                configuration.Address = new Uri(config.ConsulAddress)
-            );
+            // 复用容器注册的单例，避免每次 new ConsulClient 后不 Dispose 造成泄漏
+            var consulClient = app.ApplicationServices.GetRequiredService<IConsulClient>();
 
             config.ServerName = string.IsNullOrEmpty(config.ServerName)
                 ? ServiceNameResolver.FromAssemblyName()
@@ -37,11 +40,64 @@ public static class WebApiApplicationExtensions
                 }
             };
 
-            consulClient.Agent.ServiceRegister(registration).GetAwaiter().GetResult();
-            lifetime.ApplicationStopping.Register(() =>
+            if (
+                !consulClient
+                    .Agent.ServiceRegister(registration)
+                    .Wait(TimeSpan.FromSeconds(ConsulOperationTimeoutSeconds))
+            )
             {
-                consulClient.Agent.ServiceDeregister(registration.ID).GetAwaiter().GetResult();
-            });
+                GetLogger(app)
+                    ?.LogWarning(
+                        "Consul 服务注册超时（{TimeoutSeconds} 秒），注册任务仍在后台继续：服务 {ServerName}，Consul 地址 {ConsulAddress}",
+                        ConsulOperationTimeoutSeconds,
+                        registration.Name,
+                        config.ConsulAddress
+                    );
+            }
+
+            lifetime.ApplicationStopping.Register(() =>
+                Deregister(app, consulClient, registration, config.ConsulAddress)
+            );
         }
     }
+
+    private static void Deregister(
+        IApplicationBuilder app,
+        IConsulClient consulClient,
+        AgentServiceRegistration registration,
+        string consulAddress
+    )
+    {
+        try
+        {
+            if (
+                !consulClient
+                    .Agent.ServiceDeregister(registration.ID)
+                    .Wait(TimeSpan.FromSeconds(ConsulOperationTimeoutSeconds))
+            )
+            {
+                GetLogger(app)
+                    ?.LogWarning(
+                        "Consul 服务注销超时（{TimeoutSeconds} 秒）：服务 {ServerName}，Consul 地址 {ConsulAddress}",
+                        ConsulOperationTimeoutSeconds,
+                        registration.Name,
+                        consulAddress
+                    );
+            }
+        }
+        catch (Exception exception)
+        {
+            // 停止阶段的回调再抛异常会影响 Host 正常退出，这里只记录
+            GetLogger(app)
+                ?.LogError(
+                    exception,
+                    "Consul 服务注销失败：服务 {ServerName}，Consul 地址 {ConsulAddress}",
+                    registration.Name,
+                    consulAddress
+                );
+        }
+    }
+
+    private static ILogger GetLogger(IApplicationBuilder app) =>
+        app.ApplicationServices.GetService<ILoggerFactory>()?.CreateLogger("Girvs.Consul");
 }

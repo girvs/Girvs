@@ -63,7 +63,9 @@ public class AppSettingsHelper
 
         //save app settings to the file
         var text = JsonConvert.SerializeObject(appModelConfig, Formatting.Indented);
-        fileProvider.WriteAllTextAsync(filePath, text, Encoding.UTF8);
+
+        // 保留原有 void 签名以兼容调用方；写入必须完成，不能把 Task 丢弃导致异常被吞。
+        fileProvider.WriteAllText(filePath, text, Encoding.UTF8);
     }
 
     public static void SaveAppModelConfig(IAppModuleConfig appModelConfig, IGirvsFileProvider fileProvider = null)

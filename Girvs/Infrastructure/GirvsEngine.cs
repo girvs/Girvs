@@ -27,7 +27,12 @@ public class GirvsEngine : IEngine
         return scope.ServiceProvider;
     }
 
-    private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+    // AssemblyResolve 是进程级静态事件，重复订阅会让同一个引擎被反复回调；
+    // 用静态标记保证整个进程只订阅一次。
+    private static readonly object AssemblyResolveLock = new();
+    private static bool _assemblyResolveSubscribed;
+
+    private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
     {
         //check for assembly already loaded
         var assembly = AppDomain
@@ -37,9 +42,23 @@ public class GirvsEngine : IEngine
             return assembly;
 
         //get assembly from TypeFinder
-        var tf = Resolve<ITypeFinder>();
-        assembly = tf?.GetAssemblies().FirstOrDefault(a => a.FullName == args.Name);
-        return assembly;
+        var tf = EngineContext.Current.Resolve<ITypeFinder>();
+        return tf?.GetAssemblies().FirstOrDefault(a => a.FullName == args.Name);
+    }
+
+    private static void EnsureAssemblyResolveHandler()
+    {
+        if (_assemblyResolveSubscribed)
+            return;
+
+        lock (AssemblyResolveLock)
+        {
+            if (_assemblyResolveSubscribed)
+                return;
+
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            _assemblyResolveSubscribed = true;
+        }
     }
 
     /// <summary>
@@ -69,7 +88,7 @@ public class GirvsEngine : IEngine
             instance?.ConfigureServices(services, configuration);
 
         //resolve assemblies here. otherwise, plugins can throw an exception when rendering views
-        AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+        EnsureAssemblyResolveHandler();
     }
 
     /// <summary>
@@ -146,7 +165,12 @@ public class GirvsEngine : IEngine
     /// <returns>Collection of resolved services</returns>
     public virtual IEnumerable<T> ResolveAll<T>()
     {
-        return (IEnumerable<T>)GetServiceProvider().GetServices(typeof(T));
+        // 直接用泛型重载，避免把 IEnumerable<object> 强制转换为 IEnumerable<T> 的潜在失败。
+        var serviceProvider = GetServiceProvider();
+
+        return serviceProvider is null
+            ? Enumerable.Empty<T>()
+            : serviceProvider.GetServices<T>();
     }
 
     /// <summary>

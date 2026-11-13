@@ -175,17 +175,43 @@ public static class GirvsHostBuilderManager
         if (args is {Length: > 0})
             config.AddCommandLine(args);
 
-        if (config is IConfiguration configuration)
+        // 占位符替换：配置值可能来自多个源（JSON/环境变量/命令行），先构建一次快照取出合并后的值，
+        // 再把替换成功的键以最高优先级内存源叠加。这样 ${ENV_VAR} 真正生效，
+        // 同时保留原配置源及其 reloadOnChange（不再用已构建配置替换 Sources）。
+        var placeholderOverrides = ResolveEnvironmentVariablePlaceholders(config);
+        if (placeholderOverrides.Count > 0)
+            config.AddInMemoryCollection(placeholderOverrides);
+    }
+
+    private static IDictionary<string, string> ResolveEnvironmentVariablePlaceholders(
+        IConfigurationBuilder config
+    )
+    {
+        var overrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        // Build 会为每个源创建独立的 provider 实例；用完立即释放，避免遗留文件监视器。
+        var snapshot = config.Build();
+        try
         {
-            configuration.ReplaceEnvironmentVariables(); // 自定义方法，替换占位符
+            foreach (var item in snapshot.AsEnumerable())
+            {
+                if (item.Value is not {Length: > 0} value)
+                    continue;
+
+                var replaced = Girvs
+                    .Extensions
+                    .ConfigurationExtensions
+                    .ReplaceEnvironmentVariablesInValue(value);
+                if (!string.Equals(replaced, value, StringComparison.Ordinal))
+                    overrides[item.Key] = replaced;
+            }
         }
-        else
+        finally
         {
-            var builtConfig = config.Build(); // 创建配置实例
-            builtConfig.ReplaceEnvironmentVariables();
-            config.Sources.Clear();
-            config.AddConfiguration(builtConfig);
+            (snapshot as IDisposable)?.Dispose();
         }
+
+        return overrides;
     }
 
     /// <summary>

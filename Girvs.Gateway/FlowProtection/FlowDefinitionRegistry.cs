@@ -32,7 +32,7 @@ public sealed class FlowDefinitionRegistry
         var flowIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var stepIndex = new Dictionary<string, FlowStepMatch>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var flowOptions in options.Flows)
+        foreach (var flowOptions in options.Flows ?? [])
         {
             var flowId = RequireValue(flowOptions.FlowId, "FlowId 不能为空");
             if (!flowIds.Add(flowId))
@@ -40,7 +40,9 @@ public sealed class FlowDefinitionRegistry
                 throw new GirvsException($"FlowId '{flowId}' 重复");
             }
 
-            if (flowOptions.Steps.Count < 2)
+            // 配置绑定会把显式 null 覆盖到集合属性上，这里统一按空集合处理。
+            var stepOptionsList = flowOptions.Steps ?? [];
+            if (stepOptionsList.Count < 2)
             {
                 throw new GirvsException($"流程 '{flowId}' 至少需要两个步骤");
             }
@@ -49,8 +51,8 @@ public sealed class FlowDefinitionRegistry
             ValidateTtl($"流程 '{flowId}' TtlSeconds", ttlSeconds);
 
             var flowStepKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var steps = new List<FlowStepDefinition>(flowOptions.Steps.Count);
-            foreach (var stepOptions in flowOptions.Steps)
+            var steps = new List<FlowStepDefinition>(stepOptionsList.Count);
+            foreach (var stepOptions in stepOptionsList)
             {
                 var method = NormalizeMethod(stepOptions.Method, flowId);
                 var path = NormalizePath(stepOptions.Path, flowId);

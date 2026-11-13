@@ -62,19 +62,6 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
             if (!seen.Add(svc.ServiceName))
                 continue;
 
-            routes.Add(
-                new RouteConfig
-                {
-                    RouteId = svc.ServiceName,
-                    ClusterId = svc.ServiceName,
-                    Match = new RouteMatch { Path = $"/{svc.ServiceName}/" + "{**catch-all}" },
-                    Transforms = new List<IReadOnlyDictionary<string, string>>
-                    {
-                        new Dictionary<string, string> { ["PathRemovePrefix"] = svc.ServiceName }
-                    }
-                }
-            );
-
             var destinations = svc.Endpoints
                 .Where(endpoint => string.Equals(
                     endpoint.EndpointName,
@@ -87,10 +74,34 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
                     item => new DestinationConfig { Address = item.endpoint.Address.AbsoluteUri }
                 );
             if (destinations.Count == 0)
-            {
-                routes.RemoveAt(routes.Count - 1);
                 continue;
-            }
+
+            var transforms = new List<IReadOnlyDictionary<string, string>>
+            {
+                new Dictionary<string, string> { ["PathRemovePrefix"] = svc.ServiceName }
+            };
+
+            routes.Add(
+                new RouteConfig
+                {
+                    RouteId = svc.ServiceName,
+                    ClusterId = svc.ServiceName,
+                    Match = new RouteMatch { Path = $"/{svc.ServiceName}/" + "{**catch-all}" },
+                    Transforms = transforms
+                }
+            );
+
+            // "/{service}/{**catch-all}" 中 "/" 是必需字面量，请求 "/{service}"（无尾斜杠）
+            // 不会匹配。额外补一条根路径路由，保证服务根地址可代理。
+            routes.Add(
+                new RouteConfig
+                {
+                    RouteId = $"{svc.ServiceName}-root",
+                    ClusterId = svc.ServiceName,
+                    Match = new RouteMatch { Path = $"/{svc.ServiceName}" },
+                    Transforms = transforms
+                }
+            );
 
             clusters.Add(new ClusterConfig { ClusterId = svc.ServiceName, Destinations = destinations });
         }

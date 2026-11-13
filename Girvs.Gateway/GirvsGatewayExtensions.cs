@@ -22,8 +22,9 @@ public static class GirvsGatewayExtensions
             {
                 context.AddOriginalHost(false);
                 context.CopyRequestHeaders = true;
+                // AddXForwarded 已包含 X-Forwarded-For，重复追加会得到 "ip, ip"，
+                // 干扰下游对客户端 IP 的解析。
                 context.AddXForwarded(ForwardedTransformActions.Append);
-                context.AddXForwardedFor("X-Forwarded-For", ForwardedTransformActions.Append);
             });
 
         if (configuration is not null)

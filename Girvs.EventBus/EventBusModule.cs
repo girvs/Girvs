@@ -89,14 +89,18 @@ public class EventBusModule : IAppModuleStartup
                 }
 
                 //x.UseGrivsConfigDataBase();
-                x.UseDashboard(d =>
+                if (eventBusConfig.EnableDashboard)
                 {
+                    // Dashboard 无鉴权，默认关闭；仅显式开启时才挂载路由
+                    x.UseDashboard(d =>
+                    {
 #if DEBUG
-                    //d.PathBase = "/cap";
+                        //d.PathBase = "/cap";
 #else
-                    d.PathBase = $"/{ServiceNameResolver.FromAssemblyName()}";
+                        d.PathBase = $"/{ServiceNameResolver.FromAssemblyName()}";
 #endif
-                });
+                    });
+                }
                 x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
                 x.SucceedMessageExpiredAfter = eventBusConfig.SucceedMessageExpiredAfter;
                 x.FailedMessageExpiredAfter = eventBusConfig.FailedMessageExpiredAfter;

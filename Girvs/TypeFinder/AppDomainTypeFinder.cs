@@ -20,7 +20,11 @@ public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : IType
     private readonly ConcurrentDictionary<(Type, FindType), IEnumerable<Type>> _typeCache = new();
 
     // 每个程序集的类型列表缓存：启动期会触发多次 FindOfType，原实现每次都要对所有程序集重新 GetTypes。
-    private readonly ConcurrentDictionary<Assembly, Type[]> _assemblyTypesCache = new();
+    // 类型列表只取决于程序集本身，因此用进程级弱引用缓存跨 TypeFinder 实例共享，
+    // 避免引擎、模块启动器、业务各自 new TypeFinder 时重复反射。
+    private static readonly ConditionalWeakTable<Assembly, Type[]> AssemblyTypesCache = new();
+
+    private ConditionalWeakTable<Assembly, Type[]>.CreateValueCallback _assemblyTypesLoader;
 
     // 按需编译正则，复用实例
     protected Regex SkipPattern =>
@@ -226,30 +230,31 @@ public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : IType
     /// </summary>
     private Type[] GetAssemblyTypes(Assembly assembly)
     {
-        if (_assemblyTypesCache.TryGetValue(assembly, out var cachedTypes))
-            return cachedTypes;
+        _assemblyTypesLoader ??= LoadAssemblyTypes;
+        return AssemblyTypesCache.GetValue(assembly, _assemblyTypesLoader);
+    }
 
-        Type[] types;
+    private Type[] LoadAssemblyTypes(Assembly assembly)
+    {
         try
         {
-            types = assembly.GetTypes();
+            return assembly.GetTypes();
         }
         catch (ReflectionTypeLoadException ex)
         {
             // 部分加载失败时取能加载的类型，不整个跳过程序集
             if (!_ignoreReflectionErrors)
                 throw;
-            types = ex.Types.Where(t => t != null).ToArray()!;
+
+            return ex.Types.Where(t => t != null).ToArray()!;
         }
         catch
         {
             if (!_ignoreReflectionErrors)
                 throw;
-            types = Type.EmptyTypes;
-        }
 
-        _assemblyTypesCache[assembly] = types;
-        return types;
+            return Type.EmptyTypes;
+        }
     }
 
     private bool IsTypeMatch(Type type, Type assignTypeFrom, bool isOpenGeneric)
@@ -271,7 +276,7 @@ public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : IType
             _assembliesCache = null;
         }
         _typeCache.Clear();
-        _assemblyTypesCache.Clear();
+        AssemblyTypesCache.Clear();
     }
 
     public virtual AppDomain App => AppDomain.CurrentDomain;

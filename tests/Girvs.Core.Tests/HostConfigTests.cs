@@ -1,6 +1,7 @@
 using Girvs;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Xunit;
@@ -51,6 +52,41 @@ public class HostConfigTests
         finally
         {
             Environment.SetEnvironmentVariable(variableName, null);
+        }
+    }
+
+    [Fact]
+    public void HostUseGirvsConfig_Json占位符_解析环境变量且保留可重载配置源()
+    {
+        const string variableName = "GIRVS_HOST_PLACEHOLDER_TEST";
+        Environment.SetEnvironmentVariable(variableName, "resolved");
+
+        var tempDirectory = Path.Combine(Path.GetTempPath(), $"girvs-host-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDirectory);
+        File.WriteAllText(
+            Path.Combine(tempDirectory, "appsettings.json"),
+            "{\"Section\":{\"Key\":\"prefix-${" + variableName + "}-suffix\"}}"
+        );
+
+        try
+        {
+            var builder = new ConfigurationBuilder();
+
+            // AddJsonFile 的相对路径由 builder 的 FileProvider 解析，避免依赖进程当前目录。
+            builder.Properties["FileProvider"] = new PhysicalFileProvider(tempDirectory);
+
+            builder.HostUseGirvsConfig(new FakeWebHostEnvironment());
+
+            // 修复前 Sources 会被替换为单个 ChainedConfigurationProvider，reloadOnChange 随之失效。
+            Assert.Contains(builder.Sources, source => source is JsonConfigurationSource);
+
+            var configuration = builder.Build();
+            Assert.Equal("prefix-resolved-suffix", configuration["Section:Key"]);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(variableName, null);
+            Directory.Delete(tempDirectory, true);
         }
     }
 

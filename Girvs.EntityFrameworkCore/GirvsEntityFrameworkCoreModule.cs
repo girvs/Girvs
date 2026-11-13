@@ -19,12 +19,15 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
     public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
     {
         // application.ApplicationServices.GetRequiredService<IShardingBootstrapper>().Start();
-        var logger =
-            application.ApplicationServices.GetService(typeof(ILogger<object>)) as ILogger<object>;
+        // 日志由框架必然注册，用 GetRequiredService 避免 null 引用掩盖真实启动错误。
+        var logger = application.ApplicationServices.GetRequiredService<
+            ILogger<GirvsEntityFrameworkCoreModule>
+        >();
         try
         {
             logger.LogInformation("开始执行数据库还原");
-            var typeFinder = new WebAppTypeFinder();
+            // 复用容器中已注册的类型查找器，命中其程序集与类型缓存。
+            var typeFinder = EngineContext.Current.Resolve<ITypeFinder>() ?? new WebAppTypeFinder();
             var dbContextTypes = typeFinder
                 .FindOfType(typeof(GirvsDbContext))
                 .Where(x => !x.IsAbstract && !x.IsInterface)
@@ -51,7 +54,10 @@ public class GirvsEntityFrameworkCoreModule : IAppModuleStartup
                 }
             }
 
-            logger.LogInformation("成功执行数据库还原");
+            logger.LogInformation(
+                "成功执行数据库还原，共处理 {DbContextCount} 个上下文",
+                dbContextTypes.Count
+            );
         }
         catch (Exception e)
         {

@@ -26,7 +26,7 @@ internal static class XmlCommentStore
         var dict = new Dictionary<string, string>();
         var basePath = AppContext.BaseDirectory;
 
-        foreach (var xmlFile in Directory.GetFiles(basePath, "Zhuofan.Ailynx.*.xml"))
+        foreach (var xmlFile in EnumerateCommentFiles(basePath))
         {
             try
             {
@@ -58,6 +58,40 @@ internal static class XmlCommentStore
         }
 
         return dict;
+    }
+
+    /// <summary>
+    /// 枚举需要加载的 XML 注释文件：入口程序集优先，再补充同目录下的业务程序集，
+    /// 跳过框架/第三方 XML。原实现硬编码旧产品名前缀，实际永远加载不到任何注释。
+    /// </summary>
+    private static IEnumerable<string> EnumerateCommentFiles(string basePath)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        var entryName = Assembly.GetEntryAssembly()?.GetName().Name;
+        if (!string.IsNullOrEmpty(entryName))
+        {
+            var entryXml = Path.Combine(basePath, entryName + ".xml");
+            if (File.Exists(entryXml) && seen.Add(entryXml))
+                yield return entryXml;
+        }
+
+        foreach (var xmlFile in Directory.GetFiles(basePath, "*.xml"))
+        {
+            var fileName = Path.GetFileName(xmlFile);
+            if (
+                fileName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase)
+                || fileName.StartsWith("System.", StringComparison.OrdinalIgnoreCase)
+                || fileName.StartsWith("Serilog", StringComparison.OrdinalIgnoreCase)
+                || fileName.StartsWith("Newtonsoft", StringComparison.OrdinalIgnoreCase)
+                || fileName.StartsWith("Yarp", StringComparison.OrdinalIgnoreCase)
+                || fileName.StartsWith("Grpc", StringComparison.OrdinalIgnoreCase)
+            )
+                continue;
+
+            if (seen.Add(xmlFile))
+                yield return xmlFile;
+        }
     }
 
     /// <summary>

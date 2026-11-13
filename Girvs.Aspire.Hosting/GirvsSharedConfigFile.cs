@@ -30,7 +30,16 @@ internal static class GirvsSharedConfigFile
             builder,
             b => new Lazy<Task<string>>(() => WriteAsync(b, ct))
         );
-        return lazy.Value;
+        var task = lazy.Value;
+
+        // Lazy<Task> 会永久缓存 canceled/faulted 结果。首个服务的回调被取消或写文件抛异常后，
+        // 后续所有服务都会拿到同一个失败任务；移除缓存，让下一次回调重新尝试。
+        if (task.IsCompleted && (task.IsFaulted || task.IsCanceled))
+        {
+            Cache.Remove(builder);
+        }
+
+        return task;
     }
 
     private static async Task<string> WriteAsync(
@@ -51,7 +60,29 @@ internal static class GirvsSharedConfigFile
         var existingJson = File.Exists(path) ? await File.ReadAllTextAsync(path, ct) : null;
 
         var merged = GirvsSharedConfigMerger.Merge(existingJson, entries);
-        await File.WriteAllTextAsync(path, merged, ct);
+
+        // 先写临时文件再原子替换：写入中途取消/异常不会留下截断的 JSON，
+        // 避免服务 reload 时解析失败。
+        var tempPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await File.WriteAllTextAsync(tempPath, merged, ct);
+            File.Move(tempPath, path, overwrite: true);
+        }
+        catch
+        {
+            try
+            {
+                File.Delete(tempPath);
+            }
+            catch
+            {
+                // 清理失败不掩盖原始异常。
+            }
+
+            throw;
+        }
+
         return path;
     }
 }

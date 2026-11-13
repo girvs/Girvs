@@ -106,6 +106,12 @@ public static class ApplicationBuilderExtensions
                     context.Response.StatusCode = girvsException.StatusCode;
                     result.Errors = girvsException.Error;
                 }
+                else
+                {
+                    // 非业务异常统一返回 500：否则默认状态码 200 会在下面查
+                    // ClientErrorMapping 时抛 KeyNotFoundException，异常处理器自身二次失败。
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                }
 
                 result.Errors ??= exception.Message;
 
@@ -119,11 +125,23 @@ public static class ApplicationBuilderExtensions
                     var apiBehaviorOptions = EngineContext.Current.Resolve<
                         IOptions<ApiBehaviorOptions>
                     >();
-                    var clientError = apiBehaviorOptions.Value.ClientErrorMapping[
-                        context.Response.StatusCode
-                    ];
-                    result.Link = clientError.Link;
-                    result.Title = clientError.Title;
+
+                    // ClientErrorMapping 只覆盖 4xx 与 500，其余状态码使用兜底文案。
+                    if (
+                        apiBehaviorOptions?.Value.ClientErrorMapping.TryGetValue(
+                            context.Response.StatusCode,
+                            out var clientError
+                        ) == true
+                    )
+                    {
+                        result.Link = clientError.Link;
+                        result.Title = clientError.Title;
+                    }
+                    else
+                    {
+                        result.Link = "https://github.com/girvs/Girvs";
+                        result.Title = "服务器内部错误";
+                    }
                 }
 
                 result.Status = context.Response.StatusCode;

@@ -19,8 +19,14 @@ public static class DbContextExtension
 
         var conn = dbContext.Database.GetDbConnection();
 
+        // 不记录连接串原文（可能包含密码），仅记录目标数据库与连接状态。
         logger?.LogInformation(
-            $"当前DbContextId为：{dbContext.ContextId.InstanceId.ToString()}，当前数据的状态为：{conn.State}，切换数据库模式为：{dataBaseWriteAndRead}，数据库字符串为：{connStr}");
+            "当前 DbContextId 为 {DbContextId}，当前数据的状态为 {ConnectionState}，切换数据库模式为 {DataBaseWriteAndRead}，目标数据库为 {DatabaseName}",
+            dbContext.ContextId.InstanceId,
+            conn.State,
+            dataBaseWriteAndRead,
+            conn.Database
+        );
 
         conn.ConnectionString = connStr;
     }

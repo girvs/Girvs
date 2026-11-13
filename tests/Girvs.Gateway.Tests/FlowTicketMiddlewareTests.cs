@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Girvs.Gateway.FlowProtection;
 using Girvs.Gateway.FlowProtection.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Model;
@@ -74,7 +75,8 @@ public class FlowTicketMiddlewareTests
             options,
             new FlowDefinitionRegistry(options),
             new DownstreamPathResolver(),
-            new FlowTicketService(new FakeFlowStateStore(result ?? FlowStoreResult.Success(1, completed: false)))
+            new FlowTicketService(new FakeFlowStateStore(result ?? FlowStoreResult.Success(1, completed: false))),
+            NullLogger<FlowTicketMiddleware>.Instance
         );
     }
 

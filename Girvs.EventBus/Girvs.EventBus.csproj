@@ -10,6 +10,10 @@
         <PackageReference Include="DotNetCore.CAP.Sqlite" Version="8.3.0"/>
         <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.3.1"/>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1"/>
+        <!-- 覆盖 CAP.Sqlite 传递引入的有漏洞版本 SQLitePCLRaw 2.1.6（GHSA-2m69-gcr7-jv3q） -->
+        <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14"/>
+        <!-- 覆盖 CAP.MySql 传递引入的有漏洞版本 MySqlConnector 2.3.7（GHSA-473q-m89c-ghf8） -->
+        <PackageReference Include="MySqlConnector" Version="2.6.2"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
@@ -22,6 +26,9 @@
         <PackageReference Include="DotNetCore.CAP.Sqlite" Version="8.3.0"/>
         <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.3.1"/>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.17"/>
+        <!-- 覆盖 CAP 传递引入的有漏洞版本：SQLitePCLRaw 2.1.6（GHSA-2m69-gcr7-jv3q）、MySqlConnector 2.3.7（GHSA-473q-m89c-ghf8） -->
+        <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14"/>
+        <PackageReference Include="MySqlConnector" Version="2.6.2"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
@@ -34,6 +41,11 @@
         <PackageReference Include="DotNetCore.CAP.Sqlite" Version="10.0.0"/>
         <PackageReference Include="DotNetCore.CAP.SqlServer" Version="10.0.1"/>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.9"/>
+        <!-- 覆盖 CAP 传递引入的有漏洞版本：Pkcs 9.0.4（GHSA-846f-f764-76mx）、
+             SQLitePCLRaw 2.1.11（GHSA-2m69-gcr7-jv3q）、MySqlConnector 2.5.0（GHSA-473q-m89c-ghf8） -->
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15"/>
+        <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14"/>
+        <PackageReference Include="MySqlConnector" Version="2.6.2"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
@@ -46,6 +58,11 @@
         <PackageReference Include="DotNetCore.CAP.Sqlite" Version="10.0.0"/>
         <PackageReference Include="DotNetCore.CAP.SqlServer" Version="10.0.1"/>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="11.0.0"/>
+        <!-- 覆盖 CAP 传递引入的有漏洞版本：Pkcs 9.0.4（GHSA-846f-f764-76mx）、
+             SQLitePCLRaw 2.1.11（GHSA-2m69-gcr7-jv3q）、MySqlConnector 2.5.0（GHSA-473q-m89c-ghf8） -->
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0"/>
+        <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14"/>
+        <PackageReference Include="MySqlConnector" Version="2.6.2"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -49,7 +49,18 @@ public class AuthenticatedHttpClientHandler(
             };
 
             if (refitServiceAttribute.AddressType == RefitServiceAddressType.Static)
-                builder.Path = $"{endpoint.AbsolutePath}{request.RequestUri.AbsolutePath}";
+            {
+                // 端点未配置路径时 AbsolutePath 为 "/"，直接拼接会得到 "//v1/xxx"，
+                // 下游路由不会归一化双斜杠，导致 404。这里统一去除边界斜杠。
+                var endpointPath = endpoint.AbsolutePath.TrimEnd('/');
+                var requestPath = request.RequestUri.AbsolutePath;
+
+                builder.Path = endpointPath.Length == 0
+                    ? requestPath
+                    : string.IsNullOrEmpty(requestPath) || requestPath == "/"
+                        ? endpointPath
+                        : $"{endpointPath}/{requestPath.TrimStart('/')}";
+            }
 
             request.RequestUri = builder.Uri;
         }

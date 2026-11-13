@@ -23,17 +23,25 @@ public class GirvsGatewayProxyConfigProviderTests
     };
 
     [Fact]
-    public void 每个服务生成约定路由与集群()
+    public void 每个服务生成约定路由与根路由及集群()
     {
         var directory = new FakeDirectory { Services = { Endpoint("order_api") } };
         var provider = new GirvsGatewayProxyConfigProvider(directory);
 
         var config = provider.GetConfig();
-        var route = Assert.Single(config.Routes);
-        Assert.Equal("order_api", route.RouteId);
+        Assert.Equal(2, config.Routes.Count);
+
+        var route = config.Routes.Single(r => r.RouteId == "order_api");
         Assert.Equal("order_api", route.ClusterId);
         Assert.Equal("/order_api/{**catch-all}", route.Match.Path);
         Assert.Contains(route.Transforms!, t => t.TryGetValue("PathRemovePrefix", out var v) && v == "order_api");
+
+        // 服务根路径（无尾斜杠）单独一条路由，否则 "/order_api" 会 404。
+        var rootRoute = config.Routes.Single(r => r.RouteId == "order_api-root");
+        Assert.Equal("order_api", rootRoute.ClusterId);
+        Assert.Equal("/order_api", rootRoute.Match.Path);
+        Assert.Contains(rootRoute.Transforms!, t => t.TryGetValue("PathRemovePrefix", out var v) && v == "order_api");
+
         var cluster = Assert.Single(config.Clusters);
         Assert.Equal("order_api", cluster.ClusterId);
     }
@@ -52,7 +60,7 @@ public class GirvsGatewayProxyConfigProviderTests
         Assert.True(oldConfig.ChangeToken.HasChanged); // 修掉了旧 bug：令牌真的接通
         var newConfig = provider.GetConfig();
         Assert.NotSame(oldConfig, newConfig);
-        Assert.Equal(2, newConfig.Routes.Count);
+        Assert.Equal(4, newConfig.Routes.Count);
     }
 
     [Fact]
@@ -60,7 +68,7 @@ public class GirvsGatewayProxyConfigProviderTests
     {
         var directory = new FakeDirectory { Services = { Endpoint("a"), Endpoint("a") } };
         var provider = new GirvsGatewayProxyConfigProvider(directory);
-        Assert.Single(provider.GetConfig().Routes);
+        Assert.Equal(2, provider.GetConfig().Routes.Count);
     }
 
     [Fact]
@@ -78,6 +86,6 @@ public class GirvsGatewayProxyConfigProviderTests
         // 触发过后仍可正常读取最新配置。
         var config = provider.GetConfig();
         Assert.False(config.ChangeToken.HasChanged);
-        Assert.Single(config.Routes);
+        Assert.Equal(2, config.Routes.Count);
     }
 }

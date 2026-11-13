@@ -12,7 +12,7 @@ public class CacheConfig : IAppModuleConfig
     /// <summary>
     /// Gets or sets the default cache time in minutes
     /// </summary>
-    public int DefaultCacheTime { get; protected set; } = 60;
+    public int DefaultCacheTime { get; set; } = 60;
 
     /// <summary>
     /// 分布式缓存配置

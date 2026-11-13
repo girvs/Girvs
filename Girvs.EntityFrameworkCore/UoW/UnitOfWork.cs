@@ -24,8 +24,12 @@ public class UnitOfWork<TEntity> : IUnitOfWork<TEntity> where TEntity : Entity
     public async Task<bool> Commit(CancellationToken cancellationToken = new CancellationToken())
     {
         var changeRowCount = await _context.SaveChangesAsync(cancellationToken);
+        // 使用结构化模板，日志级别关闭时不产生插值字符串与装箱。
         _logger.LogInformation(
-            $"提交保存时的DBContextId为：{(_context as DbContext)?.ContextId.InstanceId.ToString()},保存时影响的行数为：{changeRowCount}");
+            "提交保存时的 DbContextId 为 {DbContextId}，保存时影响的行数为 {ChangeRowCount}",
+            _context.ContextId.InstanceId,
+            changeRowCount
+        );
 
         return changeRowCount > 0;
     }

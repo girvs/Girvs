@@ -11,7 +11,9 @@ public partial class RedisCacheManager : DistributedCacheManager
     #region Fields
 
     private readonly IDistributedCache _distributedCache;
-    private readonly IDatabase _database;
+
+    // 不缓存 IDatabase：连接抖动时 RedisConnectionWrapper 会重建连接，
+    // 旧 IDatabase 随旧连接一起失效，继续使用会抛 ObjectDisposedException。
     protected readonly IRedisConnectionWrapper _connectionWrapper;
 
     #endregion
@@ -29,7 +31,6 @@ public partial class RedisCacheManager : DistributedCacheManager
     {
         _distributedCache = distributedCache;
         _connectionWrapper = connectionWrapper;
-        _database = _connectionWrapper.GetDatabase();
     }
 
     #endregion
@@ -128,14 +129,16 @@ public partial class RedisCacheManager : DistributedCacheManager
 
     public override async Task<bool> ExistAtomicLockerAsync(string key)
     {
-        return await _database.KeyExistsAsync($"{_instanceName}{key}");
+        var database = await _connectionWrapper.GetDatabaseAsync();
+        return await database.KeyExistsAsync($"{_instanceName}{key}");
     }
 
     public override async Task<bool> SetAtomicLockerAsync(string key, TimeSpan expirationTime)
     {
         key = $"{_instanceName}{key}";
+        var database = await _connectionWrapper.GetDatabaseAsync();
         //此处重写，防止在高并发下，多个进程同时获取到锁，导致同时执行任务
-        return await _database.StringSetAsync(
+        return await database.StringSetAsync(
             key,
             key,
             expirationTime,
@@ -143,9 +146,10 @@ public partial class RedisCacheManager : DistributedCacheManager
         );
     }
 
-    public override Task RemoveAtomicLockerAsync(string key)
+    public override async Task RemoveAtomicLockerAsync(string key)
     {
-        return _database.KeyDeleteAsync($"{_instanceName}{key}");
+        var database = await _connectionWrapper.GetDatabaseAsync();
+        await database.KeyDeleteAsync($"{_instanceName}{key}");
     }
 
     #endregion

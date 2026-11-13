@@ -11,6 +11,20 @@
         <PackageReference Include="Aspire.Hosting.MySql" Version="13.4.6"/>
         <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.4.6"/>
         <PackageReference Include="Aspire.Hosting.Kafka" Version="13.4.6"/>
+        <!-- 覆盖 Aspire.Hosting 传递引入的有漏洞版本 MessagePack 2.5.302（GHSA-qhrr-8q5h-9q3h） -->
+        <PackageReference Include="MessagePack" Version="2.5.307"/>
+        <!-- 覆盖 Aspire.Hosting.MySql 传递引入的有漏洞版本 MySqlConnector 2.3.1（GHSA-473q-m89c-ghf8） -->
+        <PackageReference Include="MySqlConnector" Version="2.6.2"/>
+    </ItemGroup>
+
+    <!-- 覆盖 MySqlConnector 传递引入的有漏洞版本 System.Security.Cryptography.Pkcs（GHSA-846f-f764-76mx）。
+         Aspire.Hosting.SqlServer 要求 Pkcs >= 10.0.8，故 net8/net9 也使用 10.0.15。 -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'net9.0' Or '$(TargetFramework)' == 'net10.0'">
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0"/>
     </ItemGroup>
 
     <ItemGroup>

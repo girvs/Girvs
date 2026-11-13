@@ -1,7 +1,7 @@
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing.Template;
 
 namespace Girvs.OpenApi;
 
@@ -9,10 +9,11 @@ public class AutoBindingConvention : IActionModelConvention
 {
     public void Apply(ActionModel action)
     {
-        // 获取 route 模板（如 "api/test/{id}"）
-        var routeTemplate = (action.Selectors
-            .FirstOrDefault(s => s.AttributeRouteModel != null)?
-            .AttributeRouteModel!).Template;
+        // 获取 route 模板（如 "api/test/{id}"）。传统路由没有 AttributeRouteModel，
+        // 原写法在 .? 之后用 ! 截断了空传播，会在启动构建应用模型时 NRE。
+        var routeTemplate = action
+            .Selectors.FirstOrDefault(s => s.AttributeRouteModel != null)?
+            .AttributeRouteModel?.Template;
 
         foreach (var parameter in action.Parameters)
         {
@@ -41,11 +42,11 @@ public class AutoBindingConvention : IActionModelConvention
     {
         if (string.IsNullOrEmpty(routeTemplate)) return false;
 
-        // 提取所有形如 {param} 的段
-        var matches = Regex.Matches(routeTemplate, @"{(\w+)}");
-        return matches.Cast<Match>()
-            .Select(m => m.Groups[1].Value)
-            .Any(name => string.Equals(name, parameterName, StringComparison.OrdinalIgnoreCase));
+        // 用路由模板解析器识别参数，兼容 {id:int}、{id?} 等约束与可选参数；
+        // 原正则 \{(\w+)\} 会把它们误判为非路由参数。
+        var template = TemplateParser.Parse(routeTemplate);
+        return template.Parameters.Any(p =>
+            string.Equals(p.Name, parameterName, StringComparison.OrdinalIgnoreCase));
     }
 
 

@@ -14,17 +14,7 @@ public static partial class ConfigurationExtensions
     {
         if (section.Value != null)
         {
-            // 替换掉占位符 ${}，例如 ${DB_SERVER} 替换为环境变量 DB_SERVER 的值
-            section.Value = MyRegex()
-                .Replace(
-                    section.Value,
-                    match =>
-                    {
-                        var envVarName = match.Groups[1].Value;
-                        var envVarValue = Environment.GetEnvironmentVariable(envVarName);
-                        return envVarValue ?? match.Value; // 如果找不到环境变量，保留占位符
-                    }
-                );
+            section.Value = ReplaceEnvironmentVariablesInValue(section.Value);
         }
 
         foreach (var child in section.GetChildren())
@@ -33,6 +23,26 @@ public static partial class ConfigurationExtensions
         }
     }
 
+    /// <summary>
+    /// 替换单个配置值中的 ${ENV_VAR} 占位符；环境变量不存在时保留原占位符。
+    /// </summary>
+    internal static string ReplaceEnvironmentVariablesInValue(string value)
+    {
+        if (string.IsNullOrEmpty(value) || !value.Contains("${", StringComparison.Ordinal))
+            return value;
+
+        return EnvironmentVariableRegex()
+            .Replace(
+                value,
+                match =>
+                {
+                    var envVarName = match.Groups[1].Value;
+                    var envVarValue = Environment.GetEnvironmentVariable(envVarName);
+                    return envVarValue ?? match.Value; // 如果找不到环境变量，保留占位符
+                }
+            );
+    }
+
     [GeneratedRegex(@"\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}")]
-    private static partial Regex MyRegex();
+    private static partial Regex EnvironmentVariableRegex();
 }

@@ -9,16 +9,19 @@ public class SignalRModule : IAppModuleStartup
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var typeFinder = new WebAppTypeFinder();
+        // Hub 不应注册为 Singleton：SignalR 的 DefaultHubActivator 会优先从 DI 解析，
+        // 单例会让所有连接共享同一个 Hub 实例（状态串用），并可能把 Scoped 依赖提升为 root 生命周期。
+        // 注册为 Transient 既保留从容器解析的能力，又保证每次调用使用新实例。
         var hubs = typeFinder.FindOfType<Hub>();
         foreach (var hubType in hubs)
         {
-            services.AddSingleton(hubType);
+            services.TryAddTransient(hubType);
         }
 
         hubs = typeFinder.FindOfType(typeof(Hub<>));
         foreach (var hubType in hubs)
         {
-            services.AddSingleton(hubType);
+            services.TryAddTransient(hubType);
         }
 
         var signalServiceBuilder = services.AddSignalR().AddMessagePackProtocol();

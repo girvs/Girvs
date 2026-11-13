@@ -11,21 +11,67 @@ internal sealed class ConsulServiceRegistrar(
     IServiceProvider serviceProvider,
     IHostApplicationLifetime applicationLifetime,
     ILogger<ConsulServiceRegistrar> logger
-) : IConsulServiceRegistrar
+) : IConsulServiceRegistrar, IDisposable
 {
+    /// <summary>
+    /// Consul 注册/注销的等待上限。Consul 不可达时 HttpClient 默认要等 100 秒，
+    /// 启动与停止阶段不能让进程因此长时间挂起。
+    /// </summary>
+    private const int ConsulOperationTimeoutSeconds = 5;
+
+    // WebApi 模式由本类自建 client，注销回调仍需使用，生命周期覆盖整个应用；
+    // 由本类持有并在容器释放时 Dispose，避免 HttpClient 及其 handler 泄漏。
+    private IConsulClient _ownedClient;
+
     public void Register(ServiceGovernanceConfig config)
+    {
+        var client = ResolveClient(config);
+        var registration =
+            config.CurrentServerModel == ConsulServerModel.GrpcService
+                ? CreateGrpcRegistration(config)
+                : CreateWebApiRegistration(config);
+
+        var registerTask = client.Agent.ServiceRegister(registration);
+        if (!registerTask.Wait(TimeSpan.FromSeconds(ConsulOperationTimeoutSeconds)))
+        {
+            logger.LogWarning(
+                "Consul 服务注册超时（{TimeoutSeconds} 秒），注册任务仍在后台继续：服务 {ServerName}，Consul 地址 {ConsulAddress}",
+                ConsulOperationTimeoutSeconds,
+                registration.Name,
+                config.ConsulAddress
+            );
+        }
+
+        applicationLifetime.ApplicationStopping.Register(() =>
+            Deregister(client, registration, config.ConsulAddress)
+        );
+    }
+
+    public void Dispose()
+    {
+        var client = Interlocked.Exchange(ref _ownedClient, null);
+        if (client is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+    }
+
+    private IConsulClient ResolveClient(ServiceGovernanceConfig config)
     {
         if (config.CurrentServerModel == ConsulServerModel.GrpcService)
         {
-            var client = serviceProvider.GetRequiredService<IConsulClient>();
-            Register(client, CreateGrpcRegistration(config), config.ConsulAddress);
-            return;
+            return serviceProvider.GetRequiredService<IConsulClient>();
         }
 
-        var webApiClient = new ConsulClient(options =>
+        var ownedClient = new ConsulClient(options =>
             options.Address = new Uri(config.ConsulAddress)
         );
-        Register(webApiClient, CreateWebApiRegistration(config), config.ConsulAddress);
+        var previousClient = Interlocked.Exchange(ref _ownedClient, ownedClient);
+        if (previousClient is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+        return ownedClient;
     }
 
     internal static AgentServiceRegistration CreateWebApiRegistration(
@@ -128,18 +174,6 @@ internal sealed class ConsulServiceRegistrar(
         };
     }
 
-    private void Register(
-        IConsulClient client,
-        AgentServiceRegistration registration,
-        string consulAddress
-    )
-    {
-        client.Agent.ServiceRegister(registration).GetAwaiter().GetResult();
-        applicationLifetime.ApplicationStopping.Register(() =>
-            Deregister(client, registration, consulAddress)
-        );
-    }
-
     private void Deregister(
         IConsulClient client,
         AgentServiceRegistration registration,
@@ -148,7 +182,16 @@ internal sealed class ConsulServiceRegistrar(
     {
         try
         {
-            client.Agent.ServiceDeregister(registration.ID).GetAwaiter().GetResult();
+            var deregisterTask = client.Agent.ServiceDeregister(registration.ID);
+            if (!deregisterTask.Wait(TimeSpan.FromSeconds(ConsulOperationTimeoutSeconds)))
+            {
+                logger.LogWarning(
+                    "Consul 服务注销超时（{TimeoutSeconds} 秒）：服务 {ServerName}，Consul 地址 {ConsulAddress}",
+                    ConsulOperationTimeoutSeconds,
+                    registration.Name,
+                    consulAddress
+                );
+            }
         }
         catch (Exception exception)
         {

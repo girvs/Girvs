@@ -12,6 +12,14 @@ public class EventBusConfig : IAppModuleConfig
     public int ProducerThreadCount { get; set; } = 1;
     public int SucceedMessageExpiredAfter { get; set; } = 60;
     public int FailedMessageExpiredAfter { get; set; } = 15 * 24 * 3600;
+
+    /// <summary>
+    /// 是否启用 CAP Dashboard。Dashboard 路由不提供任何鉴权，
+    /// 开启后会把消息查询与重发能力暴露给所有可访问该端口的调用方，
+    /// 因此默认关闭；确需使用时请在外层网关或中间件限制访问。
+    /// </summary>
+    public bool EnableDashboard { get; set; }
+
     public void Init() { }
 
     public string BuildPersistenceConnectionString(GirvsInfrastructureResource resource)

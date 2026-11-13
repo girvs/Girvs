@@ -1,5 +1,6 @@
 using Girvs.Gateway.FlowProtection.Configuration;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Girvs.Gateway.FlowProtection;
 
@@ -8,7 +9,8 @@ public sealed class FlowTicketMiddleware(
     FlowProtectionOptions options,
     FlowDefinitionRegistry registry,
     DownstreamPathResolver pathResolver,
-    FlowTicketService ticketService
+    FlowTicketService ticketService,
+    ILogger<FlowTicketMiddleware> logger
 )
 {
     public async Task InvokeAsync(HttpContext context)
@@ -52,7 +54,10 @@ public sealed class FlowTicketMiddleware(
         {
             if (!attempt.IsFinalized)
             {
-                await FinalizeUncommittedAttemptAsync(attempt, context.RequestAborted);
+                // 使用独立的短超时：RequestAborted 在客户端断开时已取消，会让清理直接失败；
+                // 清理异常绝不能覆盖已经写出的响应。
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                await FinalizeUncommittedAttemptAsync(attempt, timeout.Token);
             }
         }
     }
@@ -95,9 +100,10 @@ public sealed class FlowTicketMiddleware(
                 await ticketService.ReleaseAsync(attempt, cancellationToken);
             }
         }
-        catch (FlowProtectionException)
+        catch (Exception ex)
         {
-            attempt.IsFinalized = true;
+            // 清理失败只记录日志：租约会自然到期释放，不能让异常从 finally 逃逸。
+            logger.LogWarning(ex, "流程票据 {Ticket} 清理失败，将在租约到期后自动释放", attempt.Ticket);
         }
     }
 
