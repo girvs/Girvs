@@ -3,7 +3,6 @@
 /// <summary>
 /// 表示在应用程序执行期间发生的错误
 /// </summary>
-[Serializable]
 public class GirvsException : Exception
 {
     public int StatusCode { get; set; }
@@ -43,18 +42,6 @@ public class GirvsException : Exception
     {
         StatusCode = statusCode;
         Error = error;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the Exception class with serialized data.
-    /// </summary>
-    /// <param name="info">The SerializationInfo that holds the serialized object data about the exception being thrown.</param>
-    /// <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
-    /// <param name="statusCode"></param>
-    protected GirvsException(SerializationInfo info, StreamingContext context, int statusCode = 568)
-        : base(info, context)
-    {
-        StatusCode = statusCode;
     }
 
     /// <summary>

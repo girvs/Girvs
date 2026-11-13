@@ -15,43 +15,43 @@ public static class RequestExtensions
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
         var userAgent = request.UserAgent();
-        if ((b.IsMatch(userAgent) || v.IsMatch(userAgent[..4])))
+        if (string.IsNullOrEmpty(userAgent))
         {
-            return true;
+            return false;
         }
 
-        return false;
+        return b.IsMatch(userAgent) || (userAgent.Length >= 4 && v.IsMatch(userAgent[..4]));
     }
 
     public static string UserAgent(this HttpRequest request)
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
-        return request.Headers["User-Agent"];
+        return request.Headers.UserAgent.ToString();
     }
 
     public static string GetUserRemoteIpAddress(this HttpRequest request)
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
-        return request.HttpContext.Connection.RemoteIpAddress.ToString();
+        return request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
     }
 
     public static string GetRequestClientAddress(this HttpRequest request)
     {
-        var clientAddress = request.Headers["ClientAddress"];
+        var clientAddress = request.Headers["ClientAddress"].ToString();
         if (string.IsNullOrEmpty(clientAddress))
         {
-            return request.HttpContext.Connection.RemoteIpAddress.ToString();
+            return request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
         }
 
-        return clientAddress.ToString();
+        return clientAddress;
     }
 
     public static string GetApiGateWayRemoteIpAddress(this HttpRequest request)
     {
         const string clientIp = "ClientIP";
-        if (request.Headers.ContainsKey(clientIp))
+        if (request.Headers.TryGetValue(clientIp, out var value) && !string.IsNullOrEmpty(value))
         {
-            return request.Headers[clientIp];
+            return value.ToString();
         }
 
         return GetUserRemoteIpAddress(request);
@@ -75,9 +75,9 @@ public static class RequestExtensions
                     foreach (var t in temparyip)
                     {
                         if (CommonHelper.IsValidIpAddress(t)
-                            && t.Substring(0, 3) != "10."
-                            && t.Substring(0, 7) != "192.168"
-                            && t.Substring(0, 7) != "172.16.")
+                            && !t.StartsWith("10.", StringComparison.Ordinal)
+                            && !t.StartsWith("192.168", StringComparison.Ordinal)
+                            && !t.StartsWith("172.16.", StringComparison.Ordinal))
                         {
                             return t; //找到不是内网的地址
                         }

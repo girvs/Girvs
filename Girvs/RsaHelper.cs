@@ -7,45 +7,69 @@ namespace Girvs;
 public static class GirvsRsaHelper
 {
     /// <summary>
-    /// 加载X.509或PKCS#1公钥（PEM格式）
+    /// 加载X.509公钥（PEM格式）
     /// </summary>
-    private static RSA LoadPublicKey(this string key)
+    private static RSA LoadPublicKey(string key)
     {
-        key = key.Replace("-----BEGIN PUBLIC KEY-----", "")
-            .Replace("-----END PUBLIC KEY-----", "")
-            .Replace("\n", "")
-            .Replace("\r", "");
-        var keyBytes = Convert.FromBase64String(key);
+        var keyBytes = Convert.FromBase64String(
+            NormalizeKey(key, "-----BEGIN PUBLIC KEY-----", "-----END PUBLIC KEY-----")
+        );
 
         var rsa = RSA.Create();
-        rsa.ImportSubjectPublicKeyInfo(keyBytes, out _); // X.509 格式
-        return rsa;
+        try
+        {
+            rsa.ImportSubjectPublicKeyInfo(keyBytes, out _);
+            return rsa;
+        }
+        catch
+        {
+            rsa.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
     /// 加载PKCS#1或PKCS#8私钥（PEM格式）
     /// </summary>
-    private static RSA LoadPrivateKey(this string key)
+    private static RSA LoadPrivateKey(string key)
     {
-        key = key.Replace("-----BEGIN PRIVATE KEY-----", "")
-            .Replace("-----END PRIVATE KEY-----", "")
-            .Replace("-----BEGIN RSA PRIVATE KEY-----", "")
-            .Replace("-----END RSA PRIVATE KEY-----", "")
-            .Replace("\n", "")
-            .Replace("\r", "");
-        var keyBytes = Convert.FromBase64String(key);
+        var keyBytes = Convert.FromBase64String(
+            NormalizeKey(
+                key,
+                "-----BEGIN PRIVATE KEY-----",
+                "-----END PRIVATE KEY-----",
+                "-----BEGIN RSA PRIVATE KEY-----",
+                "-----END RSA PRIVATE KEY-----"
+            )
+        );
 
         var rsa = RSA.Create();
         try
         {
-            rsa.ImportPkcs8PrivateKey(keyBytes, out _); // PKCS#8 格式
+            try
+            {
+                rsa.ImportPkcs8PrivateKey(keyBytes, out _);
+            }
+            catch
+            {
+                rsa.ImportRSAPrivateKey(keyBytes, out _);
+            }
+
+            return rsa;
         }
         catch
         {
-            rsa.ImportRSAPrivateKey(keyBytes, out _); // PKCS#1 格式
+            rsa.Dispose();
+            throw;
         }
+    }
 
-        return rsa;
+    private static string NormalizeKey(string key, params string[] markers)
+    {
+        foreach (var marker in markers)
+            key = key.Replace(marker, string.Empty);
+
+        return key.Replace("\n", string.Empty).Replace("\r", string.Empty);
     }
 
     /// <summary>
@@ -57,9 +81,9 @@ public static class GirvsRsaHelper
         RSAEncryptionPadding padding
     )
     {
+        using var rsa = LoadPublicKey(publicKey);
         var data = Encoding.UTF8.GetBytes(plainText);
-        var encrypted = publicKey.LoadPublicKey().Encrypt(data, padding);
-        return Convert.ToBase64String(encrypted);
+        return Convert.ToBase64String(rsa.Encrypt(data, padding));
     }
 
     /// <summary>
@@ -71,9 +95,9 @@ public static class GirvsRsaHelper
         RSAEncryptionPadding padding
     )
     {
+        using var rsa = LoadPrivateKey(privateKey);
         var data = Convert.FromBase64String(cipherText);
-        var decrypted = privateKey.LoadPrivateKey().Decrypt(data, padding);
-        return Encoding.UTF8.GetString(decrypted);
+        return Encoding.UTF8.GetString(rsa.Decrypt(data, padding));
     }
 
     /// <summary>
@@ -85,10 +109,9 @@ public static class GirvsRsaHelper
         HashAlgorithmName hashAlgorithm
     )
     {
+        using var rsa = LoadPrivateKey(privateKey);
         var data = Encoding.UTF8.GetBytes(plainText);
-        var signature = privateKey
-            .LoadPrivateKey()
-            .SignData(data, hashAlgorithm, RSASignaturePadding.Pkcs1);
+        var signature = rsa.SignData(data, hashAlgorithm, RSASignaturePadding.Pkcs1);
         return Convert.ToBase64String(signature);
     }
 
@@ -102,10 +125,9 @@ public static class GirvsRsaHelper
         HashAlgorithmName hashAlgorithm
     )
     {
+        using var rsa = LoadPublicKey(publicKey);
         var data = Encoding.UTF8.GetBytes(plainText);
         var signatureBytes = Convert.FromBase64String(signature);
-        return publicKey
-            .LoadPublicKey()
-            .VerifyData(data, signatureBytes, hashAlgorithm, RSASignaturePadding.Pkcs1);
+        return rsa.VerifyData(data, signatureBytes, hashAlgorithm, RSASignaturePadding.Pkcs1);
     }
 }

@@ -1,4 +1,4 @@
 using Girvs;
 
-var app = GirvsHostBuilderManager.CreateGirvsWebApplicationBuilder(args);
+var app = GirvsHostBuilderManager.CreateGirvsWebApplication(args);
 app.Run();

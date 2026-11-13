@@ -51,8 +51,6 @@ public class GirvsEngine : IEngine
         //register type finder
         services.AddSingleton<ITypeFinder>(typeFinder);
 
-        ServiceProvider = services.BuildServiceProvider();
-
         var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
         //create and sort instances of startup configurations
@@ -265,4 +263,12 @@ public class GirvsEngine : IEngine
         new AsyncLocal<IServiceProvider>();
 
     public virtual IServiceProvider ServiceProvider { get; protected set; }
+
+    /// <summary>
+    /// 由主机构建完成后回填实际服务提供程序，避免在注册阶段创建第二套容器。
+    /// </summary>
+    internal void SetServiceProvider(IServiceProvider serviceProvider)
+    {
+        ServiceProvider = serviceProvider;
+    }
 }

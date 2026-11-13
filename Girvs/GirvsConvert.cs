@@ -4,9 +4,31 @@ public class GirvsConvert
 {
     public static T ToSpecifiedType<T>(object value)
     {
-        return (T)ToSpecifiedType(typeof(T).FullName, value);
+        return (T)ToSpecifiedType(typeof(T), value);
     }
 
+
+    /// <summary>
+    /// 按目标类型转换值，支持可空类型、字符串、Guid 与枚举。
+    /// </summary>
+    public static object ToSpecifiedType(Type type, object value)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(value);
+
+        var targetType = Nullable.GetUnderlyingType(type) ?? type;
+
+        if (targetType == typeof(string))
+            return value.ToString();
+
+        if (targetType == typeof(Guid))
+            return Guid.Parse(value.ToString());
+
+        if (targetType.IsEnum)
+            return Enum.Parse(targetType, value.ToString(), ignoreCase: true);
+
+        return Convert.ChangeType(value, targetType);
+    }
 
     public static object ToSpecifiedType(string typeStr, object value)
     {

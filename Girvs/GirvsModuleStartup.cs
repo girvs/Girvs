@@ -13,7 +13,11 @@ public class GirvsModuleStartup : IAppModuleStartup
         {
             options.ForwardedHeaders =
                 ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+#if NET10_0_OR_GREATER
+            options.KnownIPNetworks.Clear();
+#else
             options.KnownNetworks.Clear();
+#endif
             options.KnownProxies.Clear();
         });
     }

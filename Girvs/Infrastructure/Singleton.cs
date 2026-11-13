@@ -5,15 +5,28 @@
 /// </summary>
 public class Singleton<T> : BaseSingleton
 {
+    private static readonly object SyncRoot = new();
     private static T _instance;
 
     public static T Instance
     {
-        get => _instance;
+        get
+        {
+            lock (SyncRoot)
+            {
+                return _instance;
+            }
+        }
         set
         {
-            _instance = value;
-            AllSingletons[typeof(T)] = value;
+            lock (SyncRoot)
+            {
+                _instance = value;
+                if (value is null)
+                    AllSingletons.Remove(typeof(T));
+                else
+                    AllSingletons[typeof(T)] = value;
+            }
         }
     }
 }

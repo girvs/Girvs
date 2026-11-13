@@ -5,7 +5,6 @@ public static class ServiceCollectionExtensions
     public static (IEngine, AppSettings) ConfigureApplicationServices(this IServiceCollection services,
         IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
     {
-        ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
         CommonHelper.DefaultFileProvider = new GirvsFileProvider(webHostEnvironment);
 
         services.AddHttpContextAccessor();

@@ -9,12 +9,12 @@ public class AppDomainTypeFinder(IGirvsFileProvider fileProvider = null) : IType
         fileProvider ?? CommonHelper.DefaultFileProvider;
 
     // 程序集列表缓存
-    private IList<Assembly>? _assembliesCache;
+    private IList<Assembly> _assembliesCache;
     private readonly object _assembliesLock = new();
 
     // 预编译正则，只编译一次
-    private Regex? _skipPattern;
-    private Regex? _restrictPattern;
+    private Regex _skipPattern;
+    private Regex _restrictPattern;
 
     // 类型查找结果缓存
     private readonly ConcurrentDictionary<(Type, FindType), IEnumerable<Type>> _typeCache = new();

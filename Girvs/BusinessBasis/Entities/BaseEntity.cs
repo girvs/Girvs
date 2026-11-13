@@ -1,4 +1,6 @@
-﻿namespace Girvs.BusinessBasis.Entities;
+﻿using System.Collections.Concurrent;
+
+namespace Girvs.BusinessBasis.Entities;
 
 public abstract class BaseEntity : BaseEntity<Guid> { }
 
@@ -7,6 +9,11 @@ public abstract class BaseEntity : BaseEntity<Guid> { }
 /// </summary>
 public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
 {
+    /// <summary>
+    /// 按实体类型缓存反射结果，避免每次实例化都重复查找属性与判断接口。
+    /// </summary>
+    private static readonly ConcurrentDictionary<Type, EntityFormatMetadata> MetadataCache = new();
+
     protected BaseEntity()
     {
         FormatPrpertyValue();
@@ -17,6 +24,8 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
     /// </summary>
     private void FormatPrpertyValue()
     {
+        var metadata = MetadataCache.GetOrAdd(GetType(), static type => CreateMetadata(type));
+
         if (this is IIncludeCreateTime createTimeObj)
         {
             createTimeObj.CreateTime = DateTime.Now;
@@ -37,57 +46,82 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
             initFieldObj.IsInitData = false;
         }
 
+        if (!metadata.NeedsPrincipal)
+            return;
+
         var principal = EngineContext.Current.PrincipalAccessor?.Principal;
 
-        if (principal != null)
+        if (principal == null)
+            return;
+
+        if (this is IIncludeCreatorName creatorNameObj)
         {
-            if (this is IIncludeCreatorName creatorNameObj)
+            var creatorName = principal.GetUserName();
+            if (!string.IsNullOrEmpty(creatorName))
             {
-                var creatorName = principal.GetUserName();
-                if (!string.IsNullOrEmpty(creatorName))
-                {
-                    creatorNameObj.CreatorName = creatorName;
-                }
-            }
-
-            if (this is IIncludeMultiTenantName multiTenantNameObj)
-            {
-                var tenantName = principal.GetTenantName();
-                if (!string.IsNullOrEmpty(tenantName))
-                {
-                    multiTenantNameObj.TenantName = tenantName;
-                }
-            }
-
-            var multiTenantPrperty = GetType()
-                .GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
-            if (multiTenantPrperty != null)
-            {
-                var tenantIdStr = principal.GetTenantId();
-                if (!string.IsNullOrEmpty(tenantIdStr))
-                {
-                    var value = GirvsConvert.ToSpecifiedType(
-                        multiTenantPrperty.PropertyType.FullName,
-                        tenantIdStr
-                    );
-                    multiTenantPrperty.SetValue(this, value);
-                }
-            }
-
-            var creatorPrperty = GetType().GetProperty(nameof(IIncludeCreatorId<object>.CreatorId));
-            if (creatorPrperty != null)
-            {
-                var currentUserIdStr = principal.GetUserId();
-                if (!string.IsNullOrEmpty(currentUserIdStr))
-                {
-                    var value = GirvsConvert.ToSpecifiedType(
-                        creatorPrperty.PropertyType.FullName,
-                        currentUserIdStr
-                    );
-                    creatorPrperty.SetValue(this, value);
-                }
+                creatorNameObj.CreatorName = creatorName;
             }
         }
+
+        if (this is IIncludeMultiTenantName multiTenantNameObj)
+        {
+            var tenantName = principal.GetTenantName();
+            if (!string.IsNullOrEmpty(tenantName))
+            {
+                multiTenantNameObj.TenantName = tenantName;
+            }
+        }
+
+        TrySetConvertedValue(this, metadata.TenantId, principal.GetTenantId());
+        TrySetConvertedValue(this, metadata.CreatorId, principal.GetUserId());
+    }
+
+    private static EntityFormatMetadata CreateMetadata(Type type)
+    {
+        var tenantIdProperty = type.GetProperty(nameof(IIncludeMultiTenant<object>.TenantId));
+        var creatorIdProperty = type.GetProperty(nameof(IIncludeCreatorId<object>.CreatorId));
+
+        return new EntityFormatMetadata
+        {
+            TenantId = tenantIdProperty,
+            CreatorId = creatorIdProperty,
+            NeedsPrincipal =
+                tenantIdProperty != null
+                || creatorIdProperty != null
+                || typeof(IIncludeCreatorName).IsAssignableFrom(type)
+                || typeof(IIncludeMultiTenantName).IsAssignableFrom(type)
+        };
+    }
+
+    private static void TrySetConvertedValue(object target, PropertyInfo property, string rawValue)
+    {
+        if (property == null || !property.CanWrite || string.IsNullOrEmpty(rawValue))
+            return;
+
+        try
+        {
+            var value = GirvsConvert.ToSpecifiedType(property.PropertyType, rawValue);
+            property.SetValue(target, value);
+        }
+        catch (Exception exception)
+            when (exception is GirvsException
+                      or FormatException
+                      or InvalidCastException
+                      or OverflowException
+                      or ArgumentException
+            )
+        {
+            // 系统字段填充失败时保留默认值，避免实体构造因身份信息格式异常而中断。
+        }
+    }
+
+    private sealed class EntityFormatMetadata
+    {
+        public PropertyInfo TenantId { get; init; }
+
+        public PropertyInfo CreatorId { get; init; }
+
+        public bool NeedsPrincipal { get; init; }
     }
 
     /// <summary>
@@ -109,7 +143,7 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
         if (ReferenceEquals(null, compareTo))
             return false;
 
-        return Id.Equals(compareTo.Id);
+        return EqualityComparer<TPrimaryKey>.Default.Equals(Id, compareTo.Id);
     }
 
     /// <summary>
@@ -146,7 +180,8 @@ public abstract class BaseEntity<TPrimaryKey> : Entity<TPrimaryKey>
     /// <returns></returns>
     public override int GetHashCode()
     {
-        return (GetType().GetHashCode() * 907) + Id.GetHashCode();
+        var idHash = EqualityComparer<TPrimaryKey>.Default.GetHashCode(Id);
+        return (GetType().GetHashCode() * 907) + idHash;
     }
 
     /// <summary>

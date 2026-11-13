@@ -24,7 +24,7 @@ public class SampleGatewayConsulContractTests
         Assert.Contains("Projects.Sample_Gateway", appHostProgram);
         Assert.DoesNotContain("ConsulConfig", appHostProgram);
         Assert.DoesNotContain("GatewayDiscovery__DiscoveryType", appHostProgram);
-        Assert.Contains("GirvsHostBuilderManager.CreateGirvsWebApplicationBuilder(args)", gatewayProgram);
+        Assert.Contains("GirvsHostBuilderManager.CreateGirvsWebApplication(args)", gatewayProgram);
         Assert.Contains("app.Run()", gatewayProgram);
         Assert.DoesNotContain("WebApplication.CreateBuilder", gatewayProgram);
         Assert.Contains(": IGirvsStartup", gatewayStartup);

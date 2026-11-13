@@ -5,13 +5,22 @@
 /// </summary>
 public class EngineContext
 {
+    private static readonly object SyncRoot = new();
+
     /// <summary>
     /// 创建Girvs引擎的静态实例
     /// </summary>
-    [MethodImpl(MethodImplOptions.Synchronized)]
     public static IEngine Create()
     {
-        return Singleton<IEngine>.Instance ?? (Singleton<IEngine>.Instance = new GirvsEngine());
+        if (Singleton<IEngine>.Instance == null)
+        {
+            lock (SyncRoot)
+            {
+                Singleton<IEngine>.Instance ??= new GirvsEngine();
+            }
+        }
+
+        return Singleton<IEngine>.Instance;
     }
 
     /// <summary>

@@ -75,7 +75,7 @@ public static class GirvsHostBuilderManager
         ISet<string> overriddenSinkTypeNames
     )
     {
-        var data = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var data = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var serilogSection = configuration.GetSection("Serilog");
 
         foreach (var section in serilogSection.GetChildren())
@@ -103,7 +103,7 @@ public static class GirvsHostBuilderManager
     private static void CopyConfigurationSection(
         IConfigurationSection section,
         string key,
-        IDictionary<string, string?> data
+        IDictionary<string, string> data
     )
     {
         var children = section.GetChildren().ToArray();
@@ -189,13 +189,20 @@ public static class GirvsHostBuilderManager
     }
 
     /// <summary>
-    /// 旧拼写兼容方法，转发到 CreateGirvsWebApplicationBuilder
+    /// 旧拼写兼容方法，转发到 CreateGirvsWebApplication
     /// </summary>
-    [Obsolete("拼写修正：请使用 CreateGirvsWebApplicationBuilder(args)")]
+    [Obsolete("拼写修正：请使用 CreateGirvsWebApplication(args)")]
     public static WebApplication CreateGrivsWebApplicationBuilder(string[] args) =>
-        CreateGirvsWebApplicationBuilder(args);
+        CreateGirvsWebApplication(args);
 
-    public static WebApplication CreateGirvsWebApplicationBuilder(string[] args)
+    /// <summary>
+    /// 旧命名兼容方法。本方法返回已构建的 WebApplication，而非 Builder。
+    /// </summary>
+    [Obsolete("命名不准确：本方法返回 WebApplication，请使用 CreateGirvsWebApplication(args)")]
+    public static WebApplication CreateGirvsWebApplicationBuilder(string[] args) =>
+        CreateGirvsWebApplication(args);
+
+    public static WebApplication CreateGirvsWebApplication(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -232,9 +239,15 @@ public static class GirvsHostBuilderManager
             }
         }
 
-        builder.Services.ConfigureApplicationServices(builder.Configuration, builder.Environment);
+        var (engine, _) = builder.Services.ConfigureApplicationServices(
+            builder.Configuration,
+            builder.Environment
+        );
 
         var app = builder.Build();
+
+        if (engine is GirvsEngine girvsEngine)
+            girvsEngine.SetServiceProvider(app.Services);
 
         foreach (var startup in startups)
             startup.Configure(app, builder.Environment);

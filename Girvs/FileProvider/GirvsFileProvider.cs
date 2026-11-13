@@ -3,27 +3,30 @@
 public class GirvsFileProvider : PhysicalFileProvider, IGirvsFileProvider
 {
     public GirvsFileProvider(IWebHostEnvironment webHostEnvironment)
-        : base((File.Exists(webHostEnvironment.ContentRootPath)
-            ? Path.GetDirectoryName(webHostEnvironment.ContentRootPath)
-            : webHostEnvironment.ContentRootPath) ?? string.Empty)
+        : base(webHostEnvironment.ContentRootPath ?? string.Empty)
     {
-        WebRootPath = File.Exists(webHostEnvironment.WebRootPath)
-            ? Path.GetDirectoryName(webHostEnvironment.WebRootPath)
+        var contentRoot = webHostEnvironment.ContentRootPath ?? string.Empty;
+        WebRootPath = string.IsNullOrEmpty(webHostEnvironment.WebRootPath)
+            ? (string.IsNullOrEmpty(contentRoot) ? string.Empty : Path.Combine(contentRoot, "wwwroot"))
             : webHostEnvironment.WebRootPath;
     }
 
     private static void DeleteDirectoryRecursive(string path)
     {
-        Directory.Delete(path, true);
-        const int maxIterationToWait = 10;
-        var curIteration = 0;
-
-        while (Directory.Exists(path))
+        const int maxAttempts = 10;
+        for (var attempt = 0; ; attempt++)
         {
-            curIteration += 1;
-            if (curIteration > maxIterationToWait)
+            try
+            {
+                Directory.Delete(path, true);
                 return;
-            Thread.Sleep(100);
+            }
+            catch (Exception ex) when (
+                attempt < maxAttempts && (ex is IOException || ex is UnauthorizedAccessException)
+            )
+            {
+                Thread.Sleep(100);
+            }
         }
     }
 
@@ -142,7 +145,9 @@ public class GirvsFileProvider : PhysicalFileProvider, IGirvsFileProvider
     {
         var allPaths = new List<string>();
 
-        if (paths.Any() && !paths[0].Contains(WebRootPath, StringComparison.InvariantCulture))
+        if (paths.Any()
+            && !string.IsNullOrEmpty(WebRootPath)
+            && !paths[0].Contains(WebRootPath, StringComparison.OrdinalIgnoreCase))
             allPaths.Add(WebRootPath);
 
         allPaths.AddRange(paths);
@@ -200,7 +205,7 @@ public class GirvsFileProvider : PhysicalFileProvider, IGirvsFileProvider
         if (string.IsNullOrEmpty(searchPattern))
             searchPattern = "*.*";
 
-        return Directory.GetFileSystemEntries(directoryPath, searchPattern,
+        return Directory.GetFiles(directoryPath, searchPattern,
             new EnumerationOptions
             {
                 IgnoreInaccessible = true,
@@ -235,11 +240,18 @@ public class GirvsFileProvider : PhysicalFileProvider, IGirvsFileProvider
             return path;
 
         if (!IsDirectory(path) && FileExists(path))
-            path = new FileInfo(path).DirectoryName;
+            path = new FileInfo(path).DirectoryName ?? string.Empty;
 
-        path = path?.Replace(WebRootPath, string.Empty).Replace('\\', '/').Trim('/').TrimStart('~', '/');
+        if (!string.IsNullOrEmpty(WebRootPath))
+        {
+            path = path.StartsWith(WebRootPath, StringComparison.OrdinalIgnoreCase)
+                ? path[WebRootPath.Length..]
+                : path.Replace(WebRootPath, string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
 
-        return $"~/{path ?? string.Empty}";
+        path = path.Replace('\\', '/').Trim('/').TrimStart('~', '/');
+
+        return $"~/{path}";
     }
 
     public virtual bool IsDirectory(string path)
@@ -291,13 +303,6 @@ public class GirvsFileProvider : PhysicalFileProvider, IGirvsFileProvider
     public virtual void WriteAllText(string path, string contents, Encoding encoding)
     {
         File.WriteAllText(path, contents, encoding);
-    }
-
-    public new IFileInfo GetFileInfo(string subpath)
-    {
-        subpath = subpath.Replace(Root, string.Empty);
-
-        return base.GetFileInfo(subpath);
     }
 
     protected string WebRootPath { get; }
