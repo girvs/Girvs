@@ -9,7 +9,7 @@ namespace Girvs.Cache.CacheImps;
 /// <remarks>
 /// This class should be registered on IoC as singleton instance
 /// </remarks>
-public partial class RedisConnectionWrapper : IRedisConnectionWrapper
+public partial class RedisConnectionWrapper : IRedisConnectionWrapper, IDisposable
 {
     #region Fields
 
@@ -85,27 +85,32 @@ public partial class RedisConnectionWrapper : IRedisConnectionWrapper
     /// <returns></returns>
     protected virtual async Task<IConnectionMultiplexer> GetConnectionAsync()
     {
-        if (_connection?.IsConnected == true)
-            return _connection;
+        var connection = _connection;
+        if (connection?.IsConnected == true)
+            return connection;
 
         await _connectionLock.WaitAsync();
         try
         {
-            if (_connection?.IsConnected == true)
-                return _connection;
+            connection = _connection;
+            if (connection?.IsConnected == true)
+                return connection;
 
-            //Connection disconnected. Disposing connection...
-            _connection?.Dispose();
+            // 先置空再释放：连接重建失败时，其他线程不会读到已释放的实例。
+            // Connection disconnected. Disposing connection...
+            _connection = null;
+            connection?.Dispose();
 
             //Creating new instance of Redis Connection
-            _connection = await ConnectAsync();
+            connection = await ConnectAsync();
+            _connection = connection;
         }
         finally
         {
             _connectionLock.Release();
         }
 
-        return _connection;
+        return connection;
     }
 
     /// <summary>
@@ -114,32 +119,46 @@ public partial class RedisConnectionWrapper : IRedisConnectionWrapper
     /// <returns></returns>
     protected virtual IConnectionMultiplexer GetConnection()
     {
-        if (_connection?.IsConnected == true)
-            return _connection;
+        var connection = _connection;
+        if (connection?.IsConnected == true)
+            return connection;
 
         _connectionLock.Wait();
         try
         {
-            if (_connection?.IsConnected == true)
-                return _connection;
+            connection = _connection;
+            if (connection?.IsConnected == true)
+                return connection;
 
-            //Connection disconnected. Disposing connection...
-            _connection?.Dispose();
+            // 先置空再释放，避免并发线程读到已释放的实例。
+            // Connection disconnected. Disposing connection...
+            _connection = null;
+            connection?.Dispose();
 
             //Creating new instance of Redis Connection
-            _connection = Connect();
+            connection = Connect();
+            _connection = connection;
         }
         finally
         {
             _connectionLock.Release();
         }
 
-        return _connection;
+        return connection;
     }
 
     #endregion
 
     #region Methods
+
+    /// <summary>
+    /// 获取底层连接实例，供 IDistributedCache 等组件复用，避免重复建立连接
+    /// </summary>
+    /// <returns>Redis 连接</returns>
+    public Task<IConnectionMultiplexer> GetConnectionMultiplexerAsync()
+    {
+        return GetConnectionAsync();
+    }
 
     /// <summary>
     /// Obtain an interactive connection to a database inside Redis
@@ -221,6 +240,8 @@ public partial class RedisConnectionWrapper : IRedisConnectionWrapper
     {
         //dispose ConnectionMultiplexer
         _connection?.Dispose();
+        _connection = null;
+        _connectionLock.Dispose();
     }
 
     #endregion

@@ -1,4 +1,6 @@
-﻿namespace Girvs.Cache.Caching;
+﻿using System.Reflection;
+
+namespace Girvs.Cache.Caching;
 
 /// <summary>
 /// 表示与缓存实体相关的默认值
@@ -9,14 +11,18 @@ public static partial class GirvsEntityCacheDefaults<TEntity>
     /// <summary>
     /// 获取缓存键中使用的实体类型名称
     /// </summary>
-    private static string EntityTypeName => typeof(TEntity).Name.ToLowerInvariant();
+    private static readonly string EntityTypeName = typeof(TEntity).Name.ToLowerInvariant();
+
+    /// <summary>
+    /// 实体是否声明 TenantId 属性；每类实体只反射一次，避免热点路径重复查询元数据
+    /// </summary>
+    private static readonly PropertyInfo TenantIdProperty = typeof(TEntity).GetProperty("TenantId");
 
     private static string TenantKey
     {
         get
         {
-            var property = typeof(TEntity).GetProperty("TenantId");
-            return property == null
+            return TenantIdProperty == null
                 ? string.Empty
                 : $":TenantId_{EngineContext.Current.PrincipalAccessor.Principal.GetTenantId()}";
         }

@@ -47,12 +47,11 @@ public abstract partial class CacheKeyService : ICacheKeyService
     /// <returns>String hash value</returns>
     protected virtual string CreateIdsHash(params object[] ids)
     {
-        var identifiers = ids.ToList();
-
-        if (!identifiers.Any())
+        // params 数组可能被调用方显式传 null，这里做空值防御
+        if (ids is not { Length: > 0 })
             return string.Empty;
 
-        var identifiersString = string.Join(", ", identifiers.OrderBy(id => id));
+        var identifiersString = string.Join(", ", ids.OrderBy(id => id));
         return HashHelper.CreateHash(Encoding.UTF8.GetBytes(identifiersString), HashAlgorithm);
     }
 

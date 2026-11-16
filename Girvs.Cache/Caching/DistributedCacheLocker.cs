@@ -132,8 +132,8 @@ public partial class DistributedCacheLocker(IDistributedCache distributedCache) 
                     }
                 },
                 state: null,
-                dueTime: 0,
-                period: (int) heartbeatInterval.TotalMilliseconds
+                dueTime: TimeSpan.Zero,
+                period: heartbeatInterval
             );
 
             await action(tokenSource.Token);

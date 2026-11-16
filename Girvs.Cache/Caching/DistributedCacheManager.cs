@@ -78,14 +78,11 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     /// <returns>Cache entry options</returns>
     protected virtual GirvsDistributedCacheEntryOptions PrepareEntryOptions(CacheKey key)
     {
-        var creationTime = DateTimeOffset.UtcNow;
-        var absoluteExpirationRelativeToNow = TimeSpan.FromMinutes(key.CacheTime);
-
-        //set expiration time for the passed cache key
+        // 只设置相对过期时间：DistributedCacheEntryOptions 会基于写入时刻计算绝对过期，
+        // 同时设置 AbsoluteExpiration 会引入第二个时间基准，二者存在细微偏差。
         return new GirvsDistributedCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow,
-            AbsoluteExpiration = creationTime + absoluteExpirationRelativeToNow,
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(key.CacheTime),
         };
     }
 
@@ -199,8 +196,15 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
         }
         finally
         {
-            _ = setTask.ContinueWith(_ =>
-                _ongoing.TryRemove(new KeyValuePair<string, Lazy<Task<object>>>(key.Key, lazy))
+            // 同步移除已完成的任务，避免并发调用拿到已完成的 Lazy 重复写缓存
+            _ = setTask.ContinueWith(
+                _ =>
+                    _ongoing.TryRemove(
+                        new KeyValuePair<string, Lazy<Task<object>>>(key.Key, lazy)
+                    ),
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default
             );
         }
     }

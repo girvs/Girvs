@@ -43,7 +43,8 @@ public class CacheKey
 
     public CacheKey Create(string entityObjectKey = "", string otherKey = "", int? cacheTime = null)
     {
-        var cacheKey = new CacheKey(Key, cacheTime, Prefixes.ToArray());
+        // 未显式指定缓存时间时沿用当前键的 CacheTime，而不是回落到全局默认值
+        var cacheKey = new CacheKey(Key, cacheTime ?? CacheTime, Prefixes.ToArray());
         if (entityObjectKey.IsNullOrEmpty())
             return cacheKey;
 
@@ -66,21 +67,18 @@ public class CacheKey
         params object[] keyObjects
     )
     {
-        var cacheKey = new CacheKey(Key, Prefixes.ToArray());
+        var cacheKey = new CacheKey(Key, CacheTime, Prefixes.ToArray());
 
-        if (!keyObjects.Any())
+        if (keyObjects is not { Length: > 0 })
             return cacheKey;
 
-        cacheKey.Key = string.Format(
-            cacheKey.Key,
-            keyObjects.Select(createCacheKeyParameters).ToArray()
-        );
+        // 参数只转换一次：既用于主键，也复用于所有前缀，
+        // 避免集合类参数重复计算哈希。
+        var parameters = keyObjects.Select(createCacheKeyParameters).ToArray();
+        cacheKey.Key = string.Format(cacheKey.Key, parameters);
 
         for (var i = 0; i < cacheKey.Prefixes.Count; i++)
-            cacheKey.Prefixes[i] = string.Format(
-                cacheKey.Prefixes[i],
-                keyObjects.Select(createCacheKeyParameters).ToArray()
-            );
+            cacheKey.Prefixes[i] = string.Format(cacheKey.Prefixes[i], parameters);
 
         return cacheKey;
     }

@@ -39,6 +39,32 @@ public partial class MsSqlServerCacheManager : DistributedCacheManager
     #region Utilities
 
     /// <summary>
+    /// 按 T-SQL 规则用方括号引用标识符，内部右括号需双写转义
+    /// </summary>
+    private static string QuoteIdentifier(string identifier)
+    {
+        return "[" + identifier.Replace("]", "]]") + "]";
+    }
+
+    /// <summary>
+    /// 已按 SQL Server 规则转义的表名，避免配置值中带特殊字符时拼接出错误语句
+    /// </summary>
+    private string QualifiedTableName
+    {
+        get
+        {
+            var schema = string.IsNullOrWhiteSpace(_distributedCacheConfig.SchemaName)
+                ? "dbo"
+                : _distributedCacheConfig.SchemaName;
+            var table = string.IsNullOrWhiteSpace(_distributedCacheConfig.TableName)
+                ? "DistributedCache"
+                : _distributedCacheConfig.TableName;
+
+            return $"{QuoteIdentifier(schema)}.{QuoteIdentifier(table)}";
+        }
+    }
+
+    /// <summary>
     /// Performs SQL command
     /// </summary>
     /// <param name="command">SQL command</param>
@@ -49,21 +75,15 @@ public partial class MsSqlServerCacheManager : DistributedCacheManager
         params SqlParameter[] parameters
     )
     {
-        var conn = new SqlConnection(_sqlServerCacheOptions.ConnectionString);
+        // 连接由本方法负责释放，命令由调用方通过 using 释放
+        await using var conn = new SqlConnection(_sqlServerCacheOptions.ConnectionString);
 
-        try
-        {
-            await conn.OpenAsync();
-            command.Connection = conn;
-            if (parameters.Any())
-                command.Parameters.AddRange(parameters);
+        await conn.OpenAsync();
+        command.Connection = conn;
+        if (parameters is { Length: > 0 })
+            command.Parameters.AddRange(parameters);
 
-            await command.ExecuteNonQueryAsync();
-        }
-        finally
-        {
-            await conn.CloseAsync();
-        }
+        await command.ExecuteNonQueryAsync();
     }
 
     #endregion
@@ -80,8 +100,8 @@ public partial class MsSqlServerCacheManager : DistributedCacheManager
     {
         prefix = PrepareKeyPrefix(prefix, prefixParameters);
 
-        var command = new SqlCommand(
-            $"DELETE FROM {_distributedCacheConfig.SchemaName}.{_distributedCacheConfig.TableName} WHERE Id LIKE @Prefix + '%'"
+        using var command = new SqlCommand(
+            $"DELETE FROM {QualifiedTableName} WHERE Id LIKE @Prefix + '%'"
         );
 
         await PerformActionAsync(
@@ -98,9 +118,7 @@ public partial class MsSqlServerCacheManager : DistributedCacheManager
     /// <returns>A task that represents the asynchronous operation</returns>
     public override async Task ClearAsync()
     {
-        var command = new SqlCommand(
-            $"TRUNCATE TABLE {_distributedCacheConfig.SchemaName}.{_distributedCacheConfig.TableName}"
-        );
+        using var command = new SqlCommand($"TRUNCATE TABLE {QualifiedTableName}");
 
         await PerformActionAsync(command);
 

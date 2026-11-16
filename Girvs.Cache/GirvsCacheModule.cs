@@ -2,6 +2,8 @@
 using Girvs.Cache.Caching;
 using Girvs.Configuration.Resources;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Options;
 
 namespace Girvs.Cache;
 
@@ -44,7 +46,10 @@ public class GirvsCacheModule : IAppModuleStartup
 
                 case "redis":
                     var redisConnectionString = GetConnectionString(cacheConfig);
-                    services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
+                    services.AddSingleton<RedisConnectionWrapper>();
+                    services.AddSingleton<IRedisConnectionWrapper>(sp =>
+                        sp.GetRequiredService<RedisConnectionWrapper>()
+                    );
                     services.AddScoped<IStaticCacheManager, RedisCacheManager>();
                     services.AddScoped<ICacheKeyService, RedisCacheManager>();
                     services.AddStackExchangeRedisCache(options =>
@@ -52,13 +57,17 @@ public class GirvsCacheModule : IAppModuleStartup
                         options.Configuration = redisConnectionString;
                         options.InstanceName = distributedCacheConfig.InstanceName ?? string.Empty;
                     });
+                    ShareRedisConnection(services);
                     break;
 
                 case "redis-synchronized-memory":
                     var synchronizedRedisConnectionString = GetConnectionString(cacheConfig);
                     // RedisSynchronizedMemoryCache 以本地内存缓存为主存储、Redis 仅做失效同步,必须注册 IMemoryCache
                     services.AddSingleton<IMemoryCache>(new MemoryCache(new MemoryCacheOptions()));
-                    services.AddSingleton<IRedisConnectionWrapper, RedisConnectionWrapper>();
+                    services.AddSingleton<RedisConnectionWrapper>();
+                    services.AddSingleton<IRedisConnectionWrapper>(sp =>
+                        sp.GetRequiredService<RedisConnectionWrapper>()
+                    );
                     services.AddSingleton<ISynchronizedMemoryCache, RedisSynchronizedMemoryCache>();
                     services.AddSingleton<IStaticCacheManager, SynchronizedMemoryCacheManager>();
                     services.AddScoped<ICacheKeyService, SynchronizedMemoryCacheManager>();
@@ -67,6 +76,7 @@ public class GirvsCacheModule : IAppModuleStartup
                         options.Configuration = synchronizedRedisConnectionString;
                         options.InstanceName = distributedCacheConfig.InstanceName ?? string.Empty;
                     });
+                    ShareRedisConnection(services);
                     break;
             }
             services.AddSingleton<ILocker, DistributedCacheLocker>();
@@ -94,5 +104,25 @@ public class GirvsCacheModule : IAppModuleStartup
             cache.ConnectionRef
         );
         return cache.BuildConnectionString(resource);
+    }
+
+    /// <summary>
+    /// 让 IDistributedCache 复用 RedisConnectionWrapper 的连接，避免同一 Redis
+    /// 建立两条 ConnectionMultiplexer。此处延迟解析包装器，规避 Options 构建
+    /// 期间的循环依赖。
+    /// </summary>
+    private static void ShareRedisConnection(IServiceCollection services)
+    {
+        services
+            .AddOptions<RedisCacheOptions>()
+            .Configure<IServiceProvider>(
+                (options, serviceProvider) =>
+                {
+                    options.ConnectionMultiplexerFactory ??= () =>
+                        serviceProvider
+                            .GetRequiredService<RedisConnectionWrapper>()
+                            .GetConnectionMultiplexerAsync();
+                }
+            );
     }
 }

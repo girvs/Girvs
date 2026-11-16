@@ -10,8 +10,7 @@ public partial class RedisCacheManager : DistributedCacheManager
 {
     #region Fields
 
-    private readonly IDistributedCache _distributedCache;
-
+    // 基类已持有 IDistributedCache；此处不再重复声明，避免隐藏基类字段。
     // 不缓存 IDatabase：连接抖动时 RedisConnectionWrapper 会重建连接，
     // 旧 IDatabase 随旧连接一起失效，继续使用会抛 ObjectDisposedException。
     protected readonly IRedisConnectionWrapper _connectionWrapper;
@@ -29,7 +28,6 @@ public partial class RedisCacheManager : DistributedCacheManager
     )
         : base(appSettings, distributedCache, cacheKeyManager, concurrentCollection)
     {
-        _distributedCache = distributedCache;
         _connectionWrapper = connectionWrapper;
     }
 
@@ -65,6 +63,41 @@ public partial class RedisCacheManager : DistributedCacheManager
         return result;
     }
 
+    /// <summary>
+    /// 删除指定节点上匹配的键；集群模式按哈希槽分组批量删除
+    /// </summary>
+    /// <param name="endPoint">Network address</param>
+    /// <param name="keys">待删除的键</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    protected virtual async Task DeleteKeysAsync(EndPoint endPoint, IEnumerable<RedisKey> keys)
+    {
+        var db = await _connectionWrapper.GetDatabaseAsync();
+        var keyArray = keys as RedisKey[] ?? keys.ToArray();
+        if (keyArray.Length == 0)
+            return;
+
+        var isCluster =
+            (await _connectionWrapper.GetServerAsync(endPoint)).ServerType == ServerType.Cluster;
+
+        if (isCluster)
+        {
+            // 按哈希槽分组，对同一槽的键执行批量删除
+            foreach (var group in keyArray.GroupBy(k => db.Multiplexer.GetHashSlot(k)))
+            {
+                var keysInSlot = group.ToArray();
+                if (keysInSlot.Length > 0)
+                {
+                    await db.KeyDeleteAsync(keysInSlot);
+                }
+            }
+        }
+        else
+        {
+            // 统一走异步 API，避免在异步链路中同步阻塞线程
+            await db.KeyDeleteAsync(keyArray);
+        }
+    }
+
     #endregion
 
     #region Methods
@@ -78,39 +111,18 @@ public partial class RedisCacheManager : DistributedCacheManager
     public override async Task RemoveByPrefixAsync(string prefix, params object[] prefixParameters)
     {
         prefix = PrepareKeyPrefix(prefix, prefixParameters);
-        var db = await _connectionWrapper.GetDatabaseAsync();
-        var instanceName =
-            _appSettings.Get<CacheConfig>().DistributedCacheConfig.InstanceName ?? string.Empty;
+        var instanceName = _instanceName ?? string.Empty;
         var fullPrefix = instanceName + prefix;
 
         foreach (var endPoint in await _connectionWrapper.GetEndPointsAsync())
         {
+            // 副本上的键都会同步到主节点，跳过可避免重复扫描与删除
+            if ((await _connectionWrapper.GetServerAsync(endPoint)).IsReplica)
+                continue;
+
             // 获取当前节点所有匹配的键
-            var keys = (await GetKeysAsync(endPoint, fullPrefix)).Select(k => (RedisKey)k);
-
-            var isCluster =
-                (await _connectionWrapper.GetServerAsync(endPoint)).ServerType
-                == ServerType.Cluster;
-
-            if (isCluster)
-            {
-                // 按哈希槽分组
-                var slotGroups = keys.GroupBy(k => db.Multiplexer.GetHashSlot(k));
-
-                foreach (var group in slotGroups)
-                {
-                    var keysInSlot = group.ToArray();
-                    if (keysInSlot.Length > 0)
-                    {
-                        // 对同一槽的键执行批量删除
-                        await db.KeyDeleteAsync(keysInSlot);
-                    }
-                }
-            }
-            else
-            {
-                db.KeyDelete(keys.ToArray());
-            }
+            var keys = await GetKeysAsync(endPoint, fullPrefix);
+            await DeleteKeysAsync(endPoint, keys);
         }
 
         RemoveByPrefixInstanceData(prefix);
@@ -122,7 +134,18 @@ public partial class RedisCacheManager : DistributedCacheManager
     /// <returns>A task that represents the asynchronous operation</returns>
     public override async Task ClearAsync()
     {
-        await _connectionWrapper.FlushDatabaseAsync();
+        // 只清理当前实例命名空间下的键：原先的 FLUSHDB 会误删同一 Redis
+        // 逻辑库中其他应用的数据。
+        var instanceName = _instanceName ?? string.Empty;
+
+        foreach (var endPoint in await _connectionWrapper.GetEndPointsAsync())
+        {
+            if ((await _connectionWrapper.GetServerAsync(endPoint)).IsReplica)
+                continue;
+
+            var keys = await GetKeysAsync(endPoint, instanceName);
+            await DeleteKeysAsync(endPoint, keys);
+        }
 
         ClearInstanceData();
     }
