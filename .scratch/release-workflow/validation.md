@@ -36,3 +36,13 @@
 SDK、Docker、还原与构建均成功，完整测试发现 FileProviderTests.Combine_多段路径_合并为系统路径 在四个框架下失败：预期 a/b/c.json，实际 /a/b/c.json。其他测试，包括两个框架的 Redis 集成测试，均通过；发布阶段尚未执行。
 
 Git blame 确认 Unix 补根路径逻辑自 2022 年即存在，本次只修正跨平台测试预期，不修改库行为。修正后重新验证并更新标签触发完整发布。
+
+修正随提交 `4455366` 推送，并将标签安全更新至该提交。本机 Release Core 测试在 net10.0、net11.0 各 86/86 通过，增量规范与需求审查均无发现。
+
+[发布运行 #4](https://github.com/girvs/Girvs/actions/runs/43824307093) 实际完成环境检查、依赖还原、构建、完整测试、打包、Actions 产物上传；所有这些步骤结论均为 success。NuGet 推送步骤返回 HTTP 403，明确错误为：
+
+```text
+The specified API key has expired. Please create a new API key at https://www.nuget.org/account/apikeys.
+```
+
+当前剩余阻碍为过期的仓库 Secret NUGET_API_KEY，未宣称 NuGet 发布成功。维护者需要在 NuGet 生成具有所需包推送权限的新 API key，并在 GitHub 仓库 Settings → Secrets and variables → Actions 更新同名 Secret。随后可重跑运行 #4，无需再次改代码或移动标签。17 个包已通过 Actions artifact 步骤保存。
