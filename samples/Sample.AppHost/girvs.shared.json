@@ -5,6 +5,30 @@
     }
   },
   "Resources": {
+    "common-rabbitmq": {
+      "Type": "rabbitmq",
+      "Settings": {
+        "ConnectionString": "amqp://admin:zhuofan168@120.24.195.66:39278/test183"
+      }
+    },
+    "common-kafka": {
+      "Type": "kafka",
+      "Settings": {
+        "ConnectionString": "120.24.195.66:39278;security.protocol=SASL_SSL;sasl.mechanism=PLAIN;sasl.username=admin;sasl.password=zhuofan168;ssl.ca.location=/path/to/ca.pem"
+      }
+    },
+    "common-mysql": {
+      "Type": "mysql",
+      "Settings": {
+        "ConnectionString": "Server=192.168.51.183;Port=3306;Database={0};User=root;Password=zhuofan168;"
+      }
+    },
+    "common-redis": {
+      "Type": "redis",
+      "Settings": {
+        "Endpoints": "192.168.51.183:6379,ssl=False,defaultdatabase={0}"
+      }
+    },
     "eventbus-mysql": {
       "Type": "mysql",
       "Settings": {
@@ -24,10 +48,7 @@
     "sample-mysql": {
       "Type": "mysql",
       "Settings": {
-        "Host": "192.168.51.183",
-        "Port": "3306",
-        "UserName": "root",
-        "Password": "zhuofan168"
+        "ConnectionString": "Server=192.168.51.183;Port=3306;Database={0};User ID=root;Password=zhuofan168;"
       }
     },
     "elastic-search": {
