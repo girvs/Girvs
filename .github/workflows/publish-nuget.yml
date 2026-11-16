@@ -1,0 +1,86 @@
+name: 发布 NuGet 包
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - '[0-9]*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK 与测试运行时
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: 检查运行环境
+        run: |
+          dotnet --info
+          docker info
+
+      - name: 解析版本号
+        id: version
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "发布版本：${VERSION}"
+
+      - name: 还原依赖
+        run: dotnet restore Girvs.slnx
+
+      - name: 构建
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.version }}
+        run: >
+          dotnet build Girvs.slnx -c Release --no-restore
+          -p:Version="$PACKAGE_VERSION"
+          -p:PackageVersion="$PACKAGE_VERSION"
+          -p:GeneratePackageOnBuild=false
+
+      - name: 运行测试
+        run: dotnet test Girvs.slnx -c Release --no-build --no-restore
+
+      - name: 打包
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.version }}
+        run: >
+          dotnet pack Girvs.slnx -c Release --no-build --no-restore
+          -p:Version="$PACKAGE_VERSION"
+          -p:PackageVersion="$PACKAGE_VERSION"
+          -p:GeneratePackageOnBuild=false
+          -o ./artifacts
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/*.nupkg
+          if-no-files-found: error
+
+      - name: 推送至 NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::error::仓库 Secret NUGET_API_KEY 未配置"
+            exit 1
+          fi
+          dotnet nuget push "./artifacts/*.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
