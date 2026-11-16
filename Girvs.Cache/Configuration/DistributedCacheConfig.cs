@@ -7,8 +7,12 @@ namespace Girvs.Cache.Configuration;
 /// </summary>
 public partial class DistributedCacheConfig
 {
-    /// <summary>引用 Resources 中的缓存资源键。</summary>
-    public string ConnectionRef { get; set; }
+    /// <summary>
+    /// 缓存资源引用：索引 0 为 Resources 资源键格式串，索引 1 起为 string.Format 参数；
+    /// 同一组参数既用于组合资源键，也用于格式化资源的 Settings:Endpoints。
+    /// 例如 ["common-redis", "0"] 会引用资源 common-redis，并把 Endpoints 中的 {0} 替换为 0。
+    /// </summary>
+    public string[] ConnectionRef { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether we should use distributed cache
@@ -47,11 +51,13 @@ public partial class DistributedCacheConfig
     public string BuildConnectionString(GirvsInfrastructureResource resource)
     {
         ArgumentNullException.ThrowIfNull(resource);
-        return resource.Type.ToLowerInvariant() switch
+        return (resource.Type ?? string.Empty).ToLowerInvariant() switch
         {
             // "sqlserver" => BuildSqlServerConnectionString(resource),
             "redis" or "redis-synchronized-memory" => BuildRedisConnectionString(resource),
-            _ => throw new GirvsException($"Resources:{ConnectionRef}:Type 不支持缓存"),
+            _ => throw new GirvsException(
+                $"Resources:{InfrastructureResourceReferenceResolver.FormatResourceKey(ConnectionRef)}:Type 不支持缓存"
+            ),
         };
     }
 
@@ -76,15 +82,28 @@ public partial class DistributedCacheConfig
 
     private string BuildRedisConnectionString(GirvsInfrastructureResource resource)
     {
+        var resourceKey = InfrastructureResourceReferenceResolver.FormatResourceKey(ConnectionRef);
         if (!resource.Settings.TryGetValue("Endpoints", out var endpoints) || string.IsNullOrWhiteSpace(endpoints))
-            throw new GirvsException($"Resources:{ConnectionRef}:Settings:Endpoints 未配置");
+            throw new GirvsException($"Resources:{resourceKey}:Settings:Endpoints 未配置");
 
-        var parts = endpoints.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+        // Endpoints 支持与资源键相同的占位符参数，例如 common-redis 的 defaultdatabase={0}
+        var formattedEndpoints = InfrastructureResourceReferenceResolver.FormatValue(endpoints, ConnectionRef);
+
+        var parts = formattedEndpoints
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .ToList();
         if (parts.Count == 0)
-            throw new GirvsException($"Resources:{ConnectionRef}:Settings:Endpoints 未配置");
-        if (resource.Settings.TryGetValue("Ssl", out var ssl) && bool.TryParse(ssl, out var useSsl) && useSsl)
+            throw new GirvsException($"Resources:{resourceKey}:Settings:Endpoints 未配置");
+        if (
+            resource.Settings.TryGetValue("Ssl", out var ssl)
+            && bool.TryParse(ssl, out var useSsl)
+            && useSsl
+            && !parts.Any(part => part.StartsWith("ssl=", StringComparison.OrdinalIgnoreCase))
+        )
             parts.Add("ssl=True");
-        parts.Add($"defaultDatabase={DefaultDatabase}");
+        // Endpoints 已显式指定逻辑库时以模板为准，避免追加项覆盖引用参数
+        if (!parts.Any(part => part.StartsWith("defaultdatabase=", StringComparison.OrdinalIgnoreCase)))
+            parts.Add($"defaultDatabase={DefaultDatabase}");
         return string.Join(',', parts);
     }
 }

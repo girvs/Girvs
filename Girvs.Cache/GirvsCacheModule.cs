@@ -1,5 +1,6 @@
 ﻿using Girvs.Cache.CacheImps;
 using Girvs.Cache.Caching;
+using Girvs.Configuration.Resources;
 using Microsoft.AspNetCore.Hosting;
 
 namespace Girvs.Cache;
@@ -16,10 +17,18 @@ public class GirvsCacheModule : IAppModuleStartup
         services.AddSingleton<ICacheKeyManager, CacheKeyManager>();
         services.AddScoped<IShortTermCacheManager, PerRequestCacheManager>();
 
-        if (distributedCacheConfig.Enabled && !string.IsNullOrWhiteSpace(distributedCacheConfig.ConnectionRef))
+        if (
+            distributedCacheConfig.Enabled
+            && InfrastructureResourceReferenceResolver.IsConfigured(
+                distributedCacheConfig.ConnectionRef
+            )
+        )
         {
-            var resource = Singleton<AppSettings>.Instance.Resources[distributedCacheConfig.ConnectionRef];
-            switch (resource.Type.ToLowerInvariant())
+            var resource = InfrastructureResourceReferenceResolver.GetRequiredResource(
+                distributedCacheConfig.ConnectionRef
+            );
+
+            switch ((resource.Type ?? string.Empty).ToLowerInvariant())
             {
                 // case "sqlserver":
                 //     var sqlServerConnectionString = GetConnectionString(cacheConfig);
@@ -81,10 +90,9 @@ public class GirvsCacheModule : IAppModuleStartup
     private static string GetConnectionString(CacheConfig cacheConfig)
     {
         var cache = cacheConfig.DistributedCacheConfig;
-        var resources = Singleton<AppSettings>.Instance.Resources;
-        var resource = resources.TryGetValue(cache.ConnectionRef, out var value)
-            ? value
-            : throw new GirvsException($"Resources:{cache.ConnectionRef} 未配置");
+        var resource = InfrastructureResourceReferenceResolver.GetRequiredResource(
+            cache.ConnectionRef
+        );
         return cache.BuildConnectionString(resource);
     }
 }

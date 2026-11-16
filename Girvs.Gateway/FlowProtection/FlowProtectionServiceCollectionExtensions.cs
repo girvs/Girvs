@@ -101,20 +101,23 @@ public static class FlowProtectionServiceCollectionExtensions
             throw new GirvsException("FlowProtection 启用时必须启用 Girvs.Cache 分布式缓存");
         }
 
-        if (string.IsNullOrWhiteSpace(distributedCache.ConnectionRef))
+        if (!InfrastructureResourceReferenceResolver.IsConfigured(distributedCache.ConnectionRef))
         {
             throw new GirvsException("FlowProtection 启用时 CacheConfig.DistributedCacheConfig.ConnectionRef 不能为空");
         }
 
+        var resourceKey = InfrastructureResourceReferenceResolver.FormatResourceKey(
+            distributedCache.ConnectionRef
+        );
         var resources = configuration.GetSection("Resources").Get<Dictionary<string, GirvsInfrastructureResource>>() ?? [];
-        if (!resources.TryGetValue(distributedCache.ConnectionRef, out var resource))
+        if (!resources.TryGetValue(resourceKey, out var resource))
         {
-            throw new GirvsException($"Resources:{distributedCache.ConnectionRef} 未配置");
+            throw new GirvsException($"Resources:{resourceKey} 未配置");
         }
 
         if (!string.Equals(resource.Type, "redis", StringComparison.OrdinalIgnoreCase))
         {
-            throw new GirvsException($"Resources:{distributedCache.ConnectionRef}:Type 必须为 redis");
+            throw new GirvsException($"Resources:{resourceKey}:Type 必须为 redis");
         }
 
         // 不在此处检查 IRedisConnectionWrapper 是否已注册：GirvsCacheModule 在

@@ -57,7 +57,7 @@ public class FlowProtectionRegistrationTests
             ["FlowProtection:Flows:0:Steps:1:Method"] = "POST",
             ["FlowProtection:Flows:0:Steps:1:Path"] = "/api/b",
             ["ModuleConfigurations:CacheConfig:DistributedCacheConfig:Enabled"] = "true",
-            ["ModuleConfigurations:CacheConfig:DistributedCacheConfig:ConnectionRef"] = "cache",
+            ["ModuleConfigurations:CacheConfig:DistributedCacheConfig:ConnectionRef:0"] = "cache",
         };
 
         if (!string.IsNullOrWhiteSpace(resourceType))

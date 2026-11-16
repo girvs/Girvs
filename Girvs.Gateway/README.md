@@ -97,7 +97,7 @@ Aspire 模式下地址来自 AppHost 注入给网关项目的 `services:{Service
     "CacheConfig": {
       "DistributedCacheConfig": {
         "Enabled": true,
-        "ConnectionRef": "gateway-redis"
+        "ConnectionRef": ["gateway-redis"]
       }
     }
   },

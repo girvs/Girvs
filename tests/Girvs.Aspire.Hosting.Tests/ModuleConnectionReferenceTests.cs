@@ -1,6 +1,8 @@
+using System.Text;
 using Girvs.Cache.Configuration;
 using Girvs.EntityFrameworkCore.Configuration;
 using Girvs.EventBus.Configuration;
+using Microsoft.Extensions.Configuration;
 
 
 namespace Girvs.Aspire.Hosting.Tests;
@@ -10,7 +12,7 @@ public class ModuleConnectionReferenceTests
     [Fact]
     public void Cache连接引用Redis资源时应用逻辑库与前缀()
     {
-        var cache = new DistributedCacheConfig { ConnectionRef = "cache" };
+        var cache = new DistributedCacheConfig { ConnectionRef = ["cache"] };
 
         cache.DefaultDatabase = 3;
 
@@ -29,9 +31,83 @@ public class ModuleConnectionReferenceTests
     }
 
     [Fact]
+    public void CacheFromJson引用共享配置中的模板资源时按参数生成连接串()
+    {
+        const string json = """
+        {
+          "ModuleConfigurations": {
+            "CacheConfig": {
+              "DistributedCacheConfig": {
+                "Enabled": true,
+                "ConnectionRef": ["common-redis", "2"]
+              }
+            }
+          },
+          "Resources": {
+            "common-redis": {
+              "Type": "redis",
+              "Settings": {
+                "Endpoints": "192.168.51.183:6379,ssl=False,defaultdatabase={0}"
+              }
+            }
+          }
+        }
+        """;
+
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        var configuration = new ConfigurationBuilder().AddJsonStream(stream).Build();
+
+        var cacheConfig = configuration
+            .GetSection("ModuleConfigurations:CacheConfig")
+            .Get<CacheConfig>();
+
+        Assert.Equal(["common-redis", "2"], cacheConfig.DistributedCacheConfig.ConnectionRef);
+
+        var resource = configuration
+            .GetSection("Resources")
+            .Get<Dictionary<string, GirvsInfrastructureResource>>()["common-redis"];
+
+        Assert.Equal(
+            "192.168.51.183:6379,ssl=False,defaultdatabase=2",
+            cacheConfig.DistributedCacheConfig.BuildConnectionString(resource)
+        );
+    }
+
+    [Fact]
+    public void Cache资源引用带参数时格式化Endpoints且不重复追加逻辑库()
+    {
+        var cache = new DistributedCacheConfig { ConnectionRef = ["common-redis", "5"] };
+
+        var connectionString = cache.BuildConnectionString(
+            new GirvsInfrastructureResource
+            {
+                Type = "redis",
+                Settings = new Dictionary<string, string>
+                {
+                    ["Endpoints"] = "redis:6379,ssl=False,defaultdatabase={0}",
+                },
+            }
+        );
+
+        Assert.Equal("redis:6379,ssl=False,defaultdatabase=5", connectionString);
+    }
+
+    [Fact]
+    public void Cache引用不支持的资源类型时资源键按参数组合()
+    {
+        var cache = new DistributedCacheConfig { ConnectionRef = ["cache-{0}", "prod"] };
+
+        var exception = Assert.Throws<GirvsException>(() =>
+            cache.BuildConnectionString(new GirvsInfrastructureResource { Type = "sqlserver" })
+        );
+
+        Assert.Contains("Resources:cache-prod:Type 不支持缓存", exception.Message);
+    }
+
+    [Fact]
     public void Cache连接引用SqlServer资源时抛出不支持异常()
     {
-        var cache = new DistributedCacheConfig { ConnectionRef = "cache-db" };
+        var cache = new DistributedCacheConfig { ConnectionRef = ["cache-db"] };
 
         var exception = Assert.Throws<GirvsException>(() =>
             cache.BuildConnectionString(

@@ -39,7 +39,7 @@ girvs.shared.json(共享文件,GIRVS_SHARED_CONFIG 指向)
 {
   "ModuleConfigurations": {
     "CacheConfig": {
-      "DistributedCacheConfig": { "Enabled": true, "ConnectionRef": "platform-redis" }
+      "DistributedCacheConfig": { "Enabled": true, "ConnectionRef": ["platform-redis"] }
     },
     "DbConfig": {
       "DataConnectionConfigs": [
