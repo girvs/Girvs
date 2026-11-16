@@ -1,4 +1,5 @@
 using DotNetCore.CAP.Internal;
+using Girvs.Configuration.Resources;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -15,13 +16,20 @@ public class EventBusModule : IAppModuleStartup
 
         services.AddScoped<IEventBus, CapEventBus.CapEventBus>();
 
-        var resources = Singleton<AppSettings>.Instance.Resources;
-        var connStr = eventBusConfig.BuildPersistenceConnectionString(
-            resources[eventBusConfig.PersistenceConnectionRef]
+        // 资源引用为数组：索引 0 为资源键格式串，索引 1 起同时用于组合资源键与格式化 Settings 模板
+        var persistenceResource = InfrastructureResourceReferenceResolver.GetRequiredResource(
+            eventBusConfig.PersistenceConnectionRef
         );
-        var transport = resources[eventBusConfig.TransportConnectionRef];
-        var persistenceType = resources[eventBusConfig.PersistenceConnectionRef]
-            .Type.ToLowerInvariant();
+        var transportResource = InfrastructureResourceReferenceResolver.GetRequiredResource(
+            eventBusConfig.TransportConnectionRef
+        );
+
+        var connStr = InfrastructureResourceReferenceResolver.GetRequiredSetting(
+            eventBusConfig.PersistenceConnectionRef,
+            "ConnectionString"
+        );
+        var persistenceType = (persistenceResource.Type ?? string.Empty).ToLowerInvariant();
+        var transportType = (transportResource.Type ?? string.Empty).ToLowerInvariant();
 
         services
             .AddCap(x =>
@@ -42,36 +50,30 @@ public class EventBusModule : IAppModuleStartup
                         break;
                 }
 
-                switch (transport.Type.ToLowerInvariant())
+                switch (transportType)
                 {
                     case "rabbitmq":
                         x.UseRabbitMQ(options =>
                         {
                             options.ConnectionFactoryOptions = factory =>
                             {
-                                factory.Uri = new Uri(transport.Settings["ConnectionString"]);
+                                factory.Uri = new Uri(
+                                    InfrastructureResourceReferenceResolver.GetRequiredSetting(
+                                        eventBusConfig.TransportConnectionRef,
+                                        "ConnectionString"
+                                    )
+                                );
                             };
-                            // options.HostName =
-                            //     transport.Settings.GetValueOrDefault("HostName")
-                            //     ?? transport.Settings.GetValueOrDefault("Host");
-                            // options.Port = int.TryParse(
-                            //     transport.Settings.GetValueOrDefault("Port"),
-                            //     out var port
-                            // )
-                            //     ? port
-                            //     : 5672;
-                            // options.UserName = transport.Settings.GetValueOrDefault("UserName");
-                            // options.Password = transport.Settings.GetValueOrDefault("Password");
-                            // options.VirtualHost =
-                            //     transport.Settings.GetValueOrDefault("VirtualHost") ?? "/";
                         });
                         break;
                     case "kafka":
                         x.UseKafka(configure =>
                         {
-                            var raw = transport.Settings.GetValueOrDefault("KafkaConnectionString");
-                            if (string.IsNullOrWhiteSpace(raw))
-                                return;
+                            var raw =
+                                InfrastructureResourceReferenceResolver.GetRequiredSetting(
+                                    eventBusConfig.TransportConnectionRef,
+                                    "ConnectionString"
+                                );
 
                             var parts = raw.Split(';', StringSplitOptions.RemoveEmptyEntries);
 
@@ -115,7 +117,12 @@ public class EventBusModule : IAppModuleStartup
                         });
                         break;
                     case "redis":
-                        x.UseRedis(transport.Settings.GetValueOrDefault("Endpoints"));
+                        x.UseRedis(
+                            InfrastructureResourceReferenceResolver.GetRequiredSetting(
+                                eventBusConfig.TransportConnectionRef,
+                                "Endpoints"
+                            )
+                        );
                         break;
                 }
 

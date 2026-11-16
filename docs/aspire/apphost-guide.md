@@ -47,8 +47,8 @@ girvs.shared.json(共享文件,GIRVS_SHARED_CONFIG 指向)
       ]
     },
     "EventBusConfig": {
-      "PersistenceConnectionRef": "order-mysql",
-      "TransportConnectionRef": "platform-rabbitmq"
+      "PersistenceConnectionRef": ["order-mysql", "order"],
+      "TransportConnectionRef": ["platform-rabbitmq"]
     }
   }
 }
@@ -89,7 +89,7 @@ builder.Build().Run();
 | `AddRabbitMQ` | `rabbitmq` | `HostName`、`Port`、`UserName`、`Password`、`VirtualHost` |
 | `AddKafka` | `kafka` | `BootstrapServers` |
 
-> EF Core 模块现只消费 `Settings:ConnectionString`，上表 MySQL/SQL Server 生成的结构化键暂供 EventBus 等模块使用。若要让 EF 接入 Aspire 编排的 MySQL/SQL Server，需在 provider 中同步输出 `ConnectionString` 模板（如 `Server=...;Database={0};...`）；同名手写资源会被 `AsGirvsResource` 覆盖，不能作为绕过手段。
+> EF Core 与事件总线模块现只消费 `Settings:ConnectionString`（事件总线的 Redis Transport 消费 `Settings:Endpoints`），上表 MySQL/SQL Server/RabbitMQ/Kafka 生成的结构化键尚不能直接被这两个模块消费。若要接入 Aspire 编排的 MySQL/SQL Server/RabbitMQ/Kafka，需在 provider 中同步输出 `ConnectionString` 模板（如 `Server=...;Database={0};...`）；同名手写资源会被 `AsGirvsResource` 覆盖，不能作为绕过手段。
 
 ### 扩展其他资源类型
 
@@ -113,7 +113,7 @@ public class SqliteSettingsProvider : IGirvsResourceSettingsProvider
 }
 ```
 
-参照实现见 `samples/Sample.AppHost/`:`SqliteResource.cs`(无容器本地文件,实现 `IResourceWithoutLifetime` 免 WaitFor)与 `MongoSettingsProvider.cs`(官方集成包容器)。服务端对应模块的 `BuildConnectionString` 需要认识该 Type 才能消费(资源模型的 Type 是开放字符串,由消费模块解释)。
+参照实现见 `samples/Sample.AppHost/`:`SqliteResource.cs`(无容器本地文件,实现 `IResourceWithoutLifetime` 免 WaitFor)与 `MongoSettingsProvider.cs`(官方集成包容器)。服务端对应模块需要认识该 Type 才能消费(资源模型的 Type 是开放字符串,由消费模块解释)。
 
 ### 共享文件(girvs.shared.json)
 
@@ -135,7 +135,7 @@ AppHost 目录下的 `girvs.shared.json` 既是手写文件也是运行产物:�
 - **Dashboard 里看不到日志?** 确认服务由 AppHost 启动(`OTEL_EXPORTER_OTLP_ENDPOINT` 由 Aspire 自动注入);框架保留 Serilog,OTLP 是追加的 sink,本地文件/控制台日志不受影响。
 - **改了 girvs.shared.json 服务没生效?** 共享文件以 `reloadOnChange` 加载,但绑定进 `Singleton<AppSettings>` 的值是启动时快照,改资源配置需重启服务。
 - **服务本地为什么不再回写 appsettings.json?** 设置了 `GIRVS_SHARED_CONFIG` 时框架跳过 AppSettings 回写,避免把共享文件中的动态地址固化到本地文件反向覆盖。
-- **数据库连接串格式?** 由各模块的 `BuildConnectionString` 按 `Resources` 的 Settings 组装,与手工连接串等价。
+- **数据库连接串格式?** 由各模块按 `Resources` 的 Settings 模板取值组装,与手工连接串等价。
 - **本机若配了 http 代理**:启动 AppHost 须带 `no_proxy=localhost,127.0.0.1,::1`,否则 Aspire 的 localhost 通信被塞进代理而失败。
 
 ## 7. 权威参照实现(推荐照抄)

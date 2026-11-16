@@ -10,28 +10,7 @@ namespace Girvs.Aspire.Hosting.Tests;
 public class ModuleConnectionReferenceTests
 {
     [Fact]
-    public void Cache连接引用Redis资源时应用逻辑库与前缀()
-    {
-        var cache = new DistributedCacheConfig { ConnectionRef = ["cache"] };
-
-        cache.DefaultDatabase = 3;
-
-        var connectionString = cache.BuildConnectionString(
-            new GirvsInfrastructureResource
-            {
-                Type = "redis",
-                Settings = new Dictionary<string, string>
-                {
-                    ["Endpoints"] = "redis:6379",
-                },
-            }
-        );
-
-        Assert.Equal("redis:6379,defaultDatabase=3", connectionString);
-    }
-
-    [Fact]
-    public void CacheFromJson引用共享配置中的模板资源时按参数生成连接串()
+    public void CacheFromJson引用共享配置中的模板资源时绑定数组引用()
     {
         const string json = """
         {
@@ -69,67 +48,15 @@ public class ModuleConnectionReferenceTests
 
         Assert.Equal(
             "192.168.51.183:6379,ssl=False,defaultdatabase=2",
-            cacheConfig.DistributedCacheConfig.BuildConnectionString(resource)
-        );
-    }
-
-    [Fact]
-    public void Cache资源引用带参数时格式化Endpoints且不重复追加逻辑库()
-    {
-        var cache = new DistributedCacheConfig { ConnectionRef = ["common-redis", "5"] };
-
-        var connectionString = cache.BuildConnectionString(
-            new GirvsInfrastructureResource
-            {
-                Type = "redis",
-                Settings = new Dictionary<string, string>
-                {
-                    ["Endpoints"] = "redis:6379,ssl=False,defaultdatabase={0}",
-                },
-            }
-        );
-
-        Assert.Equal("redis:6379,ssl=False,defaultdatabase=5", connectionString);
-    }
-
-    [Fact]
-    public void Cache引用不支持的资源类型时资源键按参数组合()
-    {
-        var cache = new DistributedCacheConfig { ConnectionRef = ["cache-{0}", "prod"] };
-
-        var exception = Assert.Throws<GirvsException>(() =>
-            cache.BuildConnectionString(new GirvsInfrastructureResource { Type = "sqlserver" })
-        );
-
-        Assert.Contains("Resources:cache-prod:Type 不支持缓存", exception.Message);
-    }
-
-    [Fact]
-    public void Cache连接引用SqlServer资源时抛出不支持异常()
-    {
-        var cache = new DistributedCacheConfig { ConnectionRef = ["cache-db"] };
-
-        var exception = Assert.Throws<GirvsException>(() =>
-            cache.BuildConnectionString(
-                new GirvsInfrastructureResource
-                {
-                    Type = "sqlserver",
-                    Settings = new Dictionary<string, string>
-                    {
-                        ["Host"] = "sqlserver",
-                        ["Database"] = "cache",
-                        ["UserName"] = "sa",
-                        ["Password"] = "password",
-                    },
-                }
+            InfrastructureResourceReferenceResolver.FormatValue(
+                resource.Settings["Endpoints"],
+                cacheConfig.DistributedCacheConfig.ConnectionRef
             )
         );
-
-        Assert.Contains("Resources:cache-db:Type 不支持缓存", exception.Message);
     }
 
     [Fact]
-    public void EF主从库与EventBus持久化连接均从资源组装()
+    public void EF主从库连接从资源模板组装()
     {
         var db = new DataConnectionConfig
         {
@@ -137,7 +64,6 @@ public class ModuleConnectionReferenceTests
             ConnectionRef = ["ailynx"],
             ReadConnectionRefs = [["ailynx-read"]],
         };
-        var eventBus = new EventBusConfig { PersistenceConnectionRef = "ailynx" };
         var resources = new Dictionary<string, GirvsInfrastructureResource>
         {
             ["ailynx"] = new GirvsInfrastructureResource
@@ -171,10 +97,6 @@ public class ModuleConnectionReferenceTests
         Assert.Contains("Server=mysql-read", db.GetSecureRandomReadDataConnectionString());
         Assert.Contains("Allow User Variables=True", db.GetMasterDataConnectionString());
         Assert.Contains("Allow User Variables=True", db.GetSecureRandomReadDataConnectionString());
-        Assert.Contains(
-            "Server=mysql",
-            eventBus.BuildPersistenceConnectionString(resources["ailynx"])
-        );
     }
 
     [Fact]
@@ -215,80 +137,60 @@ public class ModuleConnectionReferenceTests
     }
 
     [Fact]
-    public void EventBus持久化连接引用SqlServer资源时组装连接串()
+    public void EventBusFromJson引用共享配置中的模板资源时绑定数组引用()
     {
-        var eventBus = new EventBusConfig { PersistenceConnectionRef = "eventbus-db" };
-
-        var connectionString = eventBus.BuildPersistenceConnectionString(
-            new GirvsInfrastructureResource
-            {
-                Type = "sqlserver",
-                Settings = new Dictionary<string, string>
-                {
-                    ["Host"] = "sqlserver",
-                    ["Port"] = "1433",
-                    ["Database"] = "eventbus",
-                    ["UserName"] = "sa",
-                    ["Password"] = "password",
-                },
-            }
-        );
-
-        Assert.Contains("Data Source=sqlserver,1433", connectionString);
-        Assert.Contains("Initial Catalog=eventbus", connectionString);
-        Assert.Contains("User ID=sa", connectionString);
-        Assert.Contains("Password=password", connectionString);
-    }
-
-    [Fact]
-    public void EventBus持久化连接未指定数据库名时使用默认库名()
-    {
-        var eventBus = new EventBusConfig { PersistenceConnectionRef = "eventbus-db" };
-
-        var mySqlConnectionString = eventBus.BuildPersistenceConnectionString(
-            new GirvsInfrastructureResource
-            {
-                Type = "mysql",
-                Settings = new Dictionary<string, string> { ["Host"] = "mysql" },
-            }
-        );
-        var sqlServerConnectionString = eventBus.BuildPersistenceConnectionString(
-            new GirvsInfrastructureResource
-            {
-                Type = "sqlserver",
-                Settings = new Dictionary<string, string> { ["Host"] = "sqlserver" },
-            }
-        );
-
-        Assert.Contains("Database=Girvs_EventBus", mySqlConnectionString);
-        Assert.Contains("Initial Catalog=Girvs_EventBus", sqlServerConnectionString);
-    }
-
-    [Fact]
-    public void EventBus持久化连接引用Sqlite资源时组装连接串()
-    {
-        var eventBus = new EventBusConfig { PersistenceConnectionRef = "eventbus-sqlite" };
-
-        var connectionString = eventBus.BuildPersistenceConnectionString(
-            new GirvsInfrastructureResource
-            {
-                Type = "sqlite",
-                Settings = new Dictionary<string, string> { ["DataSource"] = "eventbus.db" },
-            }
-        );
-
-        Assert.Equal("Data Source=eventbus.db", connectionString);
-    }
-
-    [Fact]
-    public void EventBusRedisTransport使用资源端点()
-    {
-        var resource = new GirvsInfrastructureResource
+        const string json = """
         {
-            Type = "redis",
-            Settings = new Dictionary<string, string> { ["Endpoints"] = "redis:6379" },
-        };
+          "ModuleConfigurations": {
+            "EventBusConfig": {
+              "PersistenceConnectionRef": ["common-mysql", "girvs_event_test"],
+              "TransportConnectionRef": ["common-redis", "1"]
+            }
+          },
+          "Resources": {
+            "common-mysql": {
+              "Type": "mysql",
+              "Settings": {
+                "ConnectionString": "Server=192.168.51.183;Port=3306;Database={0};User=root;Password=secret;"
+              }
+            },
+            "common-redis": {
+              "Type": "redis",
+              "Settings": {
+                "Endpoints": "192.168.51.183:6379,ssl=False,defaultdatabase={0}"
+              }
+            }
+          }
+        }
+        """;
 
-        Assert.Equal("redis:6379", resource.Settings["Endpoints"]);
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        var configuration = new ConfigurationBuilder().AddJsonStream(stream).Build();
+
+        var eventBusConfig = configuration
+            .GetSection("ModuleConfigurations:EventBusConfig")
+            .Get<EventBusConfig>();
+
+        Assert.Equal(["common-mysql", "girvs_event_test"], eventBusConfig.PersistenceConnectionRef);
+        Assert.Equal(["common-redis", "1"], eventBusConfig.TransportConnectionRef);
+
+        var resources = configuration
+            .GetSection("Resources")
+            .Get<Dictionary<string, GirvsInfrastructureResource>>();
+
+        Assert.Equal(
+            "Server=192.168.51.183;Port=3306;Database=girvs_event_test;User=root;Password=secret;",
+            InfrastructureResourceReferenceResolver.FormatValue(
+                resources["common-mysql"].Settings["ConnectionString"],
+                eventBusConfig.PersistenceConnectionRef
+            )
+        );
+        Assert.Equal(
+            "192.168.51.183:6379,ssl=False,defaultdatabase=1",
+            InfrastructureResourceReferenceResolver.FormatValue(
+                resources["common-redis"].Settings["Endpoints"],
+                eventBusConfig.TransportConnectionRef
+            )
+        );
     }
 }

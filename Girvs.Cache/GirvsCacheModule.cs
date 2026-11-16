@@ -45,7 +45,11 @@ public class GirvsCacheModule : IAppModuleStartup
                 //     break;
 
                 case "redis":
-                    var redisConnectionString = GetConnectionString(cacheConfig);
+                    var redisConnectionString =
+                        InfrastructureResourceReferenceResolver.GetRequiredSetting(
+                            distributedCacheConfig.ConnectionRef,
+                            "Endpoints"
+                        );
                     services.AddSingleton<RedisConnectionWrapper>();
                     services.AddSingleton<IRedisConnectionWrapper>(sp =>
                         sp.GetRequiredService<RedisConnectionWrapper>()
@@ -61,7 +65,11 @@ public class GirvsCacheModule : IAppModuleStartup
                     break;
 
                 case "redis-synchronized-memory":
-                    var synchronizedRedisConnectionString = GetConnectionString(cacheConfig);
+                    var synchronizedRedisConnectionString =
+                        InfrastructureResourceReferenceResolver.GetRequiredSetting(
+                            distributedCacheConfig.ConnectionRef,
+                            "Endpoints"
+                        );
                     // RedisSynchronizedMemoryCache 以本地内存缓存为主存储、Redis 仅做失效同步,必须注册 IMemoryCache
                     services.AddSingleton<IMemoryCache>(new MemoryCache(new MemoryCacheOptions()));
                     services.AddSingleton<RedisConnectionWrapper>();
@@ -96,15 +104,6 @@ public class GirvsCacheModule : IAppModuleStartup
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 1;
-
-    private static string GetConnectionString(CacheConfig cacheConfig)
-    {
-        var cache = cacheConfig.DistributedCacheConfig;
-        var resource = InfrastructureResourceReferenceResolver.GetRequiredResource(
-            cache.ConnectionRef
-        );
-        return cache.BuildConnectionString(resource);
-    }
 
     /// <summary>
     /// 让 IDistributedCache 复用 RedisConnectionWrapper 的连接，避免同一 Redis
