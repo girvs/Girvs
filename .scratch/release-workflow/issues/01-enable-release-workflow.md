@@ -1,5 +1,5 @@
-Status: needs-info
-Blocked by: 新密钥的 Package owner 为 Girvs，但发布包属于 kicck；需为正确所有者创建或授权发布密钥并更新仓库 Secret。
+Status: completed
+Blocked by: 无
 
 # 补齐工作流并触发标签发布
 
@@ -8,7 +8,7 @@ Blocked by: 新密钥的 Package owner 为 Girvs，但发布包属于 kicck；�
 - [x] 校验工作流语法、Release 构建及版本打包。
 - [x] 提交推送并安全更新 v11.0.0-preview1.0。
 - [x] 查看实际 GitHub Actions 结果，记录任何阻碍。
-- [ ] 仓库维护者更新过期的 NUGET_API_KEY Secret 后，重跑流水线完成 NuGet 推送。
+- [x] 仓库维护者更新过期的 NUGET_API_KEY Secret 后，重跑流水线完成 NuGet 推送。
 
 ## Comments
 
@@ -27,3 +27,7 @@ Blocked by: 新密钥的 Package owner 为 Girvs，但发布包属于 kicck；�
 2026-11-16：主公再次确认已更新 API key，并要求重试；已启动 attempt 4，API 确认 in_progress，提交仍为 4455366。亮未创建或轮换任何密钥。
 
 2026-11-16：attempt 4 的构建、完整测试、打包和产物上传均通过。NuGet 错误已从明确的过期变为无效、过期或无包访问权限。进一步核对：当前新密钥未过期，但 Package owner 为 Girvs，Glob 为 Girvs*；被拒绝的 Girvs.Aspire.Hosting 包仅归 kicck 所有，密钥所有者范围不匹配。需使用 kicck 所有者范围的有效发布密钥，更新 Secret 后重跑。
+
+2026-11-16：主公按建议更新后再次要求重试。已核对新密钥未过期，Package owner=kicck、Glob pattern=Girvs*，允许推送新包及版本；启动 attempt 5，API 确认 in_progress，提交与标签仍为 4455366。
+
+2026-11-16：attempt 5 完整成功，构建、完整测试、打包、产物上传与 NuGet 推送所有步骤均为 success。推送日志确认多个包获得 NuGet Created 响应与 Your package was pushed。v11.0.0-preview1.0 对应的 17 库发布流程已完成，无需再改代码或标签。此前的过期与所有者范围问题已解除。

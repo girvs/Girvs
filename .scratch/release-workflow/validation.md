@@ -2,6 +2,8 @@
 
 日期：2026-11-16。
 
+最终结果：已完成 [运行 #4 的 attempt 5](https://github.com/girvs/Girvs/actions/runs/43824307093/attempts/5)，构建、完整测试、打包、产物上传及 NuGet 推送均成功。发布标签 v11.0.0-preview1.0 仍指向 4455366。
+
 ## 实现
 
 新增 `.github/workflows/publish-nuget.yml`，延续 master 的两类标签规则：`v*` 与 `[0-9]*`。
@@ -45,7 +47,7 @@ Git blame 确认 Unix 补根路径逻辑自 2022 年即存在，本次只修正�
 The specified API key has expired. Please create a new API key at https://www.nuget.org/account/apikeys.
 ```
 
-当前剩余阻碍为过期的仓库 Secret NUGET_API_KEY，未宣称 NuGet 发布成功。维护者需要在 NuGet 生成具有所需包推送权限的新 API key，并在 GitHub 仓库 Settings → Secrets and variables → Actions 更新同名 Secret。随后可重跑运行 #4，无需再次改代码或移动标签。17 个包已通过 Actions artifact 步骤保存。
+该次执行的剩余阻碍为过期的仓库 Secret NUGET_API_KEY，当时未完成 NuGet 发布。需要在 NuGet 生成具有所需包推送权限的新 API key，并在 GitHub 仓库 Settings → Secrets and variables → Actions 更新同名 Secret。17 个包已通过 Actions artifact 步骤保存。
 
 ### 后续凭据核验
 
@@ -54,3 +56,11 @@ The specified API key has expired. Please create a new API key at https://www.nu
 此时从账户页核对的新密钥确实未过期：Package owner 为 Girvs，Glob pattern 为 Girvs*，具有推送新包和版本的权限。但 [Girvs.Aspire.Hosting](https://www.nuget.org/packages/Girvs.Aspire.Hosting) 的 Owners 仅为 kicck，故该密钥的所有者范围无法授权此包。最新阻碍已变为所有者范围不匹配，不再认定当前新密钥过期。
 
 需要创建或调整为 Package owner=kicck、Glob pattern=Girvs*、允许推送新包及版本的有效密钥，并将完整值更新至仓库 NUGET_API_KEY 后重跑。亮未创建、修改或轮换任何密钥。
+
+### 最终发布成功
+
+主公按建议更新后，核对新密钥的所有者为 kicck、范围 Girvs*、权限为推送新包和版本，且未过期。随后启动 attempt 5，代码和标签均未变化。
+
+GitHub jobs API 确认 publish job（133195784246）结论为 success；其中完整测试、打包、产物上传及推送至 NuGet 全部为 success，总耗时 2 分 34 秒。浏览器日志确认多个包得到 NuGet Created 响应，并输出 Your package was pushed。17 个库的预览版本发布流程完成。
+
+推送后立即查询 Girvs 的 NuGet V3 版本索引时暂未包含新版本，因此不将搜索索引更新与推送接受混为一谈；最终发布结论依据真实成功的推送步骤及服务端 Created 响应。
