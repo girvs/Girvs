@@ -46,11 +46,11 @@ public interface IRepository<TEntity, in TPrimaryKey> where TEntity : Entity
     Task UpdateRangeAsync(List<TEntity> ts, params string[] fields);
 
     /// <summary>
-    /// 根据条件批量更新
+    /// 根据条件在主库立即批量更新，不经过变更跟踪，也不等待 Commit。
+    /// 如需与其他操作原子提交，应先在同一 DbContext 上开启写事务并由调用方提交或回滚。
     /// </summary>
     /// <param name="fieldValue">更新的字段名和值</param>
     /// <param name="predicate">条件</param>
-    /// <typeparam name="TP">字段类型</typeparam>
     /// <returns></returns>
     Task UpdateRangeAsync(
         Expression<Func<TEntity, bool>> predicate,
@@ -72,7 +72,7 @@ public interface IRepository<TEntity, in TPrimaryKey> where TEntity : Entity
     Task DeleteRangeAsync(List<TEntity> ts);
 
     /// <summary>
-    /// 根据条件进行批量删除
+    /// 根据条件在主库立即批量删除，不等待 Commit；参与同一 DbContext 已开启的写事务。
     /// </summary>
     /// <param name="predicate">条件表达式</param>
     /// <returns></returns>

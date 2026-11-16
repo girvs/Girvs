@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
-
-namespace Girvs.EntityFrameworkCore.Repositories;
+﻿namespace Girvs.EntityFrameworkCore.Repositories;
 
 public class Repository<TEntity> : Repository<TEntity, Guid>, IRepository<TEntity> where TEntity : class, Entity<Guid>
 {
@@ -93,30 +91,11 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntit
         params KeyValuePair<string, object>[] fieldValue
     )
     {
-        if (!fieldValue.Any()) return Task.CompletedTask;
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(fieldValue);
+        if (fieldValue.Length == 0) return Task.CompletedTask;
 
-#if NET10_0_OR_GREATER
-        return Queryable.Where(predicate).ExecuteUpdateAsync(x =>
-        {
-            foreach (var keyValuePair in fieldValue)
-            {
-                x.SetProperty(
-                    b => keyValuePair.Key,
-                    b => keyValuePair.Value
-                );
-            }
-        });
-#else
-               Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setPropertyCalls = b => b;
-
-        foreach (var keyValuePair in fieldValue)
-        {
-            setPropertyCalls =
-                setPropertyCalls.Append(b => b.SetProperty(b => keyValuePair.Key, b => keyValuePair.Value));
-        }
-
-        return Queryable.Where(predicate).ExecuteUpdateAsync(setPropertyCalls);
-#endif
+        return Queryable.Where(predicate).ExecuteUpdateFieldsAsync(DbContext, fieldValue);
     }
 
     public virtual Task DeleteAsync(TEntity t)
@@ -143,6 +122,8 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> where TEntit
 
     public virtual Task DeleteRangeAsync(Expression<Func<TEntity, bool>> predicate)
     {
+        ArgumentNullException.ThrowIfNull(predicate);
+        DbContext.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
         return Queryable.Where(predicate).ExecuteDeleteAsync();
     }
 

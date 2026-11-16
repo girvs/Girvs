@@ -1,3 +1,9 @@
+﻿using System.Collections.Concurrent;
+using System.Data;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.EntityFrameworkCore.Storage;
+
 namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
 public static class DbContextExtension
@@ -19,7 +25,18 @@ public static class DbContextExtension
 
         var conn = dbContext.Database.GetDbConnection();
 
-        // 不记录连接串原文（可能包含密码），仅记录目标数据库与连接状态。
+        if (string.Equals(dbContext.Database.GetConnectionString(), connStr, StringComparison.Ordinal))
+            return;
+
+        if (dbContext.Database.CurrentTransaction != null || System.Transactions.Transaction.Current != null)
+            throw new GirvsException("事务中不允许切换数据库，请在开启事务前选择主库");
+
+        if (conn.State != ConnectionState.Closed)
+            throw new GirvsException("连接打开时不允许切换数据库，请先关闭连接并在主库开启写操作");
+
+        dbContext.Database.SetConnectionString(connStr);
+
+        // 切换成功后记录实际目标数据库，不记录可能包含密码的连接串。
         logger?.LogInformation(
             "当前 DbContextId 为 {DbContextId}，当前数据的状态为 {ConnectionState}，切换数据库模式为 {DataBaseWriteAndRead}，目标数据库为 {DatabaseName}",
             dbContext.ContextId.InstanceId,
@@ -27,14 +44,28 @@ public static class DbContextExtension
             dataBaseWriteAndRead,
             conn.Database
         );
-
-        conn.ConnectionString = connStr;
     }
 
+    /// <summary>
+    /// 先选择主库，再开启显式写事务。调用方负责提交、回滚及释放；同一作用域仓储使用同一上下文参与事务。
+    /// </summary>
+    public static Task<IDbContextTransaction> BeginWriteTransactionAsync(
+        this DbContext dbContext,
+        CancellationToken cancellationToken = default)
+    {
+        dbContext.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
+        return dbContext.Database.BeginTransactionAsync(cancellationToken);
+    }
 
-    // 分表后缀需要去重且高频查询，用 HashSet 保持 O(1)。
-    private static readonly HashSet<string> MigrationSuffixs = new();
-    private static readonly object MigrationLock = new();
+    private sealed record MigrationCacheKey(Type ContextType, string Provider, string ConnectionFingerprint, string Suffix);
+
+    private sealed class MigrationState
+    {
+        public bool Applied { get; set; }
+    }
+
+    // 仅协调当前进程；跨实例须使用部署锁或确认提供程序支持迁移锁。
+    private static readonly ConcurrentDictionary<MigrationCacheKey, MigrationState> Migrations = new();
 
     /// <summary>
     /// 在分表的情况下进行自动迁移
@@ -45,36 +76,26 @@ public static class DbContextExtension
         
         var dbContextEntityShardingTableRelated =
             EngineContext.Current.GetShardingTableRelatedByDbContext(dbContext.GetType());
+        var config = EngineContext.Current.GetAppModuleConfig<DbConfig>().GetDataConnectionConfig(dbContext.GetType());
+        if (!config.EnableShardingTable || !dbContextEntityShardingTableRelated.IsExistShardingTableEntity)
+            return;
+
         var suffix = dbContextEntityShardingTableRelated.GetCurrentMigrationsHistoryShardingTableSuffix();
         
         if (suffix.IsNullOrEmpty())
             return;
 
-        lock (MigrationLock)
+        // 缓存只保存连接指纹，不保存连接串中的凭据；主库标识不受本次随机读库选择影响。
+        var fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(config.GetMasterDataConnectionString())));
+        var key = new MigrationCacheKey(dbContext.GetType(), dbContext.Database.ProviderName, fingerprint, suffix);
+        var state = Migrations.GetOrAdd(key, static _ => new MigrationState());
+        lock (state)
         {
-            if (MigrationSuffixs.Contains(suffix)) return;
-            if (GetNeedMigrationEntities().Count > 0)
-            {
-                //切换到写的数据库
-                dbContext.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
-                dbContext.Database.Migrate();
-            }
-
-            MigrationSuffixs.Add(suffix);
-        }
-    }
-
-    private static List<Type> GetNeedMigrationEntities()
-    {
-        try
-        {
-            var typeFinder = EngineContext.Current.Resolve<ITypeFinder>();
-            var result = typeFinder.FindOfType<ITenantShardingTable>().ToList();
-            return result;
-        }
-        catch
-        {
-            return new List<Type>();
+            if (state.Applied) return;
+            dbContext.SwitchReadWriteDataBase(DataBaseWriteAndRead.Write);
+            dbContext.Database.Migrate();
+            // 失败时不写入完成状态，后续调用可重试。
+            state.Applied = true;
         }
     }
 
