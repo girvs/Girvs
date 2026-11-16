@@ -41,7 +41,9 @@ public class FileProviderTests : IDisposable
     {
         var combined = _fileProvider.Combine("a", "b", "c.json");
 
-        Assert.Equal(Path.Combine("a", "b", "c.json"), combined);
+        // 提供程序在 Unix 上将相对片段规范化为根路径，Windows 上保留相对路径。
+        var expected = OperatingSystem.IsWindows() ? @"a\b\c.json" : "/a/b/c.json";
+        Assert.Equal(expected, combined);
     }
 
     [Fact]

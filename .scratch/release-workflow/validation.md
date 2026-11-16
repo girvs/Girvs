@@ -31,4 +31,8 @@
 
 ## 远端执行
 
-待提交、更新标签后记录 GitHub Actions 实际运行结果。
+工作流随 b7d3d6d 推送至 dev，标签从 b289929 安全更新至该提交，确认 [发布运行 #3](https://github.com/girvs/Girvs/actions/runs/43822530526) 成功触发。
+
+SDK、Docker、还原与构建均成功，完整测试发现 FileProviderTests.Combine_多段路径_合并为系统路径 在四个框架下失败：预期 a/b/c.json，实际 /a/b/c.json。其他测试，包括两个框架的 Redis 集成测试，均通过；发布阶段尚未执行。
+
+Git blame 确认 Unix 补根路径逻辑自 2022 年即存在，本次只修正跨平台测试预期，不修改库行为。修正后重新验证并更新标签触发完整发布。
