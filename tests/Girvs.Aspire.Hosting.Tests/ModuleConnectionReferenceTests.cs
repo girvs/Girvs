@@ -134,8 +134,8 @@ public class ModuleConnectionReferenceTests
         var db = new DataConnectionConfig
         {
             Name = "Ailynx",
-            ConnectionRef = "ailynx",
-            ReadConnectionRefs = ["ailynx-read"],
+            ConnectionRef = ["ailynx"],
+            ReadConnectionRefs = [["ailynx-read"]],
         };
         var eventBus = new EventBusConfig { PersistenceConnectionRef = "ailynx" };
         var resources = new Dictionary<string, GirvsInfrastructureResource>
@@ -148,6 +148,8 @@ public class ModuleConnectionReferenceTests
                     ["Host"] = "mysql",
                     ["Database"] = "Wb_Ailynx",
                     ["Port"] = "3306",
+                    ["ConnectionString"] =
+                        "Server=mysql;Port=3306;Database=Wb_Ailynx;User ID=root;Password=secret;Allow User Variables=True;",
                 },
             },
             ["ailynx-read"] = new GirvsInfrastructureResource
@@ -157,6 +159,8 @@ public class ModuleConnectionReferenceTests
                 {
                     ["Host"] = "mysql-read",
                     ["Database"] = "Wb_Ailynx",
+                    ["ConnectionString"] =
+                        "Server=mysql-read;Database=Wb_Ailynx;Allow User Variables=True;",
                 },
             },
         };
@@ -176,7 +180,7 @@ public class ModuleConnectionReferenceTests
     [Fact]
     public void EF未配置读库时读连接回退到主库()
     {
-        var db = new DataConnectionConfig { Name = "Ailynx", ConnectionRef = "ailynx" };
+        var db = new DataConnectionConfig { Name = "Ailynx", ConnectionRef = ["ailynx"] };
 
         db.ResolveConnectionStrings(
             new Dictionary<string, GirvsInfrastructureResource>
@@ -184,7 +188,10 @@ public class ModuleConnectionReferenceTests
                 ["ailynx"] = new GirvsInfrastructureResource
                 {
                     Type = "mysql",
-                    Settings = new Dictionary<string, string> { ["Host"] = "mysql" },
+                    Settings = new Dictionary<string, string>
+                    {
+                        ["ConnectionString"] = "Server=mysql;Database=Wb_Ailynx;",
+                    },
                 },
             }
         );
@@ -198,7 +205,7 @@ public class ModuleConnectionReferenceTests
     [Fact]
     public void EF引用的资源不存在时立即抛出()
     {
-        var db = new DataConnectionConfig { Name = "Ailynx", ConnectionRef = "missing" };
+        var db = new DataConnectionConfig { Name = "Ailynx", ConnectionRef = ["missing"] };
 
         var exception = Assert.Throws<GirvsException>(() =>
             db.ResolveConnectionStrings(new Dictionary<string, GirvsInfrastructureResource>())

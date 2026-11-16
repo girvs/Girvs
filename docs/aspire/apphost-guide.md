@@ -43,7 +43,7 @@ girvs.shared.json(共享文件,GIRVS_SHARED_CONFIG 指向)
     },
     "DbConfig": {
       "DataConnectionConfigs": [
-        { "Name": "default", "ConnectionRef": "order-mysql", "ReadConnectionRefs": [] }
+        { "Name": "default", "ConnectionRef": ["order-mysql", "order"], "ReadConnectionRefs": [] }
       ]
     },
     "EventBusConfig": {
@@ -88,6 +88,8 @@ builder.Build().Run();
 | `AddSqlServer` / `.AddDatabase` | `sqlserver` | 同上(UserName 为 `sa`) |
 | `AddRabbitMQ` | `rabbitmq` | `HostName`、`Port`、`UserName`、`Password`、`VirtualHost` |
 | `AddKafka` | `kafka` | `BootstrapServers` |
+
+> EF Core 模块现只消费 `Settings:ConnectionString`，上表 MySQL/SQL Server 生成的结构化键暂供 EventBus 等模块使用。若要让 EF 接入 Aspire 编排的 MySQL/SQL Server，需在 provider 中同步输出 `ConnectionString` 模板（如 `Server=...;Database={0};...`）；同名手写资源会被 `AsGirvsResource` 覆盖，不能作为绕过手段。
 
 ### 扩展其他资源类型
 

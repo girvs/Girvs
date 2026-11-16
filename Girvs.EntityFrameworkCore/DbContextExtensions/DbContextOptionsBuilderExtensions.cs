@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Girvs.Configuration.Resources;
 
 namespace Girvs.EntityFrameworkCore.DbContextExtensions;
 
@@ -120,14 +121,13 @@ public static class DbContextOptionsBuilderExtensions
         var dataConnectionConfig = config;
         connStr ??= dataConnectionConfig.GetMasterDataConnectionString();
 
-        if (
-            !Singleton<AppSettings>.Instance.Resources.TryGetValue(
-                dataConnectionConfig.ConnectionRef ?? string.Empty,
-                out var resource
-            )
-        )
+        var resourceKey = InfrastructureResourceReferenceResolver.FormatResourceKey(
+            dataConnectionConfig.ConnectionRef
+        );
+
+        if (!Singleton<AppSettings>.Instance.Resources.TryGetValue(resourceKey, out var resource))
         {
-            throw new GirvsException($"Resources:{dataConnectionConfig.ConnectionRef} 未配置");
+            throw new GirvsException($"Resources:{resourceKey} 未配置");
         }
 
         var resourceType = resource.Type.ToLowerInvariant();
@@ -148,7 +148,7 @@ public static class DbContextOptionsBuilderExtensions
             //     optionsBuilder.UseSqlLiteWithLazyLoading<TDbContext>(dataConnectionConfig, connStr);
             //     break;
             default:
-                throw new GirvsException($"Resources:{dataConnectionConfig.ConnectionRef}:Type '{resourceType}' 不支持 EntityFrameworkCore");
+                throw new GirvsException($"Resources:{resourceKey}:Type '{resourceType}' 不支持 EntityFrameworkCore");
         }
 
         if (dataConnectionConfig.UseLazyLoading)

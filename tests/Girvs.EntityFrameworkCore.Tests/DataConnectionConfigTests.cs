@@ -6,99 +6,42 @@ namespace Girvs.EntityFrameworkCore.Tests;
 
 public class DataConnectionConfigTests
 {
+    private const string MySqlTemplate =
+        "Server=mysql;Port=3306;Database={0};User ID=root;Password=secret;Allow User Variables=True;";
+
     [Fact]
-    public void 构建连接串_MySQL资源_保留原有键与允许用户变量()
+    public void 构建连接串_使用资源ConnectionString模板()
     {
         var config = CreateConfig();
         var resource = CreateResource(
             "mysql",
-            new Dictionary<string, string>
-            {
-                ["Host"] = "mysql",
-                ["Port"] = "3306",
-                ["Database"] = "sample",
-                ["UserName"] = "root",
-                ["Password"] = "secret",
-            }
+            "Server=mysql;Database=sample;Allow User Variables=True;"
         );
 
         var connectionString = config.BuildConnectionString(resource);
 
-        Assert.Contains("Server=mysql", connectionString);
-        Assert.Contains("Port=3306", connectionString);
-        Assert.Contains("Database=sample", connectionString);
-        Assert.Contains("User ID=root", connectionString);
-        Assert.Contains("Password=secret", connectionString);
-        Assert.Contains("Allow User Variables=True", connectionString);
+        Assert.Equal("Server=mysql;Database=sample;Allow User Variables=True;", connectionString);
     }
 
     [Fact]
-    public void 构建连接串_SQLServer资源_端口并入数据源()
+    public void 构建连接串_数组参数格式化ConnectionString()
     {
-        var config = CreateConfig();
-        var resource = CreateResource(
-            "sqlserver",
-            new Dictionary<string, string>
-            {
-                ["Host"] = "sqlserver",
-                ["Port"] = "1433",
-                ["Database"] = "sample",
-                ["UserName"] = "sa",
-                ["Password"] = "secret",
-            }
-        );
+        var config = CreateConfig(["db", "sample"]);
+        var resource = CreateResource("mysql", MySqlTemplate);
 
         var connectionString = config.BuildConnectionString(resource);
 
-        Assert.Contains("Data Source=sqlserver,1433", connectionString);
-        Assert.Contains("Initial Catalog=sample", connectionString);
-        Assert.Contains("User ID=sa", connectionString);
-        Assert.Contains("Password=secret", connectionString);
-        Assert.Contains("TrustServerCertificate=True", connectionString);
-    }
-
-    [Fact]
-    public void 构建连接串_SQLServer未指定数据库和端口_回退配置名称且不拼端口()
-    {
-        var config = CreateConfig();
-        var resource = CreateResource(
-            "sqlserver",
-            new Dictionary<string, string> { ["Host"] = "sqlserver" }
+        Assert.Equal(
+            "Server=mysql;Port=3306;Database=sample;User ID=root;Password=secret;Allow User Variables=True;",
+            connectionString
         );
-
-        var connectionString = config.BuildConnectionString(resource);
-
-        Assert.Contains("Data Source=sqlserver", connectionString);
-        Assert.Contains("Initial Catalog=girvs", connectionString);
-        Assert.DoesNotContain("sqlserver,", connectionString);
-    }
-
-    [Fact]
-    public void 构建连接串_SQLServer可显式关闭证书信任()
-    {
-        var config = CreateConfig();
-        var resource = CreateResource(
-            "sqlserver",
-            new Dictionary<string, string>
-            {
-                ["Host"] = "sqlserver",
-                ["TrustServerCertificate"] = "false",
-            }
-        );
-
-        var connectionString = config.BuildConnectionString(resource);
-
-        Assert.Contains("TrustServerCertificate=False", connectionString);
     }
 
     [Fact]
     public void 构建连接串_不支持的资源类型_抛出异常()
     {
         var config = CreateConfig();
-        var resource = CreateResource(
-            "oracle",
-            new Dictionary<string, string> { ["Host"] = "oracle" }
-        );
+        var resource = CreateResource("oracle", "Data Source=oracle;");
 
         var exception = Assert.Throws<GirvsException>(() => config.BuildConnectionString(resource));
 
@@ -106,33 +49,79 @@ public class DataConnectionConfigTests
     }
 
     [Fact]
-    public void 解析连接串_支持SQLServer主库与读库()
+    public void 构建连接串_ConnectionString未配置_抛出可识别异常()
     {
         var config = CreateConfig();
-        config.ReadConnectionRefs = ["db-read"];
+        var resource = new GirvsInfrastructureResource
+        {
+            Type = "mysql",
+            Settings = new Dictionary<string, string>(),
+        };
+
+        var exception = Assert.Throws<GirvsException>(() => config.BuildConnectionString(resource));
+
+        Assert.Contains("Settings:ConnectionString 未配置", exception.Message);
+    }
+
+    [Fact]
+    public void 解析连接串_支持主库与读库且各自带参数()
+    {
+        var config = CreateConfig(["db-{0}", "master"]);
+        config.ReadConnectionRefs = [["db-read-{0}", "1"]];
         var resources = new Dictionary<string, GirvsInfrastructureResource>
         {
-            ["db"] = CreateResource(
-                "sqlserver",
-                new Dictionary<string, string> { ["Host"] = "master", ["Database"] = "girvs" }
-            ),
-            ["db-read"] = CreateResource(
-                "sqlserver",
-                new Dictionary<string, string> { ["Host"] = "replica", ["Database"] = "girvs" }
-            ),
+            ["db-master"] = CreateResource("mysql", "Server=master;Database={0};"),
+            ["db-read-1"] = CreateResource("mysql", "Server=replica;Database={0};"),
         };
 
         config.ResolveConnectionStrings(resources);
 
-        Assert.Contains("Data Source=master", config.GetMasterDataConnectionString());
-        Assert.Contains("Data Source=replica", config.GetSecureRandomReadDataConnectionString());
+        Assert.Equal("Server=master;Database=master;", config.GetMasterDataConnectionString());
+        Assert.Equal(
+            "Server=replica;Database=1;",
+            config.GetSecureRandomReadDataConnectionString()
+        );
     }
 
-    private static DataConnectionConfig CreateConfig() =>
-        new() { Name = "girvs", ConnectionRef = "db" };
+    [Fact]
+    public void 解析连接串_未配置读库时读连接回退到主库()
+    {
+        var config = CreateConfig(["db"]);
+        var resources = new Dictionary<string, GirvsInfrastructureResource>
+        {
+            ["db"] = CreateResource("mysql", "Server=master;Database=girvs;"),
+        };
+
+        config.ResolveConnectionStrings(resources);
+
+        Assert.Equal(
+            config.GetMasterDataConnectionString(),
+            config.GetSecureRandomReadDataConnectionString()
+        );
+    }
+
+    [Fact]
+    public void 解析连接串_资源不存在_抛出可识别异常()
+    {
+        var config = CreateConfig(["missing"]);
+
+        var exception = Assert.Throws<GirvsException>(() =>
+            config.ResolveConnectionStrings(new Dictionary<string, GirvsInfrastructureResource>())
+        );
+
+        Assert.Contains("Resources:missing 未配置", exception.Message);
+    }
+
+    private static DataConnectionConfig CreateConfig(string[] connectionRef = null) =>
+        new() { Name = "girvs", ConnectionRef = connectionRef ?? ["db"] };
 
     private static GirvsInfrastructureResource CreateResource(
         string type,
-        Dictionary<string, string> settings
-    ) => new() { Type = type, Settings = settings };
+        string connectionString
+    ) =>
+        new()
+        {
+            Type = type,
+            Settings = new Dictionary<string, string> {["ConnectionString"] = connectionString},
+        };
 }
