@@ -46,3 +46,11 @@ The specified API key has expired. Please create a new API key at https://www.nu
 ```
 
 当前剩余阻碍为过期的仓库 Secret NUGET_API_KEY，未宣称 NuGet 发布成功。维护者需要在 NuGet 生成具有所需包推送权限的新 API key，并在 GitHub 仓库 Settings → Secrets and variables → Actions 更新同名 Secret。随后可重跑运行 #4，无需再次改代码或移动标签。17 个包已通过 Actions artifact 步骤保存。
+
+### 后续凭据核验
+
+主公更新 Secret 后分别重跑 attempt 2、3，NuGet 仍明确返回过期；仓库 Secret 更新时间均早于对应运行，位置正确。主公再次更新后重跑 [attempt 4](https://github.com/girvs/Girvs/actions/runs/43824307093/attempts/4)，所有发布前步骤仍成功，推送返回 HTTP 403，错误改为密钥无效、过期或无包访问权限。
+
+此时从账户页核对的新密钥确实未过期：Package owner 为 Girvs，Glob pattern 为 Girvs*，具有推送新包和版本的权限。但 [Girvs.Aspire.Hosting](https://www.nuget.org/packages/Girvs.Aspire.Hosting) 的 Owners 仅为 kicck，故该密钥的所有者范围无法授权此包。最新阻碍已变为所有者范围不匹配，不再认定当前新密钥过期。
+
+需要创建或调整为 Package owner=kicck、Glob pattern=Girvs*、允许推送新包及版本的有效密钥，并将完整值更新至仓库 NUGET_API_KEY 后重跑。亮未创建、修改或轮换任何密钥。
