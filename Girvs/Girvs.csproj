@@ -1,11 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <!-- 仅在本项目覆盖共享的 licenseUrl，避免打包时的 NU5125 弃用警告；改用标准 license 表达式 -->
-        <PackageLicenseUrl></PackageLicenseUrl>
-        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    </PropertyGroup>
-
     <!-- 公共依赖：原由 LogDashboard 传递提供，移除该包后需显式引用 -->
     <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
