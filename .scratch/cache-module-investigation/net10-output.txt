@@ -1,0 +1,21 @@
+运行环境: .NET 10.0.9
+PASS 探针连接串在解析阶段失败，避免连接真实 Redis: 未知配置项被拒绝
+PASS Options 构建及包装器解析可以完成: 已同步完成服务解析
+FAIL Redis 首次异步连接必须能完成或报错: IsCompleted=False, GetConnectionAsync=2, ConnectAsync=1, SemaphoreCount=0
+PASS 替换工厂后不再自锁: 立即收到 ProbeException
+FAIL IDistributedCache 首次读取必须能完成或报错: IsCompleted=False
+FAIL 同步内存模式首次解析必须能完成或报错: IsCompleted=False, GetConnectionAsync=1, SemaphoreCount=0
+FAIL 不支持的资源类型 'sqlserver' 应在注册时明确报错: 注册抛错=False, IStaticCacheManager=False
+  实际解析错误: Unable to resolve service for type 'Microsoft.Extensions.Caching.Distributed.IDistributedCache' while attempting to activate 'Girvs.Cache.Caching.DistributedCacheLocker'.
+FAIL 不支持的资源类型 'redsi' 应在注册时明确报错: 注册抛错=False, IStaticCacheManager=False
+  实际解析错误: Unable to resolve service for type 'Microsoft.Extensions.Caching.Distributed.IDistributedCache' while attempting to activate 'Girvs.Cache.Caching.DistributedCacheLocker'.
+FAIL 不支持的资源类型 '' 应在注册时明确报错: 注册抛错=False, IStaticCacheManager=False
+  实际解析错误: Unable to resolve service for type 'Microsoft.Extensions.Caching.Distributed.IDistributedCache' while attempting to activate 'Girvs.Cache.Caching.DistributedCacheLocker'.
+FAIL 容器释放后应释放模块自行创建的 MemoryCache: MemoryCache 已释放=False
+FAIL 保留宿主配置的 MemoryCache SizeLimit: SizeLimit 生效=False
+PASS AddMemoryCache 对照组遵守配置并由容器释放: SizeLimit 生效=True, 已释放=True
+PASS 默认内存缓存读写正常: 写入后命中
+PASS 启用分布式缓存但未配置引用时维持现有内存回退行为: 解析为 MemoryCacheManager
+PASS Redis 类型匹配不区分大小写: 资源端点成功传入 Options
+PASS 缺少 Redis Endpoints 时立即报错: 捕获 GirvsException
+诊断失败断言数: 8

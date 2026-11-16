@@ -2,8 +2,6 @@
 using Girvs.Cache.Caching;
 using Girvs.Configuration.Resources;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
-using Microsoft.Extensions.Options;
 
 namespace Girvs.Cache;
 
@@ -61,7 +59,6 @@ public class GirvsCacheModule : IAppModuleStartup
                         options.Configuration = redisConnectionString;
                         options.InstanceName = distributedCacheConfig.InstanceName ?? string.Empty;
                     });
-                    ShareRedisConnection(services);
                     break;
 
                 case "redis-synchronized-memory":
@@ -84,7 +81,6 @@ public class GirvsCacheModule : IAppModuleStartup
                         options.Configuration = synchronizedRedisConnectionString;
                         options.InstanceName = distributedCacheConfig.InstanceName ?? string.Empty;
                     });
-                    ShareRedisConnection(services);
                     break;
             }
             services.AddSingleton<ILocker, DistributedCacheLocker>();
@@ -104,24 +100,4 @@ public class GirvsCacheModule : IAppModuleStartup
     public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 1;
-
-    /// <summary>
-    /// 让 IDistributedCache 复用 RedisConnectionWrapper 的连接，避免同一 Redis
-    /// 建立两条 ConnectionMultiplexer。此处延迟解析包装器，规避 Options 构建
-    /// 期间的循环依赖。
-    /// </summary>
-    private static void ShareRedisConnection(IServiceCollection services)
-    {
-        services
-            .AddOptions<RedisCacheOptions>()
-            .Configure<IServiceProvider>(
-                (options, serviceProvider) =>
-                {
-                    options.ConnectionMultiplexerFactory ??= () =>
-                        serviceProvider
-                            .GetRequiredService<RedisConnectionWrapper>()
-                            .GetConnectionMultiplexerAsync();
-                }
-            );
-    }
 }
