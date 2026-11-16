@@ -17,9 +17,11 @@ public class EventBusModule : IAppModuleStartup
 
         var resources = Singleton<AppSettings>.Instance.Resources;
         var connStr = eventBusConfig.BuildPersistenceConnectionString(
-            resources[eventBusConfig.PersistenceConnectionRef]);
+            resources[eventBusConfig.PersistenceConnectionRef]
+        );
         var transport = resources[eventBusConfig.TransportConnectionRef];
-        var persistenceType = resources[eventBusConfig.PersistenceConnectionRef].Type.ToLowerInvariant();
+        var persistenceType = resources[eventBusConfig.PersistenceConnectionRef]
+            .Type.ToLowerInvariant();
 
         services
             .AddCap(x =>
@@ -45,41 +47,70 @@ public class EventBusModule : IAppModuleStartup
                     case "rabbitmq":
                         x.UseRabbitMQ(options =>
                         {
-                            options.HostName = transport.Settings.GetValueOrDefault("HostName") ??
-                                               transport.Settings.GetValueOrDefault("Host");
-                            options.Port = int.TryParse(transport.Settings.GetValueOrDefault("Port"), out var port)
-                                ? port
-                                : 5672;
-                            options.UserName = transport.Settings.GetValueOrDefault("UserName");
-                            options.Password = transport.Settings.GetValueOrDefault("Password");
-                            options.VirtualHost = transport.Settings.GetValueOrDefault("VirtualHost") ?? "/";
+                            options.ConnectionFactoryOptions = factory =>
+                            {
+                                factory.Uri = new Uri(transport.Settings["ConnectionString"]);
+                            };
+                            // options.HostName =
+                            //     transport.Settings.GetValueOrDefault("HostName")
+                            //     ?? transport.Settings.GetValueOrDefault("Host");
+                            // options.Port = int.TryParse(
+                            //     transport.Settings.GetValueOrDefault("Port"),
+                            //     out var port
+                            // )
+                            //     ? port
+                            //     : 5672;
+                            // options.UserName = transport.Settings.GetValueOrDefault("UserName");
+                            // options.Password = transport.Settings.GetValueOrDefault("Password");
+                            // options.VirtualHost =
+                            //     transport.Settings.GetValueOrDefault("VirtualHost") ?? "/";
                         });
                         break;
                     case "kafka":
                         x.UseKafka(configure =>
                         {
-                            configure.Servers = transport.Settings.GetValueOrDefault("BootstrapServers") ??
-                                                transport.Settings.GetValueOrDefault("Endpoints");
-                            configure.MainConfig.Add(
-                                "ssl.ca.location",
-                                transport.Settings.GetValueOrDefault("SslCaLocation")
-                            );
-                            configure.MainConfig.Add(
-                                "sasl.mechanism",
-                                transport.Settings.GetValueOrDefault("SaslMechanism")
-                            );
-                            configure.MainConfig.Add(
-                                "security.protocol",
-                                transport.Settings.GetValueOrDefault("SecurityProtocol")
-                            );
-                            configure.MainConfig.Add(
-                                "sasl.username",
-                                transport.Settings.GetValueOrDefault("SaslUsername")
-                            );
-                            configure.MainConfig.Add(
-                                "sasl.password",
-                                transport.Settings.GetValueOrDefault("SaslPassword")
-                            );
+                            var raw = transport.Settings.GetValueOrDefault("KafkaConnectionString");
+                            if (string.IsNullOrWhiteSpace(raw))
+                                return;
+
+                            var parts = raw.Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+                            // 第一段是 bootstrap servers
+                            configure.Servers = parts[0];
+
+                            // 后续段是 MainConfig 键值对
+                            foreach (var part in parts.Skip(1))
+                            {
+                                var kv = part.Split('=', 2);
+                                if (kv.Length == 2)
+                                {
+                                    configure.MainConfig[kv[0].Trim()] = kv[1].Trim();
+                                }
+                            }
+
+                            // configure.Servers =
+                            //     transport.Settings.GetValueOrDefault("BootstrapServers")
+                            //     ?? transport.Settings.GetValueOrDefault("Endpoints");
+                            // configure.MainConfig.Add(
+                            //     "ssl.ca.location",
+                            //     transport.Settings.GetValueOrDefault("SslCaLocation")
+                            // );
+                            // configure.MainConfig.Add(
+                            //     "sasl.mechanism",
+                            //     transport.Settings.GetValueOrDefault("SaslMechanism")
+                            // );
+                            // configure.MainConfig.Add(
+                            //     "security.protocol",
+                            //     transport.Settings.GetValueOrDefault("SecurityProtocol")
+                            // );
+                            // configure.MainConfig.Add(
+                            //     "sasl.username",
+                            //     transport.Settings.GetValueOrDefault("SaslUsername")
+                            // );
+                            // configure.MainConfig.Add(
+                            //     "sasl.password",
+                            //     transport.Settings.GetValueOrDefault("SaslPassword")
+                            // );
                             //configure.MainConfig.Add("allow.auto.create.topics", "true");
                         });
                         break;
@@ -101,6 +132,7 @@ public class EventBusModule : IAppModuleStartup
 #endif
                     });
                 }
+
                 x.ConsumerThreadCount = eventBusConfig.ConsumerThreadCount;
                 x.SucceedMessageExpiredAfter = eventBusConfig.SucceedMessageExpiredAfter;
                 x.FailedMessageExpiredAfter = eventBusConfig.FailedMessageExpiredAfter;
@@ -109,13 +141,9 @@ public class EventBusModule : IAppModuleStartup
             .AddSubscribeFilter<GirvsCapFilter>();
     }
 
-    public void Configure(IApplicationBuilder application, IWebHostEnvironment env)
-    {
-    }
+    public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
 
-    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder)
-    {
-    }
+    public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
 
     public int Order { get; } = 50000;
 }
