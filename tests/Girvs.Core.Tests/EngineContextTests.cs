@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Girvs.Configuration;
+using Girvs.FileProvider;
 using Girvs.Infrastructure;
+using Girvs.TypeFinder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +26,72 @@ public sealed class EngineContextCollection
 [Collection(EngineContextCollection.Name)]
 public class EngineContextTests
 {
+    [Fact]
+    public void ConfigureServices_模块注册时可解析类型查找器_构建后切换正式容器()
+    {
+        var originalEngine = Singleton<IEngine>.Instance;
+        var originalFileProvider = CommonHelper.DefaultFileProvider;
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            ContentRootPath = AppContext.BaseDirectory,
+            EnvironmentName = "Testing",
+        });
+        using var fileProvider = new GirvsFileProvider(builder.Environment);
+        try
+        {
+            CommonHelper.DefaultFileProvider = fileProvider;
+            var engine = new GirvsEngine();
+            EngineContext.Replace(engine);
+            var probe = new StartupResolutionProbe();
+            builder.Services.AddSingleton(probe);
+            builder.Configuration["EngineStartupRegression"] = "true";
+
+            engine.ConfigureServices(builder.Services, builder.Configuration);
+            using var startupProvider = engine.ServiceProvider as IDisposable;
+
+            Assert.NotNull(probe.TypeFinder);
+            Assert.Same(probe.TypeFinder, engine.Resolve<ITypeFinder>());
+
+            // 后续注册只存在于正式容器，用于验证引擎确实完成了容器切换。
+            var finalService = new object();
+            builder.Services.AddSingleton(finalService);
+            using var app = builder.Build();
+            engine.ConfigureRequestPipeline(app, builder.Environment);
+
+            Assert.Same(app.Services, engine.ServiceProvider);
+            Assert.Same(finalService, engine.Resolve<object>());
+        }
+        finally
+        {
+            EngineContext.Replace(originalEngine);
+            CommonHelper.DefaultFileProvider = originalFileProvider;
+        }
+    }
+
+    private sealed class StartupResolutionProbe
+    {
+        public ITypeFinder TypeFinder { get; set; }
+    }
+
+    public sealed class TypeFinderResolvingStartup : IAppModuleStartup
+    {
+        public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+        {
+            if (configuration["EngineStartupRegression"] != "true")
+                return;
+
+            var probe = EngineContext.Current.Resolve<StartupResolutionProbe>();
+            if (probe != null)
+                probe.TypeFinder = EngineContext.Current.Resolve<ITypeFinder>();
+        }
+
+        public void Configure(IApplicationBuilder application, IWebHostEnvironment env) { }
+
+        public void ConfigureMapEndpointRoute(IEndpointRouteBuilder builder) { }
+
+        public int Order => int.MaxValue;
+    }
+
     [Fact]
     public void Create_多次调用_返回同一实例()
     {

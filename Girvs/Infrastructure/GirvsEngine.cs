@@ -76,6 +76,9 @@ public class GirvsEngine : IEngine
         //register type finder
         services.AddSingleton<ITypeFinder>(typeFinder);
 
+        // 兼容模块注册阶段通过引擎解析基础服务，宿主构建后再切换至正式容器。
+        ServiceProvider = services.BuildServiceProvider();
+
         var startupConfigurations = typeFinder.FindOfType<IAppModuleStartup>();
 
         //create and sort instances of startup configurations
@@ -300,7 +303,7 @@ public class GirvsEngine : IEngine
     }
 
     /// <summary>
-    /// 由主机构建完成后回填实际服务提供程序，避免在注册阶段创建第二套容器。
+    /// 由主机构建完成后回填实际服务提供程序，替换注册阶段使用的容器。
     /// </summary>
     internal void SetServiceProvider(IServiceProvider serviceProvider)
     {
