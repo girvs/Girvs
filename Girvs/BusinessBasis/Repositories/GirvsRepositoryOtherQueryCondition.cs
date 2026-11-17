@@ -23,10 +23,10 @@ public abstract class GirvsRepositoryOtherQueryCondition : IRepositoryOtherQuery
 
         foreach (var value in values)
         {
-            var convertValue = GirvsConvert.ToSpecifiedType(fieldType, value);
             var param = Expression.Parameter(typeof(TEntity), "entity");
             var left = Expression.Property(param, fieldName);
-            var right = Expression.Constant(convertValue);
+            var convertValue = GirvsConvert.ToSpecifiedType(left.Type, value);
+            var right = CapturedExpression.Create(convertValue, left.Type);
             var be = Expression.MakeBinary(ExpressionType.Equal, left, right);
 
             internalExpression = internalExpression == null ? 

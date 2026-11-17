@@ -106,6 +106,26 @@ public interface IRepository<TEntity, in TPrimaryKey> where TEntity : Entity
     /// <returns>实体集合</returns>
     Task<List<TEntity>> GetByQueryAsync(QueryBase<TEntity> query);
 
+    /// <summary>支持取消的分页入口。旧实现默认转发到原方法；EF 仓储将取消令牌传递到数据库。</summary>
+    Task<List<TEntity>> GetByQueryAsync(QueryBase<TEntity> query, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return GetByQueryAsync(query);
+    }
+
+    /// <summary>
+    /// 只读游标分页，不计总数，每页最多 1000 条。after 为与 orderBy 及主键相同方向的复合条件，禁止仅按非唯一排序值构造。
+    /// 默认实现不提供该能力，保留第三方仓储实现的兼容性。
+    /// </summary>
+    Task<QuerySlice<TEntity>> GetSliceAsync<TOrder>(Expression<Func<TEntity, bool>> predicate,
+        Expression<Func<TEntity, TOrder>> orderBy, Expression<Func<TEntity, bool>> after = null,
+        int pageSize = 20, bool descending = true, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("当前仓储不支持游标分页");
+
+    /// <summary>只读流式查询；枚举完成前需保持作用域，不能并行使用同一上下文。旧实现可按需支持。</summary>
+    IAsyncEnumerable<TEntity> StreamAsync(Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default) => throw new NotSupportedException("当前仓储不支持流式查询");
+
     /// <summary>
     /// 是否存在指定键的实体
     /// </summary>

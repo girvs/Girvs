@@ -39,7 +39,7 @@ internal sealed class EfTestScope : IDisposable
     public DbConfig Config { get; }
     public BulkDbContext Context { get; }
 
-    public EfTestScope()
+    public EfTestScope(Action<DbContextOptionsBuilder<BulkDbContext>> configure = null)
     {
         Directory.CreateDirectory(_directory);
         _fileProvider = new GirvsFileProvider(new TestEnvironment());
@@ -66,10 +66,21 @@ internal sealed class EfTestScope : IDisposable
         var engine = new GirvsEngine();
         EngineContext.Replace(engine);
 
-        Context = CreateContext(Read);
+        var options = new DbContextOptionsBuilder<BulkDbContext>().UseSqlite(Read);
+        configure?.Invoke(options);
+        Context = new BulkDbContext(options.Options);
         _provider = new ServiceCollection().AddLogging()
             .AddSingleton(Context)
             .AddSingleton<IRepositoryOtherQueryCondition, TenantQueryCondition>()
+            .AddSingleton<IGirvsPrincipalAccessor>(new GirvsPrincipalAccessor(new Microsoft.AspNetCore.Http.HttpContextAccessor
+            {
+                HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext
+                {
+                    User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity([
+                        new System.Security.Claims.Claim(GirvsClaimTypes.TenantId, "1")
+                    ]))
+                }
+            }))
             .BuildServiceProvider();
         _providerScope = engine.ChangeCurrentThreadServiceProvider(_provider);
 
@@ -117,6 +128,7 @@ internal sealed class EfTestScope : IDisposable
             entity => EF.Property<int>(entity, nameof(BulkRow.TenantId)) == 1;
     }
 
+
     private sealed class TestEnvironment : IWebHostEnvironment
     {
         public string ApplicationName { get; set; } = "Girvs.EntityFrameworkCore.Tests";
@@ -138,13 +150,14 @@ public sealed class BulkDbContext(DbContextOptions<BulkDbContext> options) : Gir
         modelBuilder.Entity<BulkRow>().Property(row => row.Name).IsRequired();
         modelBuilder.Entity<BulkRow>().Property(row => row.Note).IsRequired(false);
         modelBuilder.Entity<BulkRow>().Property<string>("ShadowValue");
+        modelBuilder.Entity<BulkRow>().Property(row => row.Version).IsConcurrencyToken();
         modelBuilder.Entity<BulkRow>().ToTable(nameof(BulkRow));
     }
 }
 
 public enum RowStatus { New, Done }
 
-public sealed class BulkRow : Entity<int>, IIncludeMultiTenant<int>
+public sealed class BulkRow : Entity<int>, IIncludeMultiTenant<int>, IIncludeUpdateTime
 {
     public int Id { get; set; }
     public int TenantId { get; set; }
@@ -153,6 +166,8 @@ public sealed class BulkRow : Entity<int>, IIncludeMultiTenant<int>
     public int? OptionalCount { get; set; }
     public string Note { get; set; }
     public RowStatus Status { get; set; }
+    public DateTime UpdateTime { get; set; }
+    public int Version { get; set; } = 1;
     public string Unmapped => Name;
 }
 

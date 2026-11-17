@@ -1,8 +1,12 @@
 using System.Reflection;
+using System.Data.Common;
 using Girvs.EntityFrameworkCore.Context;
+using Girvs.EntityFrameworkCore.DbContextExtensions;
+using Girvs.Extensions.Collections;
 using Girvs.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +33,22 @@ public class ProviderCompatibilityTests
         Assert.Contains("7", sql);
         Assert.Contains("probe", sql);
         Assert.Contains(provider == "mysql" ? "`Name`" : "[Name]", sql);
+    }
+
+    [Theory]
+    [InlineData("mysql")]
+    [InlineData("sqlserver")]
+    public async Task 动态筛选和分页_参数化且支持未投影排序字段(string provider)
+    {
+        using var context = CreateContext(provider, new SuppressOpen(), new CaptureRead());
+        var exception = await Assert.ThrowsAsync<ReadCapturedException>(() => context.Set<ProbeEntity>().WhereEqual(nameof(ProbeEntity.Name), "probe")
+            .OrderByDescending(entity => entity.Id).Skip(1).Take(2)
+            .SelectProperties([nameof(ProbeEntity.Name)]).ToListAsync());
+        var sql = exception.Sql;
+        Assert.Contains("ORDER BY", sql);
+        Assert.Contains("@", sql[sql.IndexOf("WHERE", StringComparison.Ordinal)..]);
+        Assert.DoesNotContain("= 'probe'", sql[sql.IndexOf("WHERE", StringComparison.Ordinal)..]);
+        Assert.Contains("probe", exception.Parameters);
     }
 
     [Theory]
@@ -75,9 +95,9 @@ public class ProviderCompatibilityTests
     }
 #endif
 
-    private static ProbeDbContext CreateContext(string provider)
+    private static ProbeDbContext CreateContext(string provider, params IInterceptor[] interceptors)
     {
-        var options = new DbContextOptionsBuilder<ProbeDbContext>();
+        var options = new DbContextOptionsBuilder<ProbeDbContext>().AddInterceptors(interceptors);
         if (provider == "mysql")
         {
             options.UseMySql(
@@ -91,6 +111,26 @@ public class ProviderCompatibilityTests
         }
 
         return new ProbeDbContext(options.Options);
+    }
+
+    private sealed class ReadCapturedException(DbCommand command) : Exception
+    {
+        public string Sql { get; } = command.CommandText;
+        public object[] Parameters { get; } = command.Parameters.Cast<DbParameter>().Select(parameter => parameter.Value).ToArray();
+    }
+
+    private sealed class CaptureRead : DbCommandInterceptor
+    {
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,
+            CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default) =>
+            throw new ReadCapturedException(command);
+    }
+
+    private sealed class SuppressOpen : DbConnectionInterceptor
+    {
+        public override ValueTask<InterceptionResult> ConnectionOpeningAsync(DbConnection connection,
+            ConnectionEventData eventData, InterceptionResult result, CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(InterceptionResult.Suppress());
     }
 
     public sealed class ProbeDbContext(DbContextOptions<ProbeDbContext> options) : GirvsDbContext(options)

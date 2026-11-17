@@ -16,7 +16,7 @@ public static class IQueryableExtensions
     {
         var param = Expression.Parameter(typeof(T), "p");
         var prop = Expression.Property(param, Field);
-        var val = Expression.Constant(Value);
+        var val = CapturedExpression.Create(Value, typeof(string));
         var body = Expression.Equal(prop, val);
         var exp = Expression.Lambda<Func<T, bool>>(body, param);
         return Queryable.Where(q, exp);

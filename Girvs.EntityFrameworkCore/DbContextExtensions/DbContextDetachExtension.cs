@@ -3,15 +3,11 @@
 public static class DbContextDetachAllExtension
 {
     /// <summary>
-    /// 取消跟踪DbContext中所有被跟踪的实体
+    /// 清空所有跟踪状态，不触发逐实体 StateChanged 事件。
     /// </summary>
     public static void DetachAll(this DbContext dbContext)
     {
-        // 先快照条目再一次遍历，避免逐条重新枚举 ChangeTracker（原实现为 O(n²)）。
-        foreach (var entry in dbContext.ChangeTracker.Entries().ToList())
-        {
-            entry.State = EntityState.Detached;
-        }
+        dbContext.ChangeTracker.Clear();
     }
 
     public static bool IsWasTrack<TEntity, TKey>(this DbContext dbContext, TEntity t)
