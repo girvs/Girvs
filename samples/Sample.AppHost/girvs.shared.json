@@ -1,7 +1,11 @@
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information"
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Debug",
+      "Override": {
+        "Microsoft": "Warning",
+        "System": "Warning"
+      }
     }
   },
   "Resources": {
@@ -56,7 +60,7 @@
       "Settings": {
         "NodeUrls": "http://192.168.51.183:9200/",
         "UserName": null,
-        "PassWord": null
+        "Password": null
       }
     }
   }

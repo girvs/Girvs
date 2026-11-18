@@ -16,10 +16,14 @@ namespace Girvs.Core.Tests;
 /// Console sink 通过 Console.SetOut 捕获全局标准输出，禁止并行以防相互污染。
 /// </summary>
 [Collection("ConsoleSink")]
-public class GirvsHostBuilderManagerTests
+public class GirvsHostBuilderManagerTests : IDisposable
 {
+    private readonly DirectoryInfo _contentRoot = Directory.CreateTempSubdirectory("girvs-serilog-");
+
+    public void Dispose() => _contentRoot.Delete(recursive: true);
+
     [Fact]
-    public void HostUseSerilog_无业务Serilog配置_Information日志写入Console且格式包含INF与消息()
+    public void HostUseSerilog_无业务Serilog配置_Information日志以相同格式写入Console与每小时文件()
     {
         var originalOut = Console.Out;
         var consoleCapture = new StringWriter();
@@ -28,6 +32,7 @@ public class GirvsHostBuilderManagerTests
         try
         {
             var hostBuilder = new HostBuilder()
+                .UseContentRoot(_contentRoot.FullName)
                 .ConfigureAppConfiguration(
                     (_, config) =>
                     {
@@ -79,6 +84,10 @@ public class GirvsHostBuilderManagerTests
                 output
             );
             Assert.Contains(" || 人眼可读兜底消息 || ", output);
+
+            var logFile = Assert.Single(Directory.GetFiles(Path.Combine(_contentRoot.FullName, "logs")));
+            Assert.Matches(@"^log-\d{10}\.log$", Path.GetFileName(logFile));
+            Assert.Equal(output, File.ReadAllText(logFile));
         }
         finally
         {
@@ -90,6 +99,7 @@ public class GirvsHostBuilderManagerTests
     public void HostUseSerilog_业务配置追加TestCorrelator并下调Debug级别_Debug日志被TestCorrelator接收()
     {
         var hostBuilder = new HostBuilder()
+            .UseContentRoot(_contentRoot.FullName)
             .ConfigureAppConfiguration(
                 (_, config) =>
                 {
@@ -131,6 +141,7 @@ public class GirvsHostBuilderManagerTests
         );
 
         var hostBuilder = new HostBuilder()
+            .UseContentRoot(_contentRoot.FullName)
             .ConfigureAppConfiguration((_, configuration) =>
             {
                 configuration.Sources.Clear();
@@ -152,6 +163,7 @@ public class GirvsHostBuilderManagerTests
         services.AddSerilogSink(_ => { }, "TestCorrelator");
 
         var hostBuilder = new HostBuilder()
+            .UseContentRoot(_contentRoot.FullName)
             .ConfigureAppConfiguration((_, configuration) =>
             {
                 configuration.Sources.Clear();
