@@ -80,10 +80,10 @@ public class GirvsHostBuilderManagerTests : IDisposable
 
             // 时间格式正则断言（不断言具体时间值）
             Assert.Matches(
-                @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \|\| \[INF\] \|\| ",
+                @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} - \[INF\] - ",
                 output
             );
-            Assert.Contains(" || 人眼可读兜底消息 || ", output);
+            Assert.Contains(" - 人眼可读兜底消息 - ", output);
 
             var logFile = Assert.Single(Directory.GetFiles(Path.Combine(_contentRoot.FullName, "logs")));
             Assert.Matches(@"^log-\d{10}\.log$", Path.GetFileName(logFile));
