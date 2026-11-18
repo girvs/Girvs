@@ -30,4 +30,15 @@
     <ItemGroup>
         <InternalsVisibleTo Include="Girvs.Aspire.Hosting.Tests"/>
     </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Update="Aspire.Hosting" Version="13.6.5"/>
+        <PackageReference Update="Aspire.Hosting.Redis" Version="13.6.5"/>
+        <PackageReference Update="Aspire.Hosting.RabbitMQ" Version="13.6.5"/>
+        <PackageReference Update="Aspire.Hosting.MySql" Version="13.6.5"/>
+        <PackageReference Update="Aspire.Hosting.SqlServer" Version="13.6.5"/>
+        <PackageReference Update="Aspire.Hosting.Kafka" Version="13.6.5"/>
+        <PackageReference Update="MessagePack" Version="3.1.12"/>
+        <PackageReference Update="MySqlConnector" Version="3.0.0"/>
+    </ItemGroup>
 </Project>

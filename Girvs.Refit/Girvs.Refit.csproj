@@ -26,9 +26,10 @@
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
         <ProjectReference Include="..\Girvs.ServiceGovernance\Girvs.ServiceGovernance.csproj"/>
-        <PackageReference Include="Consul" Version="1.7.14.9"/>
-        <PackageReference Include="Refit" Version="12.1.0"/>
-        <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0"/>
+        <PackageReference Include="Consul" Version="1.8.0"/>
+        <PackageReference Include="Refit" Version="16.4.0"/>
+        <PackageReference Include="Refit.HttpClientFactory" Version="16.4.0"/>
+        <PackageReference Include="Refit.Reflection" Version="16.4.0"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -40,10 +40,13 @@
         <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
         <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.1"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
-        <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0"/>
+        <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0"/>
         <PackageReference Include="Serilog.Formatting.Elasticsearch" Version="10.0.0" />
         <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Update="JetBrains.Annotations" Version="2026.2.0" />
+    </ItemGroup>
 </Project>

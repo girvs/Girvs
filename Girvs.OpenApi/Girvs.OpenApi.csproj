@@ -31,7 +31,7 @@
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="11.0.1"/>
         <PackageReference Include="IGeekFan.AspNetCore.Knife4jUI" Version="0.0.16"/>
-        <PackageReference Include="Scalar.AspNetCore" Version="2.16.6"/>
+        <PackageReference Include="Scalar.AspNetCore" Version="3.0.1"/>
         <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="11.0.0">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>

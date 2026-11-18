@@ -49,20 +49,20 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
-        <PackageReference Include="DotNetCore.CAP" Version="10.0.1"/>
-        <PackageReference Include="DotNetCore.CAP.Dashboard" Version="10.0.1"/>
-        <PackageReference Include="DotNetCore.CAP.Kafka" Version="10.0.1"/>
-        <PackageReference Include="DotNetCore.CAP.MySql" Version="10.0.1"/>
-        <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="10.0.1"/>
-        <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="10.0.1"/>
-        <PackageReference Include="DotNetCore.CAP.Sqlite" Version="10.0.0"/>
-        <PackageReference Include="DotNetCore.CAP.SqlServer" Version="10.0.1"/>
+        <PackageReference Include="DotNetCore.CAP" Version="10.0.2"/>
+        <PackageReference Include="DotNetCore.CAP.Dashboard" Version="10.0.2"/>
+        <PackageReference Include="DotNetCore.CAP.Kafka" Version="10.0.2"/>
+        <PackageReference Include="DotNetCore.CAP.MySql" Version="10.0.2"/>
+        <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="10.0.2"/>
+        <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="10.0.2"/>
+        <PackageReference Include="DotNetCore.CAP.Sqlite" Version="10.0.2"/>
+        <PackageReference Include="DotNetCore.CAP.SqlServer" Version="10.0.2"/>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="11.0.0"/>
         <!-- 覆盖 CAP 传递引入的有漏洞版本：Pkcs 9.0.4（GHSA-846f-f764-76mx）、
              SQLitePCLRaw 2.1.11（GHSA-2m69-gcr7-jv3q）、MySqlConnector 2.5.0（GHSA-473q-m89c-ghf8） -->
         <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0"/>
-        <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14"/>
-        <PackageReference Include="MySqlConnector" Version="2.6.2"/>
+        <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3"/>
+        <PackageReference Include="MySqlConnector" Version="3.0.0"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -32,8 +32,8 @@
         <PackageReference Include="System.Linq.Async" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="11.0.0" />
         <PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="11.0.0" />
-        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.19.2" />
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.23.0" />
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
         <!-- 覆盖 Microsoft.Data.SqlClient 传递引入的有漏洞版本 System.Security.Cryptography.Pkcs 9.0.13（GHSA-846f-f764-76mx） -->
         <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0" />
     </ItemGroup>
@@ -42,5 +42,9 @@
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
         <!-- MsSqlServerCacheManager 直接使用 System.Data.SqlClient，原经 LogDashboard 传递，移除后需显式引用（4.8.6 修复 GHSA-8g2p-5pqh-5jmc） -->
         <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Update="System.Data.SqlClient" Version="4.9.1" />
     </ItemGroup>
 </Project>

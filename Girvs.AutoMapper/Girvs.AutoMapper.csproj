@@ -9,4 +9,7 @@
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
     </ItemGroup>
 
+    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+        <PackageReference Update="AutoMapper" Version="17.0.0"/>
+    </ItemGroup>
 </Project>

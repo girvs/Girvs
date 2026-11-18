@@ -49,8 +49,8 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="11.0.0"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="11.0.0"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="11.0.0"/>
-        <PackageReference Include="Microting.EntityFrameworkCore.MySql" Version="11.0.0-preview.1"/>
-        <PackageReference Include="MySqlConnector" Version="2.6.2"/>
+        <PackageReference Include="Microting.EntityFrameworkCore.MySql" Version="11.0.0"/>
+        <PackageReference Include="MySqlConnector" Version="3.0.0"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="11.0.0"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="11.0.0"/>
     </ItemGroup>

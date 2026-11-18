@@ -15,4 +15,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Girvs.Gateway\Girvs.Gateway.csproj" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+    <PackageReference Update="Testcontainers.Redis" Version="4.17.0" />
+    <PackageReference Update="xunit.runner.visualstudio" Version="4.0.1" />
+  </ItemGroup>
 </Project>
