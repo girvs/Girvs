@@ -5,7 +5,7 @@ public class GirvsModelStateInvalidFilter(
     ILogger<GirvsModelStateInvalidFilter> logger
 ) : IActionFilter
 {
-    private ModelStateInvalidFilter _modelStateInvalidFilter = new(options.Value, logger);
+    private readonly ModelStateInvalidFilter _modelStateInvalidFilter = new(options.Value, logger);
 
     public void OnActionExecuting(ActionExecutingContext context)
     {

@@ -5,16 +5,6 @@
 /// </summary>
 public sealed class InMemoryBus(IMediator mediator) : IMediatorHandler
 {
-    //构造函数注入
-
-    //注入服务工厂
-    // private readonly ServiceFactory _serviceFactory;
-    //
-    // private static readonly ConcurrentDictionary<Type, object> _requestHandlers =
-    //     new ConcurrentDictionary<Type, object>();
-
-    // _serviceFactory = serviceFactory;
-
     /// <summary>
     /// 实现我们在IMediatorHandler中定义的接口
     /// 没有返回值
@@ -29,11 +19,7 @@ public sealed class InMemoryBus(IMediator mediator) : IMediatorHandler
     )
         where T : IBaseRequest
     {
-        //这个是正确的
         return mediator.Send(command, cancellationToken); //请注意 入参 的类型
-
-        //注意！这个仅仅是用来测试和研究源码的，请开发的时候不要使用这个
-        //return Send(command);//请注意 入参 的类型
     }
 
     public async Task<TResponse> SendCommand<TCommand, TResponse>(
@@ -59,10 +45,6 @@ public sealed class InMemoryBus(IMediator mediator) : IMediatorHandler
     )
         where T : Event
     {
-        // 除了领域通知以外的事件都保存下来
-        //if (!@event.MessageType.Equals("DomainNotification"))
-        //    _eventStoreService?.Save(@event);
-
         // MediatR中介者模式中的第二种方法，发布/订阅模式
         return mediator.Publish(@event, cancellationToken);
     }

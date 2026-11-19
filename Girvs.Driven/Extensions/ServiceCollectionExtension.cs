@@ -79,16 +79,6 @@ public static class ServiceCollectionExtension
                 services.AddScoped(implementedInterface, validatorType);
             }
         }
-        // foreach (var validatorType in types)
-        // {
-        //     var parentType =
-        //         ((System.Reflection.TypeInfo) validatorType).ImplementedInterfaces.FirstOrDefault(x =>
-        //             x.Name == "IValidator`1");
-        //     if (parentType != null)
-        //     {
-        //         services.AddScoped(parentType, validatorType);
-        //     }
-        // }
         // 兜底注册：没有具体校验器时使用 Default，不注册 FluentValidation 自身的开放泛型类型。
         services.TryAddScoped(typeof(IValidator<>), typeof(GirvsDefaultCommandValidator<>));
     }

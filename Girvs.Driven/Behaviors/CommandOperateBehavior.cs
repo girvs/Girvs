@@ -20,17 +20,24 @@ public class CommandOperateBehavior<TRequest, TResponse>(
     )
     {
         var result = await next(); //后至处理
-        if (!result.Equals(default(TResponse)))
+
+        if (EqualityComparer<TResponse>.Default.Equals(result, default))
+            return result;
+
+        _logger.LogDebug("Command Operate Behavior: {RequestType}", typeof(TRequest).FullName);
+
+        if (request is not Command command || string.IsNullOrEmpty(command.CommandDesc))
+            return result;
+
+        var operateHandler = EngineContext.Current.Resolve<ICommandOperateHandler>();
+
+        // await null Task 会抛 NRE，因此先判空再等待，处理器未注册时保持不抛
+        if (operateHandler != null)
         {
-            _logger.LogInformation($"Command Operate Behavior : {typeof(TRequest).FullName}");
-            if (request is Command command && !string.IsNullOrEmpty(command.CommandDesc))
-            {
-                var operateHandler = EngineContext.Current.Resolve<ICommandOperateHandler>();
-                operateHandler?.Handle(command);
-            }
+            await operateHandler.Handle(command, cancellationToken);
         }
 
-        //此处不能使用注入，针对不存在的较验会报错。
+        //此处不能使用注入，针对不存在的校验会报错。
         return result;
     }
 }

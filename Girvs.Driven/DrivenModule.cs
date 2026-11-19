@@ -6,8 +6,6 @@ public class DrivenModule : IAppModuleStartup
 {
     public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
-        var typeFinder = new WebAppTypeFinder();
-
 #if NET9_0_OR_GREATER
         services.AddMediatR(cfg =>
         {
@@ -22,10 +20,6 @@ public class DrivenModule : IAppModuleStartup
         services.RegisterNotificationHandlerType();
         services.RegisterCommandHandlerType();
         services.RegisterIValidatorType();
-        // services.RegisterType(typeof(INotificationHandler<>), typeFinder, asType: null);
-        // services.RegisterType(typeof(CommandHandler), typeFinder, asType: null);
-        // services.RegisterIValidatorType(typeof(IValidator), typeFinder);
-        // //添加验证管道
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(CommandOperateBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
     }

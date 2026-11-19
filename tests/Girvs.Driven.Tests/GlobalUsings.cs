@@ -1,0 +1,17 @@
+global using FluentValidation;
+global using FluentValidation.Results;
+global using Girvs;
+global using Girvs.Driven.Behaviors;
+global using Girvs.Driven.Bus;
+global using Girvs.Driven.CacheDriven.CommandHandlers;
+global using Girvs.Driven.Commands;
+global using Girvs.Driven.Events;
+global using Girvs.Driven.Notifications;
+global using Girvs.Driven.Validations;
+global using Girvs.Infrastructure;
+global using MediatR;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using Xunit;

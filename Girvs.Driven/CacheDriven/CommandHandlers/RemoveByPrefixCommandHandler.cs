@@ -3,7 +3,7 @@
 public class RemoveByPrefixCommandHandler(
     IStaticCacheManager staticCacheManager,
     IMediatorHandler bus
-) : CommandHandler(null, bus), IRequestHandler<RemoveByPrefixCommand, bool>
+) : CommandHandler(bus), IRequestHandler<RemoveByPrefixCommand, bool>
 {
     public async Task<bool> Handle(RemoveByPrefixCommand request, CancellationToken cancellationToken)
     {
