@@ -1,0 +1,16 @@
+global using System.Security.Claims;
+global using System.Reflection;
+global using Girvs.Extensions;
+global using Girvs.Infrastructure;
+global using Girvs.EventBus;
+global using Girvs.EventBus.CapEventBus;
+global using Girvs.EventBus.Identity;
+global using DotNetCore.CAP;
+global using DotNetCore.CAP.Filter;
+global using DotNetCore.CAP.Internal;
+global using DotNetCore.CAP.Messages;
+global using DotNetCore.CAP.Persistence;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using Xunit;
