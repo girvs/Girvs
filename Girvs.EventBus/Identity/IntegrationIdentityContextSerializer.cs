@@ -23,7 +23,10 @@ public static class IntegrationIdentityContextSerializer
         GirvsClaimTypes.ClientId
     ];
 
-    public static string Serialize(ClaimsPrincipal principal)
+    /// <summary>
+    /// 序列化身份上下文为 JSON；principal 不包含任何白名单 Claim 时返回 null。
+    /// </summary>
+    public static string? Serialize(ClaimsPrincipal principal)
     {
         ArgumentNullException.ThrowIfNull(principal);
 

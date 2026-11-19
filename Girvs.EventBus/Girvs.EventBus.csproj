@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+    <!-- 仅启用可空注解（支持 string? 签名），不开启完整可空流分析 -->
+    <PropertyGroup>
+        <Nullable>annotations</Nullable>
+    </PropertyGroup>
+
     <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
         <PackageReference Include="DotNetCore.CAP" Version="8.3.1"/>
         <PackageReference Include="DotNetCore.CAP.Dashboard" Version="8.3.1"/>
@@ -7,6 +12,7 @@
         <PackageReference Include="DotNetCore.CAP.MySql" Version="8.3.1"/>
         <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.3.1"/>
         <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="8.3.1"/>
+        <!-- Sqlite 包由 colinin 独立仓库维护，无 8.3.1 版本，与主包版本号错位为现状；更高 patch（8.3.4）待另行决策 -->
         <PackageReference Include="DotNetCore.CAP.Sqlite" Version="8.3.0"/>
         <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.3.1"/>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1"/>
@@ -23,6 +29,7 @@
         <PackageReference Include="DotNetCore.CAP.MySql" Version="8.3.1"/>
         <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="8.3.1"/>
         <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="8.3.1"/>
+        <!-- Sqlite 包由 colinin 独立仓库维护，无 8.3.1 版本，与主包版本号错位为现状；更高 patch（8.3.4）待另行决策 -->
         <PackageReference Include="DotNetCore.CAP.Sqlite" Version="8.3.0"/>
         <PackageReference Include="DotNetCore.CAP.SqlServer" Version="8.3.1"/>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.17"/>
@@ -38,6 +45,7 @@
         <PackageReference Include="DotNetCore.CAP.MySql" Version="10.0.1"/>
         <PackageReference Include="DotNetCore.CAP.RabbitMQ" Version="10.0.1"/>
         <PackageReference Include="DotNetCore.CAP.RedisStreams" Version="10.0.1"/>
+        <!-- Sqlite 包由 colinin 独立仓库维护，无 10.0.1 版本，与主包版本号错位为现状；更高 patch（10.0.2）待另行决策 -->
         <PackageReference Include="DotNetCore.CAP.Sqlite" Version="10.0.0"/>
         <PackageReference Include="DotNetCore.CAP.SqlServer" Version="10.0.1"/>
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.9"/>
@@ -67,6 +75,10 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Girvs.EventBus.Tests"/>
     </ItemGroup>
 </Project>
 

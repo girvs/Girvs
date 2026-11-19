@@ -19,7 +19,11 @@ public class CapEventBus : IEventBus
     public async Task PublishAsync<TIntegrationEvent>(TIntegrationEvent @event)
         where TIntegrationEvent : IntegrationEvent
     {
+        ArgumentNullException.ThrowIfNull(@event);
+
         var headers = new Dictionary<string, string>();
+        // 发布端按白名单序列化当前用户身份注入 girvs-identity header，由订阅端 GirvsCapFilter 恢复；
+        // identityContext 为 null（无白名单 Claim）时不注入该 header，订阅端以匿名身份执行
         var identityContext = Identity.IntegrationIdentityContextSerializer.Serialize(
             _principalAccessor.Principal);
         if (!string.IsNullOrEmpty(identityContext))
@@ -27,8 +31,9 @@ public class CapEventBus : IEventBus
             headers[Identity.IntegrationIdentityContextSerializer.HeaderName] = identityContext;
         }
 
+        // topic 为事件类型名，须与订阅端 [CapSubscribe("...")] 字符串一致
         var topicName = @event.GetType().Name;
-        _logger.LogInformation("Publishing event {@Event} to.{TopicName}", @event, topicName);
+        _logger.LogInformation("发布集成事件 {Event} 到 {TopicName}", @event, topicName);
 
         await _capPublisher.PublishAsync(topicName, (dynamic) @event, headers, @event.CancellationToken);
     }

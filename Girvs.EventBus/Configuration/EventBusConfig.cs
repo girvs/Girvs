@@ -18,6 +18,11 @@ public class EventBusConfig : IAppModuleConfig
     public string[] TransportConnectionRef { get; set; }
 
     public int ConsumerThreadCount { get; set; } = 1;
+
+    /// <summary>
+    /// 该属性当前未接入 CAP 的 ProducerThreadCount 配置（EventBusModule 中对应行已注释），
+    /// 配置暂不生效；是否接入待定。
+    /// </summary>
     public int ProducerThreadCount { get; set; } = 1;
     public int SucceedMessageExpiredAfter { get; set; } = 60;
     public int FailedMessageExpiredAfter { get; set; } = 15 * 24 * 3600;
