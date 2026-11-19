@@ -1,4 +1,5 @@
-﻿using Girvs.Cache.Extensions;
+﻿using System.Text.Json.Serialization;
+using Girvs.Cache.Extensions;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace Girvs.Cache.Caching;
@@ -22,6 +23,12 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     /// Holds ongoing acquisition tasks, used to avoid duplicating work
     /// </summary>
     protected readonly ConcurrentDictionary<string, Lazy<Task<object>>> _ongoing = new();
+
+    // 缓存读写复用同一份序列化选项，保留循环引用对象图中的引用关系。
+    private protected static readonly JsonSerializerOptions CacheJsonOptions = new()
+    {
+        ReferenceHandler = ReferenceHandler.Preserve,
+    };
 
     #endregion
 
@@ -118,7 +125,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
 
         return string.IsNullOrEmpty(json)
             ? (false, default)
-            : (true, item: JsonSerializer.Deserialize<T>(json));
+            : (true, item: JsonSerializer.Deserialize<T>(json, CacheJsonOptions));
     }
 
     /// <summary>
@@ -185,7 +192,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
 
                 setTask = _distributedCache.SafeClusterSetAsync(
                     key.Key,
-                    JsonSerializer.Serialize(item),
+                    JsonSerializer.Serialize(item, CacheJsonOptions),
                     PrepareEntryOptions(key)
                 );
             }
@@ -228,7 +235,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     {
         var value = await _distributedCache.GetStringAsync(key.Key);
 
-        return value != null ? JsonSerializer.Deserialize<T>(value) : defaultValue;
+        return value != null ? JsonSerializer.Deserialize<T>(value, CacheJsonOptions) : defaultValue;
     }
 
     /// <summary>
@@ -265,7 +272,7 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
             SetLocal(key.Key, await lazy.Value);
             await _distributedCache.SafeClusterSetAsync(
                 key.Key,
-                JsonSerializer.Serialize(data),
+                JsonSerializer.Serialize(data, CacheJsonOptions),
                 PrepareEntryOptions(key)
             );
         }

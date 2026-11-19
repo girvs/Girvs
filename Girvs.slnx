@@ -34,4 +34,5 @@
   <Project Path="tests/Girvs.OpenApi.Tests/Girvs.OpenApi.Tests.csproj" />
   <Project Path="tests/Girvs.Quartz.Tests/Girvs.Quartz.Tests.csproj" />
   <Project Path="tests/Sample.Gateway.Tests/Sample.Gateway.Tests.csproj" />
+  <Project Path="tests/Girvs.Cache.Tests/Girvs.Cache.Tests.csproj" />
 </Solution>
