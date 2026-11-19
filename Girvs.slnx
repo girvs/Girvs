@@ -32,5 +32,6 @@
   <Project Path="tests/Girvs.Driven.Tests/Girvs.Driven.Tests.csproj" />
   <Project Path="tests/Girvs.EntityFrameworkCore.Tests/Girvs.EntityFrameworkCore.Tests.csproj" />
   <Project Path="tests/Girvs.OpenApi.Tests/Girvs.OpenApi.Tests.csproj" />
+  <Project Path="tests/Girvs.Quartz.Tests/Girvs.Quartz.Tests.csproj" />
   <Project Path="tests/Sample.Gateway.Tests/Sample.Gateway.Tests.csproj" />
 </Solution>
