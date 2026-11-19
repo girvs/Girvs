@@ -19,7 +19,13 @@ public sealed class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior
 
         try
         {
+            // MediatR 14+（net10/net11）需显式传递 CancellationToken 以保留取消传播；
+            // MediatR 11/12（net8/net9）为无参委托
+#if NET10_0_OR_GREATER
+            var response = await next(cancellationToken);
+#else
             var response = await next();
+#endif
 
             stopwatch.Stop();
 

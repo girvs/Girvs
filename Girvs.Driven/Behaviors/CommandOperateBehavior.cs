@@ -19,7 +19,13 @@ public class CommandOperateBehavior<TRequest, TResponse>(
         CancellationToken cancellationToken
     )
     {
+        // MediatR 14+（net10/net11）的委托带 CancellationToken 参数，显式传递以保留取消传播；
+        // MediatR 11/12（net8/net9）为无参委托
+#if NET10_0_OR_GREATER
+        var result = await next(cancellationToken); //后至处理
+#else
         var result = await next(); //后至处理
+#endif
 
         if (EqualityComparer<TResponse>.Default.Equals(result, default))
             return result;

@@ -37,7 +37,11 @@ public class ValidatorBehavior<TRequest, TResponse>(
         var failures = (await validator.ValidateAsync(request, cancellationToken)).Errors;
 
         if (failures.Count == 0)
+#if NET10_0_OR_GREATER
+            return await next(cancellationToken);
+#else
             return await next();
+#endif
 
         //校验错误信息通过通知的方式传递至前台,如果不启用延迟处理，而直接抛出异常
         if (validator.IsErrorMessageDelay)
