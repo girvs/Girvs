@@ -1,4 +1,5 @@
 using Girvs.ServiceGovernance.Discovery;
+using Yarp.ReverseProxy.Forwarder;
 
 namespace Girvs.Gateway;
 
@@ -10,16 +11,23 @@ namespace Girvs.Gateway;
 public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDisposable
 {
     private readonly IServiceDirectory _directory;
+    private readonly TimeSpan _activityTimeout;
     private readonly object _lock = new();
     private volatile GirvsGatewayProxyConfig _config;
     private CancellationTokenSource _cts;
     private bool _disposed;
 
     public GirvsGatewayProxyConfigProvider(IServiceDirectory directory)
+        : this(directory, new GirvsGatewayConfig())
+    {
+    }
+
+    public GirvsGatewayProxyConfigProvider(IServiceDirectory directory, GirvsGatewayConfig config)
     {
         _directory = directory;
+        _activityTimeout = config.ActivityTimeout;
         _cts = new CancellationTokenSource();
-        _config = BuildConfig(directory.GetServices(), _cts);
+        _config = BuildConfig(directory.GetServices(), _cts, _activityTimeout);
         _directory.ServicesChanged += OnServicesChanged;
     }
 
@@ -37,7 +45,7 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
 
             // 先建新配置（新令牌），再 Cancel 旧令牌通知 YARP 重新 GetConfig —— 修掉现有令牌未接通的 bug
             var newCts = new CancellationTokenSource();
-            var newConfig = BuildConfig(_directory.GetServices(), newCts);
+            var newConfig = BuildConfig(_directory.GetServices(), newCts, _activityTimeout);
             var oldCts = _cts;
             _config = newConfig;
             _cts = newCts;
@@ -48,7 +56,8 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
 
     private static GirvsGatewayProxyConfig BuildConfig(
         IReadOnlyList<DiscoveredService> services,
-        CancellationTokenSource cts
+        CancellationTokenSource cts,
+        TimeSpan activityTimeout
     )
     {
         var routes = new List<RouteConfig>();
@@ -103,7 +112,12 @@ public sealed class GirvsGatewayProxyConfigProvider : IProxyConfigProvider, IDis
                 }
             );
 
-            clusters.Add(new ClusterConfig { ClusterId = svc.ServiceName, Destinations = destinations });
+            clusters.Add(new ClusterConfig
+            {
+                ClusterId = svc.ServiceName,
+                Destinations = destinations,
+                HttpRequest = new ForwarderRequestConfig { ActivityTimeout = activityTimeout }
+            });
         }
 
         return new GirvsGatewayProxyConfig(

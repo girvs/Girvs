@@ -59,6 +59,24 @@ Aspire 模式下地址来自 AppHost 注入给网关项目的 `services:{Service
 
 不支持基于 Label/Annotation 的分流或自定义路由规则——这类需求留给网关侧自行叠加中间件，本包只负责"服务名 → 约定路由"这一层。
 
+## 转发空闲超时
+
+`ModuleConfigurations:GirvsGatewayConfig:ActivityTimeout` 设置所有动态生成集群的 YARP 转发空闲超时，默认 5 分钟。该值限制两次转发 I/O 操作之间的最长间隔。大文件上传完成后等待后端处理，或下载时等待后端生成首批数据，如果需要更长时间，可以调大此值。
+
+在网关的 `appsettings.json` 中按 `TimeSpan` 格式填写，例如将空闲超时设为 10 分钟：
+
+```json
+{
+  "ModuleConfigurations": {
+    "GirvsGatewayConfig": {
+      "ActivityTimeout": "00:10:00"
+    }
+  }
+}
+```
+
+启动时调用 `builder.Services.AddGirvsGateway(builder.Configuration)` 读取该设置。缺少模块配置节时，回退到顶级 `GirvsGatewayConfig` 节。
+
 ## 流程防护
 
 网关可选启用严格线性流程防护，阻止已登录用户跳过前置接口直接调用后续接口。流程定义独立放在 `FlowProtection` 配置节，不写入 YARP Route Metadata；状态只保存在 Redis，所有 Reserve/Commit/Release/Delete 都通过 Lua 原子执行。

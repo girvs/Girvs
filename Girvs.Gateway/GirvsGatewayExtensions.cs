@@ -14,6 +14,10 @@ public static class GirvsGatewayExtensions
         IConfiguration configuration = default
     )
     {
+        var gatewayConfig = configuration?.GetSection("ModuleConfigurations:GirvsGatewayConfig").Get<GirvsGatewayConfig>()
+            ?? configuration?.GetSection("GirvsGatewayConfig").Get<GirvsGatewayConfig>()
+            ?? new GirvsGatewayConfig();
+        services.AddSingleton(gatewayConfig);
         services.AddSingleton<IProxyConfigProvider, GirvsGatewayProxyConfigProvider>();
 
         services
