@@ -7,9 +7,8 @@ namespace Girvs.Quartz;
 /// 执行结束后释放作用域。以此消除旧机制回落根容器导致的「根作用域 DbContext 被多线程共享且永不释放」问题。
 /// </summary>
 /// <remarks>
-/// 使用契约：Job 类型必须预先注册于 DI 容器（如 AddScoped/AddTransient）。
-/// 未注册的 Job 触发时会抛出 InvalidOperationException（GetRequiredService 无法解析）。
-/// 此行为与官方默认工厂 MicrosoftDependencyInjectionJobFactory 不同：后者对未注册的 Job 会经 ActivatorUtilities 直接落建实例。
+/// 已注册的 Job 从 DI 容器解析。未注册的 Job 通过 <see cref="ActivatorUtilities"/> 直接构造，
+/// 构造器依赖由本次触发的作用域注入。此激活行为与 Quartz 3.3.2 及以上版本的官方默认工厂一致。
 /// </remarks>
 public class GirvsJobFactory : IJobFactory
 {
@@ -58,8 +57,9 @@ public class GirvsJobFactory : IJobFactory
             // 异步流脱离本上下文后 EngineContext 将回退根容器，scoped 服务亦随作用域释放而不可用。
             using var _ = EngineContext.Current.ChangeCurrentThreadServiceProvider(scope.ServiceProvider);
 
-            // 真实 Job 在桥接之后才解析，其构造器经 EngineContext 取得的 DbContext 等 Scoped 服务落在本作用域
-            var job = (IJob)scope.ServiceProvider.GetRequiredService(jobType);
+            // 桥接后再解析或构造 Job，使构造器经 EngineContext 获取的 Scoped 服务落在本作用域
+            var provider = scope.ServiceProvider;
+            var job = (IJob)(provider.GetService(jobType) ?? ActivatorUtilities.CreateInstance(provider, jobType));
 
             logger.LogDebug("定时任务开始执行 {JobType}", jobType.FullName);
             // 异常不吞，原样上抛交给 Quartz 处置

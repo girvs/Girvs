@@ -34,6 +34,30 @@ public class GirvsJobFactoryScopeIsolationTests
     }
 
     [Fact]
+    public async Task Execute_未注册的Job_在桥接作用域内构造并执行且归还时释放作用域()
+    {
+        var (factory, recorder) = CreateEnvironment();
+        var wrapper = factory.NewJob(CreateBundle(typeof(UnregisteredJob)), null);
+
+        try
+        {
+            await wrapper.Execute(null);
+
+            var (injectedProbe, constructionProbe, executionProbe) = recorder.ActivationProbes;
+            Assert.NotNull(injectedProbe);
+            Assert.Same(injectedProbe, constructionProbe);
+            Assert.Same(injectedProbe, executionProbe);
+            Assert.Equal(0, recorder.DisposedCount);
+        }
+        finally
+        {
+            factory.ReturnJob(wrapper);
+        }
+
+        Assert.Equal(1, recorder.DisposedCount);
+    }
+
+    [Fact]
     public async Task Execute_两次触发间_Scoped服务为不同实例且各自释放()
     {
         var (factory, recorder) = CreateEnvironment(typeof(ScopeObservationJob));
@@ -175,6 +199,7 @@ public class GirvsJobFactoryScopeIsolationTests
         private int _disposedCount;
 
         public ConcurrentQueue<(Guid ProbeId, bool IsFirstResolve)> Observations { get; } = [];
+        public (ScopedProbe Injected, ScopedProbe Construction, ScopedProbe Execution) ActivationProbes { get; set; }
         public int DisposedCount => _disposedCount;
         public volatile bool InScopeProbeResolved;
         public volatile bool InScopeEngineMarkerNull;
@@ -183,6 +208,17 @@ public class GirvsJobFactoryScopeIsolationTests
             Observations.Enqueue((probeId, firstResolve));
 
         public void ProbeDisposed() => Interlocked.Increment(ref _disposedCount);
+    }
+
+    private sealed class UnregisteredJob(ScopedProbe probe, TestRecorder recorder) : GirvsJob
+    {
+        private readonly ScopedProbe _constructionProbe = EngineContext.Current.Resolve<ScopedProbe>();
+
+        public override Task Execute(IJobExecutionContext context)
+        {
+            recorder.ActivationProbes = (probe, _constructionProbe, EngineContext.Current.Resolve<ScopedProbe>());
+            return Task.CompletedTask;
+        }
     }
 
     // 经 EngineContext 两次解析 Scoped 探针并记录结果
