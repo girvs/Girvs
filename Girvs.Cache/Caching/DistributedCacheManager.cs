@@ -24,10 +24,11 @@ public abstract class DistributedCacheManager : CacheKeyService, IStaticCacheMan
     /// </summary>
     protected readonly ConcurrentDictionary<string, Lazy<Task<object>>> _ongoing = new();
 
-    // 缓存读写复用同一份序列化选项，保留循环引用对象图中的引用关系。
-    private protected static readonly JsonSerializerOptions CacheJsonOptions = new()
+    // 缓存读写复用同一份序列化选项。IgnoreCycles 忽略循环引用，在环处写入 null，
+    // 因此读回的反向导航集合会含有 null 元素。
+    static readonly JsonSerializerOptions CacheJsonOptions = new()
     {
-        ReferenceHandler = ReferenceHandler.Preserve,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles
     };
 
     #endregion

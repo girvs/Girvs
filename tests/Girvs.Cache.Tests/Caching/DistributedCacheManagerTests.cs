@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Girvs.Cache.CacheImps;
 using Girvs.Cache.Caching;
 using Girvs.Cache.Configuration;
@@ -25,11 +26,14 @@ public class DistributedCacheManagerTests
 
         var cached = await manager.GetAsync<Group>(key);
         Assert.NotNull(cached);
-        Assert.Same(cached, Assert.Single(Assert.Single(cached.Members).Groups));
+        var member = Assert.Single(cached.Members);
+        Assert.Equal("成员", member.Name);
+        // IgnoreCycles 会丢失循环引用。读回的反向导航集合含 null 元素，业务代码遍历时须判空。
+        Assert.Null(Assert.Single(member.Groups));
     }
 
     [Fact]
-    public async Task SetAsync_写入循环引用对象_底层缓存JSON包含引用元数据()
+    public async Task SetAsync_写入循环引用对象_底层缓存JSON包含正向导航且无引用元数据()
     {
         using var manager = CreateManager(_distributedCache);
         var key = new CacheKey("groups", cacheTime: 1);
@@ -38,12 +42,15 @@ public class DistributedCacheManagerTests
 
         var json = await _distributedCache.GetStringAsync(key.Key);
         Assert.NotNull(json);
-        Assert.Contains("\"$id\"", json);
-        Assert.Contains("\"$ref\"", json);
+        using var document = JsonDocument.Parse(json);
+        var member = Assert.Single(document.RootElement.GetProperty("Members").EnumerateArray());
+        Assert.Equal("成员", member.GetProperty("Name").GetString());
+        Assert.DoesNotContain("\"$id\"", json);
+        Assert.DoesNotContain("\"$ref\"", json);
     }
 
     [Fact]
-    public async Task GetAsync_缓存未命中时获取循环引用对象_读回后引用还原为同一实例()
+    public async Task GetAsync_缓存未命中时获取循环引用对象_读回后正向数据完整且反向导航含null()
     {
         using var writer = CreateManager(_distributedCache);
         using var reader = CreateManager(_distributedCache);
@@ -59,7 +66,9 @@ public class DistributedCacheManagerTests
         Assert.Same(group, acquired);
         Assert.NotNull(cached);
         Assert.NotSame(group, cached);
-        Assert.Same(cached, Assert.Single(Assert.Single(cached.Members).Groups));
+        var member = Assert.Single(cached.Members);
+        Assert.Equal("成员", member.Name);
+        Assert.Null(Assert.Single(member.Groups));
     }
 
     [Fact]
