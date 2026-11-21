@@ -19,7 +19,7 @@ Girvs 是一个基于 .NET 的企业级快速开发框架,旨在提供一套完�
 - 🔧 **开箱即用** - 集成常用组件,减少重复开发
 - 📦 **NuGet 支持** - 所有模块均可通过 NuGet 包管理
 - 🔐 **安全可靠** - 内置权限认证、数据验证等安全机制
-- 🌐 **微服务友好** - 支持服务注册发现、分布式事件总线
+- 🌐 **微服务友好** - 支持服务注册发现、统一网关、分布式事件总线
 - 📊 **可观测性** - 完善的日志、监控支持
 
 ## 🏗️ 项目结构
@@ -38,6 +38,7 @@ Girvs/
 ├── Girvs.DynamicWebApi            # 动态 Web API 模块
 ├── Girvs.EntityFrameworkCore      # EF Core 数据访问模块
 ├── Girvs.EventBus                 # 事件总线模块 (基于 CAP)
+├── Girvs.Gateway                  # 网关模块 (YARP 服务发现路由, net10.0/net11.0)
 ├── Girvs.Grpc                     # gRPC 服务模块
 ├── Girvs.OpenApi                  # OpenAPI 文档模块
 ├── Girvs.Quartz                   # 定时任务模块
@@ -58,19 +59,17 @@ Girvs/
 
 **日志支持:**
 - Console 输出
-- 文件存储
+- 文件存储（无业务 `Serilog.json` 时，兜底日志同时写 Console 与按小时滚动的文件）
 - Elasticsearch 集成
-- 阿里云日志服务
 
 ### Girvs.EntityFrameworkCore (数据访问层)
 基于 Entity Framework Core 的数据访问模块。
 
-**支持的数据库:**
-- SQL Server
-- MySQL (使用 Pomelo)
-- SQLite
-- Oracle
-- InMemory (用于测试)
+**支持的数据库（按目标框架）:**
+- SQL Server（全部目标）
+- MySQL（net8/net9 使用 Pomelo，net10/net11 使用 Microting.EntityFrameworkCore.MySql）
+- SQLite、InMemory（net8）
+- Oracle（net8）
 
 **主要功能:**
 - Repository 模式
@@ -111,6 +110,25 @@ Girvs/
 - 事件持久化
 - 失败重试机制
 - 可视化管理界面 (Dashboard)
+- 身份自动传播（发布端把身份写入 `girvs-identity` Header，消费端自动恢复用户与租户身份）
+- 消息作用域桥接（`Handle` 全程执行于专属作用域，构造注入与 `EngineContext.Resolve` 命中同一 `DbContext`）
+- 启动期 fail-fast 配置校验（未知持久化/传输类型即报错）
+
+### Girvs.Gateway（网关，net10.0/net11.0）
+基于 YARP 的动态网关，按服务发现结果自动生成路由与集群，支持配置化接入。
+
+**支持的服务发现源:**
+- Aspire AppHost（本地联调）
+- Consul（传统注册中心）
+- Kubernetes（watch Service，秒级热更新路由）
+
+**主要功能:**
+- 约定式路由生成（`/{ServiceName}/{**catch-all}`，转发去前缀）
+- 路由热更新（变更令牌驱动，无需重启）
+- 可选 Redis 流程防护（严格线性流程 Ticket）
+- 转发空闲超时可配置（默认 5 分钟）
+
+详见 [Girvs.Gateway 使用说明](Girvs.Gateway/README.md)。
 
 ### Girvs.DynamicWebApi (动态 API)
 自动将应用服务转换为 RESTful API。
@@ -145,7 +163,8 @@ gRPC 服务支持模块。
 **主要功能:**
 - 作业调度
 - Cron 表达式支持
-- 单例作业工厂
+- 作用域桥接作业工厂（每次触发独立 DI 作用域，消除根容器 `DbContext` 多线程共享）
+- 未注册 Job 自动激活（回退 `ActivatorUtilities` 构造）
 - 后台任务托管
 
 ### Girvs.Consul (服务注册发现)
@@ -239,25 +258,31 @@ OpenAPI 3.0 文档生成。
 
 ### 安装
 
-通过 NuGet 包管理器安装所需模块。以下保留原安装示例；本次新增的 .NET 11 支持需使用当前分支源码或自行构建的本地包，详见 [升级指南](docs/dotnet11-upgrade.md)。
+通过 NuGet 包管理器安装所需模块，最新预览版为 `11.0.0-preview1.9`。net10/net11 目标的依赖与验证方式见 [升级指南](docs/dotnet11-upgrade.md)。
 
 ```bash
 # 安装核心框架
-dotnet add package Girvs --version 9.0.8
+dotnet add package Girvs --version 11.0.0-preview1.9
 
 # 安装 EntityFrameworkCore 模块
-dotnet add package Girvs.EntityFrameworkCore --version 9.0.8
+dotnet add package Girvs.EntityFrameworkCore --version 11.0.0-preview1.9
 
 # 安装缓存模块
-dotnet add package Girvs.Cache --version 9.0.8
+dotnet add package Girvs.Cache --version 11.0.0-preview1.9
 
 # 安装事件总线
-dotnet add package Girvs.EventBus --version 9.0.8
+dotnet add package Girvs.EventBus --version 11.0.0-preview1.9
 ```
 
 ### 基础使用示例
 
-#### 1. 配置 Startup
+#### 1. 配置程序入口与 Startup
+
+```csharp
+// Program.cs
+var app = GirvsHostBuilderManager.CreateGirvsWebApplication(args);
+app.Run();
+```
 
 ```csharp
 public class Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
@@ -351,19 +376,49 @@ public class OrderService
     }
 }
 
-// 订阅事件
-public class OrderEventHandler : IIntegrationEventHandler<OrderCreatedEvent>
+// 订阅事件：继承 GirvsIntegrationEventHandler<T>，Handle 自动获得身份恢复与专属作用域。
+// 消费逻辑直接写在 Handle 中；Handle 内不得启动超出消息生命周期的 fire-and-forget 任务。
+public class OrderCreatedEventHandler : GirvsIntegrationEventHandler<OrderCreatedEvent>
 {
-    public async Task HandleAsync(OrderCreatedEvent @event)
+    [CapSubscribe(nameof(OrderCreatedEvent))]
+    public override Task Handle(
+        OrderCreatedEvent @event,
+        [FromCap] CapHeader header,
+        CancellationToken cancellationToken)
     {
         // 处理订单创建事件
         Console.WriteLine($"订单已创建: {@event.OrderId}");
+        return Task.CompletedTask;
     }
 }
 ```
 
+> 订阅处理器需要 `using DotNetCore.CAP;`（`CapSubscribe`、`FromCap`）与 `using Girvs.EventBus;`。
+
 ## 📝 配置说明
 
+各基础设施模块通过顶层 `Resources` 声明资源，再用 `ConnectionRef` 字符串数组引用：索引 0 为资源键格式串，索引 1 起为 `string.Format` 参数。
+
+```json
+{
+  "Resources": {
+    "platform-redis": {
+      "Type": "redis",
+      "Settings": { "Endpoints": "redis:6379,ssl=False,defaultdatabase={0}" }
+    }
+  },
+  "ModuleConfigurations": {
+    "CacheConfig": {
+      "DistributedCacheConfig": {
+        "Enabled": true,
+        "ConnectionRef": ["platform-redis", "0"]
+      }
+    }
+  }
+}
+```
+
+数据库、事件总线、SignalR 等模块使用同样的资源引用模型；旧的结构化连接配置已移除，完整迁移说明见[框架升级说明](框架升级说明.md)。
 
 ## 🔧 版本支持
 
