@@ -67,7 +67,7 @@ public class GirvsGatewayProxyConfigProviderTests
     [InlineData(true, null, "00:12:00", 12)]
     [InlineData(true, "00:10:00", "00:12:00", 10)]
     public void 注册网关时_配置的转发空闲超时应用于动态集群(
-        bool provideConfiguration, string moduleTimeout, string topLevelTimeout, int expectedMinutes)
+        bool provideConfiguration, string? moduleTimeout, string? topLevelTimeout, int expectedMinutes)
     {
         var settings = new Dictionary<string, string>();
         if (moduleTimeout is not null)

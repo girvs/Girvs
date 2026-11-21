@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace Girvs.Aspire.Hosting.Tests;
 
 public class GirvsProjectExtensionsTests : IDisposable
@@ -50,6 +52,21 @@ public class GirvsProjectExtensionsTests : IDisposable
         File.WriteAllText(
             Path.Combine(projectDirectory, "Properties", "launchSettings.json"),
             """{"profiles":{"http":{"applicationUrl":"http://localhost:5101"}}}""");
+    }
+
+    /// <summary>
+    /// 以 ExecutionConfigurationBuilder 收集资源环境变量，
+    /// 等价替代已过时的 ResourceExtensions.GetEnvironmentVariableValuesAsync。
+    /// </summary>
+    private static async Task<Dictionary<string, string>> GetEnvironmentVariableValuesAsync(
+        IResource resource, DistributedApplicationOperation operation)
+    {
+        var config = await ExecutionConfigurationBuilder
+            .Create(resource)
+            .WithEnvironmentVariablesConfig()
+            .BuildAsync(new DistributedApplicationExecutionContext(operation), NullLogger.Instance);
+
+        return config.EnvironmentVariables.ToDictionary(kv => kv.Key, kv => kv.Value);
     }
 
     private static void AllocateEndpoint(IResource resource, int port)
@@ -118,8 +135,7 @@ public class GirvsProjectExtensionsTests : IDisposable
         var project = AddServiceProject(builder, "service-a");
         builder.AddGirvsProject(project);
 
-        var env = await project.Resource.GetEnvironmentVariableValuesAsync(
-            DistributedApplicationOperation.Run);
+        var env = await GetEnvironmentVariableValuesAsync(project.Resource, DistributedApplicationOperation.Run);
 
         var path = Assert.Contains("GIRVS_SHARED_CONFIG", env);
         Assert.Equal(Path.Combine(_tempRoot, "girvs.shared.json"), path);
@@ -138,8 +154,7 @@ public class GirvsProjectExtensionsTests : IDisposable
         var project = AddServiceProject(builder, "service-a");
         builder.AddGirvsProject(project);
 
-        var env = await project.Resource.GetEnvironmentVariableValuesAsync(
-            DistributedApplicationOperation.Run);
+        var env = await GetEnvironmentVariableValuesAsync(project.Resource, DistributedApplicationOperation.Run);
 
         Assert.Equal(sharedPath, env["GIRVS_SHARED_CONFIG"]);
         var content = await File.ReadAllTextAsync(sharedPath);
@@ -153,8 +168,7 @@ public class GirvsProjectExtensionsTests : IDisposable
         var project = AddServiceProject(builder, "service-a");
         builder.AddGirvsProject(project);
 
-        var env = await project.Resource.GetEnvironmentVariableValuesAsync(
-            DistributedApplicationOperation.Publish);
+        var env = await GetEnvironmentVariableValuesAsync(project.Resource, DistributedApplicationOperation.Publish);
 
         Assert.Equal("/girvs-config/girvs.shared.json", env["GIRVS_SHARED_CONFIG"]);
         Assert.False(File.Exists(Path.Combine(_tempRoot, "girvs.shared.json")));

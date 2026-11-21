@@ -150,8 +150,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
 
 public sealed class RedisFlowStateStoreFixture : IAsyncLifetime
 {
-    private readonly RedisContainer _container = new RedisBuilder()
-        .WithImage("redis:7-alpine")
+    private readonly RedisContainer _container = new RedisBuilder("redis:7-alpine")
         .Build();
 
     private ConnectionMultiplexer _connection;

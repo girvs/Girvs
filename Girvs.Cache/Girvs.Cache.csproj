@@ -40,11 +40,9 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Girvs\Girvs.csproj"/>
-        <!-- MsSqlServerCacheManager 直接使用 System.Data.SqlClient，原经 LogDashboard 传递，移除后需显式引用（4.8.6 修复 GHSA-8g2p-5pqh-5jmc） -->
-        <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
-        <PackageReference Update="System.Data.SqlClient" Version="4.9.1" />
+        <!-- MsSqlServerCacheManager 直接使用 Microsoft.Data.SqlClient，各目标框架版本与 Microsoft.Extensions.Caching.SqlServer 的传递依赖保持一致 -->
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.5" Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net9.0'" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" Condition="'$(TargetFramework)' == 'net10.0'" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.0" Condition="'$(TargetFramework)' == 'net11.0'" />
     </ItemGroup>
 </Project>

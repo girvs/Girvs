@@ -1,6 +1,7 @@
 ﻿using Girvs.Configuration.Resources;
 using Girvs.SignalR.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using StackExchange.Redis;
 
 namespace Girvs.SignalR;
 
@@ -36,7 +37,7 @@ public class SignalRModule : IAppModuleStartup
 
             signalServiceBuilder.AddStackExchangeRedis(redisConnectionString, options =>
             {
-                options.Configuration.ChannelPrefix = "Message";
+                options.Configuration.ChannelPrefix = RedisChannel.Literal("Message");
                 options.Configuration.ConnectTimeout = 5000;
                 options.Configuration.KeepAlive = 60;
             });

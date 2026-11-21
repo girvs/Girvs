@@ -79,7 +79,7 @@ public class RepositoryBulkOperationTests
     [InlineData("Count", null)]
     [InlineData("Name", null)]
     [InlineData(" ", 1)]
-    public async Task 批量更新_非法字段和值在执行前拒绝(string field, object value)
+    public async Task 批量更新_非法字段和值在执行前拒绝(string field, object? value)
     {
         using var scope = new EfTestScope();
         var repository = new BulkRepository();

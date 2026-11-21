@@ -71,6 +71,6 @@ public class SelfCheckController(IDistributedCache cache, IServiceBRefit service
         await uow.Commit();
 
         var readBack = await repo.GetByIdAsync(product.Id);
-        return Ok(new { match = readBack != null && readBack.Name == name, id = product.Id });
+        return Ok(new { match = readBack?.Name == name, id = product.Id });
     }
 }

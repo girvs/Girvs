@@ -22,13 +22,27 @@ public class RefitConfig : IAppModuleConfig
 
     public string ConsulAddress { get; set; }
 
+    // 兼容历史配置：经私有字段读取，供 GetConsulAddress 回退使用；属性移除时一并删除。
+    private string _consulServiceHost;
+
     [Obsolete("请使用 ConsulAddress")]
-    public string ConsulServiceHost { get; set; }
+    public string ConsulServiceHost
+    {
+        get => _consulServiceHost;
+        set => _consulServiceHost = value;
+    }
 
     public Dictionary<string, string> ServiceEndpoints { get; set; } = new();
 
+    // 兼容历史配置：经私有字段读取，供 GetServiceEndpoint 回退使用；属性移除时一并删除。
+    private Dictionary<string, string> _serviceAddress = new();
+
     [Obsolete("请使用 ServiceEndpoints")]
-    public Dictionary<string, string> ServiceAddress { get; set; } = new();
+    public Dictionary<string, string> ServiceAddress
+    {
+        get => _serviceAddress;
+        set => _serviceAddress = value;
+    }
 
     [Obsolete("请使用 GetServiceEndpoint")]
     public string this[string index] => GetServiceEndpoint(index);
@@ -39,15 +53,15 @@ public class RefitConfig : IAppModuleConfig
         if (ServiceEndpoints.TryGetValue(serviceName, out var endpoint))
             return endpoint;
 
-        return ServiceAddress.TryGetValue(serviceName, out endpoint) ? endpoint : null;
+        return _serviceAddress.TryGetValue(serviceName, out endpoint) ? endpoint : null;
     }
 
     // 兼容旧 ConsulServiceHost，未配置时采用本地 Consul 默认地址。
     public string GetConsulAddress() =>
         !string.IsNullOrWhiteSpace(ConsulAddress)
             ? ConsulAddress
-            : !string.IsNullOrWhiteSpace(ConsulServiceHost)
-                ? ConsulServiceHost
+            : !string.IsNullOrWhiteSpace(_consulServiceHost)
+                ? _consulServiceHost
                 : "http://127.0.0.1:8500";
 
     public void Init() { }

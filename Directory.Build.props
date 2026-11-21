@@ -3,6 +3,7 @@
     <TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>annotations</Nullable>
     <Version>10.0.0-rc.4.0.3</Version>
     <PackageVersion>10.0.0-rc.4.0.3</PackageVersion>
     <LangVersion>latest</LangVersion>
