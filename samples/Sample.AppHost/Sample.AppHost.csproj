@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.4.6" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.5" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,7 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- MongoDB 官方 Aspire 集成:资源提取由样例自己的 MongoSettingsProvider 完成(框架内置预设之外的扩展示例) -->
-    <PackageReference Include="Aspire.Hosting.MongoDB" Version="13.4.6" />
+    <PackageReference Include="Aspire.Hosting.MongoDB" Version="13.6.5" />
   </ItemGroup>
   <ItemGroup>
     <!-- 普通编译引用：AppHost 需要 AddGirvsProject / AsGirvsResource 扩展方法 -->
