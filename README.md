@@ -3,7 +3,7 @@
 <div align="center">
 
 [![GitHub](https://img.shields.io/github/license/girvs/Girvs)](https://github.com/girvs/Girvs/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/dev-10.0.0--rc.4.0.3-blue.svg)](https://github.com/girvs/Girvs)
+[![Version](https://img.shields.io/badge/release-11.0.0--preview1.9-blue.svg)](https://github.com/girvs/Girvs/tags)
 [![.NET](https://img.shields.io/badge/.NET-8.0%20|%209.0%20|%2010.0%20|%2011.0-purple.svg)](https://dotnet.microsoft.com/)
 
 </div>
@@ -373,7 +373,7 @@ public class OrderEventHandler : IIntegrationEventHandler<OrderCreatedEvent>
 | Girvs.OpenApi | — | ✅ | ✅ | ✅ |
 | Girvs.Gateway、Girvs.ServiceGovernance | — | — | ✅ | ✅ |
 
-当前开发版本: **10.0.0-rc.4.0.3**。全部 17 个库均包含 `net11.0` 目标；包版本号以 `Directory.Build.props` 为准。新增目标的依赖和验证方式见 [升级指南](docs/dotnet11-upgrade.md)。
+最新发布版本: **11.0.0-preview1.9**（标签触发流水线发布，见 [升级指南](docs/dotnet11-upgrade.md#发布流程)）。开发基线版本为 `Directory.Build.props` 中的 10.0.0-rc.4.0.3。全部 17 个库均包含 `net11.0` 目标。`v11.0.0-preview1.x` 系列的行为变化见[框架升级说明](框架升级说明.md)，新增目标的依赖和验证方式见 [升级指南](docs/dotnet11-upgrade.md)。
 
 ## 📚 学习资源
 
