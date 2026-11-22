@@ -2,7 +2,7 @@
 
 ## 项目结构与模块组织
 
-`Girvs.slnx` 包含核心库 `Girvs/` 及各独立模块，如 `Girvs.Aspire/`、`Girvs.Aspire.Hosting/`、`Girvs.Aspire.Gateway/`、`Girvs.EntityFrameworkCore/` 和 `Girvs.Driven/`。示例应用位于 `samples/`；其中 `Sample.AppHost` 用于 Aspire 编排，`Sample.ServiceA`、`Sample.ServiceB` 和 `Sample.Worker` 用于端到端验证。单元测试位于 `tests/`，按被测模块分组。每个模块保持独立的 `.csproj` 与 `GlobalUsings.cs`。
+`Girvs.slnx` 包含核心库 `Girvs/`、各独立模块（如 `Girvs.ServiceGovernance/`、`Girvs.Aspire.Hosting/`、`Girvs.Gateway/`）及 `tests/` 下按模块分组的测试项目。主解决方案显式列出 `Sample.AppHost`、`Sample.Gateway`、`Sample.ServiceA` 和 `Sample.ServiceB`。`samples/GirvsAspireSample.slnx` 还显式列出由 AppHost 编排的 `Sample.Worker`。
 
 ## 构建、测试与本地开发
 
@@ -12,10 +12,10 @@
 dotnet build Girvs.slnx                 # 构建全部模块
 dotnet build Girvs.slnx -c Release      # 发布配置构建
 dotnet test Girvs.slnx                  # 运行全部 xUnit 测试
-dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj
+dotnet test tests/Girvs.Gateway.Tests/Girvs.Gateway.Tests.csproj
 ```
 
-仅修改一个模块时，优先构建其 `.csproj`。修改 Aspire 编排或网关逻辑时，同时运行对应的 `Girvs.Aspire.*.Tests` 项目。
+仅修改一个模块时，优先构建其 `.csproj`。修改编排、服务治理或网关时，分别运行 `Girvs.Aspire.Hosting.Tests`、`Girvs.ServiceGovernance.Tests` 或 `Girvs.Gateway.Tests`。
 
 ## 编码风格与命名
 
@@ -42,4 +42,4 @@ dotnet test tests/Girvs.Aspire.Gateway.Tests/Girvs.Aspire.Gateway.Tests.csproj
 使用五个默认状态，映射见 `docs/agents/triage-labels.md`。
 
 ### Domain docs
-使用根目录 `CONTEXT.md` 与 `docs/adr/`，规则见 `docs/agents/domain.md`。
+使用根目录 `CONTEXT.md` 与 `docs/adr/`，规则见 `docs/agents/domain.md`。当前两者尚未创建，缺失时按空集处理。

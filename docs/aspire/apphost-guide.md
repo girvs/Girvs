@@ -1,6 +1,6 @@
 # Girvs 服务接入 .NET Aspire 指南
 
-适用范围：目标框架为 net10.0 的 Girvs 服务。框架主线统一使用 Girvs.Aspire，不再提供 Consul 服务发现模块。
+适用范围为服务端 `net10.0` / `net11.0`，AppHost 扩展 `net8.0` 至 `net11.0`。服务端治理统一由 `Girvs.ServiceGovernance` 提供，推荐本地使用 Aspire、生产使用 Kubernetes，Consul 保留兼容。
 架构总览见仓库根目录 `Architect.png`。
 
 ## 1. 配置分发模型(核心概念)
@@ -20,18 +20,18 @@ girvs.shared.json(共享文件,GIRVS_SHARED_CONFIG 指向)
 
 服务本地配置永远优先于共享文件——由 .NET 标准配置合并规则保证,框架无任何特殊覆盖逻辑。
 
-## 2. 服务端接入(Girvs.Aspire)
+## 2. 服务端接入(Girvs.ServiceGovernance)
 
 1. 服务项目追加包引用:
 
 ```xml
-<PackageReference Include="Girvs.Aspire" Version="10.0.0-rc.1" />
+<PackageReference Include="Girvs.ServiceGovernance" Version="11.0.0-preview1.9" />
 ```
 
-2. 无需修改任何代码。`AspireModule` 会随 Girvs 模块机制自动生效:
-   - 在 Aspire 环境(存在 `OTEL_EXPORTER_OTLP_ENDPOINT` 环境变量)下自动上报日志/追踪/指标到 Dashboard;
-   - 暴露 `/health` 与 `/alive` 健康检查端点;
-   - HttpClient 默认启用 Aspire 服务发现与标准弹性策略。
+2. 使用 Girvs Web 宿主的服务无需为此修改启动代码，`ServiceGovernanceModule` 会随模块机制生效。
+   - 设置 `OTEL_EXPORTER_OTLP_ENDPOINT` 后，通过 OTLP 导出追踪和指标，可由 Aspire Dashboard 接收。
+   - 默认暴露 `/health` 与 `/alive` 健康检查端点。
+   - Aspire 模式下为 HttpClient 配置服务发现与标准弹性策略。
 
 3. 服务的 `appsettings.json` 中各模块以 `ConnectionRef` 指向资源键(资源地址无需本地声明,由共享文件提供):
 
@@ -54,7 +54,17 @@ girvs.shared.json(共享文件,GIRVS_SHARED_CONFIG 指向)
 }
 ```
 
-4. 服务发现由 Aspire / K8s 提供,服务项目不再引用服务注册中心模块。
+4. 在服务的 `appsettings.json` 中，通过 `ModuleConfigurations:ServiceGovernanceConfig:ServiceDiscoveryProvider` 选择一种发现模式：`Aspire`（默认，读取 AppHost 注入的 `services` 配置）、`Consul`（读取 Consul 目录，服务注册使用 `ConsulAddress` 和 `ConsulRegistrationAddress`）或 `Kubernetes`（在集群内查询匹配 `KubernetesLabelSelector` 的 Service，可用 `KubernetesNamespace` 限定命名空间）。
+
+```json
+{
+  "ModuleConfigurations": {
+    "ServiceGovernanceConfig": {
+      "ServiceDiscoveryProvider": "Aspire"
+    }
+  }
+}
+```
 
 ## 3. AppHost 项目(Girvs.Aspire.Hosting)
 
@@ -75,7 +85,7 @@ builder.Build().Run();
 ```
 
 - `AsGirvsResource()`:容器地址确定后就地更新 AppHost 目录下 `girvs.shared.json`(不存在则创建,存在则只更新 `Resources` 节点、其余手写内容原样保留)的 `Resources` 节点;Type 自动推断(redis/mysql/sqlserver/rabbitmq/kafka),可用参数覆盖:`AsGirvsResource(type: "redis-synchronized-memory")`,或补充 Settings:`AsGirvsResource(settings: new Dictionary<string,string> { ["Ssl"] = "true" })`;
-- `AddGirvsProject<TProject>(name)`:注入 `GIRVS_SHARED_CONFIG` 并对所有已登记资源 `WaitFor`;
+- `AddGirvsProject<TProject>(name)` 注入 `GIRVS_SHARED_CONFIG`，对已登记且有生命周期的资源设置 `WaitFor`（本地运行），并在项目 HTTP/HTTPS 端点声明健康探针。
 - **AppHost 不感知服务依赖**:服务用不用某资源、用哪个,完全由服务自己配置里的 `ConnectionRef` 决定;
 - Worker / Background Service 项目同样用 `AddGirvsProject` 编排。
 
@@ -126,30 +136,29 @@ AppHost 目录下的 `girvs.shared.json` 既是手写文件也是运行产物:�
 - publish 模式下 AppHost 不更新共享文件、不 WaitFor;若不希望容器资源进入发布清单,可用 `builder.ExecutionContext.IsRunMode` 包裹编排代码;
 - 现有"volume 直接挂 `appsettings.json`"的老方式继续可用,两套并存、平滑迁移。
 
-## 5. 根模块与程序集引用
+## 5. 项目引用与服务治理配置
 
-`AddGirvsProject` 不再需要根模块类型参数;AppHost 只需 `Girvs.Aspire.Hosting` 一个普通引用(`IsAspireProjectResource="false"`)加各服务的编排引用(`IsAspireProjectResource="true"`)。服务端模块声明(`[DependsOn]`)只影响服务自身的模块启动,与 AppHost 无关。
+从仓库源码接入时，AppHost 将 `Girvs.Aspire.Hosting` 作为普通项目引用（`IsAspireProjectResource="false"`），将各服务作为编排项目引用（`IsAspireProjectResource="true"`）。`AddGirvsProject<TProject>` 接收服务项目的元数据类型，从该项目的 `appsettings.json` 读取 `ModuleConfigurations:ServiceGovernanceConfig` 中的 `ServerName`、`HealthCheckPath` 和 `LivenessCheckPath`。
 
 ## 6. 常见问题
 
-- **Dashboard 里看不到日志?** 确认服务由 AppHost 启动(`OTEL_EXPORTER_OTLP_ENDPOINT` 由 Aspire 自动注入);框架保留 Serilog,OTLP 是追加的 sink,本地文件/控制台日志不受影响。
+- **Dashboard 里看不到追踪或指标？** 检查服务进程是否设置了 `OTEL_EXPORTER_OTLP_ENDPOINT`。Serilog 日志输出由应用自己的日志配置控制。
 - **改了 girvs.shared.json 服务没生效?** 共享文件以 `reloadOnChange` 加载,但绑定进 `Singleton<AppSettings>` 的值是启动时快照,改资源配置需重启服务。
-- **服务本地为什么不再回写 appsettings.json?** 设置了 `GIRVS_SHARED_CONFIG` 时框架跳过 AppSettings 回写,避免把共享文件中的动态地址固化到本地文件反向覆盖。
+- **改完配置需要检查哪些文件？** 服务本地的 `appsettings.json` 优先于共享文件。若共享资源配置未生效，请检查本地是否存在同名配置。
 - **数据库连接串格式?** 由各模块按 `Resources` 的 Settings 模板取值组装,与手工连接串等价。
 - **本机若配了 http 代理**:启动 AppHost 须带 `no_proxy=localhost,127.0.0.1,::1`,否则 Aspire 的 localhost 通信被塞进代理而失败。
 
 ## 7. 权威参照实现(推荐照抄)
 
-`samples/` 下有一个能端到端跑通的最小参照系统(AppHost + 2 个 Web 服务 + 1 个后台 Worker),覆盖缓存、数据库、事件总线、服务发现、共享配置文件全部能力,是接入与迁移的权威模板。运行方式与各自检端点见 `samples/README.md`。以下几点是接入时最容易踩的:
+`samples/` 下的参照系统包含 AppHost、两个 Web 服务、一个后台 Worker 和一个网关，展示缓存、数据库、事件总线、服务发现与共享配置文件。运行方式与各自检端点见 `samples/README.md`。
 
-- **服务需 `Properties/launchSettings.json`**:Aspire 依据 `applicationUrl` 分配/代理端点;缺失会导致所有服务回退默认 5000 端口冲突。
-- **控制器需在 `Startup.Configure` 显式映射**:`CreateGirvsWebApplicationBuilder` 模型下,框架的 `ConfigureEndpointRouteBuilder` 只映射模块端点(如 `/health`),普通 MVC 控制器需 `if (app is IEndpointRouteBuilder e) e.MapControllers();`。
-- **事件总线(CAP)**:CAP 存储需一个库,`EventBusConfig.PersistenceConnectionRef` 通常与业务库指向同一个 mysql 资源;订阅者的 `CapHeader` 参数必须标 `[FromCap]`;发布依赖 `IGirvsClaimManager`(真实服务由 `Girvs.AuthorizePermission` 提供)。
+- **服务需声明 HTTP/HTTPS 端点**：可在 `Properties/launchSettings.json` 设置 `applicationUrl`，供 `AddGirvsProject` 为服务声明健康探针。
+- **控制器需在 `Startup.Configure` 显式映射**：使用 `CreateGirvsWebApplication` 时，应用通过 `if (app is IEndpointRouteBuilder e) e.MapControllers();` 映射普通 MVC 控制器。
+- **事件总线（CAP）**：用 `EventBusConfig.PersistenceConnectionRef` 配置 CAP 存储。订阅者的 `CapHeader` 参数使用 `[FromCap]` 标记。
 
 ## 8. 网关(Girvs.Gateway)
 
 自建 YARP 网关的服务发现与路由生成,与 Aspire AppHost 编排是两个独立话题:AppHost 负责本地/CI 环境编排各服务与基础设施,网关面向本地 Aspire 与生产 K8s 两种部署做流量入口。两者可以同时使用:AppHost 跑参照实现验证接入,网关包直接用于生产网关进程。
 
-- 用法、约定路由规则、K8s RBAC 清单示例见 `Girvs.Gateway/README.md`;
-- 端到端可跑通的验证系统(kind 集群 + 网关 + 两个 dummy 后端,验证过 K8s watch 动态路由的秒级增删)见 `samples/gateway-k8s/`(`Gateway/` 最小网关项目 + `Dockerfile` + `k8s.yaml`);
-- 部署形态与发现源对应关系:本地 AppHost → `GatewayDiscoveryType.Aspire`(读取 Aspire 注入端点);K8s → `GatewayDiscoveryType.Kubernetes`(watch,事件驱动,秒级感知)。
+- 网关从 `Girvs.ServiceGovernance` 的服务目录生成路由。本地 AppHost 使用 `Aspire` 发现源读取注入端点，Kubernetes 部署可使用 `Kubernetes` 发现源定期刷新 Service 列表。
+- 本地网关配置见 `samples/Sample.Gateway/`，Kubernetes 网关示例见 `samples/gateway-k8s/`。

@@ -19,7 +19,7 @@ Girvs is an enterprise-grade rapid development framework based on .NET, designed
 - 🎯 **Modular Architecture** - Loosely coupled modules, import on demand
 - 🚀 **Multi-targeting** - Common libraries support .NET 8.0, 9.0, 10.0 and 11.0 simultaneously; see the version support table for details
 - 🔧 **Out of the Box** - Common components integrated, less repeated work
-- 📦 **NuGet Packages** - All modules are available on NuGet
+- 📦 **NuGet Packages** - All 17 active libraries are available on NuGet
 - 🔐 **Secure & Reliable** - Built-in permission authorization, data validation and other security mechanisms
 - 🌐 **Microservice Friendly** - Service registration/discovery, unified gateway, distributed event bus
 - 📊 **Observability** - Comprehensive logging and monitoring support
@@ -34,7 +34,6 @@ Girvs/
 ├── Girvs.AuthorizePermission      # Permission authorization module
 ├── Girvs.AutoMapper               # Object mapping module
 ├── Girvs.Cache                    # Cache module (Redis/SqlServer)
-├── Girvs.CodeGenerator            # Code generator module
 ├── Girvs.Consul                   # Service registration & discovery module
 ├── Girvs.Driven                   # Domain-Driven Design support module
 ├── Girvs.DynamicWebApi            # Dynamic Web API module
@@ -170,7 +169,7 @@ Job scheduling based on Quartz.NET.
 - Background job hosting
 
 ### Girvs.Consul (Service Registration & Discovery)
-Service registration and discovery based on Consul.
+Provides Consul-based registration and discovery for existing deployments. For new integrations, use Aspire locally and Kubernetes in production.
 
 **Main features:**
 - Service registration
@@ -179,21 +178,20 @@ Service registration and discovery based on Consul.
 - Configuration center
 
 ### Girvs.ServiceGovernance (Unified Service Governance, net10.0/net11.0)
-Provides health checks, service discovery and observability; Aspire and Consul discovery modes are mutually exclusive by configuration.
+Provides health checks, a service directory, and observability. `ServiceDiscoveryProvider` selects one discovery mode from Aspire, Consul, and Kubernetes.
 
 **Main features:**
-- OpenTelemetry observability (traces/metrics/logs, bridged via the Serilog OTLP sink)
+- OpenTelemetry exports traces and metrics when `OTEL_EXPORTER_OTLP_ENDPOINT` is set
 - `/health` and `/alive` health check endpoints
-- Aspire service discovery and standard HttpClient resilience policies
-- Automatic mapping of Aspire-injected connection strings into Girvs module configurations
+- Service discovery and standard HttpClient resilience policies in Aspire mode
 
 ### Girvs.Aspire.Hosting (.NET Aspire AppHost Orchestration, net8.0 to net11.0)
-Referenced by business AppHost projects; creates/reuses resources and wires them up according to the `[DependsOn]` declarations of each service's root module.
+Reference this package in an Aspire AppHost to register shared resources explicitly and orchestrate services.
 
 **Main features:**
-- One-line onboarding via `AddGirvsProject`, automatically orchestrating Redis/RabbitMQ/MySql/SqlServer resources
-- Shared resources across services, dedicated database per service
-- Custom module resource contributor extension point
+- `AsGirvsResource` registers explicitly orchestrated resources in shared configuration
+- `AddGirvsProject` reads governance settings from the service's `appsettings.json`, declares health probes, and injects the shared configuration file path
+- `IGirvsResourceSettingsProvider` lets you customize how resource settings are extracted
 
 See the [Aspire guide](docs/aspire/apphost-guide.md) (Chinese) and the architecture diagram `Architect.png`.
 
@@ -242,8 +240,8 @@ OpenAPI 3.0 document generation.
 - Custom parameter filtering
 - Automatic binding conventions
 
-### Girvs.CodeGenerator (Code Generator)
-Code scaffolding tool.
+### Girvs.CodeGenerator (Code Generator, discontinued)
+Historical versions `9.0.8.1` and `10.0.0-preview1.1` remain available on NuGet. The 11.0 mainline removed this tool and will no longer publish it.
 
 **Main features:**
 - Code template management
@@ -425,11 +423,30 @@ Database, event bus, SignalR and other modules use the same resource reference m
 
 ## 🔧 Version Support
 
-| Module | .NET 8.0 | .NET 9.0 | .NET 10.0 | .NET 11.0 |
-|------|----------|----------|-----------|-----------|
-| Common libraries (incl. Girvs.Aspire.Hosting, 14 total) | ✅ | ✅ | ✅ | ✅ |
-| Girvs.OpenApi | — | ✅ | ✅ | ✅ |
-| Girvs.Gateway, Girvs.ServiceGovernance | — | — | ✅ | ✅ |
+| Package | Repository directory | Target frameworks | NuGet publication | Status |
+| --- | --- | --- | --- | --- |
+| `Girvs` | `Girvs/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.Aspire.Hosting` | `Girvs.Aspire.Hosting/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.AuthorizePermission` | `Girvs.AuthorizePermission/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.AutoMapper` | `Girvs.AutoMapper/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.Cache` | `Girvs.Cache/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.Consul` | `Girvs.Consul/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active (compatibility) |
+| `Girvs.Driven` | `Girvs.Driven/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.DynamicWebApi` | `Girvs.DynamicWebApi/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.EntityFrameworkCore` | `Girvs.EntityFrameworkCore/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.EventBus` | `Girvs.EventBus/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.Gateway` | `Girvs.Gateway/` | `net10.0;net11.0` | Published | Active |
+| `Girvs.Grpc` | `Girvs.Grpc/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.OpenApi` | `Girvs.OpenApi/` | `net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.Quartz` | `Girvs.Quartz/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.Refit` | `Girvs.Refit/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.ServiceGovernance` | `Girvs.ServiceGovernance/` | `net10.0;net11.0` | Published | Active |
+| `Girvs.SignalR` | `Girvs.SignalR/` | `net8.0;net9.0;net10.0;net11.0` | Published | Active |
+| `Girvs.Aspire` | — | `net8.0;net9.0;net10.0` (historical releases) | Last release `10.0.0-rc.3.2.2` | Discontinued, succeeded by `Girvs.ServiceGovernance` |
+| `Girvs.Aspire.Gateway` | `Girvs.Gateway/` (renamed) | — | Never published under the old name | Renamed to `Girvs.Gateway` |
+| `Girvs.CodeGenerator` | — | `net8.0;net9.0;net10.0` (listed historical releases) | Last stable `9.0.8.1`, last preview `10.0.0-preview1.1` | Discontinued, removed from the 11.0 mainline |
+
+Update the package status tables in both README files in the same commit as any package status change.
 
 Latest release: **11.0.0-preview1.9** (published by the tag-triggered pipeline; see the [upgrade guide](docs/dotnet11-upgrade.md) for the release process, in Chinese). The development baseline version is 10.0.0-rc.4.0.3 from `Directory.Build.props`. All 17 libraries include the `net11.0` target. Behavior changes in the `v11.0.0-preview1.x` series are documented in the [framework upgrade guide](框架升级说明.md) (Chinese).
 

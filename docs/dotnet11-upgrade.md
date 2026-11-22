@@ -24,7 +24,7 @@
 | Girvs.ServiceGovernance | net10.0、net11.0 |
 | Girvs.SignalR | net8.0、net9.0、net10.0、net11.0 |
 
-`Girvs.Aspire`、`Girvs.Aspire.Gateway`、`Girvs.CodeGenerator` 目录当前没有 `.csproj`，不作为独立库构建或打包。实际发布模块以解决方案中的库项目为准。
+`Girvs.Aspire`、`Girvs.Aspire.Gateway`、`Girvs.CodeGenerator` 三个历史包的源码已从主线移除，对应目录已不存在。包状态见 [README 的包对照表](../README.md)。实际发布模块以解决方案中的库项目为准。
 
 ## 新增目标的依赖选择
 

@@ -17,7 +17,7 @@ Girvs 是一个基于 .NET 的企业级快速开发框架,旨在提供一套完�
 - 🎯 **模块化架构** - 松耦合的模块设计,按需引入
 - 🚀 **多版本支持** - 通用库同时支持 .NET 8.0、9.0、10.0 和 11.0，具体模块见版本支持表
 - 🔧 **开箱即用** - 集成常用组件,减少重复开发
-- 📦 **NuGet 支持** - 所有模块均可通过 NuGet 包管理
+- 📦 **NuGet 支持** - 已发布的 17 个现役库均通过 NuGet 提供
 - 🔐 **安全可靠** - 内置权限认证、数据验证等安全机制
 - 🌐 **微服务友好** - 支持服务注册发现、统一网关、分布式事件总线
 - 📊 **可观测性** - 完善的日志、监控支持
@@ -32,7 +32,6 @@ Girvs/
 ├── Girvs.AuthorizePermission      # 权限认证模块
 ├── Girvs.AutoMapper               # 对象映射模块
 ├── Girvs.Cache                    # 缓存模块 (支持 Redis/SqlServer)
-├── Girvs.CodeGenerator            # 代码生成器模块
 ├── Girvs.Consul                   # 服务注册与发现模块
 ├── Girvs.Driven                   # 领域驱动设计支持模块
 ├── Girvs.DynamicWebApi            # 动态 Web API 模块
@@ -168,7 +167,7 @@ gRPC 服务支持模块。
 - 后台任务托管
 
 ### Girvs.Consul (服务注册发现)
-基于 Consul 的服务注册与发现。
+保留基于 Consul 的服务注册与发现，供存量部署兼容。新接入推荐本地使用 Aspire，生产使用 Kubernetes。
 
 **主要功能:**
 - 服务注册
@@ -177,21 +176,20 @@ gRPC 服务支持模块。
 - 配置中心
 
 ### Girvs.ServiceGovernance（统一服务治理，net10.0/net11.0）
-为服务提供健康检查、服务发现和可观测性，Aspire 与 Consul 发现模式按配置互斥选择。
+为服务提供健康检查、服务目录和可观测性。`ServiceDiscoveryProvider` 在 Aspire、Consul 和 Kubernetes 中选择一种发现模式。
 
 **主要功能:**
-- OpenTelemetry 可观测性（追踪/指标/日志，通过 Serilog OTLP sink 桥接）
+- 设置 `OTEL_EXPORTER_OTLP_ENDPOINT` 后通过 OpenTelemetry 导出追踪和指标
 - `/health`、`/alive` 健康检查端点
-- Aspire 服务发现与 HttpClient 标准弹性策略
-- Aspire 注入连接串到 Girvs 各模块配置的自动映射
+- Aspire 模式下为 HttpClient 配置服务发现与标准弹性策略
 
 ### Girvs.Aspire.Hosting（.NET Aspire AppHost 编排扩展，net8.0 至 net11.0）
-供业务方 AppHost 项目引用，依据服务根模块的 `[DependsOn]` 声明自动创建/复用资源并接线。
+供 Aspire AppHost 引用，显式登记共享资源并编排各服务。
 
 **主要功能:**
-- `AddGirvsProject` 一行接入，自动编排 Redis/RabbitMQ/MySql/SqlServer 资源
-- 多服务共享资源、每服务独立数据库
-- 自定义模块资源贡献器扩展点
+- `AsGirvsResource` 将显式编排的资源登记到共享配置
+- `AddGirvsProject` 从服务的 `appsettings.json` 读取治理配置，声明健康探针并注入共享配置文件路径
+- `IGirvsResourceSettingsProvider` 扩展资源设置的提取方式
 
 详见 [Aspire 接入指南](docs/aspire/apphost-guide.md) 与架构图 `Architect.png`。
 
@@ -240,8 +238,8 @@ OpenAPI 3.0 文档生成。
 - 自定义参数过滤
 - 自动绑定约定
 
-### Girvs.CodeGenerator (代码生成器)
-代码脚手架工具。
+### Girvs.CodeGenerator（代码生成器，已停更）
+历史版本 `9.0.8.1` 和 `10.0.0-preview1.1` 仍可通过 NuGet 获取。11.0 主线已移除该工具，后续停止发布。
 
 **主要功能:**
 - 代码模板管理
@@ -422,11 +420,30 @@ public class OrderCreatedEventHandler : GirvsIntegrationEventHandler<OrderCreate
 
 ## 🔧 版本支持
 
-| 模块 | .NET 8.0 | .NET 9.0 | .NET 10.0 | .NET 11.0 |
-|------|----------|----------|-----------|-----------|
-| 通用库（含 Girvs.Aspire.Hosting，共 14 个） | ✅ | ✅ | ✅ | ✅ |
-| Girvs.OpenApi | — | ✅ | ✅ | ✅ |
-| Girvs.Gateway、Girvs.ServiceGovernance | — | — | ✅ | ✅ |
+| 包名 | 仓库目录 | 目标框架 | NuGet 发布 | 状态 |
+| --- | --- | --- | --- | --- |
+| `Girvs` | `Girvs/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.Aspire.Hosting` | `Girvs.Aspire.Hosting/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.AuthorizePermission` | `Girvs.AuthorizePermission/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.AutoMapper` | `Girvs.AutoMapper/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.Cache` | `Girvs.Cache/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.Consul` | `Girvs.Consul/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役（兼容） |
+| `Girvs.Driven` | `Girvs.Driven/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.DynamicWebApi` | `Girvs.DynamicWebApi/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.EntityFrameworkCore` | `Girvs.EntityFrameworkCore/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.EventBus` | `Girvs.EventBus/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.Gateway` | `Girvs.Gateway/` | `net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.Grpc` | `Girvs.Grpc/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.OpenApi` | `Girvs.OpenApi/` | `net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.Quartz` | `Girvs.Quartz/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.Refit` | `Girvs.Refit/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.ServiceGovernance` | `Girvs.ServiceGovernance/` | `net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.SignalR` | `Girvs.SignalR/` | `net8.0;net9.0;net10.0;net11.0` | 已发布 | 现役 |
+| `Girvs.Aspire` | — | `net8.0;net9.0;net10.0`（历史版本） | 最后发布 `10.0.0-rc.3.2.2` | 已停更，由 `Girvs.ServiceGovernance` 承接 |
+| `Girvs.Aspire.Gateway` | `Girvs.Gateway/`（改名后） | — | 从未以旧名发布 | 已改名为 `Girvs.Gateway` |
+| `Girvs.CodeGenerator` | — | `net8.0;net9.0;net10.0`（所列历史版本） | 最后稳定版 `9.0.8.1`，最后预览版 `10.0.0-preview1.1` | 已停更，11.0 主线已移除 |
+
+包状态变更时，须在同一提交中更新中英文 README 的对照表。
 
 最新发布版本: **11.0.0-preview1.9**（标签触发流水线发布，见 [升级指南](docs/dotnet11-upgrade.md#发布流程)）。开发基线版本为 `Directory.Build.props` 中的 10.0.0-rc.4.0.3。全部 17 个库均包含 `net11.0` 目标。`v11.0.0-preview1.x` 系列的行为变化见[框架升级说明](框架升级说明.md)，新增目标的依赖和验证方式见 [升级指南](docs/dotnet11-upgrade.md)。
 
