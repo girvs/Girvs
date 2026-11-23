@@ -433,18 +433,18 @@ public static partial class StringExtensions
 
     public static string ToShortMd5(this string str)
     {
-        using var md5Hash = MD5.Create();
-        var data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(str));
+        Span<byte> hashBytes = stackalloc byte[MD5.HashSizeInBytes];
+        MD5.HashData(Encoding.UTF8.GetBytes(str), hashBytes);
         // 直接取第 4 字节起 8 字节并转十六进制，省去 BitConverter + Replace 的中间字符串。
-        return Convert.ToHexString(data, 4, 8);
+        return Convert.ToHexString(hashBytes.Slice(4, 8));
     }
 
     public static string ToMd5(this string str)
     {
         if (string.IsNullOrEmpty(str)) return string.Empty;
 
-        using var md5 = MD5.Create();
-        var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
+        Span<byte> hashBytes = stackalloc byte[MD5.HashSizeInBytes];
+        MD5.HashData(Encoding.UTF8.GetBytes(str), hashBytes);
 
         // ToHexString 一次完成转换，避免逐字节格式化与 StringBuilder 增长。
         return Convert.ToHexString(hashBytes);

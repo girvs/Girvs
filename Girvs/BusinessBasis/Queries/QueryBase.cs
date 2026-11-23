@@ -5,8 +5,9 @@ namespace Girvs.BusinessBasis.Queries;
 public abstract class QueryBase<TEntity> : IQuery<TEntity>
     where TEntity : Entity
 {
-    // 参与缓存键的属性由特性静态决定，按查询类型缓存一次。
-    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> CacheKeyProperties = new();
+    // 参与缓存键的属性及其 getter 按查询类型缓存。
+    private static readonly ConcurrentDictionary<Type, (string Name, Func<object, object?> Getter)[]>
+        _cacheKeyProperties = new();
 
     public int PageStart => (PageIndex - 1) * PageSize;
 
@@ -40,25 +41,27 @@ public abstract class QueryBase<TEntity> : IQuery<TEntity>
     public virtual string GetCacheKey()
     {
         //此处字符串为约定，请不要随意修改
-        var sb = new StringBuilder(GetType().FullName);
+        var queryType = GetType();
+        var sb = new StringBuilder(queryType.FullName);
 
-        var ps = CacheKeyProperties.GetOrAdd(
-            GetType(),
+        var properties = _cacheKeyProperties.GetOrAdd(
+            queryType,
             static type =>
                 type.GetProperties()
                     .Where(propertyInfo =>
                         propertyInfo.IsDefined(typeof(QueryCacheKeyAttribute), true)
                     )
+                    .Select(propertyInfo => (propertyInfo.Name, CreateCacheKeyGetter(propertyInfo)))
                     .ToArray()
         );
 
-        foreach (var propertyInfo in ps)
+        foreach (var (name, getter) in properties)
         {
             // 用链式 Append 代替插值字符串，减少临时字符串分配。
             sb.Append(':')
-                .Append(propertyInfo.Name)
+                .Append(name)
                 .Append('=')
-                .Append(propertyInfo.GetValue(this));
+                .Append(getter(this));
         }
 
         if (QueryFields is { Length: > 0 })
@@ -72,6 +75,39 @@ public abstract class QueryBase<TEntity> : IQuery<TEntity>
         }
 
         return sb.ToString().ToMd5();
+    }
+
+    private static Func<object, object?> CreateCacheKeyGetter(PropertyInfo property)
+    {
+        var getter = property.GetGetMethod(nonPublic: true);
+        if (!RuntimeFeature.IsDynamicCodeSupported || getter == null || getter.GetParameters().Length != 0 ||
+            getter.ReturnType.IsByRef || getter.ReturnType.IsByRefLike || getter.ReturnType.IsPointer ||
+            getter.ReturnType.IsFunctionPointer)
+        {
+            // 保留反射对索引器、无 getter 等特殊属性的行为。
+            return property.GetValue;
+        }
+
+        var parameter = Expression.Parameter(typeof(object));
+        var instance = getter.IsStatic ? null : Expression.Convert(parameter, getter.DeclaringType!);
+        var call = Expression.Call(instance, getter);
+        var read = Expression.Lambda<Func<object, object?>>(
+            Expression.Convert(call, typeof(object)),
+            parameter
+        ).Compile();
+
+        return target =>
+        {
+            try
+            {
+                return read(target);
+            }
+            catch (Exception exception)
+            {
+                // 与 PropertyInfo.GetValue 一样包装 getter 抛出的异常。
+                throw new TargetInvocationException(exception);
+            }
+        };
     }
 
     public abstract Expression<Func<TEntity, bool>> GetQueryWhere();

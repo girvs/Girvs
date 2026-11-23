@@ -2,6 +2,7 @@ using System.Text.Json;
 using Girvs.Cache.CacheImps;
 using Girvs.Cache.Caching;
 using Girvs.Cache.Configuration;
+using Girvs.Cache.Extensions;
 using Girvs.Configuration;
 using Girvs.Infrastructure;
 using Microsoft.Extensions.Caching.Distributed;
@@ -15,6 +16,17 @@ public class DistributedCacheManagerTests
     private readonly IDistributedCache _distributedCache = new MemoryDistributedCache(
         Options.Create(new MemoryDistributedCacheOptions())
     );
+
+    [Fact]
+    public async Task SafeClusterSetAsync_内存缓存_写入原始键并返回成功()
+    {
+        var written = await _distributedCache.SafeClusterSetAsync(
+            "groups", "value", new GirvsDistributedCacheEntryOptions()
+        );
+
+        Assert.True(written);
+        Assert.Equal("value", await _distributedCache.GetStringAsync("groups"));
+    }
 
     [Fact]
     public async Task SetAsync_写入多对多循环引用对象_不抛异常()
