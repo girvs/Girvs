@@ -80,15 +80,14 @@ public sealed record FlowDefinition(
 }
 
 /// <summary>
-/// 一个流程步骤的定位信息：HTTP 方法与下游精确路径。
+/// 一个流程步骤的定位信息，包括 HTTP 方法和下游静态路径或路径模板。
 /// </summary>
 /// <param name="Method">规范化后的 HTTP 方法（大写）。</param>
 /// <param name="Path">
-/// 下游服务路径（不含网关服务名前缀），必须以 <c>/</c> 开头且非根路径不以 <c>/</c> 结尾。
+/// 规范化后的下游服务路径（不含网关服务名前缀）。模板保留配置中的整段 <c>{param}</c>。
 /// </param>
 /// <remarks>
-/// “方法 + 路径”是流程步骤的全局唯一键；同一组合不得跨两条流程归属，
-/// 以保证按请求反查流程时结果确定。
+/// 同一方法下静态路径优先，模板的匹配范围互不重叠，确保请求只命中一个受保护接口。
 /// </remarks>
 public sealed record FlowStepDefinition(string Method, PathString Path);
 

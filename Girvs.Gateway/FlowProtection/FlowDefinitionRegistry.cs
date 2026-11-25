@@ -10,15 +10,15 @@ namespace Girvs.Gateway.FlowProtection;
 /// <para>
 /// 本类型承担两类职责：一是把易错的配置结构（线性步骤序列 / 参数化接口池 + 流程组合）
 /// 校验并翻译成运行期使用的 <see cref="FlowDefinition"/> / <see cref="FlowEndpointMatch"/>；
-/// 二是在运行期为每个受保护请求提供 O(1) 的步骤反查。
+/// 二是在运行期优先按静态路径反查，未命中时按方法和段数匹配路径模板。
 /// </para>
 /// <para>
 /// 构造完成后内部集合不再变更，因此可安全地注册为单例并被所有请求线程并发读取。
 /// 校验失败一律抛 <see cref="GirvsException"/>，把问题暴露在启动期而不是运行期。
 /// </para>
 /// <para>
-/// 核心不变量：同一 “HTTP 方法 + 下游路径”只能归属唯一一条流程；同一流程内步骤不得重复；
-/// 参数化流程中每个接口至少被一条流程组合引用。
+/// 同一 HTTP 方法下静态路径唯一，路径模板的匹配范围互不重叠。
+/// 同一流程内步骤不得重复，参数化流程中每个接口至少被一条流程组合引用。
 /// </para>
 /// </remarks>
 public sealed class FlowDefinitionRegistry
@@ -43,6 +43,8 @@ public sealed class FlowDefinitionRegistry
     /// </summary>
     private readonly Dictionary<string, FlowEndpointMatch> _endpointsByMethodAndPath =
         new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly Dictionary<(string Method, int SegmentCount), TemplateEndpoint[]>? _templatesByMethodAndSegmentCount;
 
     /// <summary>
     /// 校验并编译流程防护配置。
@@ -71,6 +73,7 @@ public sealed class FlowDefinitionRegistry
         }
 
         var flowIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        TemplateRegistration? templateRegistration = null;
         foreach (var flowOptions in options.Flows ?? [])
         {
             if (flowOptions is null)
@@ -104,13 +107,15 @@ public sealed class FlowDefinitionRegistry
             {
                 ValidateTtl($"流程 '{flowId}' TtlSeconds", ttlSeconds);
                 var header = ValidateParameterHeader(options, flowId, flowOptions.ParameterHeaderName);
-                RegisterParameterized(flowId, ttlSeconds, header, interfaces, variants);
+                RegisterParameterized(flowId, ttlSeconds, header, interfaces, variants, ref templateRegistration);
             }
             else
             {
-                RegisterLinear(flowId, ttlSeconds, stepOptionsList);
+                RegisterLinear(flowId, ttlSeconds, stepOptionsList, ref templateRegistration);
             }
         }
+
+        _templatesByMethodAndSegmentCount = templateRegistration?.BuildLookup();
     }
 
     /// <summary>
@@ -135,17 +140,49 @@ public sealed class FlowDefinitionRegistry
     /// 按请求的方法与下游路径反查接口归属，包含线性与参数化两类流程。
     /// </summary>
     /// <param name="method">请求的 HTTP 方法，比较时忽略大小写。</param>
-    /// <param name="path">还原后的下游服务路径，查找前会做与配置一致的规范化（去尾斜杠）。</param>
+    /// <param name="path">还原后的下游服务路径，非根路径移除一个尾斜杠后参与匹配。</param>
     /// <param name="match">命中时返回接口归属信息；否则为 <see langword="null" />。</param>
     /// <returns>该接口受流程防护约束时返回 <see langword="true" />；未配置保护时返回 <see langword="false" />，调用方应直接放行。</returns>
     /// <remarks>
-    /// 查询路径同样需要规范化，否则客户端请求 <c>/api/pay1/</c> 与配置
-    /// <c>/api/pay1</c> 会被误判为不同接口，造成保护失效。
+    /// 静态路径优先于模板。模板参数匹配任意非空路径段。无效的请求方法或路径返回未命中。
     /// </remarks>
     public bool TryGetEndpoint(string method, PathString path, out FlowEndpointMatch match)
     {
-        var normalizedPath = NormalizePath(path.Value ?? string.Empty, "request");
-        return _endpointsByMethodAndPath.TryGetValue(CreateKey(method, normalizedPath), out match!);
+        match = null!;
+        var requestPath = path.Value.AsSpan();
+        if (requestPath.IsEmpty || requestPath[0] != '/' || !AllowedMethods.TryGetValue(method, out var canonicalMethod))
+        {
+            return false;
+        }
+
+        requestPath = FlowPathTemplate.NormalizeRequestPath(requestPath);
+
+        if (_endpointsByMethodAndPath.TryGetValue(CreateKey(canonicalMethod, requestPath), out match!))
+        {
+            return true;
+        }
+
+        if (_templatesByMethodAndSegmentCount is null)
+        {
+            return false;
+        }
+
+        var bucketKey = (canonicalMethod, FlowPathTemplate.CountSegments(requestPath));
+        if (!_templatesByMethodAndSegmentCount.TryGetValue(bucketKey, out var templates))
+        {
+            return false;
+        }
+
+        foreach (var candidate in templates)
+        {
+            if (candidate.Template.Matches(requestPath))
+            {
+                match = candidate.Endpoint;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -154,14 +191,21 @@ public sealed class FlowDefinitionRegistry
     /// <param name="flowId">流程标识。</param>
     /// <param name="ttlSeconds">该流程票据的存活时长（秒）。</param>
     /// <param name="stepOptionsList">按顺序排列的步骤配置。</param>
+    /// <param name="templateRegistration">构造期全局模板索引，有模板时才创建。</param>
     /// <exception cref="GirvsException">
-    /// 步骤少于两步、步骤为空项、方法或路径非法、或同一流程内步骤重复。
+    /// 步骤少于两步、步骤为空项、票据存活时长非法、同一流程内步骤重复、
+    /// 方法或路径非法（含非法路径模板），或存在路径模板冲突。
     /// </exception>
     /// <remarks>
     /// 线性流程要求至少两步：单步流程不存在“顺序约束”语义，配置出来只会让首步即完成，
     /// 属于典型的误配置，因此直接拒绝。
     /// </remarks>
-    private void RegisterLinear(string flowId, int ttlSeconds, List<FlowStepOptions> stepOptionsList)
+    private void RegisterLinear(
+        string flowId,
+        int ttlSeconds,
+        List<FlowStepOptions> stepOptionsList,
+        ref TemplateRegistration? templateRegistration
+    )
     {
         if (stepOptionsList.Count < 2)
         {
@@ -171,6 +215,7 @@ public sealed class FlowDefinitionRegistry
         ValidateTtl($"流程 '{flowId}' TtlSeconds", ttlSeconds);
 
         var flowStepKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<FlowStepDefinition, FlowPathTemplate>? templates = null;
         var steps = new List<FlowStepDefinition>(stepOptionsList.Count);
         foreach (var stepOptions in stepOptionsList)
         {
@@ -180,15 +225,18 @@ public sealed class FlowDefinitionRegistry
             }
 
             var method = NormalizeMethod(stepOptions.Method, flowId);
-            var path = NormalizePath(stepOptions.Path, flowId);
-            var key = CreateKey(method, path);
-            // 同一流程内重复注册同一接口会让顺位判定产生歧义，必须拒绝。
-            if (!flowStepKeys.Add(key))
+            var template = FlowPathTemplate.Parse(stepOptions.Path, flowId, out var path);
+            var step = new FlowStepDefinition(method, new PathString(path));
+            if (template is not null)
+            {
+                RegisterLocalTemplate(ref templates, step, template, $"流程 '{flowId}' 中的线性步骤");
+            }
+            else if (!flowStepKeys.Add(CreateKey(method, path)))
             {
                 throw new GirvsException($"流程 '{flowId}' 中步骤 '{method} {path}' 重复");
             }
 
-            steps.Add(new FlowStepDefinition(method, new PathString(path)));
+            steps.Add(step);
         }
 
         var flow = new FlowDefinition(flowId, ttlSeconds, steps);
@@ -196,7 +244,11 @@ public sealed class FlowDefinitionRegistry
         {
             var step = steps[i];
             // 线性流程的每个步骤都同时记录线性匹配与空的组合索引。
-            RegisterEndpoint(new FlowEndpointMatch(flow, step, new FlowStepMatch(flow, step, i), []));
+            RegisterEndpoint(
+                new FlowEndpointMatch(flow, step, new FlowStepMatch(flow, step, i), []),
+                templates?.GetValueOrDefault(step),
+                ref templateRegistration
+            );
         }
     }
 
@@ -208,6 +260,7 @@ public sealed class FlowDefinitionRegistry
     /// <param name="header">已通过保留头冲突校验的前置参数请求头名。</param>
     /// <param name="interfaceOptions">命名接口池配置。</param>
     /// <param name="variantOptions">组合键到接口引用列表的映射。</param>
+    /// <param name="templateRegistration">构造期全局模板索引，有模板时才创建。</param>
     /// <exception cref="GirvsException">
     /// 组合为空、组合键重复或为空、组合步骤少于两步、引用未定义或重复引用接口、
     /// 或存在未被任何组合引用的孤立接口。
@@ -221,11 +274,12 @@ public sealed class FlowDefinitionRegistry
         int ttlSeconds,
         string header,
         List<FlowInterfaceOptions> interfaceOptions,
-        Dictionary<string, List<string>> variantOptions
+        Dictionary<string, List<string>> variantOptions,
+        ref TemplateRegistration? templateRegistration
     )
     {
         // 先建接口池：后续组合只能引用池内已定义且唯一的方法+路径。
-        var interfaces = BuildInterfacePool(flowId, interfaceOptions);
+        var interfaces = BuildInterfacePool(flowId, interfaceOptions, out var templates);
         if (variantOptions.Count == 0)
         {
             throw new GirvsException($"流程 '{flowId}' Variants 不能为空");
@@ -288,22 +342,29 @@ public sealed class FlowDefinitionRegistry
             }
 
             // 参数化接口没有线性匹配，顺位完全由票据已锁定的组合索引决定。
-            RegisterEndpoint(new FlowEndpointMatch(flow, step, null, indexes.AsReadOnly()));
+            RegisterEndpoint(
+                new FlowEndpointMatch(flow, step, null, indexes.AsReadOnly()),
+                templates?.GetValueOrDefault(step),
+                ref templateRegistration
+            );
         }
     }
 
     /// <summary>
-    /// 构建参数化流程的命名接口池，并保证名称唯一、方法+路径唯一。
+    /// 构建参数化流程的命名接口池，校验名称、静态路径和模板冲突。
     /// </summary>
     /// <param name="flowId">流程标识，仅用于错误信息。</param>
     /// <param name="interfaceOptions">接口池配置。</param>
+    /// <param name="templates">有参数的接口到已编译模板的映射。</param>
     /// <returns>接口名（忽略大小写）到步骤定义的映射。</returns>
     /// <exception cref="GirvsException">
-    /// 接口池为空、包含空项、名称为空或重复、或方法+路径重复。
+    /// 接口池为空、包含空项、名称为空或重复、方法与路径的组合重复、
+    /// 方法或路径非法（含非法路径模板），或接口池内存在路径模板冲突。
     /// </exception>
     private static Dictionary<string, FlowStepDefinition> BuildInterfacePool(
         string flowId,
-        List<FlowInterfaceOptions> interfaceOptions
+        List<FlowInterfaceOptions> interfaceOptions,
+        out Dictionary<FlowStepDefinition, FlowPathTemplate>? templates
     )
     {
         if (interfaceOptions.Count == 0)
@@ -313,6 +374,7 @@ public sealed class FlowDefinitionRegistry
 
         var interfaces = new Dictionary<string, FlowStepDefinition>(StringComparer.OrdinalIgnoreCase);
         var endpointKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        templates = null;
         foreach (var entry in interfaceOptions)
         {
             if (entry is null)
@@ -322,20 +384,43 @@ public sealed class FlowDefinitionRegistry
 
             var name = RequireValue(entry.Name, $"流程 '{flowId}' 的接口 Name 不能为空");
             var method = NormalizeMethod(entry.Method, flowId);
-            var path = NormalizePath(entry.Path, flowId);
-            if (!interfaces.TryAdd(name, new FlowStepDefinition(method, new PathString(path))))
+            var template = FlowPathTemplate.Parse(entry.Path, flowId, out var path);
+            var step = new FlowStepDefinition(method, new PathString(path));
+            if (!interfaces.TryAdd(name, step))
             {
                 throw new GirvsException($"流程 '{flowId}' 的接口名称 '{name}' 重复");
             }
 
-            // 接口池内两个名称指向同一方法+路径属于重复定义，无法确定反查结果。
-            if (!endpointKeys.Add(CreateKey(method, path)))
+            if (template is not null)
+            {
+                RegisterLocalTemplate(ref templates, step, template, $"流程 '{flowId}' 的接口池");
+            }
+            else if (!endpointKeys.Add(CreateKey(method, path)))
             {
                 throw new GirvsException($"流程 '{flowId}' 的接口 '{method} {path}' 重复");
             }
         }
 
         return interfaces;
+    }
+
+    private static void RegisterLocalTemplate(
+        ref Dictionary<FlowStepDefinition, FlowPathTemplate>? templates,
+        FlowStepDefinition step,
+        FlowPathTemplate template,
+        string scope
+    )
+    {
+        templates ??= new();
+        foreach (var (existingStep, existingTemplate) in templates)
+        {
+            if (step.Method == existingStep.Method && existingTemplate.DescribeConflict(template) is { } conflict)
+            {
+                throw new GirvsException($"{scope}的路径模板 '{step.Method} {existingTemplate.Path}' 与 '{step.Method} {template.Path}' {conflict}");
+            }
+        }
+
+        templates.Add(step, template);
     }
 
     /// <summary>
@@ -373,17 +458,42 @@ public sealed class FlowDefinitionRegistry
     }
 
     /// <summary>
-    /// 把单个接口归属写入反查表，并保证同一“方法 + 路径”不被多条流程复用。
+    /// 把接口写入静态反查表或模板索引，并校验跨流程的路径冲突。
     /// </summary>
     /// <param name="endpoint">待注册的接口归属信息。</param>
-    /// <exception cref="GirvsException">该方法+路径已被其它流程（或同一流程的其它步骤）注册。</exception>
-    private void RegisterEndpoint(FlowEndpointMatch endpoint)
+    /// <param name="template">参数路径对应的已编译模板。</param>
+    /// <param name="templateRegistration">构造期全局模板索引，有模板时才创建。</param>
+    /// <exception cref="GirvsException">静态路径重复使用或模板匹配范围重叠。</exception>
+    private void RegisterEndpoint(
+        FlowEndpointMatch endpoint,
+        FlowPathTemplate? template,
+        ref TemplateRegistration? templateRegistration
+    )
     {
         var step = endpoint.Step;
-        if (!_endpointsByMethodAndPath.TryAdd(CreateKey(step.Method, step.Path.Value!), endpoint))
+        if (template is null)
         {
-            throw new GirvsException($"流程步骤 '{step.Method} {step.Path}' 被多个流程重复使用");
+            if (!_endpointsByMethodAndPath.TryAdd(CreateKey(step.Method, step.Path.Value), endpoint))
+            {
+                throw new GirvsException($"流程步骤 '{step.Method} {step.Path}' 被多个流程重复使用");
+            }
+
+            return;
         }
+
+        templateRegistration ??= new();
+        var bucket = templateRegistration.GetBucket(step.Method, template.SegmentCount);
+        foreach (var existing in bucket)
+        {
+            if (!ReferenceEquals(existing.Endpoint.Flow, endpoint.Flow) && existing.Template.DescribeConflict(template) is { } conflict)
+            {
+                throw new GirvsException(
+                    $"跨流程路径模板冲突：流程 '{existing.Endpoint.Flow.FlowId}' 的 '{step.Method} {existing.Template.Path}' "
+                    + $"与流程 '{endpoint.Flow.FlowId}' 的 '{step.Method} {template.Path}' {conflict}");
+            }
+        }
+
+        bucket.Add(new TemplateEndpoint(template, endpoint));
     }
 
     /// <summary>
@@ -402,28 +512,6 @@ public sealed class FlowDefinitionRegistry
         }
 
         return method;
-    }
-
-    /// <summary>
-    /// 校验并规范化路径：必须以 <c>/</c> 开头，非根路径去除尾斜杠。
-    /// </summary>
-    /// <param name="path">原始配置值或请求路径。</param>
-    /// <param name="flowId">调用方标签（流程标识或固定标记），仅用于错误信息。</param>
-    /// <returns>规范化后的路径。</returns>
-    /// <exception cref="GirvsException">路径为空或不以 <c>/</c> 开头。</exception>
-    /// <remarks>
-    /// 运行期反查与启动期注册共用本方法，保证两侧规范化规则完全一致，
-    /// 否则会出现“配置看似匹配、实际反查不到”的静默失效。
-    /// </remarks>
-    private static string NormalizePath(string path, string flowId)
-    {
-        path = RequireValue(path, $"流程 '{flowId}' Path 不能为空");
-        if (!path.StartsWith('/'))
-        {
-            throw new GirvsException($"流程 '{flowId}' Path 必须以 / 开始");
-        }
-
-        return path.Length > 1 ? path.TrimEnd('/') : path;
     }
 
     /// <summary>
@@ -461,13 +549,32 @@ public sealed class FlowDefinitionRegistry
     }
 
     /// <summary>
-    /// 生成反查表键：大写方法名加一个空格与路径。
+    /// 生成忽略大小写的静态反查键，由 HTTP 方法、空格和路径组成。
     /// </summary>
     /// <param name="method">HTTP 方法。</param>
     /// <param name="path">已规范化的路径。</param>
     /// <returns>反查键。</returns>
-    /// <remarks>
-    /// 方法名统一大写后再拼接，配合忽略大小写的字典，使任意大小写书写都落到同一条目。
-    /// </remarks>
-    private static string CreateKey(string method, string path) => $"{method.ToUpperInvariant()} {path}";
+    private static string CreateKey(string method, ReadOnlySpan<char> path) => string.Concat(method, " ", path);
+
+    private readonly record struct TemplateEndpoint(FlowPathTemplate Template, FlowEndpointMatch Endpoint);
+
+    private sealed class TemplateRegistration
+    {
+        private readonly Dictionary<(string Method, int SegmentCount), List<TemplateEndpoint>> _buckets = new();
+
+        internal List<TemplateEndpoint> GetBucket(string method, int segmentCount)
+        {
+            var key = (method, segmentCount);
+            if (!_buckets.TryGetValue(key, out var bucket))
+            {
+                bucket = [];
+                _buckets.Add(key, bucket);
+            }
+
+            return bucket;
+        }
+
+        internal Dictionary<(string Method, int SegmentCount), TemplateEndpoint[]> BuildLookup() =>
+            _buckets.ToDictionary(bucket => bucket.Key, bucket => bucket.Value.ToArray());
+    }
 }

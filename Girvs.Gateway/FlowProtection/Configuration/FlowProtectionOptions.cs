@@ -104,7 +104,10 @@ public sealed class FlowInterfaceOptions
     /// <summary>HTTP 方法，必须是受支持的 HTTP 谓词；配置后统一规范化为大写。</summary>
     public string Method { get; set; } = string.Empty;
 
-    /// <summary>下游服务路径（不含网关服务名前缀），必须以 <c>/</c> 开头。</summary>
+    /// <summary>
+    /// 下游服务路径（不含网关服务名前缀），必须以 <c>/</c> 开头。
+    /// 支持静态路径和整段 <c>{param}</c> 模板，匹配时静态路径优先。
+    /// </summary>
     public string Path { get; set; } = string.Empty;
 }
 
@@ -116,6 +119,6 @@ public sealed class FlowStepOptions
     /// <summary>HTTP 方法，必须是受支持的 HTTP 谓词；配置后统一规范化为大写。</summary>
     public string Method { get; set; } = string.Empty;
 
-    /// <summary>下游服务路径（不含网关服务名前缀），必须以 <c>/</c> 开头。</summary>
+    /// <inheritdoc cref="FlowInterfaceOptions.Path" />
     public string Path { get; set; } = string.Empty;
 }
