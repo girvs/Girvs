@@ -131,6 +131,338 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
         Assert.Equal(FlowErrorCode.FlowBusinessMismatch, mismatch.ErrorCode);
     }
 
+    [Fact]
+    public async Task 参数化流程建票_原子锁定组合且提交后保留()
+    {
+        const string key = "flow:ticket:variant-commit";
+        await _fixture.FlushAsync();
+
+        var create = await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("variant-commit", "flow-1", "", 0, "start", 300, 30, VariantKey: "DE"),
+            default
+        );
+
+        Assert.True(create.IsSuccess);
+        Assert.Equal(0, create.NextIndex);
+        var fields = await _fixture.Database.HashGetAsync(key, ["variant", "status", "attemptId"]);
+        Assert.Equal("DE", (string)fields[0]);
+        Assert.Equal("processing", (string)fields[1]);
+        Assert.Equal("start", (string)fields[2]);
+
+        var duplicate = await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("variant-commit", "flow-1", "", 0, "other", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        Assert.Equal(FlowErrorCode.FlowInProgress, duplicate.ErrorCode);
+
+        var commit = await _store.CommitAsync(
+            new FlowCommitRequest("variant-commit", "start", 0, false, "biz", 60),
+            default
+        );
+        Assert.True(commit.IsSuccess);
+        Assert.False(commit.Completed);
+        Assert.Equal(1, commit.NextIndex);
+        Assert.Equal("DE", (string)await _fixture.Database.HashGetAsync(key, "variant"));
+    }
+
+    [Fact]
+    public async Task 线性流程以七参建票_写入空字符串组合字段()
+    {
+        await _fixture.FlushAsync();
+
+        var create = await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("linear", "flow-1", "biz", 0, "start", 300, 30),
+            default
+        );
+
+        Assert.True(create.IsSuccess);
+        var variant = await _fixture.Database.HashGetAsync("flow:ticket:linear", "variant");
+        Assert.False(variant.IsNull);
+        Assert.Equal(string.Empty, (string)variant);
+    }
+
+    [Fact]
+    public async Task 参数化流程首步失败_删除锁定组合的票据()
+    {
+        const string key = "flow:ticket:variant-delete";
+        await _fixture.FlushAsync();
+        var create = await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("variant-delete", "flow-1", "", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        Assert.True(create.IsSuccess);
+        Assert.Equal("ABE", (string)await _fixture.Database.HashGetAsync(key, "variant"));
+
+        var delete = await _store.DeleteAsync(new FlowReleaseRequest("variant-delete", "start"), default);
+
+        Assert.True(delete.IsSuccess);
+        Assert.False(await _fixture.Database.KeyExistsAsync(key));
+    }
+
+    [Fact]
+    public async Task 参数化持票推进_单次Lua原子命中组合与顺位()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
+
+        var result = await _store.ReserveAsync(
+            ReserveVariant("param", "b1", 1, null, [new FlowVariantStepIndex("ABE", 1)]),
+            default
+        );
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.NextIndex);
+        Assert.Equal("ABE", result.VariantKey);
+        Assert.Equal("processing", (string)await _fixture.Database.HashGetAsync("flow:ticket:param", "status"));
+    }
+
+    [Fact]
+    public async Task 参数化持票推进_前置参数一致放行冲突返回FLOW_SELECTOR_MISMATCH()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
+
+        var matched = await _store.ReserveAsync(
+            ReserveVariant("param", "ok", 1, "ABE", [new FlowVariantStepIndex("ABE", 1)]),
+            default
+        );
+        Assert.True(matched.IsSuccess);
+        await _store.ReleaseAsync(new FlowReleaseRequest("param", "ok"), default);
+
+        var mismatch = await _store.ReserveAsync(
+            ReserveVariant("param", "conflict", 1, "ADE", [new FlowVariantStepIndex("ABE", 1)]),
+            default
+        );
+
+        Assert.False(mismatch.IsSuccess);
+        Assert.Equal(FlowErrorCode.FlowSelectorMismatch, mismatch.ErrorCode);
+    }
+
+    [Fact]
+    public async Task 参数化重叠接口D_按锁定组合命中各自顺位()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("ade", "flow-1", "biz-1", 0, "a0", 300, 30, VariantKey: "ADE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("ade", "a0", 0, false, "", 60), default);
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("de", "flow-1", "biz-1", 0, "d0", 300, 30, VariantKey: "DE"),
+            default
+        );
+        await _store.ReleaseAsync(new FlowReleaseRequest("de", "d0"), default);
+
+        FlowVariantStepIndex[] dCandidates = [new("ADE", 1), new("DE", 0)];
+        var ade = await _store.ReserveAsync(ReserveVariant("ade", "a1", 1, null, dCandidates), default);
+        var de = await _store.ReserveAsync(ReserveVariant("de", "d1", 0, null, dCandidates), default);
+
+        Assert.True(ade.IsSuccess);
+        Assert.Equal("ADE", ade.VariantKey);
+        Assert.Equal(1, ade.NextIndex);
+        Assert.True(de.IsSuccess);
+        Assert.Equal("DE", de.VariantKey);
+        Assert.Equal(0, de.NextIndex);
+    }
+
+    [Fact]
+    public async Task 参数化持票推进_跨组合跳步与重调首步均返回FLOW_STEP_NOT_ALLOWED()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
+
+        var crossVariant = await _store.ReserveAsync(
+            ReserveVariant("param", "cross", 1, null, [new FlowVariantStepIndex("ADE", 1), new FlowVariantStepIndex("DE", 0)]),
+            default
+        );
+        var skipStep = await _store.ReserveAsync(
+            ReserveVariant("param", "skip", 2, null, [new FlowVariantStepIndex("ABE", 2)]),
+            default
+        );
+        var restart = await _store.ReserveAsync(
+            ReserveVariant("param", "restart", 0, null, [new FlowVariantStepIndex("ABE", 0)]),
+            default
+        );
+
+        Assert.Equal(FlowErrorCode.FlowStepNotAllowed, crossVariant.ErrorCode);
+        Assert.Equal(FlowErrorCode.FlowStepNotAllowed, skipStep.ErrorCode);
+        Assert.Equal(FlowErrorCode.FlowStepNotAllowed, restart.ErrorCode);
+    }
+
+    [Fact]
+    public async Task 参数化持票推进_业务标识不匹配返回FLOW_BUSINESS_MISMATCH()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
+
+        var result = await _store.ReserveAsync(
+            ReserveVariant("param", "other", 1, null, [new FlowVariantStepIndex("ABE", 1)], businessId: "biz-2"),
+            default
+        );
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(FlowErrorCode.FlowBusinessMismatch, result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task 参数化持票推进_并发请求仅一次获得步骤锁()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
+
+        FlowVariantStepIndex[] candidates = [new("ABE", 1)];
+        var results = await Task.WhenAll(
+            _store.ReserveAsync(ReserveVariant("param", "first", 1, null, candidates), default),
+            _store.ReserveAsync(ReserveVariant("param", "second", 1, null, candidates), default)
+        );
+
+        Assert.Single(results, result => result.IsSuccess);
+        Assert.Single(results, result => result.ErrorCode == FlowErrorCode.FlowInProgress);
+    }
+
+    [Fact]
+    public async Task 参数化持票推进_中间步Release保留组合并可重试()
+    {
+        const string key = "flow:ticket:param";
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
+
+        FlowVariantStepIndex[] candidates = [new("ABE", 1)];
+        await _store.ReserveAsync(ReserveVariant("param", "failed", 1, null, candidates), default);
+        var release = await _store.ReleaseAsync(new FlowReleaseRequest("param", "failed"), default);
+        var retry = await _store.ReserveAsync(ReserveVariant("param", "retry", 1, null, candidates), default);
+
+        Assert.True(release.IsSuccess);
+        Assert.True(retry.IsSuccess);
+        Assert.Equal("ABE", retry.VariantKey);
+        Assert.Equal(1, retry.NextIndex);
+        Assert.Equal("ABE", (string)await _fixture.Database.HashGetAsync(key, "variant"));
+    }
+
+    [Fact]
+    public async Task 参数化持票推进_终步完成缩短Ttl并拒绝重放()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
+        await _store.ReserveAsync(
+            ReserveVariant("param", "middle", 1, null, [new FlowVariantStepIndex("ABE", 1)]),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "middle", 1, false, "", 60), default);
+        await _store.ReserveAsync(
+            ReserveVariant("param", "last", 2, null, [new FlowVariantStepIndex("ABE", 2)]),
+            default
+        );
+
+        var commit = await _store.CommitAsync(new FlowCommitRequest("param", "last", 2, true, "", 60), default);
+        var replay = await _store.ReserveAsync(
+            ReserveVariant("param", "replay", 2, null, [new FlowVariantStepIndex("ABE", 2)]),
+            default
+        );
+        var ttl = await _fixture.Database.KeyTimeToLiveAsync("flow:ticket:param");
+
+        Assert.True(commit.IsSuccess);
+        Assert.True(commit.Completed);
+        Assert.Equal(FlowErrorCode.FlowCompleted, replay.ErrorCode);
+        Assert.NotNull(ttl);
+        Assert.True(ttl <= TimeSpan.FromSeconds(60));
+    }
+
+    [Fact]
+    public async Task 参数化候选请求_命中无组合字段的线性票据_返回FLOW_STEP_NOT_ALLOWED()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("linear", "flow-1", "biz-1", 0, "start", 300, 30),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("linear", "start", 0, false, "", 60), default);
+
+        var result = await _store.ReserveAsync(
+            ReserveVariant("linear", "next", 1, null, [new FlowVariantStepIndex("ABE", 1)]),
+            default
+        );
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(FlowErrorCode.FlowStepNotAllowed, result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task 参数化持票推进_锁未过期时前置参数冲突优先返回FLOW_SELECTOR_MISMATCH()
+    {
+        await _fixture.FlushAsync();
+        await _store.CreateAndReserveAsync(
+            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            default
+        );
+        await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
+
+        var locked = await _store.ReserveAsync(
+            ReserveVariant("param", "holder", 1, null, [new FlowVariantStepIndex("ABE", 1)]),
+            default
+        );
+        Assert.True(locked.IsSuccess);
+
+        var conflict = await _store.ReserveAsync(
+            ReserveVariant("param", "other", 1, "ADE", [new FlowVariantStepIndex("ABE", 1)]),
+            default
+        );
+
+        Assert.Equal(FlowErrorCode.FlowSelectorMismatch, conflict.ErrorCode);
+    }
+
+    private static FlowReserveRequest ReserveVariant(
+        string ticket,
+        string attempt,
+        int expectedIndex,
+        string? selectorVariantKey,
+        IReadOnlyList<FlowVariantStepIndex> candidates,
+        string businessId = "biz-1",
+        int lockTtlSeconds = 30
+    )
+    {
+        return new FlowReserveRequest(
+            ticket,
+            "flow-1",
+            businessId,
+            expectedIndex,
+            attempt,
+            300,
+            lockTtlSeconds,
+            VariantKey: string.Empty,
+            SelectorVariantKey: selectorVariantKey ?? string.Empty,
+            CandidateVariantSteps: candidates
+        );
+    }
+
     private static FlowReserveRequest Reserve(
         string ticket,
         string attempt,

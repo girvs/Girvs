@@ -28,7 +28,7 @@ public sealed class FlowTicketMiddleware(
             return;
         }
 
-        if (!registry.TryGetStep(context.Request.Method, downstreamPath.Value, out var step))
+        if (!registry.TryGetEndpoint(context.Request.Method, downstreamPath.Value, out var endpoint))
         {
             await next(context);
             return;
@@ -37,7 +37,7 @@ public sealed class FlowTicketMiddleware(
         FlowAttemptContext attempt;
         try
         {
-            attempt = await ReserveAsync(context, step);
+            attempt = await ReserveAsync(context, endpoint, context.RequestAborted);
         }
         catch (FlowProtectionException ex)
         {
@@ -62,9 +62,114 @@ public sealed class FlowTicketMiddleware(
         }
     }
 
-    private async Task<FlowAttemptContext> ReserveAsync(HttpContext context, FlowStepMatch step)
+    private Task<FlowAttemptContext> ReserveAsync(
+        HttpContext context,
+        FlowEndpointMatch endpoint,
+        CancellationToken cancellationToken
+    )
     {
-        var businessId = context.Request.Headers[options.BusinessIdHeaderName].FirstOrDefault() ?? string.Empty;
+        if (endpoint.LinearMatch is { } linearStep)
+        {
+            return ReserveLinearAsync(context, linearStep);
+        }
+
+        if (!string.IsNullOrWhiteSpace(context.Request.Headers[options.TicketHeaderName].ToString()))
+        {
+            return ReserveParameterizedNextAsync(context, endpoint, cancellationToken);
+        }
+
+        var variants = endpoint.Flow.Variants;
+        if (ReadSelector(context, endpoint.Flow.ParameterHeaderName, out var selectorValue) != SelectorState.Present
+            || variants is null
+            || !variants.TryGetValue(selectorValue, out var variant))
+        {
+            throw new FlowProtectionException(FlowProtectionErrors.SelectorInvalid);
+        }
+
+        if (!endpoint.TryMatchVariant(variant.Key, out var stepMatch) || !stepMatch.IsFirstStep)
+        {
+            throw new FlowProtectionException(FlowProtectionErrors.NotFound);
+        }
+
+        var businessId = ReadBusinessId(context);
+        return ticketService.CreateFirstStepAttemptAsync(businessId, stepMatch, cancellationToken);
+    }
+
+    private Task<FlowAttemptContext> ReserveParameterizedNextAsync(
+        HttpContext context,
+        FlowEndpointMatch endpoint,
+        CancellationToken cancellationToken
+    )
+    {
+        var ticket = context.Request.Headers[options.TicketHeaderName].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(ticket))
+        {
+            throw new FlowProtectionException(FlowProtectionErrors.NotFound);
+        }
+
+        var businessId = ReadBusinessId(context);
+        if (businessId.Length == 0)
+        {
+            throw new FlowProtectionException(FlowProtectionErrors.BusinessMismatch);
+        }
+
+        string? selectorVariantKey = null;
+        switch (ReadSelector(context, endpoint.Flow.ParameterHeaderName, out var selectorValue))
+        {
+            case SelectorState.Invalid:
+                throw new FlowProtectionException(FlowProtectionErrors.SelectorMismatch);
+            case SelectorState.Present:
+                // 命中已配置组合时统一传规范化组合键；未命中则传原值，交由原子脚本在完成态校验后判 SELECTOR_MISMATCH。
+                selectorVariantKey = endpoint.Flow.Variants is { } variants
+                    && variants.TryGetValue(selectorValue, out var selectorVariant)
+                        ? selectorVariant.Key
+                        : selectorValue;
+                break;
+        }
+
+        return ticketService.ReserveNextStepAttemptAsync(
+            ticket,
+            businessId,
+            endpoint,
+            selectorVariantKey,
+            cancellationToken
+        );
+    }
+
+    private string ReadBusinessId(HttpContext context)
+    {
+        // 与存量线性流程保持一致：同名多值头取首个值，并去除首尾空白。
+        return context.Request.Headers[options.BusinessIdHeaderName].FirstOrDefault()?.Trim() ?? string.Empty;
+    }
+
+    private static SelectorState ReadSelector(HttpContext context, string headerName, out string value)
+    {
+        var values = context.Request.Headers[headerName];
+        value = string.Empty;
+        if (values.Count == 0)
+        {
+            return SelectorState.Absent;
+        }
+
+        if (values.Count > 1)
+        {
+            return SelectorState.Invalid;
+        }
+
+        value = values.ToString().Trim();
+        return value.Length == 0 ? SelectorState.Invalid : SelectorState.Present;
+    }
+
+    private enum SelectorState
+    {
+        Absent,
+        Invalid,
+        Present,
+    }
+
+    private async Task<FlowAttemptContext> ReserveLinearAsync(HttpContext context, FlowStepMatch step)
+    {
+        var businessId = ReadBusinessId(context);
         if (step.IsFirstStep)
         {
             return await ticketService.CreateFirstStepAttemptAsync(businessId, step, context.RequestAborted);
@@ -110,7 +215,6 @@ public sealed class FlowTicketMiddleware(
     private static async Task WriteProblemAsync(HttpContext context, FlowProtectionError error)
     {
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        context.Response.ContentType = "application/problem+json";
         var problem = new ProblemDetails
         {
             Type = $"https://errors.example.com/flow/{error.Slug}",
@@ -119,7 +223,7 @@ public sealed class FlowTicketMiddleware(
         };
         problem.Extensions["code"] = error.Code;
         problem.Extensions["traceId"] = context.TraceIdentifier;
-        await context.Response.WriteAsJsonAsync(problem);
+        await context.Response.WriteAsJsonAsync(problem, options: null, contentType: "application/problem+json");
     }
 
     private static async Task WriteConfigurationErrorAsync(HttpContext context)

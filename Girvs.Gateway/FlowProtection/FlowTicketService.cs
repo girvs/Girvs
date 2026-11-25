@@ -46,7 +46,8 @@ public sealed class FlowTicketService
                 step.StepIndex,
                 attemptId,
                 step.Flow.TtlSeconds,
-                _lockTtlSeconds
+                _lockTtlSeconds,
+                VariantKey: step.VariantKey
             ),
             cancellationToken
         );
@@ -94,6 +95,57 @@ public sealed class FlowTicketService
             AttemptId = attemptId,
             BusinessId = businessId,
             Step = step,
+            IsFirstStep = false,
+            NextIndex = result.NextIndex,
+            Completed = result.Completed,
+        };
+    }
+
+    /// <summary>
+    /// 按票据已锁定的流程组合推进参数化流程：候选顺位与可选前置参数一起交给状态存储原子校验，
+    /// 并用返回的命中组合还原准确的 <see cref="FlowStepMatch" />（含该组合的最后一步判定）。
+    /// </summary>
+    public async Task<FlowAttemptContext> ReserveNextStepAttemptAsync(
+        string ticket,
+        string businessId,
+        FlowEndpointMatch endpoint,
+        string? selectorVariantKey,
+        CancellationToken cancellationToken
+    )
+    {
+        var attemptId = CreateAttemptId();
+        var result = await _stateStore.ReserveAsync(
+            new FlowReserveRequest(
+                ticket,
+                endpoint.Flow.FlowId,
+                businessId,
+                0,
+                attemptId,
+                endpoint.Flow.TtlSeconds,
+                _lockTtlSeconds,
+                SelectorVariantKey: selectorVariantKey ?? string.Empty,
+                CandidateVariantSteps: endpoint.VariantIndexes
+            ),
+            cancellationToken
+        );
+
+        EnsureSuccess(result);
+
+        if (string.IsNullOrEmpty(result.VariantKey)
+            || !endpoint.TryMatchVariant(result.VariantKey, out var stepMatch)
+            || result.NextIndex != stepMatch.StepIndex)
+        {
+            // 存储已判定成功并加锁，但返回的组合/顺位与配置不一致：尽力释放锁，避免残留至租约过期。
+            await TryReleaseAsync(ticket, attemptId, cancellationToken);
+            throw new FlowProtectionException(FlowProtectionErrors.StepNotAllowed);
+        }
+
+        return new FlowAttemptContext
+        {
+            Ticket = ticket,
+            AttemptId = attemptId,
+            BusinessId = businessId,
+            Step = stepMatch,
             IsFirstStep = false,
             NextIndex = result.NextIndex,
             Completed = result.Completed,
@@ -149,6 +201,18 @@ public sealed class FlowTicketService
     {
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(ticket));
         return Convert.ToHexString(hash).ToLowerInvariant()[..12];
+    }
+
+    private async Task TryReleaseAsync(string ticket, string attemptId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _stateStore.ReleaseAsync(new FlowReleaseRequest(ticket, attemptId), cancellationToken);
+        }
+        catch
+        {
+            // 释放失败不能掩盖原始错误：租约会自然到期释放。
+        }
     }
 
     private static string CreateRandomToken()

@@ -39,6 +39,12 @@ public static class FlowProtectionErrors
     public static readonly FlowProtectionError Completed =
         new("FLOW_COMPLETED", "completed", "流程已完成");
 
+    public static readonly FlowProtectionError SelectorInvalid =
+        new("FLOW_SELECTOR_INVALID", "selector-invalid", "流程前置参数缺失或非法");
+
+    public static readonly FlowProtectionError SelectorMismatch =
+        new("FLOW_SELECTOR_MISMATCH", "selector-mismatch", "流程前置参数与已锁定流程组合不一致");
+
     public static FlowProtectionError FromStoreError(FlowErrorCode errorCode)
     {
         return errorCode switch
@@ -49,6 +55,8 @@ public static class FlowProtectionErrors
             FlowErrorCode.FlowStepNotAllowed => StepNotAllowed,
             FlowErrorCode.FlowInProgress => InProgress,
             FlowErrorCode.FlowCompleted => Completed,
+            FlowErrorCode.FlowSelectorInvalid => SelectorInvalid,
+            FlowErrorCode.FlowSelectorMismatch => SelectorMismatch,
             _ => StepNotAllowed,
         };
     }

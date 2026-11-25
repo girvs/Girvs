@@ -27,6 +27,21 @@ public sealed class FlowDefinitionOptions
     public int? TtlSeconds { get; set; }
 
     public List<FlowStepOptions> Steps { get; set; } = [];
+
+    public string ParameterHeaderName { get; set; } = string.Empty;
+
+    public List<FlowInterfaceOptions> Interfaces { get; set; } = [];
+
+    public Dictionary<string, List<string>> Variants { get; set; } = [];
+}
+
+public sealed class FlowInterfaceOptions
+{
+    public string Name { get; set; } = string.Empty;
+
+    public string Method { get; set; } = string.Empty;
+
+    public string Path { get; set; } = string.Empty;
 }
 
 public sealed class FlowStepOptions

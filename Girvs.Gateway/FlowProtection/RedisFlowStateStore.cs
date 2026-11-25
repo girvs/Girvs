@@ -1,3 +1,4 @@
+using System.Globalization;
 using Girvs.Cache.CacheImps;
 using StackExchange.Redis;
 
@@ -21,6 +22,7 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
             'flowId', ARGV[1],
             'businessId', ARGV[2],
             'nextIndex', ARGV[3],
+            'variant', ARGV[7],
             'status', 'processing',
             'attemptId', ARGV[4],
             'lockUntilUnixMs', tostring(lockUntil),
@@ -49,7 +51,36 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
             return {'FLOW_BUSINESS_MISMATCH'}
         end
 
-        if redis.call('HGET', KEYS[1], 'nextIndex') ~= ARGV[3] then
+        local expectedIndexText = ARGV[3]
+        local matchedVariant = ''
+        local candidateCount = tonumber(ARGV[7]) or 0
+        if candidateCount > 0 then
+            local lockedVariant = redis.call('HGET', KEYS[1], 'variant') or ''
+            if lockedVariant == '' then
+                return {'FLOW_STEP_NOT_ALLOWED'}
+            end
+
+            if ARGV[6] ~= '' and ARGV[6] ~= lockedVariant then
+                return {'FLOW_SELECTOR_MISMATCH'}
+            end
+
+            local found = false
+            for i = 0, candidateCount - 1 do
+                local variantKey = ARGV[8 + (i * 2)]
+                if variantKey == lockedVariant then
+                    expectedIndexText = ARGV[9 + (i * 2)]
+                    matchedVariant = variantKey
+                    found = true
+                    break
+                end
+            end
+
+            if not found then
+                return {'FLOW_STEP_NOT_ALLOWED'}
+            end
+        end
+
+        if redis.call('HGET', KEYS[1], 'nextIndex') ~= expectedIndexText then
             return {'FLOW_STEP_NOT_ALLOWED'}
         end
 
@@ -69,7 +100,7 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
             'status', 'processing',
             'attemptId', ARGV[4],
             'lockUntilUnixMs', tostring(newLockUntil))
-        return {'OK', ARGV[3], '0'}
+        return {'OK', expectedIndexText, '0', matchedVariant}
         """;
 
     private const string CommitScript =
@@ -159,10 +190,11 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
             [
                 request.FlowId,
                 request.BusinessId,
-                request.ExpectedIndex.ToString(),
+                InvariantText(request.ExpectedIndex),
                 request.AttemptId,
-                request.FlowTtlSeconds.ToString(),
-                request.LockTtlSeconds.ToString(),
+                InvariantText(request.FlowTtlSeconds),
+                InvariantText(request.LockTtlSeconds),
+                request.VariantKey,
             ]
         );
 
@@ -174,18 +206,24 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
         CancellationToken cancellationToken
     )
     {
+        var candidateVariantSteps = request.CandidateVariantSteps ?? [];
+        var args = new RedisValue[7 + (candidateVariantSteps.Count * 2)];
+        args[0] = request.FlowId;
+        args[1] = request.BusinessId;
+        args[2] = InvariantText(request.ExpectedIndex);
+        args[3] = request.AttemptId;
+        args[4] = InvariantText(request.LockTtlSeconds);
+        args[5] = request.SelectorVariantKey ?? string.Empty;
+        args[6] = InvariantText(candidateVariantSteps.Count);
+        for (var i = 0; i < candidateVariantSteps.Count; i++)
+        {
+            var candidate = candidateVariantSteps[i];
+            args[7 + (i * 2)] = candidate.VariantKey;
+            args[8 + (i * 2)] = InvariantText(candidate.StepIndex);
+        }
+
         var db = await redis.GetDatabaseAsync();
-        var result = await db.ScriptEvaluateAsync(
-            ReserveScript,
-            [Key(request.Ticket)],
-            [
-                request.FlowId,
-                request.BusinessId,
-                request.ExpectedIndex.ToString(),
-                request.AttemptId,
-                request.LockTtlSeconds.ToString(),
-            ]
-        );
+        var result = await db.ScriptEvaluateAsync(ReserveScript, [Key(request.Ticket)], args);
 
         return MapResult(result);
     }
@@ -201,10 +239,10 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
             [Key(request.Ticket)],
             [
                 request.AttemptId,
-                request.ExpectedIndex.ToString(),
+                InvariantText(request.ExpectedIndex),
                 request.IsLastStep ? "1" : "0",
                 request.BusinessIdFromResponse ?? string.Empty,
-                request.CompletedTtlSeconds.ToString(),
+                InvariantText(request.CompletedTtlSeconds),
             ]
         );
 
@@ -240,9 +278,17 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
         if (code == "OK")
         {
             var nextIndexText = values.Length > 1 ? (string)values[1] : string.Empty;
-            var nextIndex = int.TryParse(nextIndexText, out var parsed) ? parsed : (int?)null;
+            var nextIndex = int.TryParse(
+                nextIndexText,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var parsed
+            )
+                ? parsed
+                : (int?)null;
             var completed = values.Length > 2 && (string)values[2] == "1";
-            return FlowStoreResult.Success(nextIndex, completed);
+            var variantKey = values.Length > 3 ? (string)values[3] : null;
+            return FlowStoreResult.Success(nextIndex, completed, string.IsNullOrEmpty(variantKey) ? null : variantKey);
         }
 
         return FlowStoreResult.Failed(ToErrorCode(code));
@@ -258,8 +304,15 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
             "FLOW_STEP_NOT_ALLOWED" => FlowErrorCode.FlowStepNotAllowed,
             "FLOW_IN_PROGRESS" => FlowErrorCode.FlowInProgress,
             "FLOW_COMPLETED" => FlowErrorCode.FlowCompleted,
+            "FLOW_SELECTOR_INVALID" => FlowErrorCode.FlowSelectorInvalid,
+            "FLOW_SELECTOR_MISMATCH" => FlowErrorCode.FlowSelectorMismatch,
             _ => FlowErrorCode.FlowStepNotAllowed,
         };
+    }
+
+    private static string InvariantText(int value)
+    {
+        return value.ToString(CultureInfo.InvariantCulture);
     }
 
     private static RedisKey Key(string ticket)

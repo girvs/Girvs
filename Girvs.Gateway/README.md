@@ -79,7 +79,7 @@ Aspire 模式下地址来自 AppHost 注入给网关项目的 `services:{Service
 
 ## 流程防护
 
-网关可选启用严格线性流程防护，阻止已登录用户跳过前置接口直接调用后续接口。流程定义独立放在 `FlowProtection` 配置节，不写入 YARP Route Metadata；状态只保存在 Redis，所有 Reserve/Commit/Release/Delete 都通过 Lua 原子执行。
+网关可选启用流程防护，阻止已登录用户跳过前置接口直接调用后续接口。既支持单条严格线性步骤序列，也支持按前置参数（Flow Selector）在同一组接口上选择多条有序流程组合（Flow Variant）。流程定义独立放在 `FlowProtection` 配置节，不写入 YARP Route Metadata；状态只保存在 Redis，所有 Reserve/Commit/Release/Delete 都通过 Lua 原子执行。
 
 启用前置条件：
 
@@ -157,6 +157,59 @@ app.MapReverseProxy(proxyPipeline =>
 
 步骤 Path 使用下游服务路径。例如约定路由 `/{ServiceName}/{**catch-all}` 加 `PathRemovePrefix=order` 时，客户端请求 `/order/api/pay1`，流程配置写 `/api/pay1`。本期只支持精确 Path，不支持模板、通配符、Query 或 JSON Body 提取。
 
+### 参数化多组合流程
+
+同一流程需要按前置参数执行不同接口顺序时，用 `ParameterHeaderName` + `Interfaces` + `Variants` 声明，替代 `Steps`（两者不能在同一流程混用）：
+
+```json
+{
+  "FlowProtection": {
+    "Enabled": true,
+    "DefaultTtlSeconds": 300,
+    "LockTtlSeconds": 30,
+    "CompletedTtlSeconds": 60,
+    "TicketHeaderName": "X-Flow-Ticket",
+    "BusinessIdHeaderName": "X-Business-Id",
+    "Flows": [
+      {
+        "FlowId": "order-variants",
+        "TtlSeconds": 300,
+        "ParameterHeaderName": "X-Mode",
+        "Interfaces": [
+          { "Name": "A", "Method": "POST", "Path": "/api/a" },
+          { "Name": "B", "Method": "POST", "Path": "/api/b" },
+          { "Name": "C", "Method": "POST", "Path": "/api/c" },
+          { "Name": "D", "Method": "POST", "Path": "/api/d" },
+          { "Name": "E", "Method": "POST", "Path": "/api/e" }
+        ],
+        "Variants": {
+          "ABE": ["A", "B", "E"],
+          "ACE": ["A", "C", "E"],
+          "ADE": ["A", "D", "E"],
+          "DE": ["D", "E"]
+        }
+      }
+    ]
+  }
+}
+```
+
+启动期校验不通过会直接抛 `GirvsException`，不会进入运行期：
+
+- 同一流程不能同时配置 `Steps` 与 `ParameterHeaderName`/`Interfaces`/`Variants`；
+- `ParameterHeaderName` 不能为空白，也不能与 `TicketHeaderName`、`BusinessIdHeaderName`、`X-Flow-Next-Index`、`X-Flow-Completed`、`X-Flow-Business-Id` 冲突（忽略大小写）；
+- `Interfaces` 非空；接口名 `Trim()` 后忽略大小写唯一；`Method + Path` 在接口池内唯一，且不得被其他流程复用；
+- `Variants` 非空；组合键 `Trim()` 后忽略大小写唯一；每条组合至少两步，且不重复引用同一接口；
+- 每个接口至少被一条组合引用（禁止孤立接口）；不存在默认或兜底组合。
+
+运行期判别规则：
+
+- **是否携带 `X-Flow-Ticket` 是唯一分界线**：未携带一律按新流程首步处理，携带一律按票据已锁定的流程组合推进。
+- **新流程首步**：必须携带 `ParameterHeaderName` 指定的请求头，单值、`Trim()` 后忽略大小写匹配某条组合，且当前接口必须是该组合第 1 步；参数缺失、空白、同名多值或未配置取值返回 `403 FLOW_SELECTOR_INVALID`，命中的不是首步返回 `403 FLOW_NOT_FOUND`。
+- **推进已有流程**：必须携带非空 `X-Business-Id`（否则 `403 FLOW_BUSINESS_MISMATCH`）；不强制重传前置参数，若携带则必须与票据锁定组合一致，空白、同名多值或冲突取值返回 `403 FLOW_SELECTOR_MISMATCH`。
+- **重叠入口**（如 `D` 同时是 `DE` 第 1 步、`ADE` 第 2 步）：无票带 `DE` 参数调用 `D` 会开启 `DE`，之后只能调 `E`；持 `ADE` 第 1 步签发的票据调用 `D` 会推进到 `ADE` 第 2 步，之后同样只能调 `E`，两条组合互不串步。
+- **越序与切换**：跳步、跨组合调用（如持 `ACE` 票据调 `B`）、持未完成票据重调首步，均返回 `403 FLOW_STEP_NOT_ALLOWED`。
+
 响应 Header：
 
 - 未完成：`X-Flow-Ticket`、`X-Flow-Next-Index`、`Cache-Control: no-store`
@@ -173,6 +226,8 @@ app.MapReverseProxy(proxyPipeline =>
 | `FLOW_STEP_NOT_ALLOWED` | 当前步骤不是流程允许的下一步 |
 | `FLOW_IN_PROGRESS` | 同一步已有未过期处理锁 |
 | `FLOW_COMPLETED` | 流程已完成，重复调用被拒绝 |
+| `FLOW_SELECTOR_INVALID` | 参数化流程新开时前置参数缺失、空白、同名多值或未配置 |
+| `FLOW_SELECTOR_MISMATCH` | 推进时携带的前置参数与票据锁定组合不一致，或为空白/同名多值 |
 
 前端只保存服务端返回的 Ticket，建议以内存按 `flowId + businessId` 作为 key 保存；后续受保护请求自动附加 `X-Flow-Ticket` 和 `X-Business-Id`。收到 `FLOW_*` 403 后清除本地 Ticket 并提示用户重新开始。Ticket 是持有者凭据，本期明确不绑定 `userId/tenantId`，因此不要长期放入 LocalStorage，也不要记录到普通业务日志。
 
