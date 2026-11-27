@@ -21,12 +21,12 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     public async Task 两个同步骤Reserve_只有一个成功()
     {
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(Reserve("ticket", "start", 0), default);
+        await _store.CreateAndReserveAsync(CreateTicket("ticket", "start"), default);
         await _store.ReleaseAsync(new FlowReleaseRequest("ticket", "start"), default);
 
         var results = await Task.WhenAll(
-            _store.ReserveAsync(Reserve("ticket", "a", 0), default),
-            _store.ReserveAsync(Reserve("ticket", "b", 0), default)
+            _store.ReserveAsync(ReserveSingleVariant("ticket", "a", 0), default),
+            _store.ReserveAsync(ReserveSingleVariant("ticket", "b", 0), default)
         );
 
         Assert.Single(results, x => x.IsSuccess);
@@ -37,10 +37,10 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     public async Task 跳过当前步骤_返回FLOW_STEP_NOT_ALLOWED()
     {
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(Reserve("ticket", "a", 0), default);
+        await _store.CreateAndReserveAsync(CreateTicket("ticket", "a"), default);
         await _store.CommitAsync(Commit("ticket", "a", 0, isLastStep: false), default);
 
-        var result = await _store.ReserveAsync(Reserve("ticket", "b", 2), default);
+        var result = await _store.ReserveAsync(ReserveSingleVariant("ticket", "b", 2), default);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(FlowErrorCode.FlowStepNotAllowed, result.ErrorCode);
@@ -50,10 +50,10 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     public async Task BusinessId不一致_返回FLOW_BUSINESS_MISMATCH()
     {
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(Reserve("ticket", "a", 0, businessId: "biz-1"), default);
+        await _store.CreateAndReserveAsync(CreateTicket("ticket", "a"), default);
         await _store.ReleaseAsync(new FlowReleaseRequest("ticket", "a"), default);
 
-        var result = await _store.ReserveAsync(Reserve("ticket", "b", 0, businessId: "biz-2"), default);
+        var result = await _store.ReserveAsync(ReserveSingleVariant("ticket", "b", 0, businessId: "biz-2"), default);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(FlowErrorCode.FlowBusinessMismatch, result.ErrorCode);
@@ -63,51 +63,71 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     public async Task 中间步骤Release后_可以重试相同步骤()
     {
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(Reserve("ticket", "a", 0), default);
+        await _store.CreateAndReserveAsync(CreateTicket("ticket", "a"), default);
         await _store.CommitAsync(Commit("ticket", "a", 0, isLastStep: false), default);
-        await _store.ReserveAsync(Reserve("ticket", "b", 1), default);
+        await _store.ReserveAsync(ReserveSingleVariant("ticket", "b", 1), default);
         await _store.ReleaseAsync(new FlowReleaseRequest("ticket", "b"), default);
 
-        var retry = await _store.ReserveAsync(Reserve("ticket", "c", 1), default);
+        var retry = await _store.ReserveAsync(ReserveSingleVariant("ticket", "c", 1), default);
 
         Assert.True(retry.IsSuccess);
     }
 
-    [Fact]
-    public async Task 完成后再次Reserve_返回FLOW_COMPLETED并缩短Ttl()
+    [Theory]
+    [InlineData(false, FlowErrorCode.FlowStepNotAllowed)]
+    [InlineData(true, FlowErrorCode.FlowCompleted)]
+    public async Task 免前置参数单组合持活跃或已完成票据重调首步_拒绝重放(bool completed, FlowErrorCode expectedError)
     {
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(Reserve("ticket", "a", 0), default);
+        Assert.True((await _store.CreateAndReserveAsync(CreateTicket("ticket", "a"), default)).IsSuccess);
+        Assert.True((await _store.CommitAsync(Commit("ticket", "a", 0, isLastStep: false), default)).IsSuccess);
+        if (completed)
+        {
+            Assert.True((await _store.ReserveAsync(ReserveSingleVariant("ticket", "last", 1), default)).IsSuccess);
+            var commit = await _store.CommitAsync(Commit("ticket", "last", 1, isLastStep: true), default);
+            Assert.True(commit.Completed);
+            var ttl = await _fixture.Database.KeyTimeToLiveAsync("flow:ticket:ticket");
+            Assert.NotNull(ttl);
+            Assert.True(ttl <= TimeSpan.FromSeconds(60));
+        }
 
-        var commit = await _store.CommitAsync(Commit("ticket", "a", 0, isLastStep: true), default);
-        var replay = await _store.ReserveAsync(Reserve("ticket", "b", 0), default);
-        var ttl = await _fixture.Database.KeyTimeToLiveAsync("flow:ticket:ticket");
+        var replay = await _store.ReserveAsync(ReserveSingleVariant("ticket", "replay", 0), default);
 
-        Assert.True(commit.Completed);
-        Assert.Equal(FlowErrorCode.FlowCompleted, replay.ErrorCode);
-        Assert.True(ttl <= TimeSpan.FromSeconds(60));
+        Assert.False(replay.IsSuccess);
+        Assert.Equal(expectedError, replay.ErrorCode);
+        var fields = await _fixture.Database.HashGetAsync("flow:ticket:ticket", ["variant", "status", "nextIndex"]);
+        Assert.Equal("default", (string)fields[0]);
+        Assert.Equal(completed ? "completed" : "active", (string)fields[1]);
+        Assert.Equal(completed ? 2 : 1, (int)fields[2]);
     }
 
     [Fact]
-    public async Task 锁租约过期后_允许新Attempt接管()
+    public async Task 锁租约过期后_允许新Attempt接管且旧Attempt不能推进()
     {
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(Reserve("ticket", "a", 0, lockTtlSeconds: 1), default);
+        await _store.CreateAndReserveAsync(CreateTicket("ticket", "a", lockTtlSeconds: 1), default);
 
         await Task.Delay(TimeSpan.FromMilliseconds(1200));
-        var result = await _store.ReserveAsync(Reserve("ticket", "b", 0), default);
+        var result = await _store.ReserveAsync(ReserveSingleVariant("ticket", "b", 0), default);
 
         Assert.True(result.IsSuccess);
+        Assert.Equal("default", result.VariantKey);
+        var staleCommit = await _store.CommitAsync(Commit("ticket", "a", 0, isLastStep: false), default);
+        Assert.Equal(FlowErrorCode.FlowInProgress, staleCommit.ErrorCode);
+
+        var currentCommit = await _store.CommitAsync(Commit("ticket", "b", 0, isLastStep: false), default);
+        Assert.True(currentCommit.IsSuccess);
+        Assert.Equal(1, currentCommit.NextIndex);
     }
 
     [Fact]
     public async Task AttemptId不匹配_Commit不推进()
     {
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(Reserve("ticket", "a", 0), default);
+        await _store.CreateAndReserveAsync(CreateTicket("ticket", "a"), default);
 
         var commit = await _store.CommitAsync(Commit("ticket", "wrong", 0, isLastStep: false), default);
-        var retry = await _store.ReserveAsync(Reserve("ticket", "b", 0), default);
+        var retry = await _store.ReserveAsync(ReserveSingleVariant("ticket", "b", 0), default);
 
         Assert.Equal(FlowErrorCode.FlowInProgress, commit.ErrorCode);
         Assert.Equal(FlowErrorCode.FlowInProgress, retry.ErrorCode);
@@ -117,15 +137,15 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     public async Task 下游返回BusinessId_首次绑定后续严格校验()
     {
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(Reserve("ticket", "a", 0, businessId: ""), default);
+        await _store.CreateAndReserveAsync(CreateTicket("ticket", "a", businessId: ""), default);
         await _store.CommitAsync(
             new FlowCommitRequest("ticket", "a", 0, false, "biz-from-service", 60),
             default
         );
 
-        var ok = await _store.ReserveAsync(Reserve("ticket", "b", 1, businessId: "biz-from-service"), default);
+        var ok = await _store.ReserveAsync(ReserveSingleVariant("ticket", "b", 1, businessId: "biz-from-service"), default);
         await _store.ReleaseAsync(new FlowReleaseRequest("ticket", "b"), default);
-        var mismatch = await _store.ReserveAsync(Reserve("ticket", "c", 1, businessId: "other"), default);
+        var mismatch = await _store.ReserveAsync(ReserveSingleVariant("ticket", "c", 1, businessId: "other"), default);
 
         Assert.True(ok.IsSuccess);
         Assert.Equal(FlowErrorCode.FlowBusinessMismatch, mismatch.ErrorCode);
@@ -138,7 +158,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
         await _fixture.FlushAsync();
 
         var create = await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("variant-commit", "flow-1", "", 0, "start", 300, 30, VariantKey: "DE"),
+            CreateTicket("variant-commit", "start", businessId: "", variantKey: "DE"),
             default
         );
 
@@ -150,7 +170,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
         Assert.Equal("start", (string)fields[2]);
 
         var duplicate = await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("variant-commit", "flow-1", "", 0, "other", 300, 30, VariantKey: "ABE"),
+            CreateTicket("variant-commit", "other", businessId: "", variantKey: "ABE"),
             default
         );
         Assert.Equal(FlowErrorCode.FlowInProgress, duplicate.ErrorCode);
@@ -166,19 +186,18 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     }
 
     [Fact]
-    public async Task 线性流程以七参建票_写入空字符串组合字段()
+    public async Task 免前置参数单组合建票_写入非空组合键()
     {
         await _fixture.FlushAsync();
 
         var create = await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("linear", "flow-1", "biz", 0, "start", 300, 30),
+            CreateTicket("single", "start", businessId: "biz"),
             default
         );
 
         Assert.True(create.IsSuccess);
-        var variant = await _fixture.Database.HashGetAsync("flow:ticket:linear", "variant");
-        Assert.False(variant.IsNull);
-        Assert.Equal(string.Empty, (string)variant);
+        var variant = await _fixture.Database.HashGetAsync("flow:ticket:single", "variant");
+        Assert.Equal("default", (string)variant);
     }
 
     [Fact]
@@ -187,7 +206,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
         const string key = "flow:ticket:variant-delete";
         await _fixture.FlushAsync();
         var create = await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("variant-delete", "flow-1", "", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("variant-delete", "start", businessId: "", variantKey: "ABE"),
             default
         );
         Assert.True(create.IsSuccess);
@@ -204,7 +223,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     {
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("param", "start", variantKey: "ABE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
@@ -225,7 +244,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     {
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("param", "start", variantKey: "ABE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
@@ -251,19 +270,19 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     {
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("ade", "flow-1", "biz-1", 0, "a0", 300, 30, VariantKey: "ADE"),
+            CreateTicket("ade", "a0", variantKey: "ADE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("ade", "a0", 0, false, "", 60), default);
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("de", "flow-1", "biz-1", 0, "d0", 300, 30, VariantKey: "DE"),
+            CreateTicket("de", "d0", variantKey: "DE"),
             default
         );
         await _store.ReleaseAsync(new FlowReleaseRequest("de", "d0"), default);
 
         FlowVariantStepIndex[] dCandidates = [new("ADE", 1), new("DE", 0)];
-        var ade = await _store.ReserveAsync(ReserveVariant("ade", "a1", 1, null, dCandidates), default);
-        var de = await _store.ReserveAsync(ReserveVariant("de", "d1", 0, null, dCandidates), default);
+        var ade = await _store.ReserveAsync(ReserveVariant("ade", "a1", 99, null, dCandidates), default);
+        var de = await _store.ReserveAsync(ReserveVariant("de", "d1", 99, null, dCandidates), default);
 
         Assert.True(ade.IsSuccess);
         Assert.Equal("ADE", ade.VariantKey);
@@ -278,7 +297,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     {
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("param", "start", variantKey: "ABE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
@@ -306,7 +325,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     {
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("param", "start", variantKey: "ABE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
@@ -325,7 +344,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     {
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("param", "start", variantKey: "ABE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
@@ -346,7 +365,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
         const string key = "flow:ticket:param";
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("param", "start", variantKey: "ABE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
@@ -368,7 +387,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     {
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("param", "start", variantKey: "ABE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
@@ -396,23 +415,33 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
         Assert.True(ttl <= TimeSpan.FromSeconds(60));
     }
 
-    [Fact]
-    public async Task 参数化候选请求_命中无组合字段的线性票据_返回FLOW_STEP_NOT_ALLOWED()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("ABE")]
+    public async Task 旧票据的锁定组合键为空_拒绝推进且不加锁(string? selectorVariantKey)
     {
+        const string key = "flow:ticket:legacy";
         await _fixture.FlushAsync();
-        await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("linear", "flow-1", "biz-1", 0, "start", 300, 30),
-            default
+        await _fixture.Database.HashSetAsync(
+            key,
+            [
+                new HashEntry("flowId", "flow-1"),
+                new HashEntry("businessId", "biz-1"),
+                new HashEntry("nextIndex", 1),
+                new HashEntry("status", "active"),
+                new HashEntry("variant", string.Empty),
+            ]
         );
-        await _store.CommitAsync(new FlowCommitRequest("linear", "start", 0, false, "", 60), default);
 
         var result = await _store.ReserveAsync(
-            ReserveVariant("linear", "next", 1, null, [new FlowVariantStepIndex("ABE", 1)]),
+            ReserveVariant("legacy", "next", 1, selectorVariantKey, [new FlowVariantStepIndex("ABE", 1)]),
             default
         );
 
         Assert.False(result.IsSuccess);
         Assert.Equal(FlowErrorCode.FlowStepNotAllowed, result.ErrorCode);
+        Assert.Equal("active", (string)await _fixture.Database.HashGetAsync(key, "status"));
+        Assert.False(await _fixture.Database.HashExistsAsync(key, "attemptId"));
     }
 
     [Fact]
@@ -420,7 +449,7 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
     {
         await _fixture.FlushAsync();
         await _store.CreateAndReserveAsync(
-            new FlowReserveRequest("param", "flow-1", "biz-1", 0, "start", 300, 30, VariantKey: "ABE"),
+            CreateTicket("param", "start", variantKey: "ABE"),
             default
         );
         await _store.CommitAsync(new FlowCommitRequest("param", "start", 0, false, "", 60), default);
@@ -463,15 +492,25 @@ public class RedisFlowStateStoreTests : IClassFixture<RedisFlowStateStoreFixture
         );
     }
 
-    private static FlowReserveRequest Reserve(
+    private static FlowReserveRequest ReserveSingleVariant(
         string ticket,
         string attempt,
         int index,
+        string businessId = "biz-1"
+    ) => ReserveVariant(ticket, attempt, 0, selectorVariantKey: null, [new FlowVariantStepIndex("default", index)], businessId);
+
+    private static FlowReserveRequest CreateTicket(
+        string ticket,
+        string attempt,
         string businessId = "biz-1",
-        int lockTtlSeconds = 30
+        int lockTtlSeconds = 30,
+        string variantKey = "default"
     )
     {
-        return new FlowReserveRequest(ticket, "flow-1", businessId, index, attempt, 300, lockTtlSeconds);
+        return new FlowReserveRequest(
+            ticket, "flow-1", businessId, 0, attempt, 300, lockTtlSeconds,
+            VariantKey: variantKey, SelectorVariantKey: string.Empty, CandidateVariantSteps: null
+        );
     }
 
     private static FlowCommitRequest Commit(string ticket, string attempt, int index, bool isLastStep)

@@ -17,8 +17,8 @@ namespace Girvs.Gateway.FlowProtection;
 /// 非 2xx 且本次是中间步时仅释放处理锁，使该步可被重试。
 /// </para>
 /// <para>
-/// 只有请求阶段成功预留过票据（<see cref="FlowAttemptContext.ItemsKey"/> 存在）的请求才会进入结算，
-/// 未被流程防护命中的普通请求直接跳过，不产生任何额外开销。
+/// 无票单步直通在下游返回 2xx 时写入完成标记和 <c>no-store</c>，无需结算票据。
+/// 未被流程防护命中的普通请求直接跳过。
 /// </para>
 /// </remarks>
 public sealed class FlowResponseTransform(
@@ -72,7 +72,7 @@ public sealed class FlowResponseTransform(
             return;
         }
 
-        // 未在请求阶段预留票据的请求（未被流程防护命中，或请求阶段已拒绝）无需结算。
+        // 仅处理请求阶段放行的流程步骤。
         if (context.HttpContext.Items[FlowAttemptContext.ItemsKey] is not FlowAttemptContext attempt)
         {
             return;
@@ -82,7 +82,15 @@ public sealed class FlowResponseTransform(
         var success = statusCode is >= 200 and <= 299;
         try
         {
-            if (success)
+            if (attempt.SkipsStateStore)
+            {
+                if (success)
+                {
+                    context.HttpContext.Response.Headers.CacheControl = "no-store";
+                    context.HttpContext.Response.Headers[FlowProtectionHeaders.Completed] = "true";
+                }
+            }
+            else if (success)
             {
                 // 成功：提交当前步骤；最后一步会在存储侧把票据转为完成态并使用完成态时长。
                 var result = await ticketService.CommitAsync(

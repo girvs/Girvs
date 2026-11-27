@@ -46,7 +46,7 @@ public sealed class FlowProtectionOptions
     public string BusinessIdHeaderName { get; set; } = FlowProtectionHeaders.BusinessId;
 
     /// <summary>
-    /// 流程定义列表；每项可配置为线性流程或参数化流程，<c>FlowId</c> 必须全局唯一。
+    /// 流程定义列表，每项通过接口池与流程组合定义，<c>FlowId</c> 必须全局唯一。
     /// </summary>
     public List<FlowDefinitionOptions> Flows { get; set; } = [];
 }
@@ -54,10 +54,6 @@ public sealed class FlowProtectionOptions
 /// <summary>
 /// 单条流程的配置项，由 <see cref="FlowDefinitionRegistry"/> 校验后编译为 <see cref="FlowDefinition"/>。
 /// </summary>
-/// <remarks>
-/// <see cref="Steps"/> 与 <see cref="ParameterHeaderName"/> / <see cref="Interfaces"/> /
-/// <see cref="Variants"/> 两组配置互斥，同一流程只能选用其中一组，混用会在启动期直接抛异常。
-/// </remarks>
 public sealed class FlowDefinitionOptions
 {
     /// <summary>流程标识，全局唯一（忽略大小写）。</summary>
@@ -70,12 +66,7 @@ public sealed class FlowDefinitionOptions
     public int? TtlSeconds { get; set; }
 
     /// <summary>
-    /// 线性流程的有序步骤序列，至少两步。与参数化配置互斥。
-    /// </summary>
-    public List<FlowStepOptions> Steps { get; set; } = [];
-
-    /// <summary>
-    /// 前置参数所在的请求头名；非空即表示该流程为参数化流程。不得与系统保留头冲突。
+    /// 前置参数所在的请求头名；多组合流程必填，单组合流程可省略。不得与系统保留头冲突。
     /// </summary>
     public string ParameterHeaderName { get; set; } = string.Empty;
 
@@ -85,13 +76,13 @@ public sealed class FlowDefinitionOptions
     public List<FlowInterfaceOptions> Interfaces { get; set; } = [];
 
     /// <summary>
-    /// 前置参数取值到有序流程组合的映射：键为组合键，值为按顺序排列的接口名列表。
+    /// 组合键到有序流程组合的映射；每条组合按顺序引用至少一个接口。
     /// </summary>
     public Dictionary<string, List<string>> Variants { get; set; } = [];
 }
 
 /// <summary>
-/// 参数化流程接口池中的一个命名接口定义。
+/// 流程接口池中的一个命名接口定义。
 /// </summary>
 public sealed class FlowInterfaceOptions
 {
@@ -108,17 +99,5 @@ public sealed class FlowInterfaceOptions
     /// 下游服务路径（不含网关服务名前缀），必须以 <c>/</c> 开头。
     /// 支持静态路径和整段 <c>{param}</c> 模板，匹配时静态路径优先。
     /// </summary>
-    public string Path { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// 线性流程中的一个步骤定义。
-/// </summary>
-public sealed class FlowStepOptions
-{
-    /// <summary>HTTP 方法，必须是受支持的 HTTP 谓词；配置后统一规范化为大写。</summary>
-    public string Method { get; set; } = string.Empty;
-
-    /// <inheritdoc cref="FlowInterfaceOptions.Path" />
     public string Path { get; set; } = string.Empty;
 }

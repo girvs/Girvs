@@ -5,9 +5,8 @@ namespace Girvs.Gateway.FlowProtection;
 /// </summary>
 /// <remarks>
 /// <para>
-/// 中间件在预留成功后把本对象写入 <see cref="HttpContext.Items"/>（键为 <see cref="ItemsKey"/>），
-/// 供响应阶段（<see cref="FlowResponseTransform"/>）与请求结束时的兜底清理复用，
-/// 从而保证“预留”与“提交/释放/删除”严格成对。
+/// 中间件在允许转发后把本对象写入 <see cref="HttpContext.Items"/>（键为 <see cref="ItemsKey"/>），
+/// 供响应阶段（<see cref="FlowResponseTransform"/>）与请求结束时的兜底清理复用。
 /// </para>
 /// <para>
 /// 本对象只活在一个请求内，不做跨线程共享设计；其中可变的
@@ -43,6 +42,9 @@ public sealed class FlowAttemptContext
     /// </summary>
     public required bool IsFirstStep { get; init; }
 
+    /// <summary>本次尝试是否为无票单步直通，跳过状态存储。</summary>
+    public bool SkipsStateStore { get; init; }
+
     /// <summary>
     /// 存储返回的下一个允许顺位；流程已完成时为最后一步之后的顺位值。
     /// 未产生有效结果（如失败）时可为 <see langword="null" />。
@@ -53,8 +55,19 @@ public sealed class FlowAttemptContext
     public bool Completed { get; set; }
 
     /// <summary>
-    /// 本次尝试是否已经完成终态处理（提交、释放或删除成功）。
+    /// 本次尝试是否已完成终态处理（提交、释放或删除成功），或无需结算。
     /// 未终结的尝试会在请求结束时由中间件兜底清理，防止处理锁残留。
     /// </summary>
     public bool IsFinalized { get; set; }
+
+    internal static FlowAttemptContext CreatePassThrough(FlowStepMatch step) => new()
+    {
+        Ticket = string.Empty,
+        AttemptId = string.Empty,
+        BusinessId = string.Empty,
+        Step = step,
+        IsFirstStep = true,
+        SkipsStateStore = true,
+        IsFinalized = true,
+    };
 }

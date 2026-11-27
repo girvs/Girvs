@@ -1,17 +1,18 @@
 using Girvs.Gateway.FlowProtection;
 using Girvs.Gateway.FlowProtection.Configuration;
+using static Girvs.Gateway.Tests.FlowDefinitionRegistryVariantsTests;
 
 namespace Girvs.Gateway.Tests;
 
 public class FlowDefinitionRegistryTemplateTests
 {
     [Theory]
-    [InlineData("linear", "/orders/{id}", "/ORDERS/{Id}", "重复", null)]
-    [InlineData("linear", "/orders/{id}", "/orders/{orderId}", "同形异名冲突", null)]
-    [InlineData("linear", "/orders/{id}/items", "/orders/export/{type}", "交叉重叠冲突", "/orders/export/items")]
-    [InlineData("pool", "/orders/{id}", "/ORDERS/{Id}", "重复", null)]
-    [InlineData("pool", "/orders/{id}", "/orders/{orderId}", "同形异名冲突", null)]
-    [InlineData("pool", "/orders/{id}/items", "/orders/export/{type}", "交叉重叠冲突", "/orders/export/items")]
+    [InlineData("single", "/orders/{id}", "/ORDERS/{Id}", "重复", null)]
+    [InlineData("single", "/orders/{id}", "/orders/{orderId}", "同形异名冲突", null)]
+    [InlineData("single", "/orders/{id}/items", "/orders/export/{type}", "交叉重叠冲突", "/orders/export/items")]
+    [InlineData("multiple", "/orders/{id}", "/ORDERS/{Id}", "重复", null)]
+    [InlineData("multiple", "/orders/{id}", "/orders/{orderId}", "同形异名冲突", null)]
+    [InlineData("multiple", "/orders/{id}/items", "/orders/export/{type}", "交叉重叠冲突", "/orders/export/items")]
     [InlineData("cross", "/orders/{id}", "/ORDERS/{Id}", "重复", null)]
     [InlineData("cross", "/orders/{id}", "/orders/{orderId}", "同形异名冲突", null)]
     [InlineData("cross", "/orders/{tenant}/{id}/items", "/orders/{region}/export/{type}", "交叉重叠冲突", "/orders/value/export/items")]
@@ -19,9 +20,9 @@ public class FlowDefinitionRegistryTemplateTests
     {
         var flows = scope switch
         {
-            "linear" => new[] { Linear("local", first, second) },
-            "pool" => [Parameterized("local", first, second)],
-            _ => [Linear("left", first, "/left/end"), Parameterized("right", second, "/right/end")],
+            "single" => new[] { CreateSingleVariant("local", first, second) },
+            "multiple" => [Parameterized("local", first, second)],
+            _ => [CreateSingleVariant("left", first, "/left/end"), Parameterized("right", second, "/right/end")],
         };
 
         var message = Assert.Throws<GirvsException>(() => CreateRegistry(flows)).Message;
@@ -36,11 +37,8 @@ public class FlowDefinitionRegistryTemplateTests
 
         switch (scope)
         {
-            case "linear":
-                Assert.Contains("流程 'local' 中的线性步骤", message);
-                Assert.DoesNotContain("跨流程", message);
-                break;
-            case "pool":
+            case "single":
+            case "multiple":
                 Assert.Contains("流程 'local' 的接口池", message);
                 Assert.DoesNotContain("跨流程", message);
                 break;
@@ -53,16 +51,16 @@ public class FlowDefinitionRegistryTemplateTests
     }
 
     [Theory]
-    [InlineData("linear")]
-    [InlineData("pool")]
+    [InlineData("single")]
+    [InlineData("multiple")]
     [InlineData("cross")]
     public void 静态路径与模板并存_始终命中静态路径(string scope)
     {
         var flows = scope switch
         {
-            "linear" => new[] { Linear("local", "/orders/{id}", "/orders/create") },
-            "pool" => [Parameterized("local", "/orders/{id}", "/orders/create")],
-            _ => [Linear("template", "/orders/{id}", "/template/end"), Parameterized("static", "/orders/create", "/static/end")],
+            "single" => new[] { CreateSingleVariant("local", "/orders/{id}", "/orders/create") },
+            "multiple" => [Parameterized("local", "/orders/{id}", "/orders/create")],
+            _ => [CreateSingleVariant("template", "/orders/{id}", "/template/end"), Parameterized("static", "/orders/create", "/static/end")],
         };
         var registry = CreateRegistry(flows);
 
@@ -76,12 +74,12 @@ public class FlowDefinitionRegistryTemplateTests
     [Fact]
     public void 模板有字面区分位或不同的方法段数_分别命中所属接口()
     {
-        var alternateMethod = Linear("method", "/a/{id}/x", "/method/end");
-        alternateMethod.Steps[0].Method = "GET";
+        var alternateMethod = CreateSingleVariant("method", "/a/{id}/x", "/method/end");
+        alternateMethod.Interfaces[0].Method = "GET";
         var registry = CreateRegistry(
-            Linear("left", "/a/{id}/x", "/left/end"),
+            CreateSingleVariant("left", "/a/{id}/x", "/left/end"),
             Parameterized("right", "/a/{id2}/Y", "/right/end"),
-            Linear("segments", "/a/{id}", "/segments/end"),
+            CreateSingleVariant("segments", "/a/{id}", "/segments/end"),
             alternateMethod
         );
 
@@ -98,16 +96,6 @@ public class FlowDefinitionRegistryTemplateTests
         Assert.False(registry.TryGetEndpoint("POST", "/a/1/z", out _));
     }
 
-    internal static FlowDefinitionOptions Linear(string flowId, string first, string second) => new()
-    {
-        FlowId = flowId,
-        Steps =
-        [
-            new FlowStepOptions { Method = "POST", Path = first },
-            new FlowStepOptions { Method = "POST", Path = second },
-        ],
-    };
-
     internal static FlowDefinitionOptions Parameterized(string flowId, string first, string second) => new()
     {
         FlowId = flowId,
@@ -117,7 +105,7 @@ public class FlowDefinitionRegistryTemplateTests
             new FlowInterfaceOptions { Name = "A", Method = "POST", Path = first },
             new FlowInterfaceOptions { Name = "B", Method = "POST", Path = second },
         ],
-        Variants = new() { ["AB"] = ["A", "B"] },
+        Variants = new() { ["AB"] = ["A", "B"], ["Direct"] = ["B"] },
     };
 
     private static FlowDefinitionRegistry CreateRegistry(params FlowDefinitionOptions[] flows) =>

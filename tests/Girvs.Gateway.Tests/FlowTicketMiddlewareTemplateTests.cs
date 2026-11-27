@@ -30,7 +30,7 @@ public class FlowTicketMiddlewareTemplateTests
             [
                 parameterized
                     ? FlowDefinitionRegistryTemplateTests.Parameterized("orders", first, second)
-                    : FlowDefinitionRegistryTemplateTests.Linear("orders", first, second),
+                    : FlowDefinitionRegistryVariantsTests.CreateSingleVariant("orders", first, second),
             ],
         };
         var forwardedPaths = new List<string?>();

@@ -1,5 +1,6 @@
 using Girvs.Gateway.FlowProtection;
 using Girvs.Gateway.FlowProtection.Configuration;
+using static Girvs.Gateway.Tests.FlowDefinitionRegistryVariantsTests;
 
 namespace Girvs.Gateway.Tests;
 
@@ -14,7 +15,8 @@ public class FlowPathTemplateTests
     {
         var registry = CreateRegistry(configuredPath);
 
-        Assert.True(registry.TryGetStep("post", requestPath, out var match));
+        Assert.True(registry.TryGetEndpoint("post", requestPath, out var endpoint));
+        Assert.True(endpoint.TryMatchVariant(DefaultVariantKey, out var match));
         Assert.Equal(expectedPath, match.Step.Path.Value);
         Assert.True(match.IsFirstStep);
     }
@@ -118,17 +120,6 @@ public class FlowPathTemplateTests
 
     private static FlowDefinitionRegistry CreateRegistry(string? path) => new(new FlowProtectionOptions
     {
-        Flows =
-        [
-            new FlowDefinitionOptions
-            {
-                FlowId = "flow",
-                Steps =
-                [
-                    new FlowStepOptions { Method = "POST", Path = path! },
-                    new FlowStepOptions { Method = "POST", Path = "/other/static" },
-                ],
-            },
-        ],
+        Flows = [CreateSingleVariant("flow", path!, "/other/static")],
     });
 }

@@ -1,6 +1,7 @@
 using System.Reflection;
 using Girvs.Gateway.FlowProtection;
 using Girvs.Gateway.FlowProtection.Configuration;
+using static Girvs.Gateway.Tests.FlowDefinitionRegistryVariantsTests;
 
 namespace Girvs.Gateway.Tests;
 
@@ -46,7 +47,7 @@ public class FlowTicketServiceTests
         var service = CreateService(new FakeFlowStateStore(FlowStoreResult.Failed(FlowErrorCode.FlowStepNotAllowed)));
 
         var error = await Assert.ThrowsAsync<FlowProtectionException>(
-            () => service.ReserveNextStepAttemptAsync("ticket", "biz", TestFlows.Match(2), default)
+            () => service.ReserveNextStepAttemptAsync("ticket", "biz", SingleVariantEndpoint("/api/abc1"), null, default)
         );
 
         Assert.Equal("FLOW_STEP_NOT_ALLOWED", error.Code);
@@ -55,28 +56,32 @@ public class FlowTicketServiceTests
     [Fact]
     public async Task 第一步_创建Ticket并Reserve成功()
     {
-        var store = new FakeFlowStateStore(FlowStoreResult.Success(1, completed: false));
+        var store = new FakeFlowStateStore(FlowStoreResult.Success(1, false, DefaultVariantKey));
         var service = CreateService(store);
+        var endpoint = SingleVariantEndpoint("/api/user1");
+        Assert.True(endpoint.TryMatchVariant(DefaultVariantKey, out var step));
 
-        var attempt = await service.CreateFirstStepAttemptAsync("biz", TestFlows.Match(0), default);
+        var attempt = await service.CreateFirstStepAttemptAsync("biz", step, default);
 
         Assert.Matches("^[A-Za-z0-9_-]{43}$", attempt.Ticket);
         Assert.Matches("^[A-Za-z0-9_-]{43}$", attempt.AttemptId);
         Assert.True(attempt.IsFirstStep);
         Assert.Equal("biz", store.LastReserveRequest?.BusinessId);
         Assert.Equal(0, store.LastReserveRequest?.ExpectedIndex);
+        Assert.Equal(DefaultVariantKey, store.LastReserveRequest?.VariantKey);
     }
 
     [Fact]
     public async Task 后续步骤_Reserve成功返回Attempt上下文()
     {
-        var service = CreateService(new FakeFlowStateStore(FlowStoreResult.Success(2, completed: false)));
+        var service = CreateService(new FakeFlowStateStore(FlowStoreResult.Success(1, false, DefaultVariantKey)));
 
-        var attempt = await service.ReserveNextStepAttemptAsync("ticket", "biz", TestFlows.Match(1), default);
+        var attempt = await service.ReserveNextStepAttemptAsync("ticket", "biz", SingleVariantEndpoint("/api/role1"), null, default);
 
         Assert.Equal("ticket", attempt.Ticket);
         Assert.False(attempt.IsFirstStep);
         Assert.Equal(1, attempt.Step.StepIndex);
+        Assert.Equal(DefaultVariantKey, attempt.Step.VariantKey);
     }
 
     [Fact]
@@ -152,30 +157,20 @@ public class FlowTicketServiceTests
     }
 
     [Fact]
-    public void FlowStoreResult_四参构造与四值解构及二参Success保持兼容()
+    public void FlowStoreResult_成功保留组合键且失败保留错误码()
     {
-        var result = new FlowStoreResult(true, null, 2, false);
-        var (isSuccess, errorCode, nextIndex, completed) = result;
-
-        Assert.True(isSuccess);
-        Assert.Null(errorCode);
-        Assert.Equal(2, nextIndex);
-        Assert.False(completed);
-        Assert.Null(result.VariantKey);
-
-        var legacySuccess = FlowStoreResult.Success(3, completed: true);
-        Assert.True(legacySuccess.IsSuccess);
-        Assert.Equal(3, legacySuccess.NextIndex);
-        Assert.True(legacySuccess.Completed);
-        Assert.Null(legacySuccess.VariantKey);
-
         var variantSuccess = FlowStoreResult.Success(4, false, "ABE");
         Assert.True(variantSuccess.IsSuccess);
+        Assert.Null(variantSuccess.ErrorCode);
+        Assert.Equal(4, variantSuccess.NextIndex);
+        Assert.False(variantSuccess.Completed);
         Assert.Equal("ABE", variantSuccess.VariantKey);
 
-        var defaults = FlowStoreResult.Success();
-        Assert.Null(defaults.NextIndex);
-        Assert.False(defaults.Completed);
+        var failed = FlowStoreResult.Failed(FlowErrorCode.FlowStepNotAllowed);
+        Assert.False(failed.IsSuccess);
+        Assert.Equal(FlowErrorCode.FlowStepNotAllowed, failed.ErrorCode);
+        Assert.Null(failed.NextIndex);
+        Assert.False(failed.Completed);
     }
 
     [Fact]
@@ -192,7 +187,7 @@ public class FlowTicketServiceTests
 
     private static FlowTicketService CreateService()
     {
-        return CreateService(new FakeFlowStateStore(FlowStoreResult.Success(1, completed: false)));
+        return CreateService(new FakeFlowStateStore(FlowStoreResult.Success(1, false, DefaultVariantKey)));
     }
 
     private static FlowTicketService CreateService(IFlowStateStore store)
@@ -248,19 +243,13 @@ public class FlowTicketServiceTests
         return endpoint;
     }
 
-    private static class TestFlows
+    private static FlowEndpointMatch SingleVariantEndpoint(string path)
     {
-        public static FlowStepMatch Match(int stepIndex)
+        var registry = new FlowDefinitionRegistry(new FlowProtectionOptions
         {
-            var steps = new[]
-            {
-                new FlowStepDefinition("POST", "/api/user1"),
-                new FlowStepDefinition("POST", "/api/role1"),
-                new FlowStepDefinition("POST", "/api/abc1"),
-            };
-            var flow = new FlowDefinition("f1", 300, steps);
-
-            return new FlowStepMatch(flow, steps[stepIndex], stepIndex);
-        }
+            Flows = [CreateSingleVariant("f1", "/api/user1", "/api/role1", "/api/abc1")],
+        });
+        Assert.True(registry.TryGetEndpoint("POST", path, out var endpoint));
+        return endpoint;
     }
 }

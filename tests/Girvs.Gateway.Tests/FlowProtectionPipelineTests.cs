@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Girvs.Gateway.FlowProtection;
+using Girvs.Gateway.FlowProtection.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Yarp.ReverseProxy.Configuration;
@@ -12,6 +13,174 @@ namespace Girvs.Gateway.Tests;
 
 public class FlowProtectionPipelineTests
 {
+    [Fact]
+    public async Task 单组合省略前置参数_无票首步开票并按序推进至完成()
+    {
+        var pipeline = new Pipeline(options: CreateSingleVariantOptions());
+
+        var noTicket = await pipeline.SendAsync("/d");
+        await AssertRejectedAsync(pipeline, noTicket, "FLOW_NOT_FOUND", "not-found");
+        Assert.Equal(0, pipeline.Store.CallCount);
+
+        var start = await pipeline.SendAsync("/a", businessId: "biz");
+        Assert.Equal("ADE", AssertCommittedFirstStep(pipeline, start).Variant);
+        var ticket = Assert.Single(start.Response.Headers["X-Flow-Ticket"]);
+
+        var activeRestart = await pipeline.SendAsync("/a", ticket: ticket, businessId: "biz");
+        await AssertRejectedAsync(pipeline, activeRestart, "FLOW_STEP_NOT_ALLOWED", "step-not-allowed", forwardedCount: 1);
+
+        var unrelatedValues = new StringValues(["  ", "other"]);
+        var middle = await pipeline.SendAsync("/d", unrelatedValues, ticket, "biz");
+        AssertAdvanced(pipeline, middle, "ADE", 2);
+
+        var last = await pipeline.SendAsync("/e", ticket: ticket, businessId: "biz");
+        AssertCompleted(pipeline, last, "ADE", 3);
+
+        var completedRestart = await pipeline.SendAsync("/a", ticket: ticket, businessId: "biz");
+        await AssertRejectedAsync(pipeline, completedRestart, "FLOW_COMPLETED", "completed", forwardedCount: 3);
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("  ", false)]
+    [InlineData("unknown", false)]
+    [InlineData("ADE", true)]
+    public async Task 单组合显式配置前置参数_无票和持票均严格校验(string? value, bool multipleValues)
+    {
+        var pipeline = new Pipeline(options: CreateSingleVariantOptions("X-Mode"));
+        var selector = multipleValues ? new StringValues([value!, value!]) : new StringValues(value);
+
+        var rejectedStart = await pipeline.SendAsync("/a", selector);
+        await AssertRejectedAsync(pipeline, rejectedStart, "FLOW_SELECTOR_INVALID", "selector-invalid");
+
+        var start = await pipeline.SendAsync("/a", " ade ", businessId: "biz");
+        Assert.Equal("ADE", AssertCommittedFirstStep(pipeline, start).Variant);
+        var ticket = Assert.Single(start.Response.Headers["X-Flow-Ticket"]);
+
+        if (value is not null)
+        {
+            var rejectedAdvance = await pipeline.SendAsync("/d", selector, ticket, "biz");
+            await AssertRejectedAsync(pipeline, rejectedAdvance, "FLOW_SELECTOR_MISMATCH", "selector-mismatch", forwardedCount: 1);
+        }
+
+        var middle = await pipeline.SendAsync("/d", value is null ? null : " aDe ", ticket, "biz");
+        AssertAdvanced(pipeline, middle, "ADE", 2);
+        var last = await pipeline.SendAsync("/e", "ADE", ticket, "biz");
+        AssertCompleted(pipeline, last, "ADE", 3);
+    }
+
+    [Theory]
+    [InlineData(null, HttpStatusCode.Created, true)]
+    [InlineData("X-Mode", HttpStatusCode.Created, true)]
+    [InlineData(null, HttpStatusCode.BadRequest, false)]
+    [InlineData("X-Mode", HttpStatusCode.BadRequest, false)]
+    public async Task 无票单步组合直通_零存储调用并按下游状态写响应头(
+        string? header,
+        HttpStatusCode status,
+        bool success
+    )
+    {
+        const string body = "downstream body";
+        var pipeline = new Pipeline(status, "biz-from-service", CreateSingleVariantOptions(header, singleStep: true))
+        {
+            ResponseBody = body,
+        };
+
+        var context = await pipeline.SendAsync("/e", header is null ? null : " direct ");
+
+        Assert.Equal(1, pipeline.ForwardCount);
+        Assert.Equal(0, pipeline.Store.CallCount);
+        Assert.Equal((int)status, context.Response.StatusCode);
+        Assert.False(context.Response.Headers.ContainsKey("X-Flow-Ticket"));
+        Assert.False(context.Response.Headers.ContainsKey("X-Flow-Next-Index"));
+        Assert.False(context.Response.Headers.ContainsKey("X-Flow-Business-Id"));
+        if (success)
+        {
+            Assert.Equal("true", Assert.Single(context.Response.Headers["X-Flow-Completed"]));
+            Assert.Equal("no-store", Assert.Single(context.Response.Headers.CacheControl));
+        }
+        else
+        {
+            Assert.False(context.Response.Headers.ContainsKey("X-Flow-Completed"));
+            Assert.False(context.Response.Headers.ContainsKey("Cache-Control"));
+        }
+
+        context.Response.Body.Position = 0;
+        using var reader = new StreamReader(context.Response.Body);
+        Assert.Equal(body, await reader.ReadToEndAsync());
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("  ", false)]
+    [InlineData("unknown", false)]
+    [InlineData("direct", true)]
+    public async Task 单步组合配置前置参数_非法值拒绝直通且不调用存储(string? value, bool multipleValues)
+    {
+        var pipeline = new Pipeline(options: CreateSingleVariantOptions("X-Mode", singleStep: true));
+        var selector = multipleValues ? new StringValues([value!, value!]) : new StringValues(value);
+
+        var rejected = await pipeline.SendAsync("/e", selector);
+
+        await AssertRejectedAsync(pipeline, rejected, "FLOW_SELECTOR_INVALID", "selector-invalid");
+        Assert.Equal(0, pipeline.Store.CallCount);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("X-Mode")]
+    public async Task 无票单步组合的下游抛异常_保留原异常且不调用存储(string? header)
+    {
+        var failure = new InvalidOperationException("downstream failure");
+        var pipeline = new Pipeline(options: CreateSingleVariantOptions(header, singleStep: true))
+        {
+            ForwardGate = () => Task.FromException(failure),
+        };
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => pipeline.SendAsync("/e", header is null ? null : "direct"));
+
+        Assert.Same(failure, exception);
+        Assert.Equal(1, pipeline.ForwardCount);
+        Assert.Equal(0, pipeline.Store.CallCount);
+    }
+
+    [Fact]
+    public async Task 单步与多步组合共享末步接口_无票按组合处理且持票走存储()
+    {
+        var options = FlowDefinitionRegistryVariantsTests.CreateOptions();
+        options.Flows[0].Variants.Add("direct", ["E"]);
+        var pipeline = new Pipeline(options: options);
+
+        var direct = await pipeline.SendAsync("/e", "direct");
+        Assert.Equal(StatusCodes.Status200OK, direct.Response.StatusCode);
+        Assert.Equal("true", Assert.Single(direct.Response.Headers["X-Flow-Completed"]));
+        Assert.Equal(1, pipeline.ForwardCount);
+        Assert.Equal(0, pipeline.Store.CallCount);
+
+        var noTicket = await pipeline.SendAsync("/e", "ADE");
+        await AssertRejectedAsync(pipeline, noTicket, "FLOW_NOT_FOUND", "not-found", forwardedCount: 1);
+        Assert.Equal(0, pipeline.Store.CallCount);
+
+        var invalid = await pipeline.SendAsync("/e", "direct", ticket: "unknown-ticket", businessId: "biz");
+        await AssertRejectedAsync(pipeline, invalid, "FLOW_NOT_FOUND", "not-found", forwardedCount: 1);
+        Assert.Equal(1, pipeline.Store.CallCount);
+
+        var start = await pipeline.SendAsync("/a", "ADE", businessId: "biz");
+        var ticket = Assert.Single(start.Response.Headers["X-Flow-Ticket"]);
+        var middle = await pipeline.SendAsync("/d", ticket: ticket, businessId: "biz");
+        AssertAdvanced(pipeline, middle, "ADE", 2);
+        var beforeLast = pipeline.Store.CallCount;
+
+        var last = await pipeline.SendAsync("/e", ticket: ticket, businessId: "biz");
+        AssertCompleted(pipeline, last, "ADE", 3);
+        Assert.Equal(beforeLast + 2, pipeline.Store.CallCount);
+
+        var replay = await pipeline.SendAsync("/e", "direct", ticket, "biz");
+        await AssertRejectedAsync(pipeline, replay, "FLOW_COMPLETED", "completed", forwardedCount: 4);
+        Assert.Equal(beforeLast + 3, pipeline.Store.CallCount);
+    }
+
     [Theory]
     [InlineData("/a", " aBe ", "ABE")]
     [InlineData("/d", " dE ", "DE")]
@@ -339,18 +508,42 @@ public class FlowProtectionPipelineTests
     }
 
     [Fact]
-    public async Task 线性流程持票推进到完成_与参数化流程共存零回归()
+    public async Task 单组合免前置参数流程持票推进到完成_与多组合流程共存()
     {
         var pipeline = new Pipeline();
-        var start = await pipeline.SendAsync("/linear/start");
+        var start = await pipeline.SendAsync("/single/start", businessId: "biz-single");
         var state = AssertCommittedFirstStep(pipeline, start);
-        Assert.Equal("linear", state.FlowId);
-        Assert.Empty(state.Variant);
+        Assert.Equal("single", state.FlowId);
+        Assert.Equal("default", state.Variant);
         var ticket = Assert.Single(start.Response.Headers["X-Flow-Ticket"]);
 
-        var end = await pipeline.SendAsync("/linear/end", ticket: ticket, businessId: "biz-linear");
+        var end = await pipeline.SendAsync("/single/end", ticket: ticket, businessId: "biz-single");
 
-        AssertCompleted(pipeline, end, string.Empty, 2);
+        AssertCompleted(pipeline, end, "default", 2);
+    }
+
+    [Theory]
+    [InlineData(false, "FLOW_STEP_NOT_ALLOWED", "step-not-allowed")]
+    [InlineData(true, "FLOW_COMPLETED", "completed")]
+    public async Task 单组合免前置参数流程_持活跃或已完成票据调用首步返回403(bool completed, string code, string slug)
+    {
+        var pipeline = new Pipeline();
+        var start = await pipeline.SendAsync("/single/start", businessId: "biz");
+        var ticket = Assert.Single(start.Response.Headers[FlowProtectionHeaders.Ticket]);
+        Assert.Equal("default", AssertCommittedFirstStep(pipeline, start).Variant);
+        if (completed)
+        {
+            var end = await pipeline.SendAsync("/single/end", ticket: ticket, businessId: "biz");
+            AssertCompleted(pipeline, end, "default", 2);
+        }
+
+        var state = pipeline.Store.GetTicket(ticket);
+        var storeCalls = pipeline.Store.CallCount;
+        var rejected = await pipeline.SendAsync("/single/start", ticket: ticket, businessId: "biz");
+
+        await AssertRejectedAsync(pipeline, rejected, code, slug, forwardedCount: completed ? 2 : 1);
+        Assert.Equal(storeCalls + 1, pipeline.Store.CallCount);
+        Assert.Equal(state, pipeline.Store.GetTicket(ticket));
     }
 
     [Fact]
@@ -393,7 +586,7 @@ public class FlowProtectionPipelineTests
     }
 
     [Fact]
-    public async Task 同名多值业务标识_参数化与线性路径均取首个值()
+    public async Task 同名多值业务标识_多组合与免前置参数单组合均取首个值()
     {
         var multiValueBusinessId = new StringValues(["biz", "other"]);
 
@@ -406,14 +599,15 @@ public class FlowProtectionPipelineTests
         var advanced = await parameterized.SendAsync("/b", ticket: paramTicket, businessId: multiValueBusinessId);
         AssertAdvanced(parameterized, advanced, "ABE", 2);
 
-        var linear = new Pipeline();
-        var startLinear = await linear.SendAsync("/linear/start", businessId: multiValueBusinessId);
-        var linearState = AssertCommittedFirstStep(linear, startLinear);
-        Assert.Equal("biz", linearState.BusinessId);
-        var linearTicket = Assert.Single(startLinear.Response.Headers["X-Flow-Ticket"]);
+        var single = new Pipeline();
+        var startSingle = await single.SendAsync("/single/start", businessId: multiValueBusinessId);
+        var singleState = AssertCommittedFirstStep(single, startSingle);
+        Assert.Equal("biz", singleState.BusinessId);
+        Assert.Equal("default", singleState.Variant);
+        var singleTicket = Assert.Single(startSingle.Response.Headers["X-Flow-Ticket"]);
 
-        var end = await linear.SendAsync("/linear/end", ticket: linearTicket, businessId: multiValueBusinessId);
-        AssertCompleted(linear, end, string.Empty, 2);
+        var end = await single.SendAsync("/single/end", ticket: singleTicket, businessId: multiValueBusinessId);
+        AssertCompleted(single, end, "default", 2);
     }
 
     private static async Task<string> CompleteAbeFlowAsync(Pipeline pipeline)
@@ -430,26 +624,37 @@ public class FlowProtectionPipelineTests
         return ticket;
     }
 
-    [Fact]
-    public async Task 与参数化流程共存时_线性首步无需前置参数并正常签发票据()
+    private static FlowProtectionOptions CreateSingleVariantOptions(string? header = null, bool singleStep = false)
     {
-        var pipeline = new Pipeline(HttpStatusCode.OK, "biz-linear");
+        var options = FlowDefinitionRegistryVariantsTests.CreateOptions();
+        var flow = options.Flows[0];
+        flow.ParameterHeaderName = header ?? string.Empty;
+        var names = singleStep ? new[] { "E" } : new[] { "A", "D", "E" };
+        flow.Interfaces.RemoveAll(entry => !names.Contains(entry.Name));
+        flow.Variants = new() { [singleStep ? "direct" : "ADE"] = [.. names] };
+        return options;
+    }
 
-        var context = await pipeline.SendAsync("/linear/start");
+    [Fact]
+    public async Task 与多组合流程共存时_单组合首步无需前置参数并正常签发票据()
+    {
+        var pipeline = new Pipeline(HttpStatusCode.OK, "biz-single");
+
+        var context = await pipeline.SendAsync("/single/start");
 
         var state = AssertCommittedFirstStep(pipeline, context);
-        Assert.Equal("linear", state.FlowId);
-        Assert.Empty(state.Variant);
-        Assert.Equal("biz-linear", state.BusinessId);
+        Assert.Equal("single", state.FlowId);
+        Assert.Equal("default", state.Variant);
+        Assert.Equal("biz-single", state.BusinessId);
         Assert.False(context.Response.Headers.ContainsKey("X-Flow-Business-Id"));
     }
 
     [Fact]
-    public async Task 线性后续步骤无票_返回ProblemJson且不转发()
+    public async Task 单组合后续步骤无票_返回ProblemJson且不转发()
     {
         var pipeline = new Pipeline();
 
-        var context = await pipeline.SendAsync("/linear/end");
+        var context = await pipeline.SendAsync("/single/end");
 
         await AssertRejectedAsync(pipeline, context, "FLOW_NOT_FOUND", "not-found");
     }
@@ -535,10 +740,10 @@ public class FlowProtectionPipelineTests
     {
         private readonly FlowTicketMiddleware _middleware;
 
-        public Pipeline(HttpStatusCode status = HttpStatusCode.OK, string responseBusinessId = null)
+        public Pipeline(HttpStatusCode status = HttpStatusCode.OK, string responseBusinessId = null, FlowProtectionOptions? options = null)
         {
             ResponseStatus = status;
-            var options = FlowDefinitionRegistryVariantsTests.CreateOptions();
+            options ??= FlowDefinitionRegistryVariantsTests.CreateOptions();
             var service = new FlowTicketService(Store, options.LockTtlSeconds);
             var transform = new FlowResponseTransform(options, service);
             _middleware = new FlowTicketMiddleware(
@@ -558,6 +763,11 @@ public class FlowProtectionPipelineTests
                     }
 
                     using var downstream = new HttpResponseMessage(ResponseStatus);
+                    if (ResponseBody is not null)
+                    {
+                        downstream.Content = new StringContent(ResponseBody);
+                    }
+
                     context.Response.StatusCode = (int)ResponseStatus;
                     if (responseBusinessId is not null)
                     {
@@ -565,11 +775,16 @@ public class FlowProtectionPipelineTests
                         context.Response.Headers["X-Flow-Business-Id"] = responseBusinessId;
                     }
 
-                    await transform.ProcessAsync(new ResponseTransformContext
+                    var transformContext = new ResponseTransformContext
                     {
                         HttpContext = context,
                         ProxyResponse = downstream,
-                    });
+                    };
+                    await transform.ProcessAsync(transformContext);
+                    if (ResponseBody is not null && !transformContext.SuppressResponseBody)
+                    {
+                        await downstream.Content.CopyToAsync(context.Response.Body);
+                    }
                 },
                 options,
                 new FlowDefinitionRegistry(options),
@@ -584,6 +799,8 @@ public class FlowProtectionPipelineTests
         public int ForwardCount { get; private set; }
 
         public HttpStatusCode ResponseStatus { get; set; }
+
+        public string? ResponseBody { get; init; }
 
         public Func<Task> ForwardGate { get; set; }
 
@@ -646,6 +863,9 @@ internal sealed class InMemoryFlowStateStore(TimeProvider timeProvider = null) :
     private readonly Dictionary<string, TicketState> _tickets = new(StringComparer.Ordinal);
     private readonly object _sync = new();
     private readonly TimeProvider _time = timeProvider ?? TimeProvider.System;
+    private int _callCount;
+
+    public int CallCount => Volatile.Read(ref _callCount);
 
     public TicketState GetTicket(string ticket)
     {
@@ -657,6 +877,7 @@ internal sealed class InMemoryFlowStateStore(TimeProvider timeProvider = null) :
 
     public Task<FlowStoreResult> CreateAndReserveAsync(FlowReserveRequest request, CancellationToken cancellationToken)
     {
+        Interlocked.Increment(ref _callCount);
         lock (_sync)
         {
             var now = _time.GetUtcNow().ToUnixTimeMilliseconds();
@@ -675,12 +896,13 @@ internal sealed class InMemoryFlowStateStore(TimeProvider timeProvider = null) :
                 request.VariantKey,
                 now + request.FlowTtlSeconds * 1000L
             ));
-            return Success(request.ExpectedIndex);
+            return Success(request.ExpectedIndex, variantKey: request.VariantKey);
         }
     }
 
     public Task<FlowStoreResult> ReserveAsync(FlowReserveRequest request, CancellationToken cancellationToken)
     {
+        Interlocked.Increment(ref _callCount);
         lock (_sync)
         {
             var now = _time.GetUtcNow().ToUnixTimeMilliseconds();
@@ -705,33 +927,18 @@ internal sealed class InMemoryFlowStateStore(TimeProvider timeProvider = null) :
                 return Failed(FlowErrorCode.FlowBusinessMismatch);
             }
 
-            var expectedIndex = request.ExpectedIndex;
-            var matchedVariant = string.Empty;
-            var candidates = request.CandidateVariantSteps ?? [];
-            if (candidates.Count > 0)
+            if (state.Variant.Length == 0)
             {
-                if (state.Variant.Length == 0)
-                {
-                    return Failed(FlowErrorCode.FlowStepNotAllowed);
-                }
-
-                var selectorVariantKey = request.SelectorVariantKey ?? string.Empty;
-                if (selectorVariantKey.Length > 0 && selectorVariantKey != state.Variant)
-                {
-                    return Failed(FlowErrorCode.FlowSelectorMismatch);
-                }
-
-                var candidate = candidates.FirstOrDefault(x => x.VariantKey == state.Variant);
-                if (candidate is null)
-                {
-                    return Failed(FlowErrorCode.FlowStepNotAllowed);
-                }
-
-                expectedIndex = candidate.StepIndex;
-                matchedVariant = candidate.VariantKey;
+                return Failed(FlowErrorCode.FlowStepNotAllowed);
             }
 
-            if (state.NextIndex != expectedIndex)
+            if (!string.IsNullOrEmpty(request.SelectorVariantKey) && request.SelectorVariantKey != state.Variant)
+            {
+                return Failed(FlowErrorCode.FlowSelectorMismatch);
+            }
+
+            var candidate = request.CandidateVariantSteps?.FirstOrDefault(x => x.VariantKey == state.Variant);
+            if (candidate is null || state.NextIndex != candidate.StepIndex)
             {
                 return Failed(FlowErrorCode.FlowStepNotAllowed);
             }
@@ -747,12 +954,13 @@ internal sealed class InMemoryFlowStateStore(TimeProvider timeProvider = null) :
                 AttemptId = request.AttemptId,
                 LockUntilUnixMs = now + request.LockTtlSeconds * 1000L,
             };
-            return Success(state.NextIndex, variantKey: matchedVariant);
+            return Success(state.NextIndex, variantKey: candidate.VariantKey);
         }
     }
 
     public Task<FlowStoreResult> CommitAsync(FlowCommitRequest request, CancellationToken cancellationToken)
     {
+        Interlocked.Increment(ref _callCount);
         lock (_sync)
         {
             var now = _time.GetUtcNow().ToUnixTimeMilliseconds();
@@ -804,6 +1012,7 @@ internal sealed class InMemoryFlowStateStore(TimeProvider timeProvider = null) :
 
     public Task<FlowStoreResult> ReleaseAsync(FlowReleaseRequest request, CancellationToken cancellationToken)
     {
+        Interlocked.Increment(ref _callCount);
         lock (_sync)
         {
             var state = FindTicket(request.Ticket, _time.GetUtcNow().ToUnixTimeMilliseconds());
@@ -834,6 +1043,7 @@ internal sealed class InMemoryFlowStateStore(TimeProvider timeProvider = null) :
 
     public Task<FlowStoreResult> DeleteAsync(FlowReleaseRequest request, CancellationToken cancellationToken)
     {
+        Interlocked.Increment(ref _callCount);
         lock (_sync)
         {
             var state = FindTicket(request.Ticket, _time.GetUtcNow().ToUnixTimeMilliseconds());

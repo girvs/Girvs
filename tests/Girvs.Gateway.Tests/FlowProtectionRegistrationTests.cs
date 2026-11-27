@@ -46,16 +46,44 @@ public class FlowProtectionRegistrationTests
         Assert.IsType<FlowTicketService>(provider.GetRequiredService<FlowTicketService>());
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(" \t")]
+    public async Task 建票组合键为空或空白_访问Redis前拒绝(string variantKey)
+    {
+        var store = new RedisFlowStateStore(new FakeRedisConnectionWrapper());
+        var request = new FlowReserveRequest("ticket", "flow", "business", 0, "attempt", 300, 30, VariantKey: variantKey);
+
+        await Assert.ThrowsAsync<ArgumentException>("request.VariantKey", () => store.CreateAndReserveAsync(request, default));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task 推进候选组合为Null或空集合_访问Redis前拒绝(bool useNull)
+    {
+        var store = new RedisFlowStateStore(new FakeRedisConnectionWrapper());
+        var request = new FlowReserveRequest(
+            "ticket", "flow", "business", 0, "attempt", 300, 30, CandidateVariantSteps: useNull ? null : []
+        );
+
+        await Assert.ThrowsAsync<ArgumentException>("request", () => store.ReserveAsync(request, default));
+    }
+
     private static IConfiguration EnabledConfiguration(string resourceType = "")
     {
         var values = new Dictionary<string, string>
         {
             ["FlowProtection:Enabled"] = "true",
             ["FlowProtection:Flows:0:FlowId"] = "f1",
-            ["FlowProtection:Flows:0:Steps:0:Method"] = "POST",
-            ["FlowProtection:Flows:0:Steps:0:Path"] = "/api/a",
-            ["FlowProtection:Flows:0:Steps:1:Method"] = "POST",
-            ["FlowProtection:Flows:0:Steps:1:Path"] = "/api/b",
+            ["FlowProtection:Flows:0:Interfaces:0:Name"] = "A",
+            ["FlowProtection:Flows:0:Interfaces:0:Method"] = "POST",
+            ["FlowProtection:Flows:0:Interfaces:0:Path"] = "/api/a",
+            ["FlowProtection:Flows:0:Interfaces:1:Name"] = "B",
+            ["FlowProtection:Flows:0:Interfaces:1:Method"] = "POST",
+            ["FlowProtection:Flows:0:Interfaces:1:Path"] = "/api/b",
+            ["FlowProtection:Flows:0:Variants:default:0"] = "A",
+            ["FlowProtection:Flows:0:Variants:default:1"] = "B",
             ["ModuleConfigurations:CacheConfig:DistributedCacheConfig:Enabled"] = "true",
             ["ModuleConfigurations:CacheConfig:DistributedCacheConfig:ConnectionRef:0"] = "cache",
         };

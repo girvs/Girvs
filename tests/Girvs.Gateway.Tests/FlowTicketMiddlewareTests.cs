@@ -1,10 +1,10 @@
-using System.Text.Json;
 using Girvs.Gateway.FlowProtection;
 using Girvs.Gateway.FlowProtection.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Model;
+using static Girvs.Gateway.Tests.FlowDefinitionRegistryVariantsTests;
 
 namespace Girvs.Gateway.Tests;
 
@@ -42,13 +42,49 @@ public class FlowTicketMiddlewareTests
                 called = true;
                 return Task.CompletedTask;
             },
-            FlowStoreResult.Failed(FlowErrorCode.FlowStepNotAllowed)
+            new FakeFlowStateStore(FlowStoreResult.Failed(FlowErrorCode.FlowStepNotAllowed))
         ).InvokeAsync(context);
 
         var body = await ReadBodyAsync(context);
         Assert.False(called);
         Assert.Equal(StatusCodes.Status403Forbidden, context.Response.StatusCode);
         Assert.Contains("FLOW_STEP_NOT_ALLOWED", body);
+    }
+
+    [Theory]
+    [InlineData(FlowErrorCode.FlowStepNotAllowed, "FLOW_STEP_NOT_ALLOWED")]
+    [InlineData(FlowErrorCode.FlowCompleted, "FLOW_COMPLETED")]
+    public async Task 免前置参数单组合持票调用首步_返回403且不重开票据(FlowErrorCode error, string code)
+    {
+        var context = CreateContext("POST", "/order/api/user1");
+        context.Request.Headers[FlowProtectionHeaders.Ticket] = "ticket";
+        context.Request.Headers[FlowProtectionHeaders.BusinessId] = "biz-1";
+        var store = new FakeFlowStateStore(FlowStoreResult.Failed(error));
+
+        await CreateMiddleware(_ => throw new InvalidOperationException("请求不应转发"), store).InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status403Forbidden, context.Response.StatusCode);
+        Assert.Contains(code, await ReadBodyAsync(context));
+        Assert.False(context.Response.Headers.ContainsKey(FlowProtectionHeaders.Ticket));
+        Assert.Equal(0, store.CreateCount);
+        var reserve = Assert.IsType<FlowReserveRequest>(store.LastReserveRequest);
+        Assert.Equal("ticket", reserve.Ticket);
+        Assert.Empty(reserve.SelectorVariantKey);
+        Assert.Equal(new FlowVariantStepIndex(DefaultVariantKey, 0), Assert.Single(reserve.CandidateVariantSteps!));
+    }
+
+    [Fact]
+    public async Task 路由缺少去前缀转换_返回500配置错误且不调用下游()
+    {
+        var context = CreateContext("POST", "/order/api/user1", removePrefix: false);
+        var store = new FakeFlowStateStore(FlowStoreResult.Success(1, false, DefaultVariantKey));
+
+        await CreateMiddleware(_ => throw new InvalidOperationException("请求不应转发"), store).InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+        Assert.Contains("FLOW_CONFIGURATION_ERROR", await ReadBodyAsync(context));
+        Assert.Equal(0, store.CreateCount);
+        Assert.Null(store.LastReserveRequest);
     }
 
     [Fact]
@@ -62,11 +98,12 @@ public class FlowTicketMiddlewareTests
         var attempt = Assert.IsType<FlowAttemptContext>(context.Items[FlowAttemptContext.ItemsKey]);
         Assert.True(attempt.IsFirstStep);
         Assert.Equal("biz-1", attempt.BusinessId);
+        Assert.Equal(DefaultVariantKey, attempt.Step.VariantKey);
     }
 
     private static FlowTicketMiddleware CreateMiddleware(
         RequestDelegate next,
-        FlowStoreResult result = null
+        FakeFlowStateStore? store = null
     )
     {
         var options = Options();
@@ -75,7 +112,7 @@ public class FlowTicketMiddlewareTests
             options,
             new FlowDefinitionRegistry(options),
             new DownstreamPathResolver(),
-            new FlowTicketService(new FakeFlowStateStore(result ?? FlowStoreResult.Success(1, completed: false))),
+            new FlowTicketService(store ?? new FakeFlowStateStore(FlowStoreResult.Success(1, false, DefaultVariantKey))),
             NullLogger<FlowTicketMiddleware>.Instance
         );
     }
@@ -85,23 +122,11 @@ public class FlowTicketMiddlewareTests
         return new FlowProtectionOptions
         {
             Enabled = true,
-            Flows =
-            [
-                new FlowDefinitionOptions
-                {
-                    FlowId = "flow-1",
-                    Steps =
-                    [
-                        new FlowStepOptions { Method = "POST", Path = "/api/user1" },
-                        new FlowStepOptions { Method = "POST", Path = "/api/role1" },
-                        new FlowStepOptions { Method = "POST", Path = "/api/abc1" },
-                    ],
-                },
-            ],
+            Flows = [CreateSingleVariant("flow-1", "/api/user1", "/api/role1", "/api/abc1")],
         };
     }
 
-    private static HttpContext CreateContext(string method, string path)
+    private static HttpContext CreateContext(string method, string path, bool removePrefix = true)
     {
         var context = new DefaultHttpContext();
         context.Request.Method = method;
@@ -116,10 +141,7 @@ public class FlowTicketMiddlewareTests
                         RouteId = "order",
                         ClusterId = "order",
                         Match = new RouteMatch { Path = "/order/{**catch-all}" },
-                        Transforms =
-                        [
-                            new Dictionary<string, string> { ["PathRemovePrefix"] = "order" },
-                        ],
+                        Transforms = removePrefix ? [new Dictionary<string, string> { ["PathRemovePrefix"] = "order" }] : [],
                     },
                     cluster: null,
                     transformer: HttpTransformer.Default
@@ -138,13 +160,24 @@ public class FlowTicketMiddlewareTests
 
     private sealed class FakeFlowStateStore(FlowStoreResult result) : IFlowStateStore
     {
+        public int CreateCount { get; private set; }
+
+        public FlowReserveRequest? LastReserveRequest { get; private set; }
+
         public Task<FlowStoreResult> CreateAndReserveAsync(
             FlowReserveRequest request,
             CancellationToken cancellationToken
-        ) => Task.FromResult(result);
+        )
+        {
+            CreateCount++;
+            return Task.FromResult(result);
+        }
 
         public Task<FlowStoreResult> ReserveAsync(FlowReserveRequest request, CancellationToken cancellationToken)
-            => Task.FromResult(result);
+        {
+            LastReserveRequest = request;
+            return Task.FromResult(result);
+        }
 
         public Task<FlowStoreResult> CommitAsync(FlowCommitRequest request, CancellationToken cancellationToken)
             => Task.FromResult(result);

@@ -45,12 +45,11 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
     /// <item><description><c>ARGV[4]</c>：本次处理锁凭据，写入 <c>attemptId</c> 字段。</description></item>
     /// <item><description><c>ARGV[5]</c>：票据存活时长（秒），用于 <c>PEXPIRE</c>。</description></item>
     /// <item><description><c>ARGV[6]</c>：处理锁时长（秒），与当前 Unix 毫秒相加得到 <c>lockUntilUnixMs</c>。</description></item>
-    /// <item><description><c>ARGV[7]</c>：流程组合键，写入 <c>variant</c> 字段；线性流程为空串。</description></item>
+    /// <item><description><c>ARGV[7]</c>：非空流程组合键，写入 <c>variant</c> 字段。</description></item>
     /// </list>
     /// <para>
-    /// 返回值固定为三元组 <c>{ 状态码, 下一个允许顺位, 是否完成 }</c>：
-    /// 成功为 <c>{'OK', ARGV[3], '0'}</c>；票据已存在（含已完成但仍在保留期内的票据）返回
-    /// <c>{'FLOW_IN_PROGRESS'}</c>，由上层按“重复开启”拒绝。
+    /// 成功返回 <c>{'OK', ARGV[3], '0'}</c>。票据已存在时返回 <c>{'FLOW_IN_PROGRESS'}</c>，
+    /// 缺少组合键时返回 <c>{'FLOW_STEP_NOT_ALLOWED'}</c>。
     /// </para>
     /// <para>
     /// 首步即进入 <c>processing</c> 并直接持锁：本次请求与其它并发请求的互斥由同一把锁保证，
@@ -61,6 +60,10 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
         """
         if redis.call('EXISTS', KEYS[1]) == 1 then
             return {'FLOW_IN_PROGRESS'}
+        end
+
+        if not ARGV[7] or ARGV[7] == '' then
+            return {'FLOW_STEP_NOT_ALLOWED'}
         end
 
         local t = redis.call('TIME')
@@ -81,7 +84,7 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
         """;
 
     /// <summary>
-    /// 推进既有票据到下一步的原子脚本，同时兼容线性流程与参数化流程。
+    /// 按票据锁定的组合预留下一步的原子脚本。
     /// </summary>
     /// <remarks>
     /// <para>键与参数排布：</para>
@@ -89,13 +92,12 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
     /// <item><description><c>KEYS[1]</c>：票据键。</description></item>
     /// <item><description><c>ARGV[1]</c>：流程标识，必须与票据 <c>flowId</c> 字段一致。</description></item>
     /// <item><description><c>ARGV[2]</c>：业务标识，必须与票据已绑定的值一致（票据未绑定时不校验）。</description></item>
-    /// <item><description><c>ARGV[3]</c>：线性流程的期望顺位；给出组合候选时会被候选顺位取代。</description></item>
-    /// <item><description><c>ARGV[4]</c>：本次处理锁凭据，成功后写入 <c>attemptId</c>。</description></item>
-    /// <item><description><c>ARGV[5]</c>：处理锁时长（秒）。</description></item>
-    /// <item><description><c>ARGV[6]</c>：调用方携带的前置参数（已归一为组合键）；空串表示未携带。</description></item>
-    /// <item><description><c>ARGV[7]</c>：候选组合数量 <c>N</c>；线性流程传 0。</description></item>
+    /// <item><description><c>ARGV[3]</c>：本次处理锁凭据，成功后写入 <c>attemptId</c>。</description></item>
+    /// <item><description><c>ARGV[4]</c>：处理锁时长（秒）。</description></item>
+    /// <item><description><c>ARGV[5]</c>：调用方携带的前置参数（已归一为组合键），空串表示未携带。</description></item>
+    /// <item><description><c>ARGV[6]</c>：候选组合数量 <c>N</c>，至少为 1。</description></item>
     /// <item><description>
-    /// <c>ARGV[8 + 2i]</c> 与 <c>ARGV[9 + 2i]</c>（<c>i</c> 从 0 到 <c>N-1</c>）：
+    /// <c>ARGV[7 + 2i]</c> 与 <c>ARGV[8 + 2i]</c>（<c>i</c> 从 0 到 <c>N-1</c>）：
     /// 第 <c>i</c> 个候选的（组合键, 该接口在该组合中的顺位）配对。
     /// </description></item>
     /// </list>
@@ -106,7 +108,7 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
     /// </para>
     /// <para>
     /// 返回值为 <c>{ 状态码, 期望顺位, '0', 命中的组合键 }</c>；失败时只返回单元素
-    /// <c>{ 状态码 }</c>。第四项为空串表示线性流程，上层据此判定是否需要按组合还原顺位。
+    /// <c>{ 状态码 }</c>。
     /// </para>
     /// </remarks>
     private const string ReserveScript =
@@ -129,33 +131,33 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
             return {'FLOW_BUSINESS_MISMATCH'}
         end
 
-        local expectedIndexText = ARGV[3]
-        local matchedVariant = ''
-        local candidateCount = tonumber(ARGV[7]) or 0
-        if candidateCount > 0 then
-            local lockedVariant = redis.call('HGET', KEYS[1], 'variant') or ''
-            if lockedVariant == '' then
-                return {'FLOW_STEP_NOT_ALLOWED'}
-            end
+        local lockedVariant = redis.call('HGET', KEYS[1], 'variant') or ''
+        if lockedVariant == '' then
+            return {'FLOW_STEP_NOT_ALLOWED'}
+        end
 
-            if ARGV[6] ~= '' and ARGV[6] ~= lockedVariant then
-                return {'FLOW_SELECTOR_MISMATCH'}
-            end
+        if ARGV[5] ~= '' and ARGV[5] ~= lockedVariant then
+            return {'FLOW_SELECTOR_MISMATCH'}
+        end
 
-            local found = false
-            for i = 0, candidateCount - 1 do
-                local variantKey = ARGV[8 + (i * 2)]
-                if variantKey == lockedVariant then
-                    expectedIndexText = ARGV[9 + (i * 2)]
-                    matchedVariant = variantKey
-                    found = true
-                    break
-                end
-            end
+        local candidateCount = tonumber(ARGV[6]) or 0
+        if candidateCount <= 0 then
+            return {'FLOW_STEP_NOT_ALLOWED'}
+        end
 
-            if not found then
-                return {'FLOW_STEP_NOT_ALLOWED'}
+        local expectedIndexText
+        local matchedVariant
+        for i = 0, candidateCount - 1 do
+            local variantKey = ARGV[7 + (i * 2)]
+            if variantKey == lockedVariant then
+                expectedIndexText = ARGV[8 + (i * 2)]
+                matchedVariant = variantKey
+                break
             end
+        end
+
+        if not matchedVariant then
+            return {'FLOW_STEP_NOT_ALLOWED'}
         end
 
         if redis.call('HGET', KEYS[1], 'nextIndex') ~= expectedIndexText then
@@ -173,10 +175,10 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
             return {'FLOW_IN_PROGRESS'}
         end
 
-        local newLockUntil = now + (tonumber(ARGV[5]) * 1000)
+        local newLockUntil = now + (tonumber(ARGV[4]) * 1000)
         redis.call('HSET', KEYS[1],
             'status', 'processing',
-            'attemptId', ARGV[4],
+            'attemptId', ARGV[3],
             'lockUntilUnixMs', tostring(newLockUntil))
         return {'OK', expectedIndexText, '0', matchedVariant}
         """;
@@ -318,7 +320,7 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
     /// <summary>
     /// 执行 <see cref="CreateAndReserveScript"/>，创建票据并占用首步。
     /// </summary>
-    /// <param name="request">预留请求，需要票据、流程标识、首步顺位、存活时长与处理锁时长。</param>
+    /// <param name="request">预留请求，需含票据、流程标识、首步顺位、存活时长、处理锁时长与非空白组合键。</param>
     /// <param name="cancellationToken">取消标记；当前未下传到底层脚本调用，保留以符合接口契约。</param>
     /// <returns>解析后的存储结果：成功时含首步顺位，票据已存在时为“处理中”失败。</returns>
     /// <remarks>
@@ -330,6 +332,9 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
         CancellationToken cancellationToken
     )
     {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.VariantKey);
+
         var db = await redis.GetDatabaseAsync();
         var result = await db.ScriptEvaluateAsync(
             CreateAndReserveScript,
@@ -351,41 +356,33 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
     /// <summary>
     /// 执行 <see cref="ReserveScript"/>，为既有票据占用下一步。
     /// </summary>
-    /// <param name="request">
-    /// 预留请求：线性流程给出期望顺位（<see cref="FlowReserveRequest.ExpectedIndex"/>）；
-    /// 参数化流程给出候选组合顺位（<see cref="FlowReserveRequest.CandidateVariantSteps"/>）。
-    /// </param>
+    /// <param name="request">预留请求，<see cref="FlowReserveRequest.CandidateVariantSteps"/> 至少包含一项。</param>
     /// <param name="cancellationToken">取消标记；当前未下传到底层脚本调用，保留以符合接口契约。</param>
-    /// <returns>解析后的存储结果：成功时含命中的组合键（线性流程为 <see langword="null" />）与下一个顺位。</returns>
-    /// <remarks>
-    /// <para>
-    /// 参数数组按“前 7 项定长 + 每候选 2 项”排布：下标 0 到 6 依次为流程标识、业务标识、期望顺位、
-    /// 处理锁凭据、处理锁秒数、前置参数组合键、候选数量；随后每对 (组合键, 顺位) 依次写入
-    /// 下标 7/8、9/10……，与脚本中 <c>ARGV[8 + i*2]</c>、<c>ARGV[9 + i*2]</c> 的读取方式严格对应。
-    /// </para>
-    /// <para>
-    /// 线性流程的候选数量为 0，脚本因此跳过组合相关校验，直接比对期望顺位。
-    /// </para>
-    /// </remarks>
+    /// <returns>解析后的存储结果，成功时含命中的组合键与预留顺位。</returns>
     public async Task<FlowStoreResult> ReserveAsync(
         FlowReserveRequest request,
         CancellationToken cancellationToken
     )
     {
-        var candidateVariantSteps = request.CandidateVariantSteps ?? [];
-        var args = new RedisValue[7 + (candidateVariantSteps.Count * 2)];
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.CandidateVariantSteps is null || request.CandidateVariantSteps.Count == 0)
+        {
+            throw new ArgumentException("CandidateVariantSteps 不能为空", nameof(request));
+        }
+
+        var candidateVariantSteps = request.CandidateVariantSteps;
+        var args = new RedisValue[6 + (candidateVariantSteps.Count * 2)];
         args[0] = request.FlowId;
         args[1] = request.BusinessId;
-        args[2] = InvariantText(request.ExpectedIndex);
-        args[3] = request.AttemptId;
-        args[4] = InvariantText(request.LockTtlSeconds);
-        args[5] = request.SelectorVariantKey ?? string.Empty;
-        args[6] = InvariantText(candidateVariantSteps.Count);
+        args[2] = request.AttemptId;
+        args[3] = InvariantText(request.LockTtlSeconds);
+        args[4] = request.SelectorVariantKey ?? string.Empty;
+        args[5] = InvariantText(candidateVariantSteps.Count);
         for (var i = 0; i < candidateVariantSteps.Count; i++)
         {
             var candidate = candidateVariantSteps[i];
-            args[7 + (i * 2)] = candidate.VariantKey;
-            args[8 + (i * 2)] = InvariantText(candidate.StepIndex);
+            args[6 + (i * 2)] = candidate.VariantKey;
+            args[7 + (i * 2)] = InvariantText(candidate.StepIndex);
         }
 
         var db = await redis.GetDatabaseAsync();
@@ -469,8 +466,7 @@ public sealed class RedisFlowStateStore(IRedisConnectionWrapper redis) : IFlowSt
     /// （下一个顺位, 是否完成, 可选的命中组合键）。
     /// </para>
     /// <para>
-    /// 由于不同脚本返回的元组长度不同（删除操作只返回三元组、线性流程不返回组合键），
-    /// 这里对每一项都按长度做存在性判断，而不是假定固定长度：
+    /// 只有预留既有票据的脚本会返回组合键，因此读取可选字段前先检查元组长度。
     /// 顺位无法解析为整数时置为 <see langword="null" />，组合键为空串时归一为 <see langword="null" />。
     /// </para>
     /// </remarks>

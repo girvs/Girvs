@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR-0003
 ---
 
 # 流程防护采用“请求头前置参数 + 单流程多组合”模型

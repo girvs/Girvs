@@ -1,5 +1,6 @@
 using Girvs.Gateway.FlowProtection;
 using Girvs.Gateway.FlowProtection.Configuration;
+using static Girvs.Gateway.Tests.FlowDefinitionRegistryVariantsTests;
 
 namespace Girvs.Gateway.Tests;
 
@@ -48,9 +49,9 @@ public class FlowDefinitionRegistryTests
             TestFlows.Create("f1", "POST", "/api/user1/", "GET", "/api/list2")
         );
 
-        var found = registry.TryGetStep("post", new PathString("/API/USER1"), out var match);
-
-        Assert.True(found);
+        Assert.True(registry.TryGetEndpoint("post", "/API/USER1", out var endpoint));
+        Assert.True(endpoint.TryMatchVariant("DEFAULT", out var match));
+        Assert.Equal(DefaultVariantKey, match.VariantKey);
         Assert.Equal("f1", match.Flow.FlowId);
         Assert.Equal(0, match.StepIndex);
         Assert.Equal("/api/user1", match.Step.Path.Value);
@@ -61,7 +62,7 @@ public class FlowDefinitionRegistryTests
     {
         var registry = new FlowDefinitionRegistry(TestFlows.Create("f1", "POST", "/api/a", "POST", "/api/b"));
 
-        Assert.False(registry.TryGetStep("GET", new PathString("/api/none"), out _));
+        Assert.False(registry.TryGetEndpoint("GET", "/api/none", out _));
     }
 
     private static class TestFlows
@@ -74,23 +75,10 @@ public class FlowDefinitionRegistryTests
             string secondPath
         )
         {
-            return new FlowProtectionOptions
-            {
-                Enabled = true,
-                Flows =
-                [
-                    new FlowDefinitionOptions
-                    {
-                        FlowId = flowId,
-                        TtlSeconds = 300,
-                        Steps =
-                        [
-                            new FlowStepOptions { Method = firstMethod, Path = firstPath },
-                            new FlowStepOptions { Method = secondMethod, Path = secondPath },
-                        ],
-                    },
-                ],
-            };
+            var flow = CreateSingleVariant(flowId, firstPath, secondPath);
+            flow.Interfaces[0].Method = firstMethod;
+            flow.Interfaces[1].Method = secondMethod;
+            return new FlowProtectionOptions { Enabled = true, Flows = [flow] };
         }
 
         public static FlowProtectionOptions CreateWithDuplicateStep()
@@ -100,26 +88,8 @@ public class FlowDefinitionRegistryTests
                 Enabled = true,
                 Flows =
                 [
-                    new FlowDefinitionOptions
-                    {
-                        FlowId = "f1",
-                        TtlSeconds = 300,
-                        Steps =
-                        [
-                            new FlowStepOptions { Method = "POST", Path = "/api/a" },
-                            new FlowStepOptions { Method = "POST", Path = "/api/b" },
-                        ],
-                    },
-                    new FlowDefinitionOptions
-                    {
-                        FlowId = "f2",
-                        TtlSeconds = 300,
-                        Steps =
-                        [
-                            new FlowStepOptions { Method = "POST", Path = "/api/a" },
-                            new FlowStepOptions { Method = "POST", Path = "/api/c" },
-                        ],
-                    },
+                    CreateSingleVariant("f1", "/api/a", "/api/b"),
+                    CreateSingleVariant("f2", "/api/a", "/api/c"),
                 ],
             };
         }

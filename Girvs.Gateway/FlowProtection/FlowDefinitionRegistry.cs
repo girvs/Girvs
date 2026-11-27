@@ -8,7 +8,7 @@ namespace Girvs.Gateway.FlowProtection;
 /// </summary>
 /// <remarks>
 /// <para>
-/// 本类型承担两类职责：一是把易错的配置结构（线性步骤序列 / 参数化接口池 + 流程组合）
+/// 本类型承担两类职责：一是把配置中的接口池与流程组合
 /// 校验并翻译成运行期使用的 <see cref="FlowDefinition"/> / <see cref="FlowEndpointMatch"/>；
 /// 二是在运行期优先按静态路径反查，未命中时按方法和段数匹配路径模板。
 /// </para>
@@ -18,7 +18,7 @@ namespace Girvs.Gateway.FlowProtection;
 /// </para>
 /// <para>
 /// 同一 HTTP 方法下静态路径唯一，路径模板的匹配范围互不重叠。
-/// 同一流程内步骤不得重复，参数化流程中每个接口至少被一条流程组合引用。
+/// 同一组合内步骤不得重复，流程中每个接口至少被一条组合引用。
 /// </para>
 /// </remarks>
 public sealed class FlowDefinitionRegistry
@@ -53,7 +53,7 @@ public sealed class FlowDefinitionRegistry
     /// <exception cref="ArgumentNullException"><paramref name="options" /> 为 <see langword="null" />。</exception>
     /// <exception cref="GirvsException">
     /// 任一校验规则不满足：存活时长越界、处理锁时长非法、流程标识重复、
-    /// 步骤与参数化配置混用、步骤数不足、接口未被引用、路径或方法非法、接口被多条流程复用等。
+    /// 接口池或组合无效、接口未被引用、路径或方法非法、接口被多条流程复用等。
     /// </exception>
     /// <remarks>
     /// 校验顺序刻意保持稳定：先全局参数（各存活时长与处理锁），再逐条流程。
@@ -89,55 +89,21 @@ public sealed class FlowDefinitionRegistry
             }
 
             // 配置绑定会把显式 null 覆盖到集合属性上，这里统一按空集合处理。
-            var stepOptionsList = flowOptions.Steps ?? [];
             var interfaces = flowOptions.Interfaces ?? [];
             var variants = flowOptions.Variants ?? [];
-            // 形态判定：任意参数化字段非空即视为参数化流程，否则按线性流程处理。
-            var hasLinear = stepOptionsList.Count > 0;
-            var hasParameterized = !string.IsNullOrWhiteSpace(flowOptions.ParameterHeaderName)
-                || interfaces.Count > 0 || variants.Count > 0;
-            if (hasLinear && hasParameterized)
-            {
-                throw new GirvsException($"流程 '{flowId}' 不能同时配置 Steps 和前置参数组合");
-            }
 
             // 单条流程未指定存活时长时回退到全局默认值。
             var ttlSeconds = flowOptions.TtlSeconds ?? options.DefaultTtlSeconds;
-            if (hasParameterized)
-            {
-                ValidateTtl($"流程 '{flowId}' TtlSeconds", ttlSeconds);
-                var header = ValidateParameterHeader(options, flowId, flowOptions.ParameterHeaderName);
-                RegisterParameterized(flowId, ttlSeconds, header, interfaces, variants, ref templateRegistration);
-            }
-            else
-            {
-                RegisterLinear(flowId, ttlSeconds, stepOptionsList, ref templateRegistration);
-            }
+            ValidateTtl($"流程 '{flowId}' TtlSeconds", ttlSeconds);
+            var header = ValidateParameterHeader(options, flowId, flowOptions.ParameterHeaderName, variants.Count);
+            RegisterFlow(flowId, ttlSeconds, header, interfaces, variants, ref templateRegistration);
         }
 
         _templatesByMethodAndSegmentCount = templateRegistration?.BuildLookup();
     }
 
     /// <summary>
-    /// 仅查找纯线性流程的步骤。参数化端点返回 <see langword="false" />。
-    /// 新代码应使用 <see cref="TryGetEndpoint" />。
-    /// </summary>
-    /// <param name="method">请求的 HTTP 方法。</param>
-    /// <param name="path">还原后的下游服务路径。</param>
-    /// <param name="match">命中时返回线性步骤匹配；否则为 <see langword="null" />。</param>
-    /// <returns>命中的是线性流程步骤时返回 <see langword="true" />。</returns>
-    /// <remarks>
-    /// 保留该重载只是为了兼容既有调用方；参数化流程在这里一律视为未命中，
-    /// 因此新代码必须使用 <see cref="TryGetEndpoint"/> 才能正确处理流程组合。
-    /// </remarks>
-    public bool TryGetStep(string method, PathString path, out FlowStepMatch match)
-    {
-        match = TryGetEndpoint(method, path, out var endpoint) ? endpoint.LinearMatch! : null!;
-        return match is not null;
-    }
-
-    /// <summary>
-    /// 按请求的方法与下游路径反查接口归属，包含线性与参数化两类流程。
+    /// 按请求的方法与下游路径反查接口所属流程及候选组合。
     /// </summary>
     /// <param name="method">请求的 HTTP 方法，比较时忽略大小写。</param>
     /// <param name="path">还原后的下游服务路径，非根路径移除一个尾斜杠后参与匹配。</param>
@@ -186,90 +152,23 @@ public sealed class FlowDefinitionRegistry
     }
 
     /// <summary>
-    /// 校验并注册一条线性流程的全部步骤。
+    /// 校验并注册一条流程：构建接口池、编译各流程组合，并为每个接口建立组合顺位索引。
     /// </summary>
     /// <param name="flowId">流程标识。</param>
     /// <param name="ttlSeconds">该流程票据的存活时长（秒）。</param>
-    /// <param name="stepOptionsList">按顺序排列的步骤配置。</param>
-    /// <param name="templateRegistration">构造期全局模板索引，有模板时才创建。</param>
-    /// <exception cref="GirvsException">
-    /// 步骤少于两步、步骤为空项、票据存活时长非法、同一流程内步骤重复、
-    /// 方法或路径非法（含非法路径模板），或存在路径模板冲突。
-    /// </exception>
-    /// <remarks>
-    /// 线性流程要求至少两步：单步流程不存在“顺序约束”语义，配置出来只会让首步即完成，
-    /// 属于典型的误配置，因此直接拒绝。
-    /// </remarks>
-    private void RegisterLinear(
-        string flowId,
-        int ttlSeconds,
-        List<FlowStepOptions> stepOptionsList,
-        ref TemplateRegistration? templateRegistration
-    )
-    {
-        if (stepOptionsList.Count < 2)
-        {
-            throw new GirvsException($"流程 '{flowId}' 至少需要两个步骤");
-        }
-
-        ValidateTtl($"流程 '{flowId}' TtlSeconds", ttlSeconds);
-
-        var flowStepKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        Dictionary<FlowStepDefinition, FlowPathTemplate>? templates = null;
-        var steps = new List<FlowStepDefinition>(stepOptionsList.Count);
-        foreach (var stepOptions in stepOptionsList)
-        {
-            if (stepOptions is null)
-            {
-                throw new GirvsException($"流程 '{flowId}' Steps 不能包含空项");
-            }
-
-            var method = NormalizeMethod(stepOptions.Method, flowId);
-            var template = FlowPathTemplate.Parse(stepOptions.Path, flowId, out var path);
-            var step = new FlowStepDefinition(method, new PathString(path));
-            if (template is not null)
-            {
-                RegisterLocalTemplate(ref templates, step, template, $"流程 '{flowId}' 中的线性步骤");
-            }
-            else if (!flowStepKeys.Add(CreateKey(method, path)))
-            {
-                throw new GirvsException($"流程 '{flowId}' 中步骤 '{method} {path}' 重复");
-            }
-
-            steps.Add(step);
-        }
-
-        var flow = new FlowDefinition(flowId, ttlSeconds, steps);
-        for (var i = 0; i < steps.Count; i++)
-        {
-            var step = steps[i];
-            // 线性流程的每个步骤都同时记录线性匹配与空的组合索引。
-            RegisterEndpoint(
-                new FlowEndpointMatch(flow, step, new FlowStepMatch(flow, step, i), []),
-                templates?.GetValueOrDefault(step),
-                ref templateRegistration
-            );
-        }
-    }
-
-    /// <summary>
-    /// 校验并注册一条参数化流程：构建接口池、编译各流程组合，并为每个接口建立组合顺位索引。
-    /// </summary>
-    /// <param name="flowId">流程标识。</param>
-    /// <param name="ttlSeconds">该流程票据的存活时长（秒）。</param>
-    /// <param name="header">已通过保留头冲突校验的前置参数请求头名。</param>
+    /// <param name="header">已校验的前置参数请求头名；单组合可为空字符串。</param>
     /// <param name="interfaceOptions">命名接口池配置。</param>
     /// <param name="variantOptions">组合键到接口引用列表的映射。</param>
     /// <param name="templateRegistration">构造期全局模板索引，有模板时才创建。</param>
     /// <exception cref="GirvsException">
-    /// 组合为空、组合键重复或为空、组合步骤少于两步、引用未定义或重复引用接口、
+    /// 组合为空、组合键重复或为空、组合没有步骤、引用未定义或重复引用接口、
     /// 或存在未被任何组合引用的孤立接口。
     /// </exception>
     /// <remarks>
     /// 组合内步骤顺序即接口引用顺序；同一接口可在不同组合中处于不同顺位，
     /// 因此这里为每个接口累积“组合键 → 顺位”的全部候选，供运行期按票据锁定组合精确还原顺位。
     /// </remarks>
-    private void RegisterParameterized(
+    private void RegisterFlow(
         string flowId,
         int ttlSeconds,
         string header,
@@ -296,9 +195,9 @@ public sealed class FlowDefinitionRegistry
                 throw new GirvsException($"流程 '{flowId}' 的组合键 '{variantKey}' 重复");
             }
 
-            if (references is null || references.Count < 2)
+            if (references is null || references.Count == 0)
             {
-                throw new GirvsException($"流程 '{flowId}' 的组合 '{variantKey}' 至少需要两个步骤");
+                throw new GirvsException($"流程 '{flowId}' 的组合 '{variantKey}' 至少需要一个步骤");
             }
 
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -332,7 +231,7 @@ public sealed class FlowDefinitionRegistry
             variants.Add(variantKey, new FlowVariantDefinition(variantKey, steps.AsReadOnly()));
         }
 
-        var flow = new FlowDefinition(flowId, ttlSeconds, [], FlowDefinitionKind.Parameterized, header, variants.AsReadOnly());
+        var flow = new FlowDefinition(flowId, ttlSeconds, header, variants.AsReadOnly());
         foreach (var (name, step) in interfaces)
         {
             // 孤立接口永远不会被任何组合命中，属于明显的配置残留，直接拒绝而非静默忽略。
@@ -341,9 +240,8 @@ public sealed class FlowDefinitionRegistry
                 throw new GirvsException($"流程 '{flowId}' 的接口 '{name}' 未被任何组合引用");
             }
 
-            // 参数化接口没有线性匹配，顺位完全由票据已锁定的组合索引决定。
             RegisterEndpoint(
-                new FlowEndpointMatch(flow, step, null, indexes.AsReadOnly()),
+                new FlowEndpointMatch(flow, step, indexes.AsReadOnly()),
                 templates?.GetValueOrDefault(step),
                 ref templateRegistration
             );
@@ -351,7 +249,7 @@ public sealed class FlowDefinitionRegistry
     }
 
     /// <summary>
-    /// 构建参数化流程的命名接口池，校验名称、静态路径和模板冲突。
+    /// 构建流程的命名接口池，校验名称、静态路径和模板冲突。
     /// </summary>
     /// <param name="flowId">流程标识，仅用于错误信息。</param>
     /// <param name="interfaceOptions">接口池配置。</param>
@@ -429,18 +327,29 @@ public sealed class FlowDefinitionRegistry
     /// <param name="options">全局配置，提供可配置的票据头与业务标识头名称。</param>
     /// <param name="flowId">流程标识，仅用于错误信息。</param>
     /// <param name="value">配置的前置参数请求头名。</param>
-    /// <returns>去除首尾空白后的请求头名。</returns>
+    /// <param name="variantCount">配置的组合数。</param>
+    /// <returns>去除首尾空白后的请求头名；省略时为空字符串。</returns>
     /// <exception cref="GirvsException">
-    /// 请求头名为空，或与保留头（票据头、业务标识头、<c>X-Flow-Next-Index</c>、
+    /// 多组合流程的请求头名为空，或与保留头（票据头、业务标识头、<c>X-Flow-Next-Index</c>、
     /// <c>X-Flow-Completed</c>、<c>X-Flow-Business-Id</c>）冲突。
     /// </exception>
     /// <remarks>
     /// 冲突检查忽略大小写并对保留值做 <c>Trim()</c>，因为 HTTP 头名本身不区分大小写，
     /// 若允许复用保留头，同一个值会被同时解读为“前置参数”和“续用凭据”，导致不可预测的放行或拒绝。
     /// </remarks>
-    private static string ValidateParameterHeader(FlowProtectionOptions options, string flowId, string value)
+    private static string ValidateParameterHeader(FlowProtectionOptions options, string flowId, string? value, int variantCount)
     {
-        var header = RequireValue(value, $"流程 '{flowId}' ParameterHeaderName 不能为空");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            if (variantCount >= 2)
+            {
+                throw new GirvsException($"流程 '{flowId}' ParameterHeaderName 不能为空");
+            }
+
+            return string.Empty;
+        }
+
+        var header = value.Trim();
         string?[] reservedHeaders =
         [
             options.TicketHeaderName,

@@ -15,12 +15,12 @@ namespace Girvs.Gateway.FlowProtection;
 /// <param name="logger">日志记录器，用于清理失败等非致命异常。</param>
 /// <remarks>
 /// <para>
-/// 判别规则：请求是否携带票据头是唯一分界。未携带一律按新流程首步处理（参数化流程还需合法前置参数）；
-/// 携带则一律按票据已锁定的流程组合推进，并由存储原子校验归属、业务标识与顺位。
+/// 参数化流程按是否携带票据头区分开启与推进。无票请求必须命中组合首步，配置了前置参数时还需校验其取值。
+/// 持票请求按票据已锁定的组合推进，由存储原子校验归属、业务标识与顺位。
 /// </para>
 /// <para>
-/// 每个被命中的请求都会先预留（加锁），再交给下游；响应阶段的结算由
-/// <see cref="FlowResponseTransform"/> 完成，若响应阶段未能结算，本中间件在请求结束时做兜底清理。
+/// 无票命中单步组合时直接转发。需要预留票据的请求由 <see cref="FlowResponseTransform"/> 结算，
+/// 若响应阶段未能结算，本中间件在请求结束时做兜底清理。
 /// </para>
 /// </remarks>
 public sealed class FlowTicketMiddleware(
@@ -80,7 +80,7 @@ public sealed class FlowTicketMiddleware(
             return;
         }
 
-        // 供响应阶段与兜底清理复用同一实例，保证预留与结算严格成对。
+        // 供响应阶段与兜底清理复用同一实例。
         context.Items[FlowAttemptContext.ItemsKey] = attempt;
         try
         {
@@ -88,7 +88,7 @@ public sealed class FlowTicketMiddleware(
         }
         finally
         {
-            if (!attempt.IsFinalized)
+            if (!attempt.IsFinalized && !attempt.SkipsStateStore)
             {
                 // 使用独立的短超时：RequestAborted 在客户端断开时已取消，会让清理直接失败；
                 // 清理异常绝不能覆盖已经写出的响应。
@@ -99,12 +99,12 @@ public sealed class FlowTicketMiddleware(
     }
 
     /// <summary>
-    /// 按接口归属形态选择预留策略：线性流程按其固定顺位，参数化流程按是否携带票据分别处理。
+    /// 按是否携带票据决定开启新流程或预留既有流程的下一步。
     /// </summary>
     /// <param name="context">当前请求上下文。</param>
     /// <param name="endpoint">命中的接口归属信息。</param>
     /// <param name="cancellationToken">取消标记。</param>
-    /// <returns>预留成功的尝试状态对象。</returns>
+    /// <returns>成功预留票据或允许单步直通的尝试状态对象。</returns>
     /// <exception cref="FlowProtectionException">
     /// 前置参数缺失或非法、接口不是所选组合的首步、票据缺失、业务标识缺失等。
     /// </exception>
@@ -114,26 +114,32 @@ public sealed class FlowTicketMiddleware(
         CancellationToken cancellationToken
     )
     {
-        if (endpoint.LinearMatch is { } linearStep)
-        {
-            // 线性流程没有前置参数概念，直接按配置顺位处理。
-            return ReserveLinearAsync(context, linearStep);
-        }
-
         if (!string.IsNullOrWhiteSpace(context.Request.Headers[options.TicketHeaderName].ToString()))
         {
             // 持票即按已锁定组合推进：同一接口可能既是某组合首步、又是另一组合中间步，只有票据能消除歧义。
-            return ReserveParameterizedNextAsync(context, endpoint, cancellationToken);
+            return ReserveNextAsync(context, endpoint, cancellationToken);
         }
 
-        // 无票：必须用前置参数选定一条组合，且当前接口必须是该组合第 1 步。
         var variants = endpoint.Flow.Variants;
-        if (ReadSelector(context, endpoint.Flow.ParameterHeaderName, out var selectorValue) != SelectorState.Present
-            || variants is null
-            || !variants.TryGetValue(selectorValue, out var variant))
+        FlowVariantDefinition variant;
+        if (endpoint.Flow.RequiresSelector)
         {
-            // 无票且参数缺失/空白/同名多值/未命中任何已配置取值，一律拒绝，不提供默认组合。
-            throw new FlowProtectionException(FlowProtectionErrors.SelectorInvalid);
+            if (ReadSelector(context, endpoint.Flow.ParameterHeaderName, out var selectorValue) != SelectorState.Present
+                || !variants.TryGetValue(selectorValue, out var selectedVariant))
+            {
+                throw new FlowProtectionException(FlowProtectionErrors.SelectorInvalid);
+            }
+
+            variant = selectedVariant;
+        }
+        else
+        {
+            if (variants.Count != 1)
+            {
+                throw new FlowProtectionException(FlowProtectionErrors.NotFound);
+            }
+
+            variant = variants.Values.First();
         }
 
         if (!endpoint.TryMatchVariant(variant.Key, out var stepMatch) || !stepMatch.IsFirstStep)
@@ -142,12 +148,17 @@ public sealed class FlowTicketMiddleware(
             throw new FlowProtectionException(FlowProtectionErrors.NotFound);
         }
 
+        if (stepMatch.IsLastStep)
+        {
+            return Task.FromResult(FlowAttemptContext.CreatePassThrough(stepMatch));
+        }
+
         var businessId = ReadBusinessId(context);
         return ticketService.CreateFirstStepAttemptAsync(businessId, stepMatch, cancellationToken);
     }
 
     /// <summary>
-    /// 按票据已锁定的流程组合推进参数化流程的下一步。
+    /// 按票据已锁定的流程组合预留下一步。
     /// </summary>
     /// <param name="context">当前请求上下文。</param>
     /// <param name="endpoint">命中的接口归属信息，含该接口在各组合中的候选顺位。</param>
@@ -157,10 +168,10 @@ public sealed class FlowTicketMiddleware(
     /// 票据为空、业务标识缺失、前置参数非法或与锁定组合不一致、或顺位不允许。
     /// </exception>
     /// <remarks>
-    /// 推进阶段不强制重传前置参数；若携带则必须与票据锁定组合一致。
+    /// 配置了前置参数时，推进阶段可省略该请求头；若携带则必须与票据锁定组合一致。
     /// 具体的组合一致性判定交由存储的原子脚本完成，本方法只负责把候选信息整理好传下去。
     /// </remarks>
-    private Task<FlowAttemptContext> ReserveParameterizedNextAsync(
+    private Task<FlowAttemptContext> ReserveNextAsync(
         HttpContext context,
         FlowEndpointMatch endpoint,
         CancellationToken cancellationToken
@@ -180,18 +191,20 @@ public sealed class FlowTicketMiddleware(
         }
 
         string? selectorVariantKey = null;
-        switch (ReadSelector(context, endpoint.Flow.ParameterHeaderName, out var selectorValue))
+        if (endpoint.Flow.RequiresSelector)
         {
-            case SelectorState.Invalid:
-                // 参数头存在但为空或同名多值：语义无法确定，直接按不一致拒绝。
-                throw new FlowProtectionException(FlowProtectionErrors.SelectorMismatch);
-            case SelectorState.Present:
-                // 命中已配置组合时统一传规范化组合键；未命中则传原值，交由原子脚本在完成态校验后判 SELECTOR_MISMATCH。
-                selectorVariantKey = endpoint.Flow.Variants is { } variants
-                    && variants.TryGetValue(selectorValue, out var selectorVariant)
+            switch (ReadSelector(context, endpoint.Flow.ParameterHeaderName, out var selectorValue))
+            {
+                case SelectorState.Invalid:
+                    // 参数头存在但为空或同名多值：语义无法确定，直接按不一致拒绝。
+                    throw new FlowProtectionException(FlowProtectionErrors.SelectorMismatch);
+                case SelectorState.Present:
+                    // 命中已配置组合时统一传规范化组合键；未命中则传原值，交由原子脚本在完成态校验后判 SELECTOR_MISMATCH。
+                    selectorVariantKey = endpoint.Flow.Variants.TryGetValue(selectorValue, out var selectorVariant)
                         ? selectorVariant.Key
                         : selectorValue;
-                break;
+                    break;
+            }
         }
 
         return ticketService.ReserveNextStepAttemptAsync(
@@ -210,7 +223,6 @@ public sealed class FlowTicketMiddleware(
     /// <returns>去除首尾空白后的业务标识；未提供时为空字符串。</returns>
     private string ReadBusinessId(HttpContext context)
     {
-        // 与存量线性流程保持一致：同名多值头取首个值，并去除首尾空白。
         return context.Request.Headers[options.BusinessIdHeaderName].FirstOrDefault()?.Trim() ?? string.Empty;
     }
 
@@ -257,35 +269,6 @@ public sealed class FlowTicketMiddleware(
 
         /// <summary>携带了该头且存在唯一、非空白的取值。</summary>
         Present,
-    }
-
-    /// <summary>
-    /// 按线性流程的固定顺位预留：首步创建票据，其余步骤凭票据与业务标识推进。
-    /// </summary>
-    /// <param name="context">当前请求上下文。</param>
-    /// <param name="step">命中的线性步骤匹配。</param>
-    /// <returns>预留成功的尝试状态对象。</returns>
-    /// <exception cref="FlowProtectionException">票据缺失、业务标识缺失或顺位不允许。</exception>
-    private async Task<FlowAttemptContext> ReserveLinearAsync(HttpContext context, FlowStepMatch step)
-    {
-        var businessId = ReadBusinessId(context);
-        if (step.IsFirstStep)
-        {
-            return await ticketService.CreateFirstStepAttemptAsync(businessId, step, context.RequestAborted);
-        }
-
-        var ticket = context.Request.Headers[options.TicketHeaderName].FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(ticket))
-        {
-            throw new FlowProtectionException(FlowProtectionErrors.NotFound);
-        }
-
-        if (string.IsNullOrWhiteSpace(businessId))
-        {
-            throw new FlowProtectionException(FlowProtectionErrors.BusinessMismatch);
-        }
-
-        return await ticketService.ReserveNextStepAttemptAsync(ticket, businessId, step, context.RequestAborted);
     }
 
     /// <summary>

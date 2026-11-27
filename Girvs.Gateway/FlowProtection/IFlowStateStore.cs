@@ -20,7 +20,7 @@ public interface IFlowStateStore
     /// <summary>
     /// 为新流程创建票据并立即占用首步。若票据已存在，视为重复开启同一流程而拒绝。
     /// </summary>
-    /// <param name="request">预留请求，必须携带完整流程与顺位信息。</param>
+    /// <param name="request">预留请求，必须携带流程标识、首步顺位和非空白组合键。</param>
     /// <param name="cancellationToken">取消标记。</param>
     /// <returns>成功时含下一个允许顺位（与是否完成）；失败时含具体错误码。</returns>
     Task<FlowStoreResult> CreateAndReserveAsync(
@@ -31,7 +31,7 @@ public interface IFlowStateStore
     /// <summary>
     /// 为已存在的票据占用下一步。校验票据归属、业务标识、组合与顺位，并加处理锁。
     /// </summary>
-    /// <param name="request">预留请求，须含票据、业务标识与目标顺位或组合候选。</param>
+    /// <param name="request">预留请求，须含票据、业务标识与至少一项候选组合顺位。</param>
     /// <param name="cancellationToken">取消标记。</param>
     /// <returns>成功时含命中的组合键与下一个允许顺位；失败时含具体错误码。</returns>
     Task<FlowStoreResult> ReserveAsync(FlowReserveRequest request, CancellationToken cancellationToken);
@@ -67,24 +67,18 @@ public interface IFlowStateStore
 /// <param name="Ticket">流程票据；开启新流程时由网关生成。</param>
 /// <param name="FlowId">票据必须归属的流程标识，用于校验票据与配置的一致性。</param>
 /// <param name="BusinessId">调用方声明的业务标识；为空表示未提供。</param>
-/// <param name="ExpectedIndex">
-/// 期望的当前顺位。线性流程直接比对；参数化流程在给出组合候选时该值被候选顺位取代。
-/// </param>
+/// <param name="ExpectedIndex">建票时占用的首步顺位，仅用于 <see cref="IFlowStateStore.CreateAndReserveAsync"/>。</param>
 /// <param name="AttemptId">本次处理锁凭据，后续提交/释放/删除需回传该值。</param>
 /// <param name="FlowTtlSeconds">票据存活时长（秒），用于首次写入时设置过期。</param>
 /// <param name="LockTtlSeconds">处理锁时长（秒），超时后锁自然失效。</param>
-/// <param name="VariantKey">开启时锁定的流程组合键；线性流程为空字符串。</param>
+/// <param name="VariantKey">开启时锁定的流程组合键，<see cref="IFlowStateStore.CreateAndReserveAsync"/> 要求非空白。</param>
 /// <param name="SelectorVariantKey">
 /// 推进时调用方携带的前置参数（已归一为组合键），空字符串表示未携带；
 /// 与锁定组合不一致时由存储返回组合不匹配。
 /// </param>
 /// <param name="CandidateVariantSteps">
-/// 当前接口在各流程组合中的候选顺位；参数化流程推进必须提供，线性流程为 <see langword="null" />。
+/// 当前接口在各流程组合中的候选顺位，<see cref="IFlowStateStore.ReserveAsync"/> 要求至少一项。
 /// </param>
-/// <remarks>
-/// 该类型同时被序列化用于跨进程传输，因此保留完整的 JSON 构造入口；
-/// 后加的字段全部带默认值，保证既有调用方的七参构造与解构行为不变。
-/// </remarks>
 [method: JsonConstructor]
 public sealed record FlowReserveRequest(
     string Ticket,
@@ -97,51 +91,7 @@ public sealed record FlowReserveRequest(
     string VariantKey = "",
     string SelectorVariantKey = "",
     IReadOnlyList<FlowVariantStepIndex>? CandidateVariantSteps = null
-)
-{
-    // 保留七参构造签名，兼容既有调用方的源码和二进制。
-    /// <summary>
-    /// 以线性流程语义构造请求（组合相关字段取默认空值）。
-    /// </summary>
-    /// <param name="Ticket">流程票据。</param>
-    /// <param name="FlowId">流程标识。</param>
-    /// <param name="BusinessId">业务标识。</param>
-    /// <param name="ExpectedIndex">期望的当前顺位。</param>
-    /// <param name="AttemptId">处理锁凭据。</param>
-    /// <param name="FlowTtlSeconds">票据存活时长（秒）。</param>
-    /// <param name="LockTtlSeconds">处理锁时长（秒）。</param>
-    public FlowReserveRequest(
-        string Ticket, string FlowId, string BusinessId, int ExpectedIndex, string AttemptId,
-        int FlowTtlSeconds, int LockTtlSeconds
-    ) : this(Ticket, FlowId, BusinessId, ExpectedIndex, AttemptId, FlowTtlSeconds, LockTtlSeconds, "")
-    {
-    }
-
-    // 保留七值解构签名，兼容既有调用方的源码和二进制。
-    /// <summary>
-    /// 解构出线性流程所需的七个基础字段，便于既有调用方保持不变。
-    /// </summary>
-    /// <param name="Ticket">流程票据。</param>
-    /// <param name="FlowId">流程标识。</param>
-    /// <param name="BusinessId">业务标识。</param>
-    /// <param name="ExpectedIndex">期望的当前顺位。</param>
-    /// <param name="AttemptId">处理锁凭据。</param>
-    /// <param name="FlowTtlSeconds">票据存活时长（秒）。</param>
-    /// <param name="LockTtlSeconds">处理锁时长（秒）。</param>
-    public void Deconstruct(
-        out string Ticket, out string FlowId, out string BusinessId, out int ExpectedIndex, out string AttemptId,
-        out int FlowTtlSeconds, out int LockTtlSeconds
-    )
-    {
-        Ticket = this.Ticket;
-        FlowId = this.FlowId;
-        BusinessId = this.BusinessId;
-        ExpectedIndex = this.ExpectedIndex;
-        AttemptId = this.AttemptId;
-        FlowTtlSeconds = this.FlowTtlSeconds;
-        LockTtlSeconds = this.LockTtlSeconds;
-    }
-}
+);
 
 /// <summary>
 /// 一次“提交”操作的请求参数：把当前步骤从“处理中”推进为“已完成本步”。
@@ -181,12 +131,8 @@ public sealed record FlowReleaseRequest(string Ticket, string AttemptId);
 /// </param>
 /// <param name="Completed">成功时表示流程是否已进入完成态。</param>
 /// <param name="VariantKey">
-/// 参数化流程推进时命中的组合键（已规范化）；线性流程或未命中时为 <see langword="null" />。
+/// 成功预留既有票据时命中的组合键，其他结果为 <see langword="null" />。
 /// </param>
-/// <remarks>
-/// 该类型同时用于跨进程传输，因此保留完整 JSON 构造入口与三个静态工厂方法，
-/// 并用四参构造/解构重载维持既有调用方的源码与二进制兼容。
-/// </remarks>
 [method: JsonConstructor]
 public sealed record FlowStoreResult(
     bool IsSuccess,
@@ -196,37 +142,6 @@ public sealed record FlowStoreResult(
     string? VariantKey = null
 )
 {
-    // 保留四参构造签名，兼容既有调用方的源码和二进制。
-    /// <summary>
-    /// 以不带组合键的语义构造结果，等价于 <see cref="VariantKey"/> 为 <see langword="null" />。
-    /// </summary>
-    /// <param name="isSuccess">操作是否成功。</param>
-    /// <param name="errorCode">失败时的错误码。</param>
-    /// <param name="nextIndex">下一个允许顺位。</param>
-    /// <param name="completed">流程是否已完成。</param>
-    public FlowStoreResult(bool isSuccess, FlowErrorCode? errorCode, int? nextIndex, bool completed)
-        : this(isSuccess, errorCode, nextIndex, completed, null)
-    {
-    }
-
-    // 保留四值解构签名，兼容既有调用方的源码和二进制。
-    /// <summary>
-    /// 解构出四个基础字段（不含组合键），便于既有调用方保持不变。
-    /// </summary>
-    /// <param name="isSuccess">操作是否成功。</param>
-    /// <param name="errorCode">失败时的错误码。</param>
-    /// <param name="nextIndex">下一个允许顺位。</param>
-    /// <param name="completed">流程是否已完成。</param>
-    public void Deconstruct(
-        out bool isSuccess, out FlowErrorCode? errorCode, out int? nextIndex, out bool completed
-    )
-    {
-        isSuccess = IsSuccess;
-        errorCode = ErrorCode;
-        nextIndex = NextIndex;
-        completed = Completed;
-    }
-
     /// <summary>
     /// 构造一个不带组合键的成功结果。
     /// </summary>
@@ -235,11 +150,11 @@ public sealed record FlowStoreResult(
     /// <returns>成功结果实例。</returns>
     public static FlowStoreResult Success(int? nextIndex = null, bool completed = false)
     {
-        return new FlowStoreResult(true, null, nextIndex, completed);
+        return new FlowStoreResult(true, null, nextIndex, completed, null);
     }
 
     /// <summary>
-    /// 构造一个携带命中组合键的成功结果，供参数化流程还原正确顺位。
+    /// 构造一个携带命中组合键的成功结果，用于还原步骤匹配。
     /// </summary>
     /// <param name="nextIndex">下一个允许顺位。</param>
     /// <param name="completed">流程是否已完成。</param>
@@ -257,7 +172,7 @@ public sealed record FlowStoreResult(
     /// <returns>失败结果实例。</returns>
     public static FlowStoreResult Failed(FlowErrorCode errorCode)
     {
-        return new FlowStoreResult(false, errorCode, null, false);
+        return new FlowStoreResult(false, errorCode, null, false, null);
     }
 }
 

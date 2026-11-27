@@ -67,7 +67,7 @@ public sealed class FlowTicketService
     }
 
     /// <summary>
-    /// 开启新流程：创建票据并占用首步。
+    /// 开启新流程时创建票据、锁定组合并占用首步。
     /// </summary>
     /// <param name="businessId">调用方声明的业务标识；可为空，后续可由下游响应补齐。</param>
     /// <param name="step">命中的首步匹配，提供流程标识、存活时长与组合键。</param>
@@ -91,7 +91,6 @@ public sealed class FlowTicketService
                 attemptId,
                 step.Flow.TtlSeconds,
                 _lockTtlSeconds,
-                // 参数化流程在此刻锁定组合；线性流程为空字符串。
                 VariantKey: step.VariantKey
             ),
             cancellationToken
@@ -112,51 +111,7 @@ public sealed class FlowTicketService
     }
 
     /// <summary>
-    /// 推进线性流程：凭票据与业务标识占用下一顺位。
-    /// </summary>
-    /// <param name="ticket">流程票据。</param>
-    /// <param name="businessId">调用方声明的业务标识，不能为空。</param>
-    /// <param name="step">目标步骤匹配，提供期望顺位与流程标识。</param>
-    /// <param name="cancellationToken">取消标记。</param>
-    /// <returns>已预留目标步骤的尝试状态对象。</returns>
-    /// <exception cref="FlowProtectionException">票据不存在、业务标识不匹配、顺位不允许或该步正在处理中。</exception>
-    public async Task<FlowAttemptContext> ReserveNextStepAttemptAsync(
-        string ticket,
-        string businessId,
-        FlowStepMatch step,
-        CancellationToken cancellationToken
-    )
-    {
-        var attemptId = CreateAttemptId();
-        var result = await _stateStore.ReserveAsync(
-            new FlowReserveRequest(
-                ticket,
-                step.Flow.FlowId,
-                businessId,
-                step.StepIndex,
-                attemptId,
-                step.Flow.TtlSeconds,
-                _lockTtlSeconds
-            ),
-            cancellationToken
-        );
-
-        EnsureSuccess(result);
-
-        return new FlowAttemptContext
-        {
-            Ticket = ticket,
-            AttemptId = attemptId,
-            BusinessId = businessId,
-            Step = step,
-            IsFirstStep = false,
-            NextIndex = result.NextIndex,
-            Completed = result.Completed,
-        };
-    }
-
-    /// <summary>
-    /// 按票据已锁定的流程组合推进参数化流程：候选顺位与可选前置参数一起交给状态存储原子校验，
+    /// 按票据已锁定的流程组合预留下一步，由状态存储原子校验候选顺位与可选前置参数，
     /// 并用返回的命中组合还原准确的 <see cref="FlowStepMatch" />（含该组合的最后一步判定）。
     /// </summary>
     /// <param name="ticket">流程票据。</param>
@@ -170,7 +125,7 @@ public sealed class FlowTicketService
     /// <returns>已预留目标步骤的尝试状态对象，其步骤匹配按命中组合重建。</returns>
     /// <exception cref="FlowProtectionException">组合不一致、顺位不允许、正在处理中，或存储返回的组合与配置不一致。</exception>
     /// <remarks>
-    /// 期望顺位在此固定传 0：真正参与比对的是候选组合顺位，由存储脚本按锁定组合挑选，
+    /// 存储脚本按锁定组合选取候选顺位，
     /// 这样同一接口在不同组合中处于不同顺位时也能正确推进。
     /// </remarks>
     public async Task<FlowAttemptContext> ReserveNextStepAttemptAsync(
