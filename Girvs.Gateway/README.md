@@ -96,7 +96,7 @@ app.Run();
 
 ### `FlowProtection`
 
-配置位于顶级 `FlowProtection` 节。`Flows` 元素使用 `FlowDefinitionOptions`，其 `Steps` 和 `Interfaces` 元素分别使用 `FlowStepOptions` 和 `FlowInterfaceOptions`。
+配置位于顶级 `FlowProtection` 节。所有流程统一采用 `Interfaces + Variants` 组合模型：`Flows` 元素使用 `FlowDefinitionOptions`，其 `Interfaces` 元素使用 `FlowInterfaceOptions`。
 
 | 类型 | 字段 | 字段类型 | 默认值 | 约束和用途 |
 |---|---|---|---|---|
@@ -109,12 +109,9 @@ app.Run();
 | `FlowProtectionOptions` | `Flows` | `List<FlowDefinitionOptions>` | `[]` | 流程定义列表，元素不能是 `null`。 |
 | `FlowDefinitionOptions` | `FlowId` | `string` | `""` | `Trim()` 后必填，全局忽略大小写唯一。 |
 | `FlowDefinitionOptions` | `TtlSeconds` | `int?` | `null` | `1`–`1800`，省略时使用 `DefaultTtlSeconds`。 |
-| `FlowDefinitionOptions` | `Steps` | `List<FlowStepOptions>` | `[]` | 线性步骤序列，至少两步。非空列表与参数化字段互斥。 |
-| `FlowDefinitionOptions` | `ParameterHeaderName` | `string` | `""` | 参数化流程的前置参数请求头，须非空且与保留头名无冲突。 |
-| `FlowDefinitionOptions` | `Interfaces` | `List<FlowInterfaceOptions>` | `[]` | 参数化流程的接口池，至少一项，每个接口须被引用。 |
-| `FlowDefinitionOptions` | `Variants` | `Dictionary<string, List<string>>` | `{}` | 参数化流程的组合映射，至少一个组合，每个组合至少引用两个接口。 |
-| `FlowStepOptions` | `Method` | `string` | `""` | 必填，使用 HTTP 方法白名单。 |
-| `FlowStepOptions` | `Path` | `string` | `""` | 必填，下游绝对路径，支持整段 `{param}`。 |
+| `FlowDefinitionOptions` | `ParameterHeaderName` | `string` | `""` | 前置参数请求头名。仅含 1 条组合时可省略；包含 2 条及以上组合时必填。显式配置时不得与保留头名冲突。 |
+| `FlowDefinitionOptions` | `Interfaces` | `List<FlowInterfaceOptions>` | `[]` | 命名接口池，至少一项，每个接口须至少被一条组合引用。 |
+| `FlowDefinitionOptions` | `Variants` | `Dictionary<string, List<string>>` | `{}` | 组合键到有序接口引用列表的映射，至少一个组合，每个组合至少引用 1 个接口（支持单步组合）。 |
 | `FlowInterfaceOptions` | `Name` | `string` | `""` | 接口池中的引用名称，`Trim()` 后必填且忽略大小写唯一。 |
 | `FlowInterfaceOptions` | `Method` | `string` | `""` | 必填，使用 HTTP 方法白名单。 |
 | `FlowInterfaceOptions` | `Path` | `string` | `""` | 必填，下游绝对路径，支持整段 `{param}`。 |
@@ -157,7 +154,7 @@ app.Run();
 
 ## 流程防护（FlowProtection）
 
-流程防护约束受保护的下游接口按预定顺序调用。它支持固定步骤的线性流程，以及通过请求头前置参数（Flow Selector）选择流程组合（Flow Variant）的参数化流程。认证、授权、资源权限校验和业务幂等仍由宿主及下游实现。内置 `RedisFlowStateStore` 通过 Lua 原子执行票据创建、步骤占用、提交、释放和删除。`IFlowStateStore` 是公开的存储接口。
+流程防护约束受保护的下游接口按预定顺序调用。所有流程统一通过命名接口池（`Interfaces`）和有序流程组合（`Variants`）定义：仅含 1 条组合的流程可省略前置参数请求头（`ParameterHeaderName`），包含多条组合的流程通过前置参数（Flow Selector）选定并锁定流程组合（Flow Variant）；每条组合支持 1 个或多个步骤，无票命中单步组合时直接转发且跳过状态存储写入。认证、授权、资源权限校验和业务幂等仍由宿主及下游实现。内置 `RedisFlowStateStore` 通过 Lua 原子执行票据创建、步骤占用、提交、释放和删除。`IFlowStateStore` 是公开的存储接口。
 
 ### 启用条件与校验时机
 
@@ -168,7 +165,7 @@ app.Run();
 - 业务定义在首次解析 `FlowDefinitionRegistry` 时校验并编译。可在 `Build()` 后显式解析，使配置错误在启动时暴露。流程配置在注册期绑定，修改后需重启网关。
 - `Enabled = false` 时以默认空定义构造注册表，跳过已配置流程定义及 Redis 资源的校验，注册无操作存储，不注册响应转换。中间件直接放行。
 
-以下配置可用于 Girvs 宿主。`Steps.Path` 填写剥离服务名前缀后的路径，客户端访问 `/order/api/pay` 时，此处填写 `/api/pay`。查询字符串和前置参数头不属于步骤路径。
+以下单组合配置可用于 Girvs 宿主（因仅含 1 条组合，省略了 `ParameterHeaderName`）。`Interfaces[].Path` 填写剥离服务名前缀后的路径，客户端访问 `/order/api/pay` 时，此处填写 `/api/pay`。查询字符串和前置参数头不属于步骤路径。
 
 ```json
 {
@@ -177,10 +174,13 @@ app.Run();
     "Flows": [
       {
         "FlowId": "order-payment",
-        "Steps": [
-          { "Method": "POST", "Path": "/api/prepare" },
-          { "Method": "POST", "Path": "/api/pay" }
-        ]
+        "Interfaces": [
+          { "Name": "prepare", "Method": "POST", "Path": "/api/prepare" },
+          { "Name": "pay", "Method": "POST", "Path": "/api/pay" }
+        ],
+        "Variants": {
+          "default": ["prepare", "pay"]
+        }
       }
     ]
   },
@@ -243,13 +243,14 @@ app.Run();
 
 ### 通用校验与路径模板
 
-- `FlowId` 去除首尾空白后必填且全局忽略大小写唯一。线性流程和每个参数化组合均至少有两步。
+- `FlowId` 去除首尾空白后必填且全局忽略大小写唯一。每条流程的 `Interfaces` 与 `Variants` 均不能为空，每个组合至少引用 **1** 个已定义接口（允许单步组合）。
 - `DefaultTtlSeconds`、`CompletedTtlSeconds` 和流程级 `TtlSeconds` 的范围均为 `1`–`1800`。`LockTtlSeconds` 范围为 `1`–`DefaultTtlSeconds`，上限使用全局默认 TTL。
 - `Method` 去除首尾空白并转成大写，可选 `GET`、`POST`、`PUT`、`DELETE`、`PATCH`、`HEAD`、`OPTIONS`。
-- `Flows`、`Steps`、`Interfaces` 列表不能含 `null` 项。非空 `Steps` 与任何已设置的参数化字段互斥。`Steps` 为空且无参数化字段时按线性流程处理，报步骤不足。
-- 同一个静态 `Method + Path` 在整个注册表只能归属一个流程入口。线性步骤序列及接口池内也禁止重复。参数化流程可在多个组合中引用同一个接口。
+- `Flows`、`Interfaces` 列表不能含 `null` 项。`Interfaces` 中每个接口的 `Name` 经 `Trim()` 后必填且忽略大小写唯一；`Variants` 中每个组合键经 `Trim()` 后必填且忽略大小写唯一（即使单组合省略了 `ParameterHeaderName`，组合键仍须非空白，用于写入票据 `variant` 字段）。
+- `ParameterHeaderName`：当 `Variants` 包含 2 条及以上组合时，经 `Trim()` 后必填；仅含 1 条组合时可留空省略；无论单组合或多组合，只要显式配置非空值，均不得与 `TicketHeaderName`、`BusinessIdHeaderName`、`X-Flow-Next-Index`、`X-Flow-Completed`、`X-Flow-Business-Id` 冲突（忽略大小写）。
+- 同一个静态 `Method + Path` 在整个注册表只能归属一个流程入口；接口池内禁止重复。同一流程可在多个组合中引用同一接口，但单条组合内部不能重复引用同一接口，且接口池中每个接口必须至少被一条组合引用（禁止孤立接口）。
 
-`Steps` 和 `Interfaces` 的 `Path` 支持相同语法。配置先执行 `Trim()`，再规范化单个尾斜杠。
+`Interfaces[].Path` 支持静态路径和整段 `{param}` 路径模板。配置先执行 `Trim()`，再规范化单个尾斜杠。
 
 | 配置值 | 结果 | 规则 |
 |---|---|---|
@@ -273,23 +274,26 @@ app.Run();
 | 可并存的模板 | 方法不同、段数不同，或至少一对对应的字面段值不同。 | `/orders/{id}/items` 与 `/orders/{id}/history`。 |
 | 静态优先 | 同方法下先查全局静态路径，再查模板。静态和模板相交时配置通过，静态路径静默遮蔽模板的对应请求，即使二者属于不同流程。 | `POST /orders/create` 优先于 `POST /orders/{id}`。 |
 
-模板冲突检查覆盖流程内的线性步骤、接口池内的接口和不同流程之间的接口。配置时核对静态路径的优先级，避免模板步骤被其他流程的静态路径接管。请求匹配不会从 `{id}` 提取业务标识，也不会用其限制票据可访问的资源。
+模板冲突检查覆盖同一接口池内的接口以及不同流程之间的接口。配置时核对静态路径的优先级，避免模板步骤被其他流程的静态路径接管。请求匹配不会从 `{id}` 提取业务标识，也不会用其限制票据可访问的资源。
 
-线性流程模板示例，作为一个 `FlowProtection:Flows` 元素使用。
+单组合免前置参数流程模板示例，作为一个 `FlowProtection:Flows` 元素使用。
 
 ```json
 {
   "FlowId": "order-confirmation",
-  "Steps": [
-    { "Method": "POST", "Path": "/api/orders/{id}/prepare" },
-    { "Method": "POST", "Path": "/api/orders/{id}/confirm" }
-  ]
+  "Interfaces": [
+    { "Name": "prepare", "Method": "POST", "Path": "/api/orders/{id}/prepare" },
+    { "Name": "confirm", "Method": "POST", "Path": "/api/orders/{id}/confirm" }
+  ],
+  "Variants": {
+    "default": ["prepare", "confirm"]
+  }
 }
 ```
 
-### 参数化多组合流程
+### 流程组合、单步直通与运行期判定
 
-下面的接口池示例使用模板。`D` 同时是 `DE` 的首步和 `ADE` 的第二步。将示例对象加入 `FlowProtection:Flows`。
+下面的多组合接口池示例使用路径模板，且包含一条单步组合 `direct`：`D` 同时是 `DE` 的首步和 `ADE` 的第二步，`E` 同时是单步组合 `direct` 的唯一一步以及 `ADE`/`DE` 的末步。将示例对象加入 `FlowProtection:Flows`。
 
 ```json
 {
@@ -302,30 +306,24 @@ app.Run();
   ],
   "Variants": {
     "ADE": ["A", "D", "E"],
-    "DE": ["D", "E"]
+    "DE": ["D", "E"],
+    "direct": ["E"]
   }
 }
 ```
 
-编译参数化流程时执行以下检查。
-
-- `ParameterHeaderName` 经 `Trim()` 后必填，不得与 `TicketHeaderName`、`BusinessIdHeaderName`、`X-Flow-Next-Index`、`X-Flow-Completed`、`X-Flow-Business-Id` 冲突，比较忽略大小写。
-- `Interfaces` 非空。接口名称经 `Trim()` 后必填且忽略大小写唯一，并遵循前述路径匹配和冲突规则。`Variants` 非空，组合键也经 `Trim()` 后必填且忽略大小写唯一。
-- 每个组合至少引用两个已定义接口，引用名称去除首尾空白并忽略大小写。同一组合不能重复引用同一接口，每个接口至少被一个组合引用。
-
-运行期按票据判断当前调用是启动还是推进。
+全量流程（含省略 `ParameterHeaderName` 的单组合流程）统一以请求是否携带票据头（默认 `X-Flow-Ticket`）作为「开启新流程」与「推进既有流程」的唯一分界：**持票调用任何受保护接口（包括首步）一律走既有票据推进校验，不再重开新票。**
 
 | 请求 | 判定与结果 |
 |---|---|
-| 无票，调用组合首步 | `ParameterHeaderName` 指定的值必须合法且忽略大小写匹配已配置组合，否则 403 `FLOW_SELECTOR_INVALID`。选定组合后，仅允许其首步签发票据并锁定组合。 |
-| 无票，调用所选组合的后续步骤 | 403 `FLOW_NOT_FOUND`。例如带 `X-Mode: ADE` 且无票调用 `D`。 |
-| 持票，调用组合的下一步 | 必须携带 `BusinessIdHeaderName` 指定的业务标识。前置参数可省略，若携带，格式必须有效且匹配已锁定组合，否则 403 `FLOW_SELECTOR_MISMATCH`。 |
-| 持同一票据并发重调当前步骤 | 请求通过前置校验且仍占用该步骤时，返回 403 `FLOW_IN_PROGRESS`。若首步票据尚可被调用方取得，同一规则适用。正常客户端在首步 2xx 结算后才收到票据，无票重调首步可另外开一条流程。 |
-| 持票重调已提交首步、跳步或调用其他组合独有接口 | 票据尚未进入完成态时，返回 403 `FLOW_STEP_NOT_ALLOWED`。完成态优先返回 `FLOW_COMPLETED`。 |
+| 无票，调用单步组合（仅 1 步） | 若配置了 `ParameterHeaderName`，前置参数须合法且匹配该单步组合（否则 403 `FLOW_SELECTOR_INVALID`）；单组合未配置时直接命中唯一组合。校验通过后**跳过状态存储（不写 Redis）直接转发下游**：下游 2xx 时写 `X-Flow-Completed: true` 和 `Cache-Control: no-store`（不回写票据头与顺位头）并剥离 `X-Flow-Business-Id`；非 2xx 透传下游响应且不写完成头，仍剥离 `X-Flow-Business-Id`。 |
+| 无票，调用多步组合首步 | 若配置了 `ParameterHeaderName`，前置参数必须合法且忽略大小写匹配已配置组合，否则 403 `FLOW_SELECTOR_INVALID`（无默认兜底）；单组合未配置 `ParameterHeaderName` 时无需前置参数头，直接命中唯一组合。仅该组合的首步允许签发票据并锁定非空组合键。 |
+| 无票，调用所选组合的后续步骤 | 403 `FLOW_NOT_FOUND`。例如带 `X-Mode: ADE` 且无票调用 `D` 或 `E`，或单组合免前置参数流程无票直接调第 2 步。 |
+| 持票，调用组合的下一步（含共享接口或单步接口） | 必须携带 `BusinessIdHeaderName` 指定的业务标识，一律走状态存储原子校验。若配置了 `ParameterHeaderName`，前置参数可省略；若携带，格式必须有效且匹配已锁定组合，否则 403 `FLOW_SELECTOR_MISMATCH`。单组合省略 `ParameterHeaderName` 时不校验前置参数头。 |
+| 持同一票据并发重调当前步骤 | 请求通过前置校验且仍占用该步骤时，返回 403 `FLOW_IN_PROGRESS`。正常客户端在首步 2xx 结算后才收到票据，无票重调首步可另外开一条流程。 |
+| 持票重调已提交首步、跳步或调用其他组合独有接口 | 票据尚未进入完成态时，返回 403 `FLOW_STEP_NOT_ALLOWED`；处于完成保留期时优先返回 403 `FLOW_COMPLETED`。 |
 
-线性流程按固定顺位识别首步，调用其首步总是尝试新建票据。上述持票重调首步的判定适用于参数化流程。
-
-#### `ADE` 与 `DE` 的重叠入口报文
+#### `ADE`、`DE` 与单步 `direct` 的共存报文
 
 假设网关开放 `order` 服务，头名均使用默认值。`<ticket-ade>` 和 `<ticket-de>` 代表服务端分别返回的两张票据，后续请求必须使用实际值。报文省略通用头。
 
@@ -391,18 +389,34 @@ X-Flow-Completed: true
 Cache-Control: no-store
 ```
 
+`direct` 为单步组合 `["E"]`：无票携 `X-Mode: direct` 调用 `E` 时跳过 Redis 直接转发下游，下游返回 2xx 即回写完成标记，不产生票据或 Redis 键。
+
+```http
+POST /order/api/orders/44/e HTTP/1.1
+Host: gateway.example.com
+X-Mode: direct
+X-Business-Id: order-44
+Content-Length: 0
+
+HTTP/1.1 204 No Content
+X-Flow-Completed: true
+Cache-Control: no-store
+```
+
 ### 请求头、票据生命周期与响应结算
 
 | 请求头 | 解析规则 |
 |---|---|
-| `ParameterHeaderName` 指定的前置参数头 | 单值并执行 `Trim()`。参数化流程新开时，缺失、空白或多值均拒绝。持票推进时可省略，携带空白或多值则拒绝。 |
-| `TicketHeaderName`（默认 `X-Flow-Ticket`） | 读取票据时多值取首个，仅检查是否非空白，保留原值。参数化流程先以整组头值转成字符串判断是否进入持票分支，再读取首个值。因此首值空白但其余值非空时，按持票分支返回 `FLOW_NOT_FOUND`。 |
+| `ParameterHeaderName` 指定的前置参数头 | 仅在流程显式配置了 `ParameterHeaderName` 时读取，单值并执行 `Trim()`。无票新开时，缺失、空白或多值均拒绝；持票推进时可省略，携带空白或多值则拒绝。单组合省略 `ParameterHeaderName` 时跳过前置参数读取。 |
+| `TicketHeaderName`（默认 `X-Flow-Ticket`） | 先以整组头值转成字符串判断是否进入持票分支，再读取首个值检查是否非空白并保留原值。因此首值空白但其余值非空时，按持票分支返回 `FLOW_NOT_FOUND`。 |
 | `BusinessIdHeaderName`（默认 `X-Business-Id`） | 多值取首个并执行 `Trim()`。首步可省略，也可直接绑定此值。推进时必填，已绑定的值按原样比较。 |
 
 如果首步请求未绑定业务标识，下游可在任意 2xx 步骤的响应中通过 `X-Flow-Business-Id` 完成首次绑定。网关先从下游响应头读取首个值，再回退到内容头。已经绑定时，下游回传不同的非空值会导致结算失败。票据一直未绑定时，推进请求仍须提供业务标识，但 Redis 不比对该值，也不会用该值补写绑定。
 
 | 场景 | 票据和状态 | 网关写入的头及响应 |
 |---|---|---|
+| 无票单步直通 2xx | 不读写状态存储，无 Redis 键生成。 | 写入 `X-Flow-Completed: true` 和 `Cache-Control: no-store`，不回写票据或顺位。移除 `X-Flow-Business-Id`。 |
+| 无票单步直通非 2xx（含 3xx） | 不读写状态存储。 | 转发下游响应，不写 `X-Flow-Completed` 或 `Cache-Control: no-store`。移除 `X-Flow-Business-Id`。 |
 | 非末步 2xx | 提交当前步骤，推进顺位并释放锁，原 TTL 保持。 | 回写配置的票据头、`X-Flow-Next-Index`、`Cache-Control: no-store`。移除 `X-Flow-Business-Id`。 |
 | 末步 2xx | 提交并标记完成，改用 `CompletedTtlSeconds`。 | 写入 `X-Flow-Completed: true` 和 `Cache-Control: no-store`。网关不回写票据或顺位。移除 `X-Flow-Business-Id`。 |
 | 首步非 2xx（含 3xx） | 删除该次创建的票据。 | 转发下游响应，不生成流程成功头。移除 `X-Flow-Business-Id`。 |
@@ -413,8 +427,9 @@ Cache-Control: no-store
 | 未命中流程防护 | 直接转发，不操作票据。 | 流程转换不改写响应，也不剥离下游的 `X-Flow-Business-Id`。 |
 
 - 票据由 32 字节加密安全随机数经 Base64Url 编码生成，长 43 字符。有效期从创建时起绝对计时，中间步骤不续期。末步提交后重设为完成态保留期，保留期间重复推进返回 `FLOW_COMPLETED`，过期后返回 `FLOW_NOT_FOUND`。
-- Redis 使用 `flow:ticket:{ticket}` 键，无 `InstanceName` 前缀。Lua 从 Redis `TIME` 获取时间，避免多网关实例的本地时钟漂移影响步骤占用。
-- 代理管道退出时，未完成的结算会用独立的 5 秒取消令牌尝试清理。自定义日志可用 `FlowTicketService.GetTicketFingerprint` 记录 SHA-256 十六进制摘要的前 12 位。当前兜底清理失败警告记录原票据，应按敏感日志处理。
+- Redis 使用 `flow:ticket:{ticket}` 键，无 `InstanceName` 前缀。所有写入 Redis 的票据均带有非空 `variant` 字段（建票要求非空白 `VariantKey`，推进要求非空候选组合列表）。Lua 从 Redis `TIME` 获取时间，避免多网关实例的本地时钟漂移影响步骤占用。
+- 代理管道退出时，未完成的结算（不含跳过存储的单步直通请求）会用独立的 5 秒取消令牌尝试清理。自定义日志可用 `FlowTicketService.GetTicketFingerprint` 记录 SHA-256 十六进制摘要的前 12 位。当前兜底清理失败警告记录原票据，应按敏感日志处理。
+- **升级注意（空 `variant` 旧票据）**：移除旧线性分支后，Redis 推进脚本要求票据必须已锁定非空 `variant`。若从历史线性版本滚动升级且 Redis 中仍存留 `variant` 为空的进行中旧票据，推进请求将被确定性拒绝为 `403 FLOW_STEP_NOT_ALLOWED`（不会放行或加锁）；建议在低峰期或等待旧票据 TTL 自然过期后再升级网关。
 
 ### 错误码与前端处理
 
@@ -432,17 +447,17 @@ Cache-Control: no-store
 
 | HTTP | `code` | `type` slug | 触发条件 |
 |---|---|---|---|
-| 403 | `FLOW_NOT_FOUND` | `not-found` | 票据首值缺失或空白、Redis 键不存在（包括 TTL 到期），或无票调用的接口并非所选组合的首步。 |
+| 403 | `FLOW_NOT_FOUND` | `not-found` | 票据首值缺失或空白、Redis 键不存在（包括 TTL 到期），或无票调用的接口并非所选组合（或唯一组合）的首步。 |
 | 403 | `FLOW_EXPIRED` | `expired` | 错误映射项，内置 Redis 流程的键过期按 `FLOW_NOT_FOUND` 处理。 |
 | 403 | `FLOW_BUSINESS_MISMATCH` | `business-mismatch` | 推进请求未提供非空业务标识，或首个值与已绑定值不一致。下游响应回传的值与绑定冲突属于结算异常。 |
-| 403 | `FLOW_STEP_NOT_ALLOWED` | `step-not-allowed` | 票据属于其他流程、缺少已锁定组合、当前接口不在票据组合中、顺位不符，或存储返回的组合及顺位与接口定义不一致。未识别的存储拒绝也映射到此码。 |
+| 403 | `FLOW_STEP_NOT_ALLOWED` | `step-not-allowed` | 票据属于其他流程、缺少已锁定非空组合（含存量空 `variant` 旧票据）、当前接口不在票据组合中、顺位不符（含持票重调已提交首步），或存储返回的组合及顺位与接口定义不一致。未识别的存储拒绝也映射到此码。 |
 | 403 | `FLOW_IN_PROGRESS` | `in-progress` | 同一步骤存在未到期的占用、状态不允许重新占用，或创建票据时键已存在。提交、释放和删除时 `AttemptId` 不匹配也使用此存储错误码，提交时还检查持锁状态。这些结算阶段的错误走响应转换异常分支。 |
-| 403 | `FLOW_COMPLETED` | `completed` | 票据处于完成保留期，拒绝再次推进。 |
-| 403 | `FLOW_SELECTOR_INVALID` | `selector-invalid` | 参数化流程新开时，前置参数缺失、空白、多值或未匹配到配置的组合。 |
-| 403 | `FLOW_SELECTOR_MISMATCH` | `selector-mismatch` | 参数化流程持票推进时，携带的前置参数为空白、多值，或与票据锁定组合不同。 |
+| 403 | `FLOW_COMPLETED` | `completed` | 票据处于完成保留期，拒绝再次推进（含持票重调首步）。 |
+| 403 | `FLOW_SELECTOR_INVALID` | `selector-invalid` | 配置了 `ParameterHeaderName` 的流程无票新开时，前置参数缺失、空白、多值或未匹配到配置的组合。 |
+| 403 | `FLOW_SELECTOR_MISMATCH` | `selector-mismatch` | 配置了 `ParameterHeaderName` 的流程持票推进时，携带的前置参数为空白、多值，或与票据锁定组合不同。 |
 | 500 | `FLOW_CONFIGURATION_ERROR` | `configuration-error` | 代理路由缺少唯一可用的 `PathRemovePrefix`，或请求路径无法按段边界移除该前缀。启用后先对所有经过该中间件的代理请求检查此条件，再查流程匹配。 |
 
-拒绝顺序分两层。参数化新开先校验前置参数格式及组合，再查当前接口是否为首步。持票推进先在中间件读取票据首值、检查业务标识必填，以及校验已携带的前置参数格式。随后 Redis 按票据存在性 → 完成态 → `flowId` → 已绑定业务标识 → 组合及前置参数一致性 → 顺位 → 锁的顺序判定。因此业务标识缺失或前置参数格式无效时，请求可能在查询 Redis 键之前被拒绝。
+拒绝顺序分两层。无票新开时：配置了 `ParameterHeaderName` 则先校验前置参数格式及组合，未配置则直接取唯一组合；再查当前接口是否为所选组合首步；若该组合仅 1 步则跳过存储直接转发，否则建票加锁。持票推进时：先在中间件读取票据首值、检查业务标识必填，以及在配置了 `ParameterHeaderName` 且请求携带该头时校验其格式；随后 Redis 按票据存在性 → 完成态 → `flowId` → 已绑定业务标识 → 非空锁定组合 → 前置参数一致性 → 候选组合匹配 → 顺位 → 处理锁的顺序判定。因此业务标识缺失或前置参数格式无效时，请求可能在查询 Redis 键之前被拒绝。
 
 前端可按 `flowId + businessId` 在内存保存服务端回传的票据。推进时发送配置的票据头和业务标识头，收到完成标记后清除本地票据。遇到 `FLOW_IN_PROGRESS` 时等待当前请求结果，或在处理锁过期后按原步骤重试。票据不存在、已完成或业务标识不匹配时，清除失效票据并重新核对流程上下文。下游明确返回非 2xx 且结算成功时，可用原票据按原顺位重试后续步骤。代理出错且结算结果未知时，先核对下游业务结果，再按业务幂等约定决定是否重试。票据是持有者凭据，无 `userId` 或 `tenantId` 绑定，应避免写入 LocalStorage 和日志。
 
@@ -560,7 +575,7 @@ spec:
 | 代理路径返回 404 | 确认首轮发现已成功，服务存在于快照中，`GatewayEnabled` 为真且 `GatewayEndpointName` 匹配。一并检查服务名前缀，以及服务是否已被刷新移除。 |
 | 间歇性 502 | 检查下游协议、地址和端口，确认失效实例是否仍在发现快照中。 |
 | 500 `FLOW_CONFIGURATION_ERROR` | 检查代理路由是否有唯一有效的 `PathRemovePrefix`，以及请求路径能否移除此完整段前缀。确认流程中间件位于 `MapReverseProxy` 内。 |
-| 403 `FLOW_NOT_FOUND` | 确认请求有正确的票据头及实际票据，检查 Redis 键和 TTL。无票启动参数化流程时确认当前接口是所选组合的首步。 |
+| 403 `FLOW_NOT_FOUND` | 确认请求有正确的票据头及实际票据，检查 Redis 键和 TTL。无票启动流程时确认当前接口是所选组合（或唯一组合）的首步。 |
 | 403 `FLOW_BUSINESS_MISMATCH` | 确认 `BusinessIdHeaderName` 实际配置、请求首值和票据绑定值。推进请求必须提供非空业务标识。 |
 | 受保护请求返回空体 502 或 503 | 检查代理错误和流程结算日志。结算转换内部设置 503，但 YARP 2.3.0 会将重新抛出的转换异常处理为 502。核对 Redis 连接、占用状态及下游业务结果后再重试。 |
 | `/health` 为 `Unhealthy` | 查找 `service-directory` 初次刷新或后续刷新失败的日志，比较距上次成功时间与 `MaxStaleDuration`。 |
